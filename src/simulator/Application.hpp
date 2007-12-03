@@ -119,6 +119,53 @@ namespace wns { namespace simulator {
         getPythonPath() const;
 
         /**
+         * @brief Disable usage of 80 bit extensions in x87
+         *
+         * From: http://www.network-theory.co.uk/docs/gccintro/gccintro_70.html
+         *
+         * The IEEE-754 standard defines the bit-level behavior of
+         * floating-point arithmetic operations on all modern processors. This
+         * allows numerical programs to be ported between different platforms
+         * with identical results, in principle. In practice, there are often
+         * minor variations caused by differences in the order of operations
+         * (depending on the compiler and optimization level) but these are
+         * generally not significant.
+         *
+         * However, more noticeable discrepancies can be seen when porting
+         * numerical programs between x86 systems and other platforms, because
+         * the the x87 floating point unit (FPU) on x86 processors computes
+         * results using extended precision internally (the values being
+         * converted to double precision only when they are stored to
+         * memory). In contrast, processors such as SPARC, PA-RISC, Alpha, MIPS
+         * and POWER/PowerPC work with native double-precision values
+         * throughout. The differences between these implementations lead to
+         * changes in rounding and underflow/overflow behavior, because
+         * intermediate values have a greater relative precision and exponent
+         * range when computed in extended precision. In particular,
+         * comparisons involving extended precision values may fail where the
+         * equivalent double precision values would compare equal.
+         *
+         * To avoid these incompatibilities, the x87 FPU also offers a hardware
+         * double-precision rounding mode. In this mode the results of each
+         * extended-precision floating-point operation are rounded to double
+         * precision in the floating-point registers by the FPU. It is important
+         * to note that the rounding only affects the precision, not the
+         * exponent range, so the result is a hybrid double-precision format
+         * with an extended range of exponents.
+         *
+         * On BSD systems such as FreeBSD, NetBSD and OpenBSD, the hardware
+         * double-precision rounding mode is the default, giving the greatest
+         * compatibility with native double precision platforms. On x86
+         * GNU/Linux systems the default mode is extended precision (with the
+         * aim of providing increased accuracy). To enable the double-precision
+         * rounding mode it is necessary to override the default setting on
+         * per-process basis using the FLDCW "floating-point load control-word"
+         * machine instruction, which will be performed by this method.
+         */
+        static void
+        disableX87ExtendedFloatingPointPrecision();
+
+        /**
          * @brief The status code of openWNS
          *
          * 0 - everything fine
@@ -195,9 +242,14 @@ namespace wns { namespace simulator {
 		wns::logger::Logger logger_;
 
         /**
-         * @brief a monitor for the event scheduler
+         * @brief A monitor for the event scheduler
          */
         std::auto_ptr<wns::events::scheduler::Monitor> eventSchedulerMonitor_;
+
+        /**
+         * @brief If true don't use 80 bit extensions of x87
+         */
+        bool noExtendedPrecision_;
     };
 
 } // simulator

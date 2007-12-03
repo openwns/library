@@ -73,7 +73,8 @@ Application::Application() :
     debuggerName_("gdb"),
     attachDebugger_(false),
     interactiveConfig_(false),
-	logger_("WNS", "Application", NULL)
+	logger_("WNS", "Application", NULL),
+    noExtendedPrecision_(false)
 {
     options_.add_options()
 
@@ -114,6 +115,10 @@ Application::Application() :
         ("patch-config,y",
          boost::program_options::value<PyConfigPatchContainer>(&pyConfigPatches_),
          "patch the configuration with the given Python expression")
+
+        ("no-extended-precision",
+         boost::program_options::bool_switch(&noExtendedPrecision_),
+         "disable the usage of extended precision in x87 (enables strict IEEE754 compatibility)")
         ;
 }
 
@@ -136,6 +141,11 @@ Application::doReadCommandLine(int argc, char* argv[])
 void
 Application::doInit()
 {
+    if (noExtendedPrecision_)
+    {
+        Application::disableX87ExtendedFloatingPointPrecision();
+    }
+
     if (arguments_.count("help") > 0)
     {
         std::cout << options_ << "\n";
@@ -378,4 +388,11 @@ Application::unexpectedHandler()
     std::cerr << "openWNS: caught an unexpected excpetion!\n";
     wns::simulator::getMasterLogger()->outputBacktrace();
     exit(1);
+}
+
+void
+Application::disableX87ExtendedFloatingPointPrecision()
+{
+    unsigned int mode = 0x27F;
+	asm ("fldcw %0" : : "m" (*&mode));
 }
