@@ -108,6 +108,26 @@ Logger::~Logger()
 {
 } // ~Logger
 
+Logger::Logger(const Logger& other) :
+	mName(other.mName),
+	lName(other.lName),
+	masterLogger(other.masterLogger), // sharing the same instance
+	enabled(other.enabled),
+	level(other.level)
+{
+}
+
+Logger&
+Logger::operator=(const Logger& other)
+{
+	mName = other.mName;
+	lName = other.lName;
+	masterLogger = other.masterLogger; // sharing the same instance
+	enabled = other.enabled;
+	level = other.level;
+	return *this;
+}
+
 void
 Logger::configure(const wns::pyconfig::View& config)
 {

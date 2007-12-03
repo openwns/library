@@ -58,11 +58,30 @@ namespace wns {
          */
 		explicit
 		TypeInfo(const std::type_info& type) :
+            IOutputStreamable(),
 			type_(&type)
 		{}
 
-        // Default copy c'tor is ok
-        // Default assignment operator is ok
+        /**
+         * @brief Copy c'tor (due to dynamic members)
+         */
+        TypeInfo(const TypeInfo& other) :
+            IOutputStreamable(other),
+            type_(other.type_)
+        {
+        }
+
+        /**
+         * @brief Assignment operator (due to dynamic members)
+         */
+        TypeInfo&
+        operator=(const TypeInfo& other)
+        {
+            type_ = other.type_;
+            return *this;
+        }
+
+
         // Default d'tor is ok
 
         /**

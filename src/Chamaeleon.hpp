@@ -203,10 +203,11 @@ namespace wns {
          * @brief Assignment operator
          */
         template <typename U>
-        void
+        Chamaeleon&
         operator =(const Chamaeleon<U>& other) throw()
         {
             data_ = other.data_;
+            return *this;
         }
 
     private:

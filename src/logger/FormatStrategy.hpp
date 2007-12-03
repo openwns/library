@@ -38,6 +38,14 @@ namespace wns { namespace logger {
 
 	struct RawMessage
 	{
+		RawMessage() :
+			time(),
+			module(),
+			location(),
+			message()
+		{
+		}
+
 		wns::simulator::Time time;
 		std::string module;
 		std::string location;

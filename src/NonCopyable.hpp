@@ -66,6 +66,7 @@ namespace wns {
         /**
          * @brief Avoid deletion of NonCopyable object (symmetric with c'tor)
          */
+        virtual
         ~NonCopyable()
         {
         }

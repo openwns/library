@@ -148,7 +148,19 @@ namespace wns { namespace logger {
 		/**
 		 * @brief Destructor
 		 */
-		virtual ~Logger();
+		virtual
+		~Logger();
+
+		/**
+		 * @brief Copy c'tor (class contains pointer)
+		 */
+		Logger(const Logger& other);
+
+		/**
+		 * @brief Assigment operator (class contains pointer)
+		 */
+		Logger&
+		operator=(const Logger& other);
 
 		/**
 		 * @brief Configure the logger with the given configuration
