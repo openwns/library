@@ -1,0 +1,7 @@
+.objs
+.sconsign.dblite
+config/private.py
+addOn
+build
+include
+config/bversion.hpp
