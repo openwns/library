@@ -5,3 +5,4 @@ addOn
 build
 include
 config/bversion.hpp
+config/pushMailRecipients.py
