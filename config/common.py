@@ -10,8 +10,12 @@ commonEnv = CNBSEnvironment(PROJNAME       = 'wns',
                             SHORTCUTS      = True,
 			    DEFAULTVERSION = True,
 			    FLATINCLUDES   = False,
-                            LIBS           = ['python2.4'],
-			    REVISIONCONTROL = RCS.Bazaar('../', 'libwns', 'main', '1.0'),
+                            LIBS           = ['python2.4',
+                                              'cppunit',
+                                              'dl',
+                                              'boost_program_options',
+                                              'boost_signals'],
+			    REVISIONCONTROL = RCS.Bazaar('../', 'libwns', 'main', '1.0')
                             )
 
 Return('commonEnv')
