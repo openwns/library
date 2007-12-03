@@ -10,7 +10,7 @@ commonEnv = CNBSEnvironment(PROJNAME       = 'wns',
                             SHORTCUTS      = True,
 			    DEFAULTVERSION = True,
 			    FLATINCLUDES   = False,
-                            LIBS           = ['python2.4', 'sqlite'],
+                            LIBS           = ['python2.4'],
 			    REVISIONCONTROL = RCS.Bazaar('../', 'libwns', 'main', '1.0'),
                             )
 
