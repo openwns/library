@@ -74,7 +74,7 @@ Application::Application() :
     attachDebugger_(false),
     interactiveConfig_(false),
 	logger_("WNS", "Application", NULL),
-    noExtendedPrecision_(false)
+    extendedPrecision_(false)
 {
     options_.add_options()
 
@@ -116,9 +116,9 @@ Application::Application() :
          boost::program_options::value<PyConfigPatchContainer>(&pyConfigPatches_),
          "patch the configuration with the given Python expression")
 
-        ("no-extended-precision",
-         boost::program_options::bool_switch(&noExtendedPrecision_),
-         "disable the usage of extended precision in x87 (enables strict IEEE754 compatibility)")
+        ("extended-precision",
+         boost::program_options::bool_switch(&extendedPrecision_),
+         "enabled arithmetic operations with extended precision (80 bit) in x87 (disables strict IEEE754 compatibility)")
         ;
 }
 
@@ -141,7 +141,7 @@ Application::doReadCommandLine(int argc, char* argv[])
 void
 Application::doInit()
 {
-    if (noExtendedPrecision_)
+    if (!extendedPrecision_)
     {
         Application::disableX87ExtendedFloatingPointPrecision();
     }
@@ -394,5 +394,5 @@ void
 Application::disableX87ExtendedFloatingPointPrecision()
 {
     unsigned int mode = 0x27F;
-	asm ("fldcw %0" : : "m" (*&mode));
+	asm("fldcw %0" : : "m" (*&mode));
 }

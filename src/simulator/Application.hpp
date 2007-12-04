@@ -247,9 +247,9 @@ namespace wns { namespace simulator {
         std::auto_ptr<wns::events::scheduler::Monitor> eventSchedulerMonitor_;
 
         /**
-         * @brief If true don't use 80 bit extensions of x87
+         * @brief If true use 80 bit extensions of x87 (false by default)
          */
-        bool noExtendedPrecision_;
+        bool extendedPrecision_;
     };
 
 } // simulator
