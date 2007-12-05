@@ -31,6 +31,7 @@
 #include <WNS/Assure.hpp>
 #include <WNS/container/FastListNode.hpp>
 #include <WNS/NonCopyable.hpp>
+#include <memory>
 
 namespace wns { namespace container {
 
@@ -302,10 +303,12 @@ namespace wns { namespace container {
          */
         void push_front(const T& x)
         {
-            FastListNode<T>* fln = new FastListNode<T>(x);
-            x->setFastListNode(this, fln);
+            std::auto_ptr< FastListNode<T> > fln(new FastListNode<T>(x));
+            x->setFastListNode(this, fln.get());
             fln->addToList(b);
             ++s;
+            // everything ok, release the poiner, now handled by FastList
+            fln.release();
         }
 
         /**
@@ -321,10 +324,12 @@ namespace wns { namespace container {
          */
         void push_back(const T& x)
         {
-            FastListNode<T>* fln = new FastListNode<T>(x);
-            x->setFastListNode(this, fln);
+            std::auto_ptr< FastListNode<T> > fln(new FastListNode<T>(x));
+            x->setFastListNode(this, fln.get());
             fln->addToList(*b.getPrevious());
             ++s;
+            // everything ok, release the poiner, now handled by FastList
+            fln.release();
         }
 
         /**

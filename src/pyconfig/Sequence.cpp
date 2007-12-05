@@ -25,41 +25,43 @@
  *
  ******************************************************************************/
 
+#include <Python.h>
+
 #include <WNS/pyconfig/Sequence.hpp>
 #include <sstream>
 
 using namespace wns::pyconfig;
 
-Sequence::Sequence(PyObject* _sequence) :
+Sequence::Sequence(Object _sequence) :
 	sequence(_sequence),
 	pathName("")
 
 {
-	assure(PySequence_Check(_sequence) == 1, "Object is no sequence!");
-	Py_INCREF(sequence);
+	assure(_sequence.isSequence(), "Object is no sequence!");
+	sequence.incref();
 } // Sequence
 
-Sequence::Sequence(PyObject* _sequence,
+Sequence::Sequence(Object _sequence,
 		   const std::string& _pathName) :
 	sequence(_sequence),
 	pathName(_pathName)
 
 {
-	assure(PySequence_Check(_sequence) == 1, "Object is no sequence!");
-	Py_INCREF(sequence);
+	assure(_sequence.isSequence(), "Object is no sequence!");
+	sequence.incref();
 } // Sequence
 
 Sequence::Sequence(const Sequence& other) :
 	sequence(other.sequence),
 	pathName(other.pathName)
 {
-	Py_INCREF(sequence);
+	sequence.incref();
 } // copy constructor
 
 
 Sequence::~Sequence()
 {
-	Py_DECREF(sequence);
+	sequence.decref();
 } // ~Sequence
 
 
@@ -67,7 +69,7 @@ Sequence&
 Sequence::operator=(const Sequence& other)
 {
 	sequence = other.sequence;
-	Py_INCREF(sequence);
+	sequence.incref();
 
 	return *this;
 } // =
@@ -76,30 +78,30 @@ Sequence::operator=(const Sequence& other)
 bool
 Sequence::empty() const
 {
-	return !PySequence_Length(sequence);
+	return !PySequence_Length(sequence.obj_);
 } // empty
 
 
 int
 Sequence::size() const
 {
-	return PySequence_Length(sequence);
+	return PySequence_Length(sequence.obj_);
 } // size
 
 
 bool
 Sequence::isSequenceAt(int n) const
 {
-	PyObject* obj = PySequence_GetItem(sequence, n);
-	assure(obj, "This is the end, my friend.");
-	if (PySequence_Check(obj)==1)
+	Object obj = sequence.getItem(n);
+	assure(!obj.isNull(), "This is the end, my friend.");
+	if (obj.isSequence())
 	{
-		Py_DECREF(obj);
+		obj.decref();
 		return true;
 	}
 	else
 	{
-		Py_DECREF(obj);
+		obj.decref();
 		return false;
 	}
 }
@@ -107,12 +109,12 @@ Sequence::isSequenceAt(int n) const
 Sequence
 Sequence::getSequenceAt(int n) const
 {
-	PyObject* obj = PySequence_GetItem(sequence, n);
+	Object obj = sequence.getItem(n);
 	assure(isSequenceAt(n), "No sequence at pos:"<<n);
 
-	if (PySequence_Check(obj)!=1)
+	if (!obj.isSequence())
 	{
-		Py_DECREF(obj);
+		obj.decref();
 		Exception e;
 		e << "Sequence: Item at pos:'" << n
 		  << "' is no nested sequence.\n\n";
@@ -122,7 +124,7 @@ Sequence::getSequenceAt(int n) const
 	std::stringstream ss;
 	ss << pathName << "[" << n << "]";
 	Sequence s(obj, ss.str());
-	Py_DECREF(obj);
+	obj.decref();
 	return s;
 } // getSequenceAt
 
@@ -138,12 +140,12 @@ Sequence::IterPolicy::IterPolicy() :
 } // end() constructor
 
 
-Sequence::IterPolicy::IterPolicy(PyObject* sequence) :
+Sequence::IterPolicy::IterPolicy(Object sequence) :
 		iter(),
 		nextObject()
 {
-	iter = PyObject_GetIter(sequence);
-	assure(iter, "Sequence::iterator called without sequence.");
+	iter = Object(PyObject_GetIter(sequence.obj_));
+	assure(!iter.isNull(), "Sequence::iterator called without sequence.");
 
 	next();
 } // valid constructor
@@ -153,15 +155,15 @@ Sequence::IterPolicy::IterPolicy(const IterPolicy& other) :
 		iter(other.iter),
 		nextObject(other.nextObject)
 {
-	Py_XINCREF(iter);
-	Py_XINCREF(nextObject);
+	Py_XINCREF(iter.obj_);
+	Py_XINCREF(nextObject.obj_);
 } // copy constructor
 
 
 Sequence::IterPolicy::~IterPolicy()
 {
-	Py_XDECREF(iter);
-	Py_XDECREF(nextObject);
+	Py_XDECREF(iter.obj_);
+	Py_XDECREF(nextObject.obj_);
 } // ~IterPolicy
 
 
@@ -171,8 +173,8 @@ Sequence::IterPolicy::operator=(const IterPolicy& other)
 	iter = other.iter;
 	nextObject = other.nextObject;
 
-	Py_XINCREF(iter);
-	Py_XINCREF(nextObject);
+	Py_XINCREF(iter.obj_);
+	Py_XINCREF(nextObject.obj_);
 
 	return *this;
 } // =
@@ -181,12 +183,12 @@ Sequence::IterPolicy::operator=(const IterPolicy& other)
 void
 Sequence::IterPolicy::next()
 {
-	Py_XDECREF(nextObject);
-	nextObject = PyIter_Next(iter);
+	Py_XDECREF(nextObject.obj_);
+	nextObject = Object(PyIter_Next(iter.obj_));
 } // next
 
 
-PyObject*
+Object
 Sequence::IterPolicy::obj() const
 {
 	return nextObject;
@@ -206,24 +208,24 @@ Sequence::fromString(const std::string& s)
 		PyDict_SetItemString(pyDict, "__builtins__", PyImport_ImportModule("__builtin__"));
         assure(result==0, "Initializing __builtins__ failed!");
 
-	PyObject* o = PyRun_String(s.c_str(),
-				   Py_eval_input,
-				   pyDict,
-				   pyDict);
+	Object o(PyRun_String(s.c_str(),
+			      Py_eval_input,
+			      pyDict,
+			      pyDict));
 
 	Py_DECREF(pyDict);
 
-	if (o == NULL)
+	if (o.isNull())
 	{
 		Exception e;
 		e << "Erroneous Python Expression: \n\n" << s;
 		throw e;
 	}
 
-	assure(PySequence_Check(o)==1, "Python expression '" << s << "' is not a sequence!");
+	assure(o.isSequence(), "Python expression '" << s << "' is not a sequence!");
 
 	Sequence seq(o, "<string>");
-	Py_DECREF(o);
+	o.decref();
 	return seq;
 }
 

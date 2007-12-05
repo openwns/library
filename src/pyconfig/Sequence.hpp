@@ -28,11 +28,11 @@
 #ifndef WNS_PYCONFIG_SEQUENCE_HPP
 #define WNS_PYCONFIG_SEQUENCE_HPP
 
+#include <WNS/pyconfig/Object.hpp>
 #include <WNS/pyconfig/Converter.hpp>
 
 #include <WNS/Assure.hpp>
 #include <WNS/Exception.hpp>
-#include <python/Python.h>
 
 namespace wns { namespace probe { namespace bus {
 	class ProbePath;
@@ -56,7 +56,8 @@ namespace wns { namespace pyconfig {
 		{
 		}
 
-		TypedIterator(PyObject* thang) :
+		explicit
+		TypedIterator(Object thang) :
 				Converter<T>(),
 				ITER(thang)
 		{
@@ -76,7 +77,7 @@ namespace wns { namespace pyconfig {
 
 		T operator*()
 		{
-			assure(IteratorPolicy::obj(), "This is the end, my friend.\n");
+			assure(!IteratorPolicy::obj().isNull(), "This is the end, my friend.\n");
 
 			T value;
 			convert(value, IteratorPolicy::obj());
@@ -86,7 +87,7 @@ namespace wns { namespace pyconfig {
 		TypedIterator<T, ITER>&
 		operator++()
 		{
-			assure(IteratorPolicy::obj(), "This is the end, my friend.\n");
+			assure(!IteratorPolicy::obj().isNull(), "This is the end, my friend.\n");
 
 			IteratorPolicy::next();
 			return *this;
@@ -95,7 +96,7 @@ namespace wns { namespace pyconfig {
 		TypedIterator<T, ITER>
 		operator++(int)
 		{
-			assure(IteratorPolicy::obj(), "This is the end, my friend.\n");
+			assure(!IteratorPolicy::obj().isNull(), "This is the end, my friend.\n");
 
 			MyKind that = *this;
 			IteratorPolicy::next();
@@ -110,29 +111,36 @@ namespace wns { namespace pyconfig {
 		friend class View;
 		friend class wns::probe::bus::ProbePath;
 	public:
-		explicit Sequence(PyObject* _sequence);
+		explicit
+		Sequence(Object _sequence);
 
 		~Sequence();
 
-		Sequence(PyObject* _sequence, const std::string& pathName);
+		Sequence(Object _sequence, const std::string& pathName);
+
 		Sequence(const Sequence& other);
-		Sequence& operator=(const Sequence& other);
+
+		Sequence&
+		operator=(const Sequence& other);
 
 
-		bool empty() const;
-		int size() const;
+		bool
+		empty() const;
+
+		int
+		size() const;
 
 		template <typename T>
 		T
 		at(int n) const
 		{
-			PyObject* obj = PySequence_GetItem(sequence, n);
-			assure(obj, "This is the end, my friend.");
+			Object obj = sequence.getItem(n);
+			assure(!obj.isNull(), "This is the end, my friend.");
 
 			T value;
 			Converter<T> converter;
 			bool ok = converter.convert(value, obj);
-			Py_DECREF(obj);
+			obj.decref();
 
 			if(!ok)
 				throw Exception("couldn't convert.");
@@ -153,19 +161,25 @@ namespace wns { namespace pyconfig {
 		{
 		protected:
 			IterPolicy();
-			IterPolicy(PyObject* sequence);
+			IterPolicy(Object sequence);
 
-			virtual ~IterPolicy();
+			virtual
+			~IterPolicy();
 
 			IterPolicy(const IterPolicy& other);
-			IterPolicy& operator=(const IterPolicy& other);
 
-			virtual void next();
-			virtual PyObject* obj() const;
+			IterPolicy&
+			operator=(const IterPolicy& other);
+
+			virtual void
+			next();
+
+			virtual Object
+			obj() const;
 
 		private:
-			PyObject* iter;
-			PyObject *nextObject;
+			Object iter;
+			Object nextObject;
 		};
 
 		template <typename T>
@@ -173,8 +187,15 @@ namespace wns { namespace pyconfig {
 			public TypedIterator<T, IterPolicy>
 		{
 		public:
-			iterator() : TypedIterator<T, IterPolicy>() {}
-			iterator(PyObject* thang) : TypedIterator<T, IterPolicy>(thang) {}
+			iterator() :
+				TypedIterator<T, IterPolicy>()
+			{
+			}
+
+			iterator(Object thang) :
+				TypedIterator<T, IterPolicy>(thang)
+			{
+			}
 		};
 
 		template <typename T>
@@ -195,7 +216,7 @@ namespace wns { namespace pyconfig {
 		fromString(const std::string& s);
 
 	private:
-		PyObject* sequence;
+		Object sequence;
 		std::string pathName;
 	};
 

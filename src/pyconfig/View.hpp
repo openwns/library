@@ -29,8 +29,8 @@
 #define WNS_PYCONFIG_VIEW_HPP
 
 #include <WNS/pyconfig/Sequence.hpp>
+#include <WNS/pyconfig/Object.hpp>
 #include <WNS/TypeInfo.hpp>
-#include <python/Python.h>
 
 #include <sstream>
 #include <string>
@@ -102,13 +102,15 @@ namespace wns { namespace pyconfig {
 		bool
 		get(T& value, const std::string& optionExpression) const
 		{
-			PyObject* o = getObject(optionExpression);
-			if(o == NULL)
+			Object o = getObject(optionExpression);
+			if(o.isNull())
+			{
 				return false;
+			}
 
 			convert(value, o, optionExpression);
 
-			Py_DECREF(o);
+			o.decref();
 			return true;
 		} // get
 
@@ -116,14 +118,15 @@ namespace wns { namespace pyconfig {
 		bool
 		get(T& value, const std::string& optionExpression, int at) const
 		{
-			PyObject* o = getObject(optionExpression, at);
-			if(o == NULL) {
+			Object o = getObject(optionExpression, at);
+			if(o.isNull())
+			{
 				return false;
 			}
 
 			convert(value, o, optionExpression);
 
-			Py_DECREF(o);
+			o.decref();
 			return true;
 		} // get[at]
 
@@ -131,13 +134,15 @@ namespace wns { namespace pyconfig {
 		bool
 		get(View& value, const std::string& optionExpression) const
 		{
-			PyObject* o = getObject(optionExpression);
-			if(o == NULL)
+			Object o = getObject(optionExpression);
+			if(o.isNull())
+			{
 				return false;
+			}
 
 			checkIsNotNone<View>(o, optionExpression);
 
-			Py_DECREF(o);
+			o.decref();
 
 			value = View(*this, optionExpression);
 			return true;
@@ -147,11 +152,13 @@ namespace wns { namespace pyconfig {
 		bool
 		get(View& value, const std::string& optionExpression, int at) const
 		{
-			PyObject* o = getObject(optionExpression, at);
-			if(o == NULL)
+			Object o = getObject(optionExpression, at);
+			if(o.isNull())
+			{
 				return false;
+			}
 
-			Py_DECREF(o);
+			o.decref();
 
 			std::stringstream element;
 			element << optionExpression << "[" << at << "]";
@@ -251,10 +258,10 @@ namespace wns { namespace pyconfig {
 			return str;
 		}
 
-		PyObject*
+		Object
 		getObject(const std::string& optionExpression) const;
 
-		PyObject*
+		Object
 		getObject(const std::string& optionExpression, int at) const;
 
         protected:
@@ -264,9 +271,9 @@ namespace wns { namespace pyconfig {
 
 		template <typename T>
 		void
-		checkIsNotNone(PyObject* o, const std::string& optionExpression) const
+		checkIsNotNone(Object o, const std::string& optionExpression) const
 		{
-			if(o == Py_None) {
+			if(o.isNone()) {
 				Exception e;
 				e << "Tried to convert "
 				  << this->context() << "::"
@@ -279,7 +286,7 @@ namespace wns { namespace pyconfig {
 
 		template <typename T>
 		bool
-		convert(T& value, PyObject* o, const std::string& optionExpression) const
+		convert(T& value, Object o, const std::string& optionExpression) const
 		{
 			checkIsNotNone<T>(o, optionExpression);
 			return this->doConvert(value, o);
@@ -287,27 +294,26 @@ namespace wns { namespace pyconfig {
 
 		template <typename T>
 		bool
-		doConvert(T &value, PyObject *o) const
+		doConvert(T &value, Object o) const
 		{
-			PyObject* s = PyObject_Str(o);
-
-			if(s == NULL)
+			if (!o.isConvertibleToString())
+			{
 				return false;
+			}
 
-			std::istringstream os(PyString_AS_STRING(s));
+			std::istringstream os(o.toString());
 			os >> value;
 
-			Py_DECREF(s);
 			return true;
 		} // convert
 
 		// boolean converter
 		bool
-		doConvert(bool& value, PyObject* o) const;
+		doConvert(bool& value, Object o) const;
 
 		// std::string converter
 		bool
-		doConvert(std::string& value, PyObject* o) const;
+		doConvert(std::string& value, Object o) const;
 
 		/**
 		 * @brief Display an error message saying that optionExpression could not be resolved.
@@ -332,7 +338,8 @@ namespace wns { namespace pyconfig {
 		std::string
 		asString() const;
 
-		PyObject* dict;
+		Object dict;
+
 		std::string viewExpression;
 
 		View();

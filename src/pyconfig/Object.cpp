@@ -25,78 +25,93 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PYCONFIG_CONVERTER_HPP
-#define WNS_PYCONFIG_CONVERTER_HPP
-
+#include <Python.h>
 #include <WNS/pyconfig/Object.hpp>
+#include <sstream>
+#include <stddef.h>
 
-#include <string>
+using namespace wns::pyconfig;
 
-namespace wns { namespace pyconfig {
-	template <typename T>
-	class Converter
-	{
-	public:
-		typedef T TargetType;
+Object::Object() :
+    obj_(NULL)
+{
+}
 
-		// boolean converter
-		bool
-		convert(bool& value, Object o) const
-		{
-			switch(o.isTrue())
-			{
-					case 1:
-						value = true;
-						break;
-					case 0:
-						value = false;
-						break;
-			}
-			return false;
-		} // convert bool
+Object::Object(PyObject* obj) :
+    obj_(obj)
+{
+}
 
-		// std::string converter
-		bool
-		convert(std::string& value, Object o) const
-		{
-			if(!o.isConvertibleToString())
-			{
-				return false;
-			}
+std::string
+Object::toString() const
+{
+    PyObject* s = PyObject_Str(obj_);
+    std::string result(PyString_AS_STRING(s));
+    // Don't care if null
+    Py_XDECREF(s);
+    return result;
+}
 
-			value = o.toString();
-			return true;
-		} // convert string
+void
+Object::decref() const
+{
+    Py_DECREF(obj_);
+}
 
+void
+Object::incref() const
+{
+    Py_INCREF(obj_);
+}
 
-		// default converter
-		template <typename U>
-		bool convert(U &value, Object o) const
-		{
-			if(!o.isConvertibleToString())
-			{
-				return false;
-			}
+bool
+Object::isNone() const
+{
+    return obj_ == Py_None;
+}
 
-			std::istringstream os(o.toString());
-			os >> value;
+bool
+Object::isNull() const
+{
+    return obj_ == NULL;
+}
 
-			return true;
-		} // convert
-	};
+bool
+Object::isConvertibleToString() const
+{
+    PyObject* s = PyObject_Str(obj_);
+    bool result = s != NULL;
+    // Don't care if null
+    Py_XDECREF(s);
+    return result;
+}
 
-}}
+Object
+Object::getItem(int n) const
+{
+    return Object(PySequence_GetItem(obj_, n));
+}
 
-#endif // NOT defined WNS_PYCONFIG_CONVERTER_HPP
+bool
+Object::isSequence() const
+{
+    return PySequence_Check(obj_) == 1;
+}
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+int
+Object::isTrue() const
+{
+    return PyObject_IsTrue(obj_);
+}
+
+bool
+Object::operator==(const Object& other)
+{
+    return obj_ == other.obj_;
+}
+
+bool
+Object::operator!=(const Object& other)
+{
+    return obj_ != other.obj_;
+}

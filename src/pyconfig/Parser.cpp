@@ -25,6 +25,8 @@
  *
  ******************************************************************************/
 
+#include <Python.h>
+
 #include <WNS/pyconfig/Parser.hpp>
 #include <WNS/pyconfig/helper/Functions.hpp>
 
@@ -78,8 +80,9 @@ Parser::load(const std::string &filename)
 	PyObject* o = PyRun_File(fp,
 				 filename.c_str(),
 				 Py_file_input,
-				 this->dict,
-				 this->dict);
+				 this->dict.obj_,
+				 this->dict.obj_);
+	fclose(fp);
 	if(o == NULL)
 	{
 		std::cerr << "wns::pyconfig::Parser says:\n"
@@ -100,8 +103,8 @@ Parser::loadString(const std::string &s)
 
 	PyObject* o = PyRun_String(s.c_str(),
 				   Py_file_input,
-				   this->dict,
-				   this->dict);
+				   this->dict.obj_,
+				   this->dict.obj_);
 	if(o == NULL)
 	{
 		std::cerr << "wns::pyconfig::Parser says:\n"
@@ -130,9 +133,9 @@ Parser::initPython()
 		throw Exception("couldn't open configfile");	// FIXME(fds)
 	}
 
-	this->dict = PyModule_GetDict(module);
-	Py_INCREF(this->dict);
-	PyDict_SetItemString(this->dict, "__builtins__", PyImport_ImportModule("__builtin__"));
+	this->dict = Object(PyModule_GetDict(module));
+	this->dict.incref();
+	PyDict_SetItemString(this->dict.obj_, "__builtins__", PyImport_ImportModule("__builtin__"));
 } // initPython
 
 

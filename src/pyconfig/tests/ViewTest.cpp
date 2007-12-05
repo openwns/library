@@ -25,6 +25,8 @@
  *
  ******************************************************************************/
 
+#include <Python.h>
+
 #include "ViewTest.hpp"
 #include <WNS/Exception.hpp>
 
@@ -294,17 +296,17 @@ void
 ViewTest::testCopy()
 {
 	pyco->loadString("foo = 42\n");
-	CPPUNIT_ASSERT(pyco->dict->ob_refcnt == 2);
+	CPPUNIT_ASSERT(pyco->dict.obj_->ob_refcnt == 2);
 
 	{
 		View foo = View(*pyco);
 
-		CPPUNIT_ASSERT(pyco->dict->ob_refcnt == 3);
+		CPPUNIT_ASSERT(pyco->dict.obj_->ob_refcnt == 3);
 		CPPUNIT_ASSERT_EQUAL(42, foo.get<int>("foo"));
 		CPPUNIT_ASSERT(foo.context() == "<string>");
 	}
 
-	CPPUNIT_ASSERT(pyco->dict->ob_refcnt == 2);
+	CPPUNIT_ASSERT(pyco->dict.obj_->ob_refcnt == 2);
 } // testCopy
 
 
@@ -312,19 +314,19 @@ void
 ViewTest::testAssignment()
 {
 	pyco->loadString("foo = 42\n");
-	CPPUNIT_ASSERT(pyco->dict->ob_refcnt == 2);
+	CPPUNIT_ASSERT(pyco->dict.obj_->ob_refcnt == 2);
 
 	{
 		View foo;
 
 		foo = *pyco;
 
-		CPPUNIT_ASSERT(pyco->dict->ob_refcnt == 3);
+		CPPUNIT_ASSERT(pyco->dict.obj_->ob_refcnt == 3);
 		CPPUNIT_ASSERT_EQUAL(42, foo.get<int>("foo"));
 		CPPUNIT_ASSERT(foo.context() == "<string>");
 	}
 
-	CPPUNIT_ASSERT(pyco->dict->ob_refcnt == 2);
+	CPPUNIT_ASSERT(pyco->dict.obj_->ob_refcnt == 2);
 } // testAssignment
 
 
