@@ -25,6 +25,7 @@ srcFiles['BASE'] = [
     'src/simulator/UnitTests.cpp',
 
     # pyconfig
+    'src/pyconfig/Object.cpp',
     'src/pyconfig/View.cpp',
     'src/pyconfig/Parser.cpp',
     'src/pyconfig/Sequence.cpp',

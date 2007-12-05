@@ -25,6 +25,11 @@
  *
  ******************************************************************************/
 
+// Since Python may define some pre-processor definitions which affect the
+// standard headers on some systems, you must include Python.h before any
+// standard headers are included.
+#include <Python.h>
+
 #include <WNS/pyconfig/View.hpp>
 #include <WNS/Exception.hpp>
 #include <WNS/Assure.hpp>
@@ -52,15 +57,15 @@ View::View(const View& other, const std::string &newViewExpression) :
 
 	assure(!PyErr_Occurred(), "Dirty python context!");
 
-	PyObject* pyObject = other.getObject(newViewExpression);
-	if(pyObject == NULL)
+	Object pyObject = other.getObject(newViewExpression);
+	if(pyObject.isNull())
 	{
 		other.couldntRetrieve(newViewExpression);
 		this->showdown("Couldn't resolve viewExpression.");
 	}
 
 	// not needed any longer
-	Py_DECREF(pyObject);
+	pyObject.decref();
 
 	std::stringstream ss;
 	// the following python code snippet creates the context
@@ -69,16 +74,16 @@ View::View(const View& other, const std::string &newViewExpression) :
 	// pyconfig::Parser module of the wns package.
 	ss << "__import__('openwns.PyConfig').PyConfig.View(" << newViewExpression << ")";
 
-	this->dict = PyRun_String(ss.str().c_str(),
-			    Py_eval_input,
-			    other.dict,
-			    other.dict);
-	if(this->dict == NULL)
+	this->dict = Object(PyRun_String(ss.str().c_str(),
+					 Py_eval_input,
+					 other.dict.obj_,
+					 other.dict.obj_));
+	if(this->dict.isNull())
 	{
 		other.couldntRetrieve(newViewExpression);
 		showdown("Couldn't resolve viewExpression.");
 	}
-	assert(this->dict != NULL);
+	assert(!this->dict.isNull());
 
 	this->viewExpression = other.viewExpression + "::" + newViewExpression;
 } // View
@@ -95,15 +100,15 @@ View::View(const View& other, const std::string &newViewExpression, int at) :
 	std::stringstream subscription;
 	subscription << newViewExpression << "[" << at << "]";
 
-	PyObject* pyObject = other.getObject(subscription.str());
-	if(pyObject == NULL)
+	Object pyObject = other.getObject(subscription.str());
+	if(pyObject.isNull())
 	{
 		other.couldntRetrieve(newViewExpression);
 		showdown("Couldn't resolve viewExpression.");
 	}
 
 	// Not needed any longer
-	Py_DECREF(pyObject);
+	pyObject.decref();
 
 	{
 		std::stringstream ss;
@@ -112,11 +117,11 @@ View::View(const View& other, const std::string &newViewExpression, int at) :
 		   << "[" << at << "]"
 		   << ")";
 
-		dict = PyRun_String(ss.str().c_str(),
-				    Py_eval_input,
-				    other.dict,
-				    other.dict);
-		assert(NULL != dict);
+		dict = Object(PyRun_String(ss.str().c_str(),
+					   Py_eval_input,
+					   other.dict.obj_,
+					   other.dict.obj_));
+		assert(!dict.isNull());
 	}
 
 	{
@@ -139,13 +144,13 @@ View::View(const Sequence& seq, int at) :
 
 	assure(!seq.isSequenceAt(at), "Trying to create pyconfig::View from nested sequence!");
 
-	PyObject* pyDict = PyDict_New();
-        assure(pyDict != NULL, "Creation of Python Dict Failed");
+	Object pyDict(PyDict_New());
+        assure(!pyDict.isNull(), "Creation of Python Dict Failed");
 
-	int result = PyDict_SetItemString(pyDict, "dummy", seq.sequence);
+	int result = PyDict_SetItemString(pyDict.obj_, "dummy", seq.sequence.obj_);
         assure(result==0, "Inserting of element into Dict failed!");
 
-	result = PyDict_SetItemString(pyDict, "__builtins__", PyImport_ImportModule("__builtin__"));
+	result = PyDict_SetItemString(pyDict.obj_, "__builtins__", PyImport_ImportModule("__builtin__"));
         assure(result==0, "Initializing __builtins__ failed!");
 
 	{
@@ -154,14 +159,14 @@ View::View(const Sequence& seq, int at) :
 		   << "dummy[" << at << "]"
 		   << ")";
 
-		dict = PyRun_String(ss.str().c_str(),
-				    Py_eval_input,
-				    pyDict,
-				    pyDict);
-		if (dict == NULL)
+		dict = Object(PyRun_String(ss.str().c_str(),
+					   Py_eval_input,
+					   pyDict.obj_,
+					   pyDict.obj_));
+		if (dict.isNull())
 			showdown("couldn't create View from sequence item!", true);
 	}
-	Py_DECREF(pyDict);
+	pyDict.decref();
 
 	{
 		std::stringstream ss;
@@ -175,9 +180,9 @@ View::~View()
 {
 	// can happen that dict is NULL if View() has been called but not object
 	// has not been used.
-	if(dict != NULL)
+	if(!dict.isNull())
 	{
-		Py_DECREF(dict);
+		dict.decref();
 	}
 
 	--View::getCount();
@@ -212,35 +217,35 @@ View::getView(const std::string& newViewExpression, int at) const
 	return View(*this, newViewExpression, at);
 } // getView
 
-PyObject*
+Object
 View::getObject(const std::string& optionExpression) const
 {
 	assure(!PyErr_Occurred(), "Dirty python context!");
 
-	return PyRun_String(optionExpression.c_str(),
-			    Py_eval_input,
-			    dict,
-			    dict);
+	return Object(PyRun_String(optionExpression.c_str(),
+				   Py_eval_input,
+				   dict.obj_,
+				   dict.obj_));
 } // getObject
 
 
-PyObject*
+Object
 View::getObject(const std::string& optionExpression, int at) const
 {
-	PyObject* seq = getObject(optionExpression);
-	if(seq == NULL)
+	Object seq = getObject(optionExpression);
+	if(seq.isNull())
 	{
-		return NULL;
+		return Object();
 	}
 
-	if(!PySequence_Check(seq))
+	if(!PySequence_Check(seq.obj_))
 	{
-		Py_DECREF(seq);
-		return NULL;
+		seq.decref();
+		return Object();
 	}
 
-	PyObject* o = PySequence_GetItem(seq, at);
-	Py_DECREF(seq);
+	Object o(PySequence_GetItem(seq.obj_, at));
+	seq.decref();
 
 	return o;
 } // getObject
@@ -251,19 +256,21 @@ View::len(int& result, const std::string& optionExpression) const
 {
 	assure(!PyErr_Occurred(), "Dirty python context!");
 
-	PyObject* o = getObject(optionExpression);
-	if(!o) {
+	Object o = getObject(optionExpression);
+	if(o.isNull())
+	{
 		PyErr_Clear();
 		return false;
 	}
 
-	if(!PySequence_Check(o)) {
-		Py_DECREF(o);
+	if(!PySequence_Check(o.obj_))
+	{
+		o.decref();
 		return false;
 	}
 
-	result = PySequence_Length(o);
-	Py_DECREF(o);
+	result = PySequence_Length(o.obj_);
+	o.decref();
 	return true;
 } // len
 
@@ -275,7 +282,8 @@ View::len(const std::string& optionExpression) const
 
 	int result;
 
-	if(!len(result, optionExpression)) {
+	if(!len(result, optionExpression))
+	{
 		couldntRetrieve(optionExpression);
 
 		showdown("Unknown thang in View::len.");
@@ -289,13 +297,14 @@ View::knows(const std::string& optionExpression) const
 {
 	assure(!PyErr_Occurred(), "Dirty python context!");
 
-	PyObject* o = getObject(optionExpression);
-	if(!o) {
+	Object o = getObject(optionExpression);
+	if(o.isNull())
+	{
 		PyErr_Clear();
 		return false;
 	}
 
-	Py_DECREF(o);
+	o.decref();
 	return true;
 } // knows
 
@@ -317,41 +326,43 @@ View::patch(const std::string& expression)
 {
 	assure(!PyErr_Occurred(), "Dirty python context!");
 
-	PyObject* o = PyRun_String(expression.c_str(), Py_file_input, dict, dict);
-	if(!o)
+	Object o(PyRun_String(expression.c_str(), Py_file_input, dict.obj_, dict.obj_));
+	if(o.isNull())
+	{
 		showdown("couldn't patch View.", true);
+	}
 
-	Py_DECREF(o);
+	o.decref();
 } // patch
 
 bool
 View::isNone(const std::string& expression) const
 {
-	PyObject* o = this->getObject(expression);
-	bool isNone = (o == Py_None);
-	Py_DECREF(o);
+	Object o = this->getObject(expression);
+	bool isNone = o.isNone();
+	o.decref();
 	return isNone;
 } // isNone
 
 bool
 View::isSequence(const std::string& expression) const
 {
-	PyObject* o = this->getObject(expression);
+	Object o = this->getObject(expression);
 
-        if(o == NULL)
+        if(o.isNull())
         {
                 this->couldntRetrieve(expression);
                 this->showdown("Couldn't resolve viewExpression.");
         }
 
-	if (PySequence_Check(o) == 1)
+	if (PySequence_Check(o.obj_) == 1)
 	{
-		Py_DECREF(o);
+		o.decref();
 		return true;
 	}
 	else
 	{
-		Py_DECREF(o);
+		o.decref();
 		return false;
 	}
 }
@@ -362,7 +373,7 @@ View::View(const View& other)
 	this->initializePython();
 	viewExpression = other.viewExpression;
 	dict = other.dict;
-	Py_INCREF(dict);
+	dict.incref();
 } // copy constructor
 
 
@@ -371,7 +382,7 @@ View::operator=(const View& other)
 {
 	viewExpression = other.viewExpression;
 	dict = other.dict;
-	Py_INCREF(dict);
+	dict.incref();
 
 	return *this;
 } // assignment operator
@@ -396,9 +407,10 @@ View::operator<(const View& other) const
 } // less than operator
 
 bool
-View::doConvert(bool& value, PyObject* o) const
+View::doConvert(bool& value, Object o) const
 {
-	switch(PyObject_IsTrue(o)) {
+	switch(PyObject_IsTrue(o.obj_))
+	{
 		case 1:
 			value = true;
 			break;
@@ -413,16 +425,15 @@ View::doConvert(bool& value, PyObject* o) const
 } // convert
 
 bool
-View::doConvert(std::string& value, PyObject* o) const
+View::doConvert(std::string& value, Object o) const
 {
-	PyObject* s = PyObject_Str(o);
-
-	if(s == NULL)
+	if(!o.isConvertibleToString())
+	{
 		return false;
+	}
 
-	value = std::string(PyString_AS_STRING(s));
+	value = o.toString();
 
-	Py_DECREF(s);
 	return true;
 } // convert
 
@@ -442,8 +453,8 @@ View::couldntRetrieve(const std::string& optionExpression) const
 		PyRun_String(
 			"__import__('sys').stderr.write( __visible__ + '\\n')\n",
 			Py_file_input,
-			dict,
-			dict);
+			dict.obj_,
+			dict.obj_);
 
 		PyErr_Restore(ptype, pvalue, ptraceback);
 	}
