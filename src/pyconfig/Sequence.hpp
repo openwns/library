@@ -34,10 +34,6 @@
 #include <WNS/Assure.hpp>
 #include <WNS/Exception.hpp>
 
-namespace wns { namespace probe { namespace bus {
-	class ProbePath;
-}}}
-
 namespace wns { namespace pyconfig {
 
 	template <typename T, typename ITER>
@@ -109,7 +105,6 @@ namespace wns { namespace pyconfig {
 	class Sequence
 	{
 		friend class View;
-		friend class wns::probe::bus::ProbePath;
 	public:
 		explicit
 		Sequence(Object _sequence);
