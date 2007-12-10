@@ -106,7 +106,7 @@ namespace wns { namespace tests {
             CPPUNIT_ASSERT_MESSAGE( functionCall.getReturnAddress(), functionCall.getReturnAddress() != "unknown");
 #else
             // no backtrace available
-	    CPPUNIT_ASSERT(functionCalls.size() >= static_cast<size_t>(0));
+	    CPPUNIT_ASSERT(functionCalls.size() == static_cast<size_t>(0));
 #endif // __GLIBC__
 
             // end example
