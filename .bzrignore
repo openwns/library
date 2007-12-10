@@ -6,3 +6,5 @@ build
 include
 config/bversion.hpp
 config/pushMailRecipients.py
+doxydoc
+doc/examples/*.example
