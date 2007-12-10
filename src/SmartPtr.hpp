@@ -455,31 +455,10 @@ namespace wns {
 	};
 
 	template <typename T, typename P>
-	T
-	dynamicCast(P p)
-	{
-		return dynamic_cast<T>(p);
-	}
-
-	template <typename T, typename P>
 	T*
 	dynamicCast(P* p)
 	{
 		return dynamic_cast<T*>(p);
-	}
-
-	template <typename T, typename P>
-	T&
-	dynamicCast(P& p)
-	{
-		return dynamic_cast<T&>(p);
-	}
-
-	template <typename T, typename P>
-	SmartPtr<T>
-	dynamicCast(SmartPtr<P>& p)
-	{
-		return SmartPtr<T>(dynamic_cast<T*>(p.getPtr()));
 	}
 
 	template <typename T, typename P>
@@ -490,31 +469,10 @@ namespace wns {
 	}
 
 	template <typename T, typename P>
-	T
-	staticCast(P p)
-	{
-		return static_cast<T>(p);
-	}
-
-	template <typename T, typename P>
 	T*
 	staticCast(P* p)
 	{
 		return static_cast<T*>(p);
-	}
-
-	template <typename T, typename P>
-	T&
-	staticCast(P& p)
-	{
-		return static_cast<T&>(p);
-	}
-
-	template <typename T, typename P>
-	SmartPtr<T>
-	staticCast(SmartPtr<P>& p)
-	{
-		return SmartPtr<T>(static_cast<T*>(p.getPtr()));
 	}
 
 	template <typename T, typename P>
