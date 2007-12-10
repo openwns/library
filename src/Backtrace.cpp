@@ -1,4 +1,3 @@
-
 /*******************************************************************************
  * This file is part of openWNS (open Wireless Network Simulator)
  * _____________________________________________________________________________
@@ -31,9 +30,12 @@
 #include <iomanip>
 #include <cmath>
 
-#ifdef _GNU_SOURCE
+// to get the __GLIBC__ macro set (if glibc available)
+#include <features.h>
+
+#ifdef __GLIBC__
 #include <execinfo.h>
-#endif // _GNU_SOURCE
+#endif // __GLIBC__
 
 #include <sstream>
 
@@ -53,7 +55,7 @@ void
 Backtrace::snapshot()
 {
     clear();
-#ifdef _GNU_SOURCE
+#ifdef __GLIBC__
     const int arraySize = 1000;
     void* array[arraySize];
     size_t size;
@@ -68,7 +70,7 @@ Backtrace::snapshot()
     }
 
     free (strings);
-#endif // _GNU_SOURCE
+#endif // __GLIBC__
 }
 
 void
@@ -102,12 +104,21 @@ Backtrace::doToString() const
     int width = static_cast<int>(std::ceil(std::log10(stackSize)));
     std::stringstream tmp;
     tmp << "Backtrace (most recent call last, stack size: " << stackSize << "):\n";
-    for(FunctionCalls::const_reverse_iterator itr = functionCalls.rbegin();
-        itr != functionCalls.rend();
-        ++itr)
+    if (stackSize == 0)
     {
-        tmp << " " << std::setw(width) << frame << ")  " << itr->getName() << "\n";
-        --frame;
+	    tmp << "  No backtrace available.\n"
+		<< "  Backtrace is currently only available on systems with glibc, sorry.\n";
+	    return tmp.str();
+    }
+    // Marc Schinnenburg <marc@schinnenburg.com> 10.12.2007
+    // The itr should be const_reverse_iterator, but gcc 3.4.4 cannot find the
+    // operator==() or operator!=() for that :}
+    for(FunctionCalls::reverse_iterator itr = functionCalls.rbegin();
+	itr == functionCalls.rend();
+	++itr)
+    {
+	    tmp << " " << std::setw(width) << frame << ")  " << itr->getName() << "\n";
+	    --frame;
     }
     return tmp.str();
 }

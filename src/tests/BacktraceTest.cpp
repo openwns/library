@@ -28,6 +28,8 @@
 #include <WNS/TestFixture.hpp>
 #include <WNS/Backtrace.hpp>
 
+#include <features.h>
+
 namespace wns { namespace tests {
 
 	/**
@@ -79,6 +81,9 @@ namespace wns { namespace tests {
             // retrive a vector with all function calls
             Backtrace::FunctionCalls functionCalls = backtrace.getFunctionCalls();
 
+#ifdef __GLIBC__
+            // this works only with glibc
+
             // at least this function and the snapshot function must be on the stack
             CPPUNIT_ASSERT(functionCalls.size() >= static_cast<size_t>(2));
 
@@ -94,17 +99,17 @@ namespace wns { namespace tests {
 
             // most interesting is probably the method getName() which returns
             // the name of the function at the respective position on the stack
-#ifdef _GNU_SOURCE
-            // works only with GNU extensions of libc
             CPPUNIT_ASSERT_MESSAGE( functionCall.getName(), functionCall.getName() == "wns::Backtrace::snapshot()");
-#endif //_GNU_SOURCE
-            // end example
 
-#ifdef _GNU_SOURCE
             CPPUNIT_ASSERT_MESSAGE( functionCall.getOrigin(), functionCall.getOrigin() != "unknown");
             CPPUNIT_ASSERT_MESSAGE( functionCall.getOffset(), functionCall.getOffset() != "unknown");
             CPPUNIT_ASSERT_MESSAGE( functionCall.getReturnAddress(), functionCall.getReturnAddress() != "unknown");
-#endif //_GNU_SOURCE
+#else
+            // no backtrace available
+	    CPPUNIT_ASSERT(functionCalls.size() >= static_cast<size_t>(0));
+#endif // __GLIBC__
+
+            // end example
         }
 
         void
