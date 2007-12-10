@@ -37,14 +37,16 @@ commonEnv = CNBSEnvironment(PROJNAME       = 'wns',
                             PYTHONVERSION = pythonVersion,
                             # then the default path to serach in is
                             PYTHONINCLUDEPATH = os.path.join(os.sep, 'usr', 'include', 'python'+pythonVersion),
-                            PYTHONLIB = 'python'+pythonVersion
+                            PYTHONLIB = 'python'+pythonVersion,
+                            # this prefers the dynamically linked
+                            # libpyhton over the statically linked (on
+                            # cygwin only the statically linked
+                            # libpython is available)
+                            LIBPATH   = [os.path.join(os.sep, 'usr', 'lib'),
+                                         os.path.join(os.sep, 'usr', 'lib', 'python'+pythonVersion, 'config')]
                             )
 
 commonEnv.Append(CPPPATH = [commonEnv['PYTHONINCLUDEPATH']])
 commonEnv.Append(LIBS    = [commonEnv['PYTHONLIB']])
-
-CNBuildSupport.printINF("Lib will link against Python version:  " + pythonVersion)
-CNBuildSupport.printINF("Header files for Python will be used from:  " + commonEnv['PYTHONINCLUDEPATH'])
-CNBuildSupport.printINF("See config/common.py if you need to change this.")
 
 Return('commonEnv')
