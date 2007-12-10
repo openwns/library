@@ -168,8 +168,8 @@ InterfaceTest::testStart()
     scheduler->start();
     CPPUNIT_ASSERT_EQUAL(wns::simulator::Time(42.0), scheduler->getTime());
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(2), receiver->objects.size());
-    CPPUNIT_ASSERT_EQUAL(4711, receiver->objects[0].getID());
-    CPPUNIT_ASSERT_EQUAL(4712, receiver->objects[1].getID());
+    CPPUNIT_ASSERT_EQUAL(static_cast<int32_t>(4711), receiver->objects[0].getID());
+    CPPUNIT_ASSERT_EQUAL(static_cast<int32_t>(4712), receiver->objects[1].getID());
 
     receiver->flush();
 } // testStart
@@ -270,10 +270,10 @@ InterfaceTest::testdeleteEvent()
 
     CPPUNIT_ASSERT_EQUAL( wns::simulator::Time(42.0), scheduler->getTime());
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(4), receiver->objects.size() );
-    CPPUNIT_ASSERT_EQUAL( 4712, receiver->objects[0].getID() );
-    CPPUNIT_ASSERT_EQUAL( 4713, receiver->objects[1].getID() );
-    CPPUNIT_ASSERT_EQUAL( 4714, receiver->objects[2].getID() );
-    CPPUNIT_ASSERT_EQUAL( 4715, receiver->objects[3].getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4712), receiver->objects[0].getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4713), receiver->objects[1].getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4714), receiver->objects[2].getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4715), receiver->objects[3].getID() );
     receiver->flush();
 }
 
@@ -286,24 +286,24 @@ InterfaceTest::testSendNow()
     scheduler->processOneEvent();
     CPPUNIT_ASSERT_EQUAL( wns::simulator::Time(11.0), scheduler->getTime() );
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(1), receiver->objects.size() );
-    CPPUNIT_ASSERT_EQUAL( 4712, receiver->objects.at(0).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4712), receiver->objects.at(0).getID() );
 
     scheduler->scheduleNow(ObjectWithId(4714, receiver));
     scheduler->processOneEvent();
     CPPUNIT_ASSERT_EQUAL( wns::simulator::Time(11.0), scheduler->getTime() );
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(2), receiver->objects.size() );
-    CPPUNIT_ASSERT_EQUAL( 4714, receiver->objects.at(1).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4714), receiver->objects.at(1).getID() );
 
     scheduler->scheduleNow(ObjectWithId(4715, receiver));
     scheduler->processOneEvent();
     CPPUNIT_ASSERT_EQUAL( wns::simulator::Time(11.0), scheduler->getTime() );
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(3), receiver->objects.size() );
-    CPPUNIT_ASSERT_EQUAL( 4715, receiver->objects.at(2).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4715), receiver->objects.at(2).getID() );
 
     scheduler->processOneEvent();
     CPPUNIT_ASSERT_EQUAL( wns::simulator::Time(23.0), scheduler->getTime() );
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(4), receiver->objects.size() );
-    CPPUNIT_ASSERT_EQUAL( 4713, receiver->objects.at(3).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4713), receiver->objects.at(3).getID() );
 
     receiver->flush();
 }
@@ -332,12 +332,12 @@ InterfaceTest::testSendDelay()
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 53.0, scheduler->getTime(), 0.0 );
 
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(6), receiver->objects.size() );
-    CPPUNIT_ASSERT_EQUAL( 4711, receiver->objects.at(0).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4713, receiver->objects.at(1).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4716, receiver->objects.at(2).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4712, receiver->objects.at(3).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4714, receiver->objects.at(4).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4715, receiver->objects.at(5).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4711), receiver->objects.at(0).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4713), receiver->objects.at(1).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4716), receiver->objects.at(2).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4712), receiver->objects.at(3).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4714), receiver->objects.at(4).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4715), receiver->objects.at(5).getID() );
 
     receiver->flush();
 }
@@ -363,12 +363,12 @@ InterfaceTest::testSendAt()
     CPPUNIT_ASSERT( 53.0 == scheduler->getTime() );
 
     CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(6), receiver->objects.size() );
-    CPPUNIT_ASSERT_EQUAL( 4711, receiver->objects.at(0).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4716, receiver->objects.at(1).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4712, receiver->objects.at(2).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4713, receiver->objects.at(3).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4714, receiver->objects.at(4).getID() );
-    CPPUNIT_ASSERT_EQUAL( 4715, receiver->objects.at(5).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4711), receiver->objects.at(0).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4716), receiver->objects.at(1).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4712), receiver->objects.at(2).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4713), receiver->objects.at(3).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4714), receiver->objects.at(4).getID() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4715), receiver->objects.at(5).getID() );
 
     receiver->flush();
 }
