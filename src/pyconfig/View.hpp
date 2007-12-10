@@ -218,7 +218,7 @@ namespace wns { namespace pyconfig {
 		/**
 		 * @brief Returns an ID identifying a View
 		 */
-		long
+		int64_t
 		getId() const;
 
 		bool
