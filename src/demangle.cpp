@@ -27,7 +27,7 @@
 
 #include <WNS/demangle.hpp>
 
-#ifdef _GNU_SOURCE
+# if defined(__GNUC__) && __GNUC__ >= 3
 // Demangle using cxxabi.h
 #include <cxxabi.h>
 std::string
