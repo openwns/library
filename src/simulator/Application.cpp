@@ -373,19 +373,29 @@ Application::getPathToPyConfig()
     // if this thing here fails you the user can set PYCONFIGPATH ...
     char path[PATH_MAX];
     // /proc/self/exe is a link to the executable (openwns)
-    ssize_t length = readlink( "/proc/self/exe", path, PATH_MAX );
-    if (length == -1)
+    ssize_t length = readlink( "/proc/self/exe", path, sizeof(path)-1 );
+    if (length <= 0)
     {
         std::cerr << "Warning: could not determine path for PyConfig (readlink('/proc/self/exe') failed.";
         return "./PyConfig";
     }
 
+    path[length] = '\0';
+
+    std::string fullPath(path);
     // find the last of occurence of '/' and replace with '\0' (terminates the
     // string there). this strips the executable name
-    *(strrchr( path, '/' )) = '\0';
+    size_t pos = fullPath.find_last_of('/');
+    if(pos == std::string::npos)
+    {
+        std::cerr << "Warning: could not determine path for PyConfig from " << fullPath;
+        return "./PyConfig";
+    }
+
+    std::string pathToOpenWNSExe = fullPath.substr(0, pos);
     // next to bin we can find the lib dir and below that the PyConfigs
     std::stringstream ss;
-    ss << path << "/../lib/PyConfig/";
+    ss << pathToOpenWNSExe << "/../lib/PyConfig/";
     return ss.str();
 }
 
