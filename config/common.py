@@ -38,15 +38,14 @@ commonEnv = CNBSEnvironment(PROJNAME       = 'wns',
                             # then the default path to serach in is
                             PYTHONINCLUDEPATH = os.path.join(os.sep, 'usr', 'include', 'python'+pythonVersion),
                             PYTHONLIB = 'python'+pythonVersion,
-                            # this prefers the dynamically linked
-                            # libpyhton over the statically linked (on
-                            # cygwin only the statically linked
-                            # libpython is available)
-                            LIBPATH   = [os.path.join(os.sep, 'usr', 'lib'),
-                                         os.path.join(os.sep, 'usr', 'lib', 'python'+pythonVersion, 'config')]
                             )
 
 commonEnv.Append(CPPPATH = [commonEnv['PYTHONINCLUDEPATH']])
 commonEnv.Append(LIBS    = [commonEnv['PYTHONLIB']])
+ # this prefers the dynamically linked libpyhton over the statically
+ # linked (on cygwin only the statically linked libpython is
+ # available)
+commonEnv.Append(LIBPATH = [os.path.join(os.sep, 'usr', 'lib'),
+                            os.path.join(os.sep, 'usr', 'lib', 'python'+pythonVersion, 'config')])
 
 Return('commonEnv')

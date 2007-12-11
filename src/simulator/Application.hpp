@@ -115,8 +115,8 @@ namespace wns { namespace simulator {
         /**
          * @brief Returns the path to pyconfig
          */
-        std::string
-        getPythonPath() const;
+        static std::string
+        getPathToPyConfig();
 
         /**
          * @brief Disable usage of 80 bit extensions in x87

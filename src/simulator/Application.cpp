@@ -43,7 +43,6 @@
 #include <WNS/simulator/SegmentationViolationHandler.hpp>
 #include <WNS/simulator/SignalHandler.hpp>
 #include <WNS/simulator/CPUTimeExhaustedHandler.hpp>
-#include <WNS/bversion.hpp>
 
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
@@ -56,6 +55,7 @@
 #include <iomanip>
 #include <memory>
 #include <fstream>
+#include <climits>
 
 using namespace wns::simulator;
 
@@ -155,7 +155,7 @@ Application::doInit()
 
     if (arguments_.count("python-path") > 0)
     {
-        std::cout << getPythonPath() << std::endl;
+        std::cout << getPathToPyConfig() << std::endl;
         status_ = 0;
         exit(0);
     }
@@ -164,7 +164,7 @@ Application::doInit()
     attachDebugger_ = arguments_.count("attach-debugger-on-segfault") > 0;
 
     // patch pyconfig (sys.path, command line patches ...)
-    configuration_.appendPath(getPythonPath());
+    configuration_.appendPath(getPathToPyConfig());
     configuration_.appendPath(".");
     configuration_.load(configFile_);
     for(PyConfigPatchContainer::const_iterator it = pyConfigPatches_.begin();
@@ -368,11 +368,24 @@ Application::doShutdown()
 
 
 std::string
-Application::getPythonPath() const
+Application::getPathToPyConfig()
 {
+    // if this thing here fails you the user can set PYCONFIGPATH ...
+    char path[PATH_MAX];
+    // /proc/self/exe is a link to the executable (openwns)
+    ssize_t length = readlink( "/proc/self/exe", path, PATH_MAX );
+    if (length == -1)
+    {
+        std::cerr << "Warning: could not determine path for PyConfig (readlink('/proc/self/exe') failed.";
+        return "./PyConfig";
+    }
+
+    // find the last of occurence of '/' and replace with '\0' (terminates the
+    // string there). this strips the executable name
+    *(strrchr( path, '/' )) = '\0';
+    // next to bin we can find the lib dir and below that the PyConfigs
     std::stringstream ss;
-    // shouldn't this be done via wnsrc.py?
-    ss << INSTALLPREFIX << "/" << BUILDFLAVOUR << "/lib" << "/PyConfig";
+    ss << path << "/../lib/PyConfig/";
     return ss.str();
 }
 
