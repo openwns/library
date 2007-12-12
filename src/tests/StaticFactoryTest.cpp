@@ -59,7 +59,7 @@ namespace wns { namespace tests {
     // TestInterface is a pure virtual class, defining the interface
     // of Test implementations.
 
-    // begin example "StaticFactory:InterfaceDefinition.example"
+    // begin example "wns.StaticFactory.InterfaceDefinition.example"
     struct TestInterface
     {
         // this is a base class...
@@ -71,7 +71,7 @@ namespace wns { namespace tests {
     };
     // end example
 
-    // begin example "StaticFactory:Thingies.example"
+    // begin example "wns.StaticFactory.Thingies.example"
     typedef Creator<TestInterface> TestCreator;
     typedef StaticFactory<TestCreator> TestFactory;
     // end example
@@ -79,7 +79,7 @@ namespace wns { namespace tests {
     //
     // Two implementations
     //
-    // begin example "StaticFactory:InterfaceImplementation.example"
+    // begin example "wns.StaticFactory.InterfaceImplementation.example"
     class Plugin1 :
         public TestInterface
     {
@@ -125,7 +125,7 @@ namespace wns { namespace tests {
     STATIC_FACTORY_REGISTER(Something, OtherInterface, "plugin 3");
 
 
-    // begin example "StaticFactory:FunkInterface.example"
+    // begin example "wns.StaticFactory.FunkInterface.example"
     struct FunkInterface
     {
         FunkInterface(long) {}
@@ -137,7 +137,7 @@ namespace wns { namespace tests {
     typedef StaticFactory<FunkCreator> FunkFactory;
     // end example
 
-    // begin example "StaticFactory:Hancock.example"
+    // begin example "wns.StaticFactory.Hancock.example"
     class Hancock :
         public FunkInterface
     {
@@ -169,7 +169,7 @@ void StaticFactoryTest::tearDown()
 void
 StaticFactoryTest::testSimpleCreation()
 {
-    // begin example "StaticFactory:testSimpleCreation.example"
+    // begin example "wns.StaticFactory.testSimpleCreation.example"
     // assert, that the plugin with name "plugin 1" has been registered
     CPPUNIT_ASSERT( TestFactory::knows("plugin 1") );
 

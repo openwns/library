@@ -55,7 +55,7 @@ namespace wns {
 	 * convenience. Assume a collection of plugins that all conform to a given
 	 * interface, say TestInterface:
 	 *
-	 * @include StaticFactory:InterfaceDefinition.example
+	 * @include wns.StaticFactory.InterfaceDefinition.example
 	 *
 	 * Then there are two more types declared to work with:
 	 * @li TestFactory, and
@@ -63,7 +63,7 @@ namespace wns {
 	 *
 	 * Having these types defined, working with a StaticFactory is pretty simple:
 	 *
-	 * @include StaticFactory:testSimpleCreation.example
+	 * @include wns.StaticFactory.testSimpleCreation.example
 	 *
 	 * @section staticfactoryimplementing Write your own plugin
 	 *
@@ -76,7 +76,7 @@ namespace wns {
 	 * To write your own plugin, you simply have to write a realisation of
 	 * the interface and register your plugin at the StaticFactory:
 	 *
-	 * @include StaticFactory:InterfaceImplementation.example
+	 * @include wns.StaticFactory.InterfaceImplementation.example
 	 *
 	 * @note Don't forget to register your plugin using STATIC_FACTORY_REGISTER.
 	 *
@@ -95,7 +95,7 @@ namespace wns {
 	 * to have a constructor with a long as single argument, an implementation
 	 * could look like:
 	 *
-	 * @include StaticFactory:Hancock.example
+	 * @include wns.StaticFactory.Hancock.example
 	 *
 	 * @note Use STATIC_FACTORY_REGISTER_WITH_CREATOR when writing plugins with a
 	 * non-default constructor signature.
@@ -110,20 +110,20 @@ namespace wns {
 	 * Defining the interface is simple: just write an abstract class, describing you interface.
 	 * Assume, you want to implement several classes that conform to a given interface (that have
 	 * some public state/behaviour):
-	 * @include StaticFactory:InterfaceDefinition.example
+	 * @include wns.StaticFactory.InterfaceDefinition.example
 	 *
 	 * Second you have to choose a creator. If you are lucky, a creator with
 	 * the desired constructor signature already exists. If not, have a look at LongCreator.hpp
 	 * or LayerConfigCreator.hpp for examples.
 	 *
 	 * The only thing left to do is to provide some typedefs for convenience:
-	 * @include StaticFactory:Thingies.example
+	 * @include wns.StaticFactory.Thingies.example
 	 *
 	 * If you chose to use a different creator than the default creator Creator, you have to
 	 * use that instead. Have a look at the complete FunkInterface components for an example
 	 * of how to create a factory with a different creator:
 	 *
-	 * @include StaticFactory:FunkInterface.example
+	 * @include wns.StaticFactory.FunkInterface.example
 	 */
 
 	/**

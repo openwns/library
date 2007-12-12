@@ -46,7 +46,7 @@ namespace wns { namespace simulator {
      * via "std::cerr".
      *
      * Usage:
-     * @include wns::simulator::Main.example
+     * @include wns.simulator.Main.example
      */
     template <typename APPLICATION>
     class Main :

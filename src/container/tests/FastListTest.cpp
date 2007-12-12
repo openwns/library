@@ -38,7 +38,7 @@ namespace wns { namespace container { namespace tests {
     class FastListTest :
         public wns::TestFixture
     {
-        // begin example "FastListEnabler.example"
+        // begin example "wns.container.FastListEnabler.example"
         // Note how FLTest is enabled to
         // support FastLists by deriving from FastListEnabler
         class FLTest :
@@ -130,7 +130,7 @@ namespace wns { namespace container { namespace tests {
         CPPUNIT_TEST_SUITE_END();
 
         typedef FastList<FLTest*>::iterator iterator;
-        // begin example "FastListDefinition.example"
+        // begin example "wns.container.FastListDefinition.example"
         FastList<FLTest*> f;
         // end example
         FLTest* flt1;
@@ -152,7 +152,7 @@ namespace wns { namespace container { namespace tests {
         prepare()
         {
             f = FastList<FLTest*>();
-            // begin example "FastListPushBack.example"
+            // begin example "wns.container.FastListPushBack.example"
             flt1 = new FLTest(1);
             f.push_front(flt1);
             // end example

@@ -40,7 +40,7 @@ namespace wns { namespace events {
 	 * @brief Generate an event calling a member function in one line
 	 *
 	 * Usage is quite easy:
-	 * @include wns::events::MemberFunction::sendNow.example
+	 * @include wns.events.MemberFunction.sendNow.example
 	 */
 	template <typename T>
 	class MemberFunction :
@@ -59,7 +59,7 @@ namespace wns { namespace events {
 	 * std::for_each (or similar)
 	 *
 	 * Usage:
-	 * @include wns::events::DelayedMemberFunction::sendDelayed.example
+	 * @include wns.events.DelayedMemberFunction.sendDelayed.example
 	 */
 	template <typename T>
 	class DelayedMemberFunction

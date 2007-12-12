@@ -75,7 +75,7 @@ namespace wns { namespace events { namespace tests {
 	void
 	MemberFunctionTest::sendNow()
 	{
-		// begin example "wns::events::MemberFunction::sendNow.example"
+		// begin example "wns.events.MemberFunction.sendNow.example"
 		TestObject t;
 
 		CPPUNIT_ASSERT_EQUAL(0, t.foo);

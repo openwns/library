@@ -41,13 +41,13 @@ namespace wns { namespace container {
      * @author Marc Schinnenburg <marc@schinnenburg.com>
      *
      * Enable a class to be used by FastLists:
-     * @include FastListEnabler.example
+     * @include wns.container.FastListEnabler.example
      *
      * Define a FastList:
-     * @include FastListDefinition.example
+     * @include wns.container.FastListDefinition.example
      *
      * Push some elements to the front of the list:
-     * @include FastListPushBask.example
+     * @include wns.container.FastListPushBask.example
      *
      * @todo Marc Schinnenburg: If the element T is derived from
      * SingleFastListEnabler, it would be nice to generate a compile-time error,

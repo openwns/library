@@ -54,9 +54,9 @@ namespace wns {
      * Examples:
      *
      * To achive the default output:
-     * @include PythonicOutput.default.example
+     * @include wns.PythonicOutput.default.example
      * To achive user defined output:
-     * @include PythonicOutput.special.example
+     * @include wns.PythonicOutput.special.example
      */
     class PythonicOutput :
         virtual public IOutputStreamable

@@ -40,7 +40,7 @@ namespace wns { namespace tests {
 		public CppUnit::TestFixture
 	{
 	protected:
-		// begin example "RefCountableDerive.example"
+		// begin example "wns.RefCountableDerive.example"
 		class A :
 			virtual public RefCountable
 		{

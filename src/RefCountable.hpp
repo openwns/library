@@ -43,7 +43,7 @@ namespace wns {
 	 * constructor!!!
 	 *
 	 * Example:
-	 * @include RefCountableDerive.example
+	 * @include wns.RefCountableDerive.example
 	 */
 	class RefCountable
 	{

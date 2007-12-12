@@ -39,7 +39,7 @@ namespace wns {
     class ChamaeleonTest :
         public wns::TestFixture
     {
-        // begin example "wns::ChamaeleonTestClasses.example"
+        // begin example "wns.ChamaeleonTestClasses.example"
         // Classic classes for testing. They all have the same "test"
         // method which returns a different integer (depending on the
         // type). Furthermore A and C have a common base type (A).
@@ -170,14 +170,14 @@ namespace wns {
         void
         unHide()
         {
-            // begin example "wns::ChamaeleonConstructor.example"
+            // begin example "wns.ChamaeleonConstructor.example"
             // The Chamaeleon takes a pointer
             Chamaeleon<A*> a(new A);
             // end example
 
             CPPUNIT_ASSERT_EQUAL( 1, a.unHide()->test() );
 
-            // begin example "ChamaeleonUnHide.example"
+            // begin example "wns.ChamaeleonUnHide.example"
             // Create three Chamaeleons
             Chamaeleon<B*> b(new B);
             Chamaeleon<C*> c(new C);
@@ -203,7 +203,7 @@ namespace wns {
         void
         inVector()
         {
-            // begin example "wns::Chamaeleon.example"
+            // begin example "wns.Chamaeleon.example"
             // This example shows how objects without a common base class can be
             // stored in one container with the help of Chamaeleons
             Chamaeleon<A*>* a = new Chamaeleon<A*>(new A);

@@ -39,7 +39,7 @@ namespace wns {
      * @author Marc Schinnenburg <marc@schinnenburg.com>
      *
      * Usage:
-     * @include wns::Backtrace.example
+     * @include wns.Backtrace.example
      */
     class Backtrace :
         virtual public IOutputStreamable

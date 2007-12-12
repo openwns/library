@@ -68,7 +68,7 @@ namespace wns { namespace tests {
 		void
 		testFunctionCall()
 		{
-            // begin example "wns::Backtrace.example"
+            // begin example "wns.Backtrace.example"
             Backtrace backtrace;
 
             // make a snapshot of the current stack

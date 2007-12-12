@@ -130,10 +130,10 @@ namespace wns {
      *
      * The classes A, B and C used in the examples here are defined as
      * follows:
-     * @include wns::ChamaeleonTestClasses.example
+     * @include wns.ChamaeleonTestClasses.example
      *
      * Example:
-     * @include wns::Chamaeleon.example
+     * @include wns.Chamaeleon.example
      */
     template <typename VALUETYPE>
     class Chamaeleon :
@@ -155,7 +155,7 @@ namespace wns {
          * @param x data you want to "chamaelonize"
          *
          * Example:
-         * @include wns::ChamaeleonConstructor.example
+         * @include wns.ChamaeleonConstructor.example
          */
         explicit
         Chamaeleon(ValueType data) throw() :
@@ -191,7 +191,7 @@ namespace wns {
          * @return data that is "chamaelonized"
          *
          * Example:
-         * @include ChamaeleonUnHide.example
+         * @include wns.ChamaeleonUnHide.example
          */
         ValueType
         unHide() const throw()

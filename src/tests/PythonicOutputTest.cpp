@@ -39,14 +39,14 @@ namespace wns { namespace tests {
     class PythonicOutputTest :
         public wns::TestFixture
     {
-        // begin example "PythonicOutput.default.example"
+        // begin example "wns.PythonicOutput.default.example"
         class A :
             virtual public wns::PythonicOutput
         {
         };
         // end example
 
-        // begin example "PythonicOutput.special.example"
+        // begin example "wns.PythonicOutput.special.example"
         class B :
             virtual public wns::PythonicOutput
         {

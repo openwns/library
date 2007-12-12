@@ -36,7 +36,7 @@ namespace wns { namespace simulator { namespace tests {
      */
     class MainTest
     {
-        // begin example "wns::simulator::Main.example"
+        // begin example "wns.simulator.Main.example"
         int main(int argc, char* argv[])
         {
             // create an instance of the wns::simulator::Application
