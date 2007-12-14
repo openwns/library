@@ -43,7 +43,7 @@ class OpenWNS(object):
         # set defaults
         self.eventScheduler = openwns.EventScheduler.Map()
         self.masterLogger = openwns.Logger.MasterLogger()
-        self.rng = openwns.RNG.Linear(useRandomSeed = False)
+        self.rng = openwns.RNG.RNG(useRandomSeed = False)
         self.logger = openwns.Logger.Logger("WNS", "Application", True)
         self.maxSimTime = 0.0
         self.eventSchedulerMonitor = openwns.EventScheduler.Monitor()

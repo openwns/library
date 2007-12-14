@@ -30,6 +30,8 @@
 
 #include <WNS/simulator/Simulator.hpp>
 
+#include <sstream>
+
 namespace wns { namespace simulator {
 
     /**
@@ -61,10 +63,21 @@ namespace wns { namespace simulator {
         UnitTests(const UnitTests&);
 
         /**
-         * @brief NVI forward
+         * @brief NVI
          */
         virtual void
         doReset();
+
+        /**
+         * @brief Overridden here to store the initial state
+         */
+        virtual void
+        configureRNG(const wns::pyconfig::View& config);
+
+        /**
+         * @brief Has its own Random number generator instance
+         */
+        std::stringstream initialRNGState_;
     };
 
 } // namespace simulator

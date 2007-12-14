@@ -30,6 +30,7 @@
 
 #include <WNS/pyconfig/View.hpp>
 #include <WNS/container/UntypedRegistry.hpp>
+#include <WNS/rng/RNGen.hpp>
 
 #include <boost/signal.hpp>
 
@@ -41,10 +42,6 @@ namespace wns { namespace events { namespace scheduler {
 
 namespace wns { namespace logger {
     class Master;
-}}
-
-namespace wns { namespace rng {
-    class RNGen;
 }}
 
 namespace wns { namespace simulator {

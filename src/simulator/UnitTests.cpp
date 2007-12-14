@@ -28,11 +28,13 @@
 #include <WNS/simulator/UnitTests.hpp>
 #include <WNS/rng/RNGen.hpp>
 #include <WNS/events/scheduler/Interface.hpp>
+#include <ios>
 
 using namespace wns::simulator;
 
 UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration)
+    Simulator(configuration),
+    initialRNGState_()
 {
 }
 
@@ -48,6 +50,15 @@ UnitTests::doReset()
     // needs to be implemented and tested thoroughly to not carry any old state
     // in itself.
     getEventScheduler()->reset();
-    getRNG()->reset();
+    // seek to the beginning of the stream
+    initialRNGState_.seekg (0, std::ios::beg);
+    initialRNGState_ >> *getRNG();
     (*getResetSignal())();
+}
+
+void
+UnitTests::configureRNG(const wns::pyconfig::View& config)
+{
+    Simulator::configureRNG(config);
+    initialRNGState_ << *getRNG();
 }

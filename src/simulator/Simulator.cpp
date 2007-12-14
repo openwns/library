@@ -117,8 +117,10 @@ Simulator::configureRNG(
     const pyconfig::View& rngConfiguration)
 {
     assure(rng_.get() == NULL, "RNG already set / configured");
-    std::string rngType = rngConfiguration.get<std::string>("__plugin__");
-	wns::rng::RNGCreator* creator = wns::rng::RNGFactory::creator(rngType);
-	rng_.reset(creator->create(rngConfiguration));
+	rng_.reset(new wns::rng::RNGen());
+    if (rngConfiguration.get<bool>("useRandomSeed"))
+    {
+        rng_->seed(rngConfiguration.get<uint32_t>("seed"));
+    }
 }
 

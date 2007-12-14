@@ -28,22 +28,13 @@
 import time
 import unittest
 
-class Base(object):
+class RNG(object):
     __slots__ = ["useRandomSeed", "seed"]
 
     def __init__(self, useRandomSeed):
-        super(Base, self).__init__()
+        super(RNG, self).__init__()
         self.useRandomSeed = useRandomSeed
 
         if (self.useRandomSeed):
             self.seed = int(round (time.time() / 10))
             print "Using random seed. Seed of RNG is: " + str(self.seed)
-
-class Linear(Base):
-    __slots__ = ["__plugin__"]
-
-    def __init__(self, useRandomSeed):
-        super(Linear, self).__init__(useRandomSeed)
-        self.__plugin__ = "wns.rng.LinearCongruenceGenerator"
-        if useRandomSeed == False:
-            self.seed = 929

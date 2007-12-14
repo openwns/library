@@ -41,10 +41,6 @@ srcFiles['BASE'] = [
     'src/events/scheduler/INotification.cpp',
     'src/events/scheduler/Monitor.cpp',
 
-    # random number generation
-    'src/rng/RNGen.cpp',
-    'src/rng/LinearCongruenceGenerator.cpp',
-
     ## TODO needs inspection!
     # logger
     'src/logger/Master.cpp',

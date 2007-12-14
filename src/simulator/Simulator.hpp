@@ -70,6 +70,13 @@ namespace wns { namespace simulator {
         virtual
         ~Simulator();
 
+    protected:
+        /**
+         * @brief helper to setup Random Number Generator
+         */
+        virtual void
+        configureRNG(const pyconfig::View& rngConfiguration);
+
     private:
         /**
          * @brief Copy constructor is forbidden
@@ -129,13 +136,6 @@ namespace wns { namespace simulator {
          */
         void
         configureMasterLogger(const pyconfig::View& masterLoggerConfiguration);
-
-        /**
-         * @brief helper to setup Random Number Generator
-         */
-        void
-        configureRNG(const pyconfig::View& rngConfiguration);
-
 
         /**
          * @brief EventScheduler instance
