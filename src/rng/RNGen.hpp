@@ -36,6 +36,17 @@ namespace wns { namespace rng {
     // different RNGs at configuration time (run time)
     typedef boost::mt19937 RNGen;
 
+    template <typename DISTRIBUTION, typename ENGINE = RNGen*>
+    class VariateGenerator :
+        public boost::variate_generator<ENGINE, DISTRIBUTION>
+    {
+    public:
+        VariateGenerator(ENGINE engine, DISTRIBUTION distribution) :
+            boost::variate_generator<ENGINE, DISTRIBUTION>(engine, distribution)
+        {
+        }
+    };
+
 } // rng
 } // wns
 
