@@ -114,8 +114,8 @@ Backtrace::doToString() const
     // The itr should be const_reverse_iterator, but gcc 3.4.4 cannot find the
     // operator==() or operator!=() for that :}
     for(FunctionCalls::reverse_iterator itr = functionCalls.rbegin();
-	itr == functionCalls.rend();
-	++itr)
+        itr != functionCalls.rend();
+        ++itr)
     {
 	    tmp << " " << std::setw(width) << frame << ")  " << itr->getName() << "\n";
 	    --frame;
