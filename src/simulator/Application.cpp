@@ -297,13 +297,25 @@ Application::doRun()
     // normal simulation
     else
     {
-		MESSAGE_SINGLE(NORMAL, logger_, "Start Scheduler");
-
 		// install signal handler for graceful shutdown
 		wns::simulator::SignalHandler& handler = wns::simulator::GlobalSignalHandler::Instance();
 		handler.addSignalHandler(
 			SIGXCPU,
 			wns::simulator::CPUTimeExhaustedHandler(wns::simulator::getEventScheduler(), SIGXCPU));
+
+        // create and configure simulation model
+        if (!configuration_.isNone("WNS.simulationModel"))
+        {
+            wns::pyconfig::View simModelConfig =
+                configuration_.get("WNS.simulationModel");
+            ISimulationModelCreator* creator =
+                ISimulationModelFactory::creator(simModelConfig.get<std::string>("nameInFactory"));
+
+            MESSAGE_SINGLE(NORMAL, logger_, "Building simulation model");
+            simulationModel_.reset(creator->create(simModelConfig));
+            MESSAGE_SINGLE(NORMAL, logger_, "Initilazng simulation model");
+            simulationModel_->startup();
+        }
 
         // queue event for end of simulation
         Time maxSimTime = configuration_.get<wns::simulator::Time>("WNS.maxSimTime");
@@ -321,7 +333,16 @@ Application::doRun()
                 maxSimTime);
         }
 
+		MESSAGE_SINGLE(NORMAL, logger_, "Start Scheduler");
 		wns::simulator::getEventScheduler()->start();
+
+
+        // shutdown the simulation if it has been created before
+        if (simulationModel_.get() != NULL)
+        {
+            simulationModel_->shutdown();
+            simulationModel_.reset();
+        }
 
 		// uninstall signal handler for graceful shutdown, can only be
 		// used in event loop

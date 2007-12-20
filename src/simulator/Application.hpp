@@ -32,6 +32,7 @@
 #include <WNS/pyconfig/Parser.hpp>
 #include <WNS/logger/Logger.hpp>
 #include <WNS/events/scheduler/Monitor.hpp>
+#include <WNS/simulator/ISimulationModel.hpp>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -250,6 +251,11 @@ namespace wns { namespace simulator {
          * @brief If true use 80 bit extensions of x87 (false by default)
          */
         bool extendedPrecision_;
+
+        /**
+         * @brief Keeps the SimulationModel which is constructed by a StaticFactory
+         */
+        std::auto_ptr<wns::simulator::ISimulationModel> simulationModel_;
     };
 
 } // simulator

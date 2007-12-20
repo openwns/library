@@ -37,9 +37,9 @@ class OpenWNS(object):
     config file.
     """
 
-    __slots__ = ["eventScheduler", "masterLogger", "rng", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor"]
+    __slots__ = ["eventScheduler", "masterLogger", "rng", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel"]
 
-    def __init__(self):
+    def __init__(self, simulationModel = None):
         # set defaults
         self.eventScheduler = openwns.EventScheduler.Map()
         self.masterLogger = openwns.Logger.MasterLogger()
@@ -47,6 +47,7 @@ class OpenWNS(object):
         self.logger = openwns.Logger.Logger("WNS", "Application", True)
         self.maxSimTime = 0.0
         self.eventSchedulerMonitor = openwns.EventScheduler.Monitor()
+        self.simulationModel = simulationModel
 
         # private: keeps a list of tasks for post processing
         self.__postProcessingFuncs = []

@@ -10,8 +10,9 @@ srcFiles['BASE'] = [
     'src/PythonicOutput.cpp',
     'src/Backtrace.cpp',
     'src/demangle.cpp',
+    ]
 
-    # simulator
+srcFiles['SIMULATOR'] = [
     'src/simulator/IApplication.cpp',
     'src/simulator/Application.cpp',
     'src/simulator/SignalHandler.cpp',
@@ -23,24 +24,27 @@ srcFiles['BASE'] = [
     'src/simulator/ISimulator.cpp',
     'src/simulator/Simulator.cpp',
     'src/simulator/UnitTests.cpp',
+    'src/simulator/ISimulationModel.cpp',
+]
 
-    # pyconfig
+srcFiles['PYCONFIG'] = [
     'src/pyconfig/Object.cpp',
     'src/pyconfig/View.cpp',
     'src/pyconfig/Parser.cpp',
     'src/pyconfig/Sequence.cpp',
     'src/pyconfig/helper/Functions.cpp',
+]
 
-    # events
-
-    # events.scheduler
+srcFiles['EVENTS'] = [
     'src/events/scheduler/IEvent.cpp',
     'src/events/scheduler/Interface.cpp',
     'src/events/scheduler/CommandQueue.cpp',
     'src/events/scheduler/Map.cpp',
     'src/events/scheduler/INotification.cpp',
     'src/events/scheduler/Monitor.cpp',
+]
 
+srcFiles['LOGGER'] = [
     ## TODO needs inspection!
     # logger
     'src/logger/Master.cpp',
@@ -56,11 +60,17 @@ srcFiles['BASE'] = [
     'src/logger/SQLiteFormat.cpp',
     'src/logger/FormatStrategy.cpp',
 
-    # testing
+]
+
+srcFiles['TESTING'] = [
     'src/testing/DetailedListener.cpp',
     ]
 
-srcFiles['BASE-TEST'] = [
+srcFiles['QUEUINGSYSTEM'] = [
+    'src/queuingsystem/MM1.cpp',
+    ]
+
+srcFiles['BASE-TESTS'] = [
     'src/tests/AssureTest.cpp',
     'src/tests/ChamaeleonTest.cpp',
     'src/tests/ExceptionTest.cpp',
@@ -73,38 +83,41 @@ srcFiles['BASE-TEST'] = [
     'src/tests/StopWatchTest.cpp',
     'src/tests/BacktraceTest.cpp',
     'src/tests/ObserverTest.cpp',
+]
 
-    # simulator
+srcFiles['SIMULATOR-TESTS'] = [
     'src/simulator/tests/MainTest.cpp',
+    ]
 
-    # container
+srcFiles['CONTAINER-TESTS'] = [
     'src/container/tests/FastListTest.cpp',
     'src/container/tests/UntypedRegistryTest.cpp',
     'src/container/tests/RegistryTest.cpp',
+]
 
-    # pyconfig
+srcFiles['PYCONFIG-TESTS'] = [
     'src/pyconfig/tests/ParserTest.cpp',
     'src/pyconfig/tests/ViewTest.cpp',
     'src/pyconfig/tests/SequenceTest.cpp',
     'src/pyconfig/helper/tests/FunctionsTest.cpp',
+]
 
-    # logger
+srcFiles['LOGGER-TESTS'] = [
     'src/logger/tests/MasterTest.cpp',
     'src/logger/tests/MessageTest.cpp',
     'src/logger/tests/LoggerTest.cpp',
     'src/logger/tests/LoggerTestHelper.cpp',
+]
 
-    # events
+srcFiles['EVENTS-TESTS'] = [
     'src/events/tests/MemberFunctionTest.cpp',
     'src/events/tests/DelayedMemberFunctionTest.cpp',
 
-    # events.scheduler
     'src/events/scheduler/tests/CallableTest.cpp',
     'src/events/scheduler/tests/InterfaceTest.cpp',
     'src/events/scheduler/tests/MapInterfaceTest.cpp',
     'src/events/scheduler/tests/PerformanceTest.cpp',
     'src/events/scheduler/tests/MapPerformanceTest.cpp',
     ]
-
 
 Return('srcFiles')
