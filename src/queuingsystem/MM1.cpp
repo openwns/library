@@ -38,7 +38,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 SimpleMM1::SimpleMM1(const wns::pyconfig::View& config) :
     jobInterarrivalTime_(wns::simulator::getRNG(),
                          Exponential::distribution_type(
-                             1.0/config.get<wns::simulator::Time>("meanJobInterarrivalTime"))),
+                             1.0/config.get<wns::simulator::Time>("meanJobInterArrivalTime"))),
     jobProcessingTime_(wns::simulator::getRNG(),
                        Exponential::distribution_type(
                            1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),

@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include "FunctionsTest.hpp"
+#include <WNS/pyconfig/helper/tests/FunctionsTest.hpp>
 
 using namespace wns::pyconfig::helper::tests;
 
@@ -45,38 +45,26 @@ FunctionsTest::tearDown()
 void
 FunctionsTest::testCreateViewFromString()
 {
-	View v = createViewFromString("test=42\n");
-	CPPUNIT_ASSERT_EQUAL(42, v.get<int>("test"));
+    View v = createViewFromString("test=42\n");
+    CPPUNIT_ASSERT_EQUAL(42, v.get<int>("test"));
 } // testCreateDropIn
 
 void
 FunctionsTest::testCreateViewFromDropInConfig()
 {
-	View v = createViewFromDropInConfig(
-		"openwns.PyConfig",
-		"PyConfigTest",
-		"");
+    View v = createViewFromDropInConfig(
+        "openwns.pyconfig",
+        "PyConfigTest",
+        "");
 
-	CPPUNIT_ASSERT_EQUAL(42, v.get<int>("foo"));
+    CPPUNIT_ASSERT_EQUAL(42, v.get<int>("foo"));
 
-	View v2 = createViewFromDropInConfig(
-		"openwns.PyConfig",
-		"PyConfigTestWithArg",
-		"23");
+    View v2 = createViewFromDropInConfig(
+        "openwns.pyconfig",
+        "PyConfigTestWithArg",
+        "23");
 
-	CPPUNIT_ASSERT_EQUAL(23, v2.get<int>("foo"));
+    CPPUNIT_ASSERT_EQUAL(23, v2.get<int>("foo"));
 
 } // testCreateDropIn
 
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/

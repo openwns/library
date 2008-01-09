@@ -167,6 +167,11 @@ Application::doInit()
     configuration_.appendPath(getPathToPyConfig());
     configuration_.appendPath(".");
     configuration_.load(configFile_);
+
+    // backward compatibility: patch "WNS" variable into the configuration
+    configuration_.patch("import openwns\n"
+                         "WNS = openwns.getSimulator()");
+
     for(PyConfigPatchContainer::const_iterator it = pyConfigPatches_.begin();
         it != pyConfigPatches_.end();
         ++it)
@@ -185,15 +190,15 @@ Application::doInit()
     // after pyconfig is patched, bring up Simulator singelton
     if (testing_)
     {
-        wns::simulator::getSingleton().setInstance(new wns::simulator::UnitTests(configuration_));
+        wns::simulator::getSingleton().setInstance(new wns::simulator::UnitTests(getWNSView().get("environment")));
     }
     else
     {
-        wns::simulator::getSingleton().setInstance(new wns::simulator::Simulator(configuration_));
+        wns::simulator::getSingleton().setInstance(new wns::simulator::Simulator(getWNSView().get("environment")));
     }
 
     // reset logger, now set with correct MasterLogger
-	pyconfig::View wnsView = configuration_.getView("WNS");
+	pyconfig::View wnsView = getWNSView();
 	logger_ = logger::Logger(wnsView.get<wns::pyconfig::View>("logger"));
 
     // after this we can install the signal handlers as well as the
@@ -304,10 +309,10 @@ Application::doRun()
 			wns::simulator::CPUTimeExhaustedHandler(wns::simulator::getEventScheduler(), SIGXCPU));
 
         // create and configure simulation model
-        if (!configuration_.isNone("WNS.simulationModel"))
+        if (!getWNSView().isNone("simulationModel"))
         {
             wns::pyconfig::View simModelConfig =
-                configuration_.get("WNS.simulationModel");
+                getWNSView().get("simulationModel");
             ISimulationModelCreator* creator =
                 ISimulationModelFactory::creator(simModelConfig.get<std::string>("nameInFactory"));
 
@@ -318,23 +323,14 @@ Application::doRun()
         }
 
         // queue event for end of simulation
-        Time maxSimTime = configuration_.get<wns::simulator::Time>("WNS.maxSimTime");
+        Time maxSimTime = getWNSView().get<wns::simulator::Time>("maxSimTime");
         if (maxSimTime > 0.0)
         {
-            wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
-
-            typedef wns::events::MemberFunction<wns::events::scheduler::Interface>
-                EventSchedulerFunction;
-
-            scheduler->schedule(
-                EventSchedulerFunction(
-                    scheduler,
-                    &wns::events::scheduler::Interface::stop),
-                maxSimTime);
+	    wns::simulator::getEventScheduler()->stopAt(maxSimTime);
         }
 
-		MESSAGE_SINGLE(NORMAL, logger_, "Start Scheduler");
-		wns::simulator::getEventScheduler()->start();
+	MESSAGE_SINGLE(NORMAL, logger_, "Start Scheduler");
+	wns::simulator::getEventScheduler()->start();
 
 
         // shutdown the simulation if it has been created before
@@ -361,11 +357,6 @@ Application::doShutdown()
         eventSchedulerMonitor_.reset();
     }
 
-    if (!configuration_.get<bool>("WNS.postProcessing()"))
-    {
-        throw wns::Exception("WNS.postProcessing() failed!");
-    }
-
     // deregister all signal handler before shutting down master logger
     wns::simulator::GlobalSignalHandler::Instance().removeAllSignalHandlers();
 
@@ -373,17 +364,17 @@ Application::doShutdown()
     std::set_unexpected(std::terminate);
 
     // Reset the logger, no MasterLogger is set, no output will be available
-	logger_ = logger::Logger("WNS", "Application", NULL);
+    logger_ = logger::Logger("WNS", "Application", NULL);
 
     // This is the very last thing to shut down! Keep the MasterLogger up as
     // long as possible
     wns::simulator::getSingleton().shutdownInstance();
 
     // Run post processing hook in Python
-	if (configuration_.get<bool>("WNS.postProcessing()") == false)
-	{
-		throw wns::Exception("WNS.postProcessing() failed!");
-	}
+    if (getWNSView().get<bool>("postProcessing()") == false)
+    {
+	    throw wns::Exception("postProcessing() failed!");
+    }
 
 }
 
@@ -418,6 +409,12 @@ Application::getPathToPyConfig()
     std::stringstream ss;
     ss << pathToOpenWNSExe << "/../lib/PyConfig/";
     return ss.str();
+}
+
+wns::pyconfig::View
+Application::getWNSView() const
+{
+	return configuration_.get("openwns.simulator.config");
 }
 
 int

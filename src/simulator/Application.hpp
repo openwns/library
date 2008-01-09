@@ -120,6 +120,12 @@ namespace wns { namespace simulator {
         getPathToPyConfig();
 
         /**
+         * @brief Returns the view to root configuration
+         */
+	    pyconfig::View
+        getWNSView() const;
+
+        /**
          * @brief Disable usage of 80 bit extensions in x87
          *
          * From: http://www.network-theory.co.uk/docs/gccintro/gccintro_70.html

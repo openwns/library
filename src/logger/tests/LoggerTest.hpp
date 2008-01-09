@@ -25,49 +25,38 @@
  *
  ******************************************************************************/
 
-#ifndef __WNS_LOGGER_TEST_LOGGERTEST_HPP
-#define __WNS_LOGGER_TEST_LOGGERTEST_HPP
+#ifndef WNS_LOGGER_TEST_LOGGERTEST_HPP
+#define WNS_LOGGER_TEST_LOGGERTEST_HPP
 
-#include "pyconfig/Parser.hpp"
+#include <WNS/pyconfig/Parser.hpp>
 #include <WNS/logger/Logger.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace wns { namespace logger {
-	class LoggerTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( LoggerTest );
-		CPPUNIT_TEST( stringConstructor );
-		CPPUNIT_TEST( pyConfigViewConstructorWithMasterLogger );
-		CPPUNIT_TEST( pyConfigViewConstructor );
-		CPPUNIT_TEST( configure );
-		CPPUNIT_TEST( send );
-		CPPUNIT_TEST( macro );
-		CPPUNIT_TEST( singleLineMacro );
-		CPPUNIT_TEST_SUITE_END();
+    class LoggerTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( LoggerTest );
+        CPPUNIT_TEST( stringConstructor );
+        CPPUNIT_TEST( pyConfigViewConstructorWithMasterLogger );
+        CPPUNIT_TEST( pyConfigViewConstructor );
+        CPPUNIT_TEST( configure );
+        CPPUNIT_TEST( send );
+        CPPUNIT_TEST( macro );
+        CPPUNIT_TEST( singleLineMacro );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void setUp();
-		void tearDown();
-		void stringConstructor();
-		void pyConfigViewConstructorWithMasterLogger();
-		void pyConfigViewConstructor();
-		void configure();
-		void send();
-		void macro();
-		void singleLineMacro();
-	}; // LoggerTest
+    public:
+        void setUp();
+        void tearDown();
+        void stringConstructor();
+        void pyConfigViewConstructorWithMasterLogger();
+        void pyConfigViewConstructor();
+        void configure();
+        void send();
+        void macro();
+        void singleLineMacro();
+    }; // LoggerTest
 } // logger
 } // wns
-#endif // not defined __WNS_LOGGER_TEST_LOGGERTEST_HPP
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+#endif // not defined WNS_LOGGER_TEST_LOGGERTEST_HPP

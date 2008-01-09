@@ -72,7 +72,7 @@ View::View(const View& other, const std::string &newViewExpression) :
 	// for the new view.
 	// View is a subclass of dict. you can find View in the
 	// pyconfig::Parser module of the wns package.
-	ss << "__import__('openwns.PyConfig').PyConfig.View(" << newViewExpression << ")";
+	ss << "__import__('openwns.pyconfig').pyconfig.View(" << newViewExpression << ")";
 
 	this->dict = Object(PyRun_String(ss.str().c_str(),
 					 Py_eval_input,
@@ -112,7 +112,7 @@ View::View(const View& other, const std::string &newViewExpression, int at) :
 
 	{
 		std::stringstream ss;
-		ss << "__import__('openwns.PyConfig').PyConfig.View("
+		ss << "__import__('openwns.pyconfig').pyconfig.View("
 		   << newViewExpression
 		   << "[" << at << "]"
 		   << ")";
@@ -155,7 +155,7 @@ View::View(const Sequence& seq, int at) :
 
 	{
 		std::stringstream ss;
-		ss << "__import__('openwns.PyConfig').PyConfig.View("
+		ss << "__import__('openwns.pyconfig').pyconfig.View("
 		   << "dummy[" << at << "]"
 		   << ")";
 

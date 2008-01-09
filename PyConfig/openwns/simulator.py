@@ -25,29 +25,40 @@
 #
 ###############################################################################
 
-import openwns.EventScheduler
-import openwns.Logger
-import openwns.RNG
+import openwns.eventscheduler
+import openwns.logger
+import openwns.rng
+import openwns.pyconfig
+
+# global simulator config -> will be read by wns::simulator::Application
+# needs to be set by the user via openwns.setSimulator(...)
+config = None
+
+def getSimulator():
+    global config
+    return config
+
+def setSimulator(simulator):
+    global config
+    config = simulator
 
 class OpenWNS(object):
     """ Master configuration
 
-    This class keeps the configuration at the top level. The
-    simulator expects an instance of this Type name 'WNS' in the
-    config file.
+    This class is the root of the configuration.
     """
 
-    __slots__ = ["eventScheduler", "masterLogger", "rng", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel"]
+    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel"]
 
-    def __init__(self, simulationModel = None):
+    def __init__(self, **kw):
         # set defaults
-        self.eventScheduler = openwns.EventScheduler.Map()
-        self.masterLogger = openwns.Logger.MasterLogger()
-        self.rng = openwns.RNG.RNG(useRandomSeed = False)
-        self.logger = openwns.Logger.Logger("WNS", "Application", True)
+        self.environment = Environment()
+        self.logger = openwns.logger.Logger("WNS", "Application", True)
         self.maxSimTime = 0.0
-        self.eventSchedulerMonitor = openwns.EventScheduler.Monitor()
-        self.simulationModel = simulationModel
+        self.eventSchedulerMonitor = openwns.eventscheduler.Monitor()
+        self.simulationModel = None
+
+        openwns.pyconfig.attrsetter(self, kw)
 
         # private: keeps a list of tasks for post processing
         self.__postProcessingFuncs = []
@@ -71,3 +82,35 @@ class OpenWNS(object):
                 return False
         return True
 
+    # for backward compatibility
+    def __getEventScheduler(self):
+        return self.environment.eventScheduler
+
+    def __setEventScheduler(self, eventScheduler):
+        self.environment.eventScheduler = eventScheduler
+
+    def __getMasterLogger(self):
+        return self.environment.masterLogger
+
+    def __setMasterLogger(self, masterLogger):
+        self.environment.masterLogger = masterLogger
+
+    def __getRNG(self):
+        return self.environment.rng
+
+    def __setRNG(self, rng):
+        self.environment.rng = rng
+
+    eventScheduler = property(__getEventScheduler, __setEventScheduler)
+    masterLogger = property(__getMasterLogger, __setMasterLogger)
+    rng = property(__getRNG, __setRNG)
+
+class Environment(object):
+
+    __slots__ = ["eventScheduler", "masterLogger", "rng"]
+
+    def __init__(self, **kw):
+        self.eventScheduler = openwns.eventscheduler.Map()
+        self.masterLogger = openwns.logger.Master()
+        self.rng = openwns.rng.RNG(useRandomSeed = False)
+        openwns.pyconfig.attrsetter(self, kw)

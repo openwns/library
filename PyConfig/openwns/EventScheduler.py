@@ -25,7 +25,7 @@
 #
 ###############################################################################
 
-import openwns.Logger
+import openwns.logger
 
 class EventScheduler(object):
     """Configures the behaviour of EventScheduler
@@ -71,6 +71,6 @@ class Monitor(object):
         # the logger remains effectively silent during simulation. If
         # you want logging switch to level 3
         # (WNS.eventSchedulerMonitor.level = 3)
-        self.logger = openwns.Logger.Logger(moduleName = "WNS",
+        self.logger = openwns.logger.Logger(moduleName = "WNS",
                                             name = "EventSchedulerMonitor",
                                             enabled = True)

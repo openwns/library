@@ -26,7 +26,7 @@
 ###############################################################################
 
 import string
-import openwns.PyConfig
+import openwns.pyconfig
 
 showFunction = False
 
@@ -64,7 +64,7 @@ class ModuleColor(object):
 	modifiers = ';'.join(['00'] + _modifiers)
         self.modifier = "\033[" + modifiers + "m"
 
-class Effects(openwns.PyConfig.Frozen):
+class Effects(openwns.pyconfig.Frozen):
     Bold="01"
     Italic="03"
     Underline="04"
@@ -73,7 +73,7 @@ class Effects(openwns.PyConfig.Frozen):
     ReverseVideo="07"
     Invisble="08"
 
-class Foreground(openwns.PyConfig.Frozen):
+class Foreground(openwns.pyconfig.Frozen):
     Black="30"
     Red="31"
     Green="32"
@@ -83,7 +83,7 @@ class Foreground(openwns.PyConfig.Frozen):
     Cyan="36"
     White="37"
 
-class Background(openwns.PyConfig.Frozen):
+class Background(openwns.pyconfig.Frozen):
     Black="40"
     Red="41"
     Green="42"
@@ -110,7 +110,7 @@ class Logger(object):
         self.__name = name
         self.__level = None
         self.showFunction = False
-	openwns.PyConfig.attrsetter(self, kw)
+	openwns.pyconfig.attrsetter(self, kw)
         globalRegistry.addLogger("all", self)
 
     def __levelGetter(self):
@@ -218,6 +218,20 @@ class ColorMode(object):
 class Console(Format):
     __slots__ = ["timePrecision", "timeWidth", "maxLocationLength", "colors", "colorMap"]
 
+    colorMap = [ModuleColor("WNS", [Foreground.Yellow])]
+    ''' Global color map for the Console output format
+
+    Colors need to be registered by the modules individually. In
+    __init__.py of the modules root package you may say:
+
+    openwns.logger.Console.colorMap.append(
+        ModuleColor(
+            "YourModule",
+            [openwns.logger.Foreground.Red]
+        )
+    )
+    '''
+
     def __init__(self):
         super(Console, self).__init__()
         self.__plugin__ = "Console"
@@ -225,20 +239,6 @@ class Console(Format):
         self.timeWidth = 11
         self.maxLocationLength = 50
         self.colors = ColorMode.Auto
-        self.colorMap = [ModuleColor("RISE", [Foreground.Blue]),
-                         ModuleColor("RISE Mobility", [Foreground.Blue]),
-                         ModuleColor("OFDMAPhy", [Foreground.Blue]),
-                         ModuleColor("URIS", [Foreground.Red]),
-                         ModuleColor("USiLoG", [Foreground.Red]),
-                         ModuleColor("WinProSt", [Foreground.Red]),
-                         ModuleColor("WiMAC", [Foreground.Red]),
-                         ModuleColor("eHIS", [Foreground.Cyan]),
-                         ModuleColor("TCPIP", [Foreground.Green]),
-                         ModuleColor("CONSTANZE", [Foreground.Magenta]),
-                         ModuleColor("CONST", [Foreground.Magenta]),
-			 ModuleColor("Mrkv", [Foreground.Magenta]),
-                         ModuleColor("APPLICATIONS", [Foreground.Magenta]),
-                         ModuleColor("WNS", [Foreground.Yellow])]
 
 class GUI(Format):
     __slots__ = []
@@ -282,7 +282,7 @@ class Backtrace(object):
         self.enabled = False
         self.length = 10000
 
-class MasterLogger(object):
+class Master(object):
     """ Style and destination of logging
 
     The FormatOutputPair defines the Style (e.g., Console) and the
@@ -313,7 +313,7 @@ class MasterLogger(object):
     __slots__ = ["enabled", "backtrace", "loggerChain"]
 
     def __init__(self):
-        super(MasterLogger, self).__init__()
+        super(Master, self).__init__()
         self.enabled = True
         self.backtrace = Backtrace()
         self.loggerChain = [ FormatOutputPair(Console(), Cout()) ]

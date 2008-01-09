@@ -34,34 +34,22 @@
 
 namespace wns { namespace pyconfig { namespace helper {namespace tests {
 
-	class FunctionsTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( FunctionsTest );
-		CPPUNIT_TEST( testCreateViewFromDropInConfig );
-		CPPUNIT_TEST( testCreateViewFromString );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+    class FunctionsTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( FunctionsTest );
+        CPPUNIT_TEST( testCreateViewFromDropInConfig );
+        CPPUNIT_TEST( testCreateViewFromString );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testCreateViewFromDropInConfig();
-		void testCreateViewFromString();
-	};
+        void testCreateViewFromDropInConfig();
+        void testCreateViewFromString();
+    };
 
 }}}}
 
 #endif // NOT defined WNS_PYCONFIG_PARSER_TEST_HPP
 
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
