@@ -313,12 +313,14 @@ Application::doRun()
         {
             wns::pyconfig::View simModelConfig =
                 getWNSView().get("simulationModel");
-            ISimulationModelCreator* creator =
-                ISimulationModelFactory::creator(simModelConfig.get<std::string>("nameInFactory"));
 
-            MESSAGE_SINGLE(NORMAL, logger_, "Building simulation model");
+            std::string modelName = simModelConfig.get<std::string>("nameInFactory");
+            ISimulationModelCreator* creator =
+                ISimulationModelFactory::creator(modelName);
+
+            MESSAGE_SINGLE(NORMAL, logger_, "Creating simulation model: " << modelName);
             simulationModel_.reset(creator->create(simModelConfig));
-            MESSAGE_SINGLE(NORMAL, logger_, "Initilazng simulation model");
+            MESSAGE_SINGLE(NORMAL, logger_, "Startup simulation model: " << modelName);
             simulationModel_->startup();
         }
 
