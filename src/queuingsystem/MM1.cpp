@@ -66,6 +66,10 @@ SimpleMM1::generateNewJob()
 {
     ++jobsInSystem_;
 
+    wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
+
+    MESSAGE_SINGLE(NORMAL, logger_, "Generated new job, next job in " << delayToNextJob << "s\n" << *this);
+
     // The job is the only job in the system. There is no job that is currently
     // being served -> the server is free and can process the next job
     if (jobsInSystem_ == 1)
@@ -73,20 +77,17 @@ SimpleMM1::generateNewJob()
         processNextJob();
     }
 
-    wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
-
     wns::simulator::getEventScheduler()->scheduleDelay(
         boost::bind(&SimpleMM1::generateNewJob, this),
         delayToNextJob);
 
-    MESSAGE_SINGLE(NORMAL, logger_, "Generated new job\n" << *this);
 }
 
 void
 SimpleMM1::onJobProcessed()
 {
     --jobsInSystem_;
-    MESSAGE_SINGLE(NORMAL, logger_, "Processed one job\n" << *this);
+    MESSAGE_SINGLE(NORMAL, logger_, "Finished a job\n" << *this);
     // if there are still jobs, serve them
     if (jobsInSystem_ > 0)
     {
@@ -102,13 +103,13 @@ SimpleMM1::processNextJob()
     wns::simulator::getEventScheduler()->scheduleDelay(
         boost::bind(&SimpleMM1::onJobProcessed, this),
         processingTime);
-    MESSAGE_SINGLE(NORMAL, logger_, "Processing next job\n" << *this);
+    MESSAGE_SINGLE(NORMAL, logger_, "Processing next job, processing time: " << processingTime << "s\n" << *this);
 }
 
 std::string
 SimpleMM1::doToString() const
 {
     std::stringstream ss;
-    ss << "Current state: jobs in the system " << jobsInSystem_;
+    ss << "Jobs in system: " << jobsInSystem_;
     return ss.str();
 }

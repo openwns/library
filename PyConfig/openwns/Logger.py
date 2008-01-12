@@ -218,7 +218,8 @@ class ColorMode(object):
 class Console(Format):
     __slots__ = ["timePrecision", "timeWidth", "maxLocationLength", "colors", "colorMap"]
 
-    colorMap = [ModuleColor("WNS", [Foreground.Yellow])]
+    # 'WNS' uses default color of the terminal
+    colorMap = []
     ''' Global color map for the Console output format
 
     Colors need to be registered by the modules individually. In
