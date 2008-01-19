@@ -32,7 +32,7 @@ commonEnv = CNBSEnvironment(PROJNAME       = 'wns',
                                               'dl',
                                               'boost_program_options',
                                               'boost_signals'],
-			    REVISIONCONTROL = RCS.Bazaar('../', 'libwns', 'main', '1.0'),
+			    REVISIONCONTROL = RCS.Bazaar('../', 'library', 'main', '1.0'),
                             # set the python version
                             PYTHONVERSION = pythonVersion,
                             # then the default path to serach in is
