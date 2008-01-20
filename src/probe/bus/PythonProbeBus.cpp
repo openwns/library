@@ -1,13 +1,28 @@
-/******************************************************************************
- * WNS (Wireless Network Simulator)                                           *
- * __________________________________________________________________________ *
- *                                                                            *
- * Copyright (C) 2004-2006                                                    *
- * Chair of Communication Networks (ComNets)                                  *
- * Kopernikusstr. 16, D-52074 Aachen, Germany                                 *
- * phone: ++49-241-80-27910 (phone), fax: ++49-241-80-22242                   *
- * email: wns@comnets.rwth-aachen.de                                          *
- * www: http://wns.comnets.rwth-aachen.de                                     *
+/*******************************************************************************
+ * This file is part of openWNS (open Wireless Network Simulator)
+ * _____________________________________________________________________________
+ *
+ * Copyright (C) 2004-2007
+ * Chair of Communication Networks (ComNets)
+ * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * phone: ++49-241-80-27910,
+ * fax: ++49-241-80-22242
+ * email: info@openwns.org
+ * www: http://www.openwns.org
+ * _____________________________________________________________________________
+ *
+ * openWNS is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License version 2 as published by the 
+ * Free Software Foundation;
+ *
+ * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  ******************************************************************************/
 
 #include <Python.h>
@@ -48,8 +63,8 @@ PythonProbeBus::onMeasurement(const wns::simulator::Time& timestamp,
 
     assure(pyValue != NULL, "Could not create Python Object");
 
-	const Context* c = dynamic_cast<const Context*>(&reg);
-	assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
+    const Context* c = dynamic_cast<const Context*>(&reg);
+    assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
 
     PyObject* result = PyObject_CallFunctionObjArgs(pyOnMeasurementMethod.obj_,
                                                     pyTimestamp,
@@ -76,8 +91,8 @@ PythonProbeBus::accepts(const wns::simulator::Time& timestamp,
 {
     PyObject* pyTimestamp = Py_BuildValue("d", timestamp);
 
-	const Context* c = dynamic_cast<const Context*>(&reg);
-	assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
+    const Context* c = dynamic_cast<const Context*>(&reg);
+    assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
 
     PyObject* result = PyObject_CallFunctionObjArgs(pyAcceptsMethod.obj_,
                                                     pyTimestamp,
