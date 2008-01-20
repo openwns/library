@@ -147,7 +147,7 @@ class LoggingProbeBus(ProbeBus):
 
         def __init__(self, parentLogger=None):
                 ProbeBus.__init__(self,"")
-                self.logger = wns.Logger.Logger("WNS", "ProbeBus", True, parentLogger)
+                self.logger = openwns.Logger.Logger("WNS", "ProbeBus", True, parentLogger)
 
 class PythonProbeBus(ProbeBus):
 
