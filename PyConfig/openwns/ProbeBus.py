@@ -6,6 +6,8 @@ class ProbeBusRegistry:
                 self.prototype = probeBusPrototype
 
 class ProbeBus:
+        """ Base configuration class for all probe busses. It keeps track of
+        the observing relationship between probe busses."""
         def __init__(self, outputTag):
                 self.subject = None
                 self.observers = []
@@ -128,21 +130,24 @@ class SubTreeRegistry:
 		raise Exception("'"+name+"' not found in "+str(self))
 
 class MasterProbeBus(ProbeBus):
-
+        """ The MasterProbeBus always accepts and always forwards. Probably used as
+        prototype in the ProbeBusRegistry"""
         nameInFactory = "MasterProbeBus"
 
         def __init__(self):
                 ProbeBus.__init__(self,"")
 
 class SettlingTimeGuard(ProbeBus):
-
+        """ The SettlingTimeGuard only accepts if the global settling time (transient phase)
+        has elapsed"""
         nameInFactory = "SettlingTimeGuard"
 
         def __init__(self):
                 ProbeBus.__init__(self,"")
 
 class LoggingProbeBus(ProbeBus):
-
+        """ The LoggingProbeBus always accepts and logs the message to the logging subsystem.
+        """
         nameInFactory = "LoggingProbeBus"
 
         def __init__(self, parentLogger=None):
@@ -150,7 +155,8 @@ class LoggingProbeBus(ProbeBus):
                 self.logger = openwns.Logger.Logger("WNS", "ProbeBus", True, parentLogger)
 
 class PythonProbeBus(ProbeBus):
-
+        """ Use the PythonProbeBus to do all your probing work in python. Specify what to do
+        in accepts, onMeasurement, output from within your configuration file."""
         nameInFactory = "PythonProbeBus"
 
         def _dummyOnMeasurement(timestamp, value, reg):
@@ -167,6 +173,7 @@ class PythonProbeBus(ProbeBus):
                 self.reportErrors = True
 
 class TimeWindowProbeBus(ProbeBus):
+        """ Only accepts for a certain time window given by start and end time"""
 
         nameInFactory = "TimeWindowProbeBus"
 
