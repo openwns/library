@@ -71,9 +71,9 @@ namespace wns { namespace probe { namespace bus {
         forwardOutput();
 
     private:
-        wns::pyconfig::View protoConf;
+        wns::pyconfig::View protoConf_;
 
-        ProbeBusRegistryContainer registry;
+        ProbeBusRegistryContainer registry_;
     };
 } // bus
 } // probe

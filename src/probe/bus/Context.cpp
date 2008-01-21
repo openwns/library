@@ -35,26 +35,26 @@ using namespace wns::probe::bus;
 
 
 Context::Context():
-    pyDict(NULL)
+    pyDict_(NULL)
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
-    pyDict = wns::pyconfig::Object(PyDict_New());
-    assure(!pyDict.isNull(), "Creation of Python Dict Failed");
+    pyDict_ = wns::pyconfig::Object(PyDict_New());
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
 }
 
 Context::~Context()
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
-    assure(!pyDict.isNull(), "No Python Object!");
-    PyDict_Clear(pyDict.obj_);
-    pyDict.decref();
+    assure(!pyDict_.isNull(), "No Python Object!");
+    PyDict_Clear(pyDict_.obj_);
+    pyDict_.decref();
 }
 
 void
 Context::insertInt(const std::string& key, int value)
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
-    assure(!pyDict.isNull(), "Creation of Python Dict Failed");
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
 
     // Check if entry with "key" already exists
     if ( this->knows(key) == true )
@@ -67,7 +67,7 @@ Context::insertInt(const std::string& key, int value)
 #ifndef NDEBUG
     int result =
 #endif
-        PyDict_SetItemString(pyDict.obj_, key.c_str(), pyValue);
+        PyDict_SetItemString(pyDict_.obj_, key.c_str(), pyValue);
 
     assure(result==0, "Inserting of element into Dict failed!");
     Py_DECREF(pyValue);
@@ -77,7 +77,7 @@ void
 Context::insertString(const std::string& key, const std::string& value)
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
-    assure(!pyDict.isNull(), "Creation of Python Dict Failed");
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
 
     // Check if entry with "key" already exists
     if ( this->knows(key) == true )
@@ -90,7 +90,7 @@ Context::insertString(const std::string& key, const std::string& value)
 #ifndef NDEBUG
     int result =
 #endif
-        PyDict_SetItemString(pyDict.obj_, key.c_str(), pyValue);
+        PyDict_SetItemString(pyDict_.obj_, key.c_str(), pyValue);
 
     assure(result==0, "Inserting of element into Dict failed!");
     Py_DECREF(pyValue);
@@ -100,10 +100,10 @@ bool
 Context::knows(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
-    assure(!pyDict.isNull(), "Creation of Python Dict Failed");
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
 
     PyObject* pyKey = PyString_FromString(key.c_str());
-    int result = PyDict_Contains(pyDict.obj_, pyKey);
+    int result = PyDict_Contains(pyDict_.obj_, pyKey);
 
     assure(result!=-1, "Error in PyDict_Contains occurred");
 
@@ -116,13 +116,13 @@ int
 Context::getInt(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
-    assure(!pyDict.isNull(), "Creation of Python Dict Failed");
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
 
     PyObject* pyKey = PyString_FromString(key.c_str());
 
     // PyDict_GetItem returns a "borrowed" reference, which means we are not
     // responsible of DECREFING it.
-    PyObject* pyValue = PyDict_GetItem(pyDict.obj_, pyKey);
+    PyObject* pyValue = PyDict_GetItem(pyDict_.obj_, pyKey);
 
     if (pyValue == NULL)
         throw context::NotFound();
@@ -145,13 +145,13 @@ std::string
 Context::getString(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
-    assure(!pyDict.isNull(), "Creation of Python Dict Failed");
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
 
     PyObject* pyKey = PyString_FromString(key.c_str());
 
     // PyDict_GetItem returns a "borrowed" reference, which means we are not
     // responsible of DECREFING it.
-    PyObject* pyValue = PyDict_GetItem(pyDict.obj_, pyKey);
+    PyObject* pyValue = PyDict_GetItem(pyDict_.obj_, pyKey);
 
     if (pyValue == NULL)
         throw context::NotFound();
@@ -173,14 +173,14 @@ Context::getString(const std::string& key) const
 std::string
 Context::doToString() const
 {
-    assure(!pyDict.isNull(), "NULL Python Object!");
+    assure(!pyDict_.isNull(), "NULL Python Object!");
 
     PyObject *key, *value;
     int pos = 0;
 
     std::stringstream str;
     str << "{";
-    while (PyDict_Next(pyDict.obj_, &pos, &key, &value))
+    while (PyDict_Next(pyDict_.obj_, &pos, &key, &value))
     {
         str << PyString_AsString(key) << " : ";
         if (PyInt_Check(value) == true)

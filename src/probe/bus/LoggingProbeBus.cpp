@@ -38,7 +38,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 
 LoggingProbeBus::LoggingProbeBus(const wns::pyconfig::View& pyco):
-    logger(pyco.get<wns::pyconfig::View>("logger"))
+    logger_(pyco.get<wns::pyconfig::View>("logger"))
 {
 }
 
@@ -57,7 +57,7 @@ LoggingProbeBus::onMeasurement(const wns::simulator::Time& timestamp,
                                const double& aValue,
                                const IContext& reg)
 {
-    MESSAGE_BEGIN(NORMAL, logger, m, "");
+    MESSAGE_BEGIN(NORMAL, logger_, m, "");
     m << "("
       << std::resetiosflags(std::ios::fixed)
       << std::resetiosflags(std::ios::scientific)

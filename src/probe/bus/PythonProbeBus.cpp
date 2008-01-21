@@ -38,15 +38,15 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     "PythonProbeBus",
     wns::PyConfigViewCreator);
 
-PythonProbeBus::PythonProbeBus(const wns::pyconfig::View& _pyco):
-    pyco(_pyco),
-    reportErrors(pyco.get<bool>("reportErrors"))
+PythonProbeBus::PythonProbeBus(const wns::pyconfig::View& pyco):
+    pyco_(pyco),
+    reportErrors_(pyco_.get<bool>("reportErrors"))
 {
-    assure(pyco.knows("accepts"), "Cannot retrieve method accept from PyConfig");
-    assure(pyco.knows("onMeasurement"), "Cannot retrieve method on Measurement from PyConfig");
-    pyAcceptsMethod = pyco.getObject("accepts");
-    pyOnMeasurementMethod = pyco.getObject("onMeasurement");
-    pyOutputMethod = pyco.getObject("output");
+    assure(pyco_.knows("accepts"), "Cannot retrieve method accept from PyConfig");
+    assure(pyco_.knows("onMeasurement"), "Cannot retrieve method on Measurement from PyConfig");
+    pyAcceptsMethod_ = pyco_.getObject("accepts");
+    pyOnMeasurementMethod_ = pyco_.getObject("onMeasurement");
+    pyOutputMethod_ = pyco_.getObject("output");
 }
 
 PythonProbeBus::~PythonProbeBus()
@@ -66,10 +66,10 @@ PythonProbeBus::onMeasurement(const wns::simulator::Time& timestamp,
     const Context* c = dynamic_cast<const Context*>(&reg);
     assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
 
-    PyObject* result = PyObject_CallFunctionObjArgs(pyOnMeasurementMethod.obj_,
+    PyObject* result = PyObject_CallFunctionObjArgs(pyOnMeasurementMethod_.obj_,
                                                     pyTimestamp,
                                                     pyValue,
-                                                    c->pyDict.obj_,
+                                                    c->pyDict_.obj_,
                                                     NULL);
     if (result == NULL)
         this->showdown("Error when calling Python accepts method.");
@@ -94,9 +94,9 @@ PythonProbeBus::accepts(const wns::simulator::Time& timestamp,
     const Context* c = dynamic_cast<const Context*>(&reg);
     assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
 
-    PyObject* result = PyObject_CallFunctionObjArgs(pyAcceptsMethod.obj_,
+    PyObject* result = PyObject_CallFunctionObjArgs(pyAcceptsMethod_.obj_,
                                                     pyTimestamp,
-                                                    c->pyDict.obj_,
+                                                    c->pyDict_.obj_,
                                                     NULL);
     if (result == NULL)
     {
@@ -120,7 +120,7 @@ PythonProbeBus::accepts(const wns::simulator::Time& timestamp,
 void
 PythonProbeBus::output()
 {
-    PyObject* result = PyObject_CallFunctionObjArgs(pyOutputMethod.obj_,
+    PyObject* result = PyObject_CallFunctionObjArgs(pyOutputMethod_.obj_,
                                                     NULL);
     if (result == NULL)
         this->showdown("Error when calling Python output method.");
@@ -137,7 +137,7 @@ PythonProbeBus::output()
 void
 PythonProbeBus::showdown(const std::string& reason) const
 {
-    if (reportErrors)
+    if (reportErrors_)
     {
         std::cerr << "\n" << reason << "\n";
         std::cerr << "\nPython says:\n";

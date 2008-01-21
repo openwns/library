@@ -41,9 +41,9 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 
 TimeWindowProbeBus::TimeWindowProbeBus(const wns::pyconfig::View& pyco):
-    evsched(wns::simulator::getEventScheduler()),
-    start(pyco.get<wns::simulator::Time>("start")),
-    end(pyco.get<wns::simulator::Time>("end"))
+    evsched_(wns::simulator::getEventScheduler()),
+    start_(pyco.get<wns::simulator::Time>("start")),
+    end_(pyco.get<wns::simulator::Time>("end"))
 {
 }
 
@@ -76,9 +76,9 @@ TimeWindowProbeBus::startReceiving(ProbeBus* other)
                                                                   other,
                                                                   true);
 
-    evsched->schedule(command, start);
+    evsched_->schedule(command, start_);
 
     command = StartStopReceivingCommand(this, other, false);
 
-    evsched->schedule(command, end);
+    evsched_->schedule(command, end_);
 }

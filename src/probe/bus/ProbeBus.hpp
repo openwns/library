@@ -191,26 +191,26 @@ namespace wns { namespace probe { namespace bus {
                                                             const double&,
                                                             const IContext&);
     public:
-        ProbeBusMeasurementFunctor(fPtr _f,
-                                   const wns::simulator::Time& _time,
-                                   const double& _value,
-                                   const IContext& _reg):
-            f(_f),
-            time(_time),
-            value(_value),
-            registry(_reg)
+        ProbeBusMeasurementFunctor(fPtr f,
+                                   const wns::simulator::Time& time,
+                                   const double& value,
+                                   const IContext& reg):
+            f_(f),
+            time_(time),
+            value_(value),
+            registry_(reg)
             {}
 
         void
         operator()(ProbeBusNotificationInterface* observer)
             {
-                (*observer.*f)(time, value, registry);
+                (*observer.*f_)(time_, value_, registry_);
             }
     private:
-        fPtr f;
-        const wns::simulator::Time& time;
-        const double& value;
-        const IContext& registry;
+        fPtr f_;
+        const wns::simulator::Time& time_;
+        const double& value_;
+        const IContext& registry_;
     };
 } // bus
 } // probe

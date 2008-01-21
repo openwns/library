@@ -62,7 +62,7 @@ namespace wns { namespace probe { namespace bus {
         output();
 
     private:
-        wns::logger::Logger logger;
+        wns::logger::Logger logger_;
     };
 } // bus
 } // probe

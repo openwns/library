@@ -80,15 +80,15 @@ namespace wns { namespace probe { namespace bus {
         void
         showdown(const std::string& reason) const;
 
-        wns::pyconfig::View pyco;
+        wns::pyconfig::View pyco_;
 
-        wns::pyconfig::Object pyAcceptsMethod;
+        wns::pyconfig::Object pyAcceptsMethod_;
 
-        wns::pyconfig::Object pyOnMeasurementMethod;
+        wns::pyconfig::Object pyOnMeasurementMethod_;
 
-        wns::pyconfig::Object pyOutputMethod;
+        wns::pyconfig::Object pyOutputMethod_;
 
-        bool reportErrors;
+        bool reportErrors_;
     };
 } // bus
 } // probe

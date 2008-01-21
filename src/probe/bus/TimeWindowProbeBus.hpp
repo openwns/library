@@ -59,24 +59,24 @@ namespace wns { namespace probe { namespace bus {
         class StartStopReceivingCommand
         {
         public:
-            StartStopReceivingCommand(TimeWindowProbeBus* _who,
-                                      ProbeBus* _other,
-                                      bool _starting) :
-                who(_who),
-                other(_other),
-                starting(_starting)
+            StartStopReceivingCommand(TimeWindowProbeBus* who,
+                                      ProbeBus* other,
+                                      bool starting) :
+                who_(who),
+                other_(other),
+                starting_(starting)
                 {
                 }
 
             virtual void operator()()
                 {
-                    if (starting)
+                    if (starting_)
                     {
-                        who->wns::probe::bus::ProbeBus::startReceiving(other);
+                        who_->wns::probe::bus::ProbeBus::startReceiving(other_);
                     }
                     else
                     {
-                        who->wns::probe::bus::ProbeBus::stopReceiving(other);
+                        who_->wns::probe::bus::ProbeBus::stopReceiving(other_);
                     }
                 }
             virtual
@@ -84,18 +84,18 @@ namespace wns { namespace probe { namespace bus {
             {}
 
         private:
-            TimeWindowProbeBus* who;
+            TimeWindowProbeBus* who_;
 
-            ProbeBus* other;
+            ProbeBus* other_;
 
-            bool starting;
+            bool starting_;
         };
 
-        wns::events::scheduler::Interface* evsched;
+        wns::events::scheduler::Interface* evsched_;
 
-        wns::simulator::Time start;
+        wns::simulator::Time start_;
 
-        wns::simulator::Time end;
+        wns::simulator::Time end_;
     };
 } // bus
 } // probe

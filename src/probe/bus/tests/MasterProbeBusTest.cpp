@@ -55,7 +55,7 @@ namespace wns { namespace probe { namespace bus { namespace tests {
         void testRegistry();
 
     private:
-        ProbeBus* theMasterProbeBus;
+        ProbeBus* theMasterProbeBus_;
     };
 }}}}
 
@@ -67,13 +67,13 @@ void
 MasterProbeBusTest::prepare()
 {
     wns::pyconfig::Parser empty;
-    theMasterProbeBus = new MasterProbeBus(empty);
+    theMasterProbeBus_ = new MasterProbeBus(empty);
 }
 
 void
 MasterProbeBusTest::cleanup()
 {
-    delete theMasterProbeBus;
+    delete theMasterProbeBus_;
 }
 
 void
@@ -81,10 +81,10 @@ MasterProbeBusTest::testSingleListener()
 {
     ProbeBusStub listener;
 
-    listener.startReceiving(theMasterProbeBus);
+    listener.startReceiving(theMasterProbeBus_);
 
     wns::probe::bus::Context tmp;
-    this->theMasterProbeBus->forwardMeasurement(1.0, 2.0, tmp);
+    this->theMasterProbeBus_->forwardMeasurement(1.0, 2.0, tmp);
 
     CPPUNIT_ASSERT(listener.receivedCounter == 1);
     CPPUNIT_ASSERT(listener.receivedTimestamps[0] == 1.0);
@@ -95,13 +95,13 @@ void
 MasterProbeBusTest::testMultipleListeners()
 {
     ProbeBusStub listener1;
-    listener1.startReceiving(theMasterProbeBus);
+    listener1.startReceiving(theMasterProbeBus_);
 
     ProbeBusStub listener2;
-    listener2.startReceiving(theMasterProbeBus);
+    listener2.startReceiving(theMasterProbeBus_);
 
     wns::probe::bus::Context tmp;
-    this->theMasterProbeBus->forwardMeasurement(2.0, 5.0, tmp);
+    this->theMasterProbeBus_->forwardMeasurement(2.0, 5.0, tmp);
 
     CPPUNIT_ASSERT(listener1.receivedCounter == 1);
     CPPUNIT_ASSERT(listener1.receivedTimestamps[0] == 2.0);
@@ -120,14 +120,14 @@ MasterProbeBusTest::testRegistry()
     reg.insertInt("July", 7);
 
     ProbeBusStub listener1;
-    listener1.startReceiving(theMasterProbeBus);
+    listener1.startReceiving(theMasterProbeBus_);
     listener1.setFilter("Peter", 3);
 
     ProbeBusStub listener2;
-    listener2.startReceiving(theMasterProbeBus);
+    listener2.startReceiving(theMasterProbeBus_);
     listener2.setFilter("July", 15);
 
-    this->theMasterProbeBus->forwardMeasurement(3.0, 17.0, reg);
+    this->theMasterProbeBus_->forwardMeasurement(3.0, 17.0, reg);
 
     CPPUNIT_ASSERT(listener1.receivedCounter == 1);
 

@@ -31,8 +31,8 @@
 using namespace wns::probe::bus;
 
 ProbeBusRegistry::ProbeBusRegistry(const wns::pyconfig::View& pyco):
-    protoConf(pyco.getView("prototype")),
-    registry()
+    protoConf_(pyco.getView("prototype")),
+    registry_()
 {
 }
 
@@ -43,29 +43,29 @@ ProbeBusRegistry::~ProbeBusRegistry()
 ProbeBus*
 ProbeBusRegistry::getProbeBus(const std::string& probeBusID)
 {
-    if (registry.knows(probeBusID))
+    if (registry_.knows(probeBusID))
     {
-        return registry.find(probeBusID);
+        return registry_.find(probeBusID);
     }
     else
     {
-        std::string name = protoConf.get<std::string>("nameInFactory");
+        std::string name = protoConf_.get<std::string>("nameInFactory");
         wns::probe::bus::ProbeBusCreator* c =
             wns::probe::bus::ProbeBusFactory::creator(name);
 
-        wns::probe::bus::ProbeBus* pb = c->create(protoConf);
+        wns::probe::bus::ProbeBus* pb = c->create(protoConf_);
 
-        registry.insert(probeBusID, pb);
+        registry_.insert(probeBusID, pb);
 
-        return registry.find(probeBusID);
+        return registry_.find(probeBusID);
     }
 }
 
 void
 ProbeBusRegistry::forwardOutput()
 {
-    for (ProbeBusRegistryContainer::const_iterator it = registry.begin();
-         it != registry.end();
+    for (ProbeBusRegistryContainer::const_iterator it = registry_.begin();
+         it != registry_.end();
          ++it)
     {
         it->second->forwardOutput();

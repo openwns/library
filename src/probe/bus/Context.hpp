@@ -139,7 +139,7 @@ namespace wns { namespace probe { namespace bus {
         virtual std::string
         doToString() const;
 
-        wns::pyconfig::Object pyDict;
+        wns::pyconfig::Object pyDict_;
     };
 
 } // bus
