@@ -49,6 +49,8 @@ namespace wns { namespace logger {
 	 * WNS will instantiate one logger::Master and offer
 	 * this as service ("W-NS-MSG"). The Logger in the module will write to
 	 * this logger::Master.
+	 *
+	 * \pyco{openwns.Logger.MasterLogger}
 	 */
 	class Master
 	{
