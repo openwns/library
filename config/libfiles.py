@@ -62,6 +62,18 @@ srcFiles['LOGGER'] = [
 
 ]
 
+srcFiles['PROBEBUS'] = [
+    'src/probe/bus/Context.cpp',
+    'src/probe/bus/LoggingProbeBus.cpp',
+    'src/probe/bus/MasterProbeBus.cpp',
+    'src/probe/bus/ProbeBus.cpp',
+    'src/probe/bus/ProbeBusRegistry.cpp',
+    'src/probe/bus/PythonProbeBus.cpp',
+    'src/probe/bus/SettlingTimeGuard.cpp',
+    'src/probe/bus/TimeWindowProbeBus.cpp',
+
+]
+
 srcFiles['TESTING'] = [
     'src/testing/DetailedListener.cpp',
     ]
@@ -107,6 +119,13 @@ srcFiles['LOGGER-TESTS'] = [
     'src/logger/tests/MessageTest.cpp',
     'src/logger/tests/LoggerTest.cpp',
     'src/logger/tests/LoggerTestHelper.cpp',
+]
+srcFiles['PROBEBUS-TESTS'] = [
+    'src/probe/bus/tests/ContextTest.cpp',
+    'src/probe/bus/tests/MasterProbeBusTest.cpp',
+    'src/probe/bus/tests/ProbeBusStub.cpp',
+    'src/probe/bus/tests/PythonProbeBusTest.cpp',
+    'src/probe/bus/tests/TimeWindowProbeBusTest.cpp',
 ]
 
 srcFiles['EVENTS-TESTS'] = [
