@@ -25,14 +25,14 @@
 #
 ###############################################################################
 
-import openwns.Logger
+import openwns.logger
 
 class SimpleMM1(object):
-    __slots__ = ['nameInFactory', 'logger', 'meanJobInterarrivalTime', 'meanJobProcessingTime']
+    __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime']
 
 
-    def __init__(self, meanJobInterarrivalTime ,meanJobProcessingTime):
+    def __init__(self, meanJobInterArrivalTime, meanJobProcessingTime):
         self.nameInFactory = 'openwns.queuingsystem.SimpleMM1'
-        self.logger = openwns.Logger.Logger("WNS", "SimpleMM1", True)
-        self.meanJobInterarrivalTime = meanJobInterarrivalTime
+        self.logger = openwns.logger.Logger("WNS", "SimpleMM1", True)
+        self.meanJobInterArrivalTime = meanJobInterArrivalTime
         self.meanJobProcessingTime = meanJobProcessingTime

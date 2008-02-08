@@ -42,9 +42,9 @@ Simulator::Simulator(const wns::pyconfig::View& configuration) :
     resetSignal_(new ResetSignal()),
     configuration_(configuration)
 {
-    this->configureEventScheduler(configuration_.getView("WNS.eventScheduler"));
-    this->configureMasterLogger(configuration_.getView("WNS.masterLogger"));
-    this->configureRNG(configuration_.getView("WNS.rng"));
+    this->configureEventScheduler(configuration_.getView("environment.eventScheduler"));
+    this->configureMasterLogger(configuration_.getView("environment.masterLogger"));
+    this->configureRNG(configuration_.getView("environment.rng"));
 }
 
 Simulator::~Simulator()

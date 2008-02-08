@@ -27,6 +27,7 @@
 
 #include <WNS/events/scheduler/Interface.hpp>
 #include <WNS/simulator/ISimulator.hpp>
+#include <boost/bind.hpp>
 
 using namespace wns::events::scheduler;
 
@@ -83,6 +84,18 @@ void
 Interface::stop()
 {
     return this->doStop();
+}
+
+void
+Interface::stopAt(const wns::simulator::Time& time)
+{
+    return this->doStopAt(time);
+}
+
+void
+Interface::doStopAt(const wns::simulator::Time& time)
+{
+    schedule(boost::bind(&wns::events::scheduler::Interface::stop, this), time);
 }
 
 size_t

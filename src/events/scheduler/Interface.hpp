@@ -186,6 +186,12 @@ namespace wns { namespace events { namespace scheduler {
         stop();
 
         /**
+         * @brief Stop scheduler at this simulation time
+         */
+        void
+        stopAt(const wns::simulator::Time& time);
+
+        /**
          * @brief Returns number of evnts currently in the queue
          */
         size_t
@@ -240,6 +246,11 @@ namespace wns { namespace events { namespace scheduler {
 
         virtual void
         doStop() = 0;
+
+        // this implementation works for all schedulers
+        // a sub-class might override this method for custom-/optimization
+        virtual void
+        doStopAt(const wns::simulator::Time& time);
 
         virtual size_t
         doSize() const = 0;

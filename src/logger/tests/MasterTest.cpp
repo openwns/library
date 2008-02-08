@@ -25,8 +25,8 @@
  *
  ******************************************************************************/
 
-#include "MasterTest.hpp"
-#include "LoggerTestHelper.hpp"
+#include <WNS/logger/tests/MasterTest.hpp>
+#include <WNS/logger/tests/LoggerTestHelper.hpp>
 
 using namespace wns::logger;
 using namespace std;
@@ -35,7 +35,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION( MasterTest );
 
 void MasterTest::setUp()
 {
-	TestOutput::result = "";
+    TestOutput::result = "";
 }
 
 void MasterTest::tearDown()
@@ -43,70 +43,60 @@ void MasterTest::tearDown()
 
 void MasterTest::testWriting()
 {
-	std::stringstream s;
-	s << "from openwns.Logger import *\n"
-	  << "masterLogger = MasterLogger()\n"
-	  << "class Test:\n"
-	  << "  __plugin__ = 'Test' \n"
-	  << "masterLogger.loggerChain = [FormatOutputPair(Test(), Test())] ";
-	pyconfig::Parser p;
-	p.loadString(s.str());
+    std::stringstream s;
+    s << "from openwns.logger import *\n"
+      << "masterLogger = Master()\n"
+      << "class Test:\n"
+      << "  __plugin__ = 'Test' \n"
+      << "masterLogger.loggerChain = [FormatOutputPair(Test(), Test())] ";
+    pyconfig::Parser p;
+    p.loadString(s.str());
 
-	Master t(p.getView("masterLogger"));
+    Master t(p.getView("masterLogger"));
 
-	TestOutput::result = "";
+    TestOutput::result = "";
 
-	t.write("A", "B", "C");
-	CPPUNIT_ASSERT_MESSAGE( TestOutput::result, TestOutput::result=="ABC" );
+    t.write("A", "B", "C");
+    CPPUNIT_ASSERT_MESSAGE( TestOutput::result, TestOutput::result=="ABC" );
 
-	TestOutput::result = "";
+    TestOutput::result = "";
 
-	t.write(string("A"), string("B"), string("C") );
-	CPPUNIT_ASSERT_MESSAGE( TestOutput::result, TestOutput::result=="ABC" );
+    t.write(string("A"), string("B"), string("C") );
+    CPPUNIT_ASSERT_MESSAGE( TestOutput::result, TestOutput::result=="ABC" );
 
-	std::stringstream s2;
-	s2 << "from openwns.Logger import *\n"
-	   << "masterLogger = MasterLogger()\n"
-	   << "class Test:\n"
-	   << "  __plugin__ = 'Test' \n"
-	   << "masterLogger.loggerChain = [FormatOutputPair(Test(), Test())]\n"
-	   << "masterLogger.enabled = False";
-	pyconfig::Parser p2;
-	p2.loadString(s2.str());
+    std::stringstream s2;
+    s2 << "from openwns.logger import *\n"
+       << "masterLogger = Master()\n"
+       << "class Test:\n"
+       << "  __plugin__ = 'Test' \n"
+       << "masterLogger.loggerChain = [FormatOutputPair(Test(), Test())]\n"
+       << "masterLogger.enabled = False";
+    pyconfig::Parser p2;
+    p2.loadString(s2.str());
 
-	TestOutput::result = "";
-	Master t2(p2.getView("masterLogger"));
+    TestOutput::result = "";
+    Master t2(p2.getView("masterLogger"));
 
-	CPPUNIT_ASSERT_MESSAGE( TestOutput::result, TestOutput::result=="" );
+    CPPUNIT_ASSERT_MESSAGE( TestOutput::result, TestOutput::result=="" );
 }
 
 void MasterTest::testBacktrace()
 {
-	stringstream s;
-	s << "from openwns.Logger import *\n"
-	  << "masterLogger = MasterLogger()\n"
-	  << "class Test:\n"
-	  << "  __plugin__ = 'Test' \n"
-	  << "masterLogger.loggerChain = [FormatOutputPair(Test(), Test())]\n"
-	  << "masterLogger.backtrace.enabled = True\n"
-	  << "masterLogger.backtrace.length = 3\n";
-	Master t(pyconfig::Parser::fromString(s.str()).getView("masterLogger"));
-	t.write("A", "B", "1");
-	t.write("A", "B", "2");
-	t.write("A", "B", "3");
-	t.write("A", "B", "4");
-	t.write("A", "B", "5");
-	TestOutput::result = "";
-	t.outputBacktrace();
-	CPPUNIT_ASSERT_MESSAGE( TestOutput::result, std::string("AB3AB4AB5") == TestOutput::result );
+    stringstream s;
+    s << "from openwns.logger import *\n"
+      << "masterLogger = Master()\n"
+      << "class Test:\n"
+      << "  __plugin__ = 'Test' \n"
+      << "masterLogger.loggerChain = [FormatOutputPair(Test(), Test())]\n"
+      << "masterLogger.backtrace.enabled = True\n"
+      << "masterLogger.backtrace.length = 3\n";
+    Master t(pyconfig::Parser::fromString(s.str()).getView("masterLogger"));
+    t.write("A", "B", "1");
+    t.write("A", "B", "2");
+    t.write("A", "B", "3");
+    t.write("A", "B", "4");
+    t.write("A", "B", "5");
+    TestOutput::result = "";
+    t.outputBacktrace();
+    CPPUNIT_ASSERT_MESSAGE( TestOutput::result, std::string("AB3AB4AB5") == TestOutput::result );
 }
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/

@@ -25,39 +25,28 @@
  *
  ******************************************************************************/
 
-#ifndef _MASTERLOGGERTEST_HPP
-#define _MASTERLOGGERTEST_HPP
+#ifndef WNS_LOGGER_TESTS_MASTERTEST_HPP
+#define WNS_LOGGER_TESTS_MASTERTEST_HPP
 
-#include "pyconfig/Parser.hpp"
+#include <WNS/pyconfig/Parser.hpp>
 #include <WNS/logger/Master.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace wns { namespace logger {
-	class MasterTest
-		: public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( MasterTest );
-		CPPUNIT_TEST( testWriting );
-		CPPUNIT_TEST( testBacktrace );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
-		void testWriting();
-		void testBacktrace();
-	private:
-	};
+    class MasterTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( MasterTest );
+        CPPUNIT_TEST( testWriting );
+        CPPUNIT_TEST( testBacktrace );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
+        void testWriting();
+        void testBacktrace();
+    private:
+    };
 }
 }
-#endif
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+#endif // NOT defined WNS_LOGGER_TESTS_MASTERTEST_HPP

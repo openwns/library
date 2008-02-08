@@ -64,7 +64,7 @@ def Plugin(name):
     return Strategy
 
 class View(dict):
-    """Dictionary implementation serving as globals() for PyConfig Views"""
+    """Dictionary implementation serving as globals() for wns::pyconfig::View"""
 
     def __init__(self, obj):
         super(View, self).__init__()
@@ -102,13 +102,13 @@ class View(dict):
 class PyConfigTest:
     foo = 42
     def __init__(self):
-        """test pyconfig::Parser::fromClass"""
+        """test wns::pyconfig::Parser::fromClass"""
         pass
 
 class PyConfigTestWithArg:
     foo = 42
     def __init__(self, n):
-        """test pyconfig::Parser::fromClass"""
+        """test wns::pyconfig::Parser::fromClass"""
         self.foo = n
 
 def main():

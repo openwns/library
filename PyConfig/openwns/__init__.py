@@ -24,3 +24,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ###############################################################################
+
+# aliases
+import openwns.simulator as simulator
+Simulator = simulator.OpenWNS
+getSimulator = simulator.getSimulator
+setSimulator = simulator.setSimulator
