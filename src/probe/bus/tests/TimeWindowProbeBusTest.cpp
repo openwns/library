@@ -75,8 +75,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION( TimeWindowProbeBusTest );
 void
 TimeWindowProbeBusTest::prepare()
 {
-    std::string config = "import openwns.ProbeBus\n"
-        "timewindow = openwns.ProbeBus.TimeWindowProbeBus(start=0.1, end=100.12)\n";
+    std::string config = "import openwns.probebus\n"
+        "timewindow = openwns.probebus.TimeWindowProbeBus(start=0.1, end=100.12)\n";
     wns::pyconfig::Parser p;
     p.loadString(config);
     master_ = new ProbeBusStub();
