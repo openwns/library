@@ -38,6 +38,9 @@
 #include <WNS/simulator/UnitTests.hpp>
 #include <WNS/events/MemberFunction.hpp>
 
+#include <WNS/module/CurrentVersion.hpp>
+#include <WNS/module/Base.hpp>
+
 #include <WNS/simulator/AbortHandler.hpp>
 #include <WNS/simulator/InterruptHandler.hpp>
 #include <WNS/simulator/SegmentationViolationHandler.hpp>
@@ -59,6 +62,11 @@
 
 using namespace wns::simulator;
 
+ModuleDependencyMismatchException::ModuleDependencyMismatchException() :
+	wns::Exception("Module dependency not met!\n")
+{
+}
+
 Application::Application() :
     status_(0),
     configFile_("config.py"),
@@ -74,7 +82,14 @@ Application::Application() :
     attachDebugger_(false),
     interactiveConfig_(false),
 	logger_("WNS", "Application", NULL),
-    extendedPrecision_(false)
+    extendedPrecision_(false),
+    moduleViews(),
+	listLoadedModules(false),
+	configuredModules(),
+	commandLineModules(),
+	lazyBinding(false),
+	absolute_path(false),
+	readLibsFromCommandLine(false)
 {
     options_.add_options()
 
@@ -119,6 +134,17 @@ Application::Application() :
         ("extended-precision",
          boost::program_options::bool_switch(&extendedPrecision_),
          "enabled arithmetic operations with extended precision (80 bit) in x87 (disables strict IEEE754 compatibility)")
+
+		("load-modules,m",
+		 boost::program_options::value< std::vector<std::string> >(&this->commandLineModules),
+		 "load modules as specified here (to load multiple modules, specify multiple times: -m foo -m bar)")
+
+		("show-modules,M",
+		 "show modules that have been loaded")
+
+		("lazy-linking,l",
+		 boost::program_options::bool_switch(&this->lazyBinding),
+		 "be lazy and link when needed (not at start-up)")
         ;
 }
 
@@ -438,4 +464,170 @@ Application::disableX87ExtendedFloatingPointPrecision()
 {
     unsigned int mode = 0x27F;
 	asm("fldcw %0" : : "m" (*&mode));
+}
+
+
+void
+Application::loadModules()
+{
+	std::list<wns::module::VersionInformation> moduleVersions;
+
+	if(verbose_)
+	{
+		std::cout << wns::module::CurrentVersion.getNiceString() << std::endl;
+		std::cout << "Loading..." << std::endl;
+	}
+
+	moduleVersions.push_back(wns::module::CurrentVersion);
+
+	// If Modules should be read from command line, we will remove all modules
+	// specified in the config file, that haven't been specified on the command
+	// line. This means only Modules specified in the config file can be loaded
+	// on the command line.
+
+	// (msg) There must be an easier way to do this!! However, it's working ...
+	std::list<pyconfig::View> moduleViewsTmp = moduleViews;
+	if(readLibsFromCommandLine) {
+		moduleViews.clear();
+		for(std::list<pyconfig::View>::iterator i = moduleViewsTmp.begin();
+		    i != moduleViewsTmp.end();
+		    ++i) {
+			std::vector<std::string>::iterator i2;
+			for(i2 = commandLineModules.begin();
+			    i2 != commandLineModules.end();
+			    ++i2) {
+				if (i->get<std::string>("libname") == *i2) {
+					moduleViews.push_back(*i);
+					break;
+				}
+			}
+		}
+	}
+
+	if (!moduleViews.empty())
+	{
+		moduleViewsTmp = moduleViews;
+
+		std::list<pyconfig::View>::iterator itr = moduleViewsTmp.begin();
+		size_t numberOfErrors = 0;
+		std::string errorStr;
+
+		// walk through the list, every time a module can be successfully loaded it
+		// is removed from the list and we start from the beginning of the list.
+		// This will be done until the list is empty non of the remaining modules
+		// can be loaded.It can happen that module can't be loaded the first
+		// time. This is because the module might have dependencies on other
+		// modules which are not loaded yet.
+		while (!moduleViewsTmp.empty())
+		{
+			if (numberOfErrors == moduleViewsTmp.size())
+			{
+				std::cout << "ModuleFactory contains the following modules:" << std::endl;
+				for(wns::module::Factory::CreateMap::iterator i = wns::module::Factory::getMap()->begin();
+				    i != wns::module::Factory::getMap()->end();
+				    ++i)
+				{
+					std::cout << "\t"<< i->first << std::endl;
+				}
+				throw wns::Exception(
+					"Can't load all specified modules. Reason:\n" +
+					errorStr);
+			}
+
+			std::string libName = itr->get<std::string>("libname");
+			std::string moduleName = itr->get<std::string>("__plugin__");
+
+			if(verbose_)
+			{
+				std::cout << std::setw(8) << "Library: " << libName << "\n"
+					  << "Module: " << moduleName << "\n";
+			}
+			// If the ModuleFactory knows the Module the library has been opened
+			// before (may be due to static linkage). Then we don't need to load the
+			// library by hand.
+			if (wns::module::Factory::knows(moduleName) == false)
+			{
+				bool success = wns::module::Base::load(libName, absolute_path, verbose_, lazyBinding);
+				if(success == false)
+				{
+					// continue with next candidate
+					errorStr += std::string(dlerror());
+					numberOfErrors += 1;
+					++itr;
+					continue;
+				}
+			}
+			// it seems we found a loadable module -> append to module list
+			wns::module::Creator* moduleCreator = wns::module::Factory::creator(moduleName);
+			wns::module::Base* m = moduleCreator->create(*itr);
+			configuredModules.push_back(m);
+			wns::module::VersionInformation v = m->getVersionInformation();
+			moduleVersions.push_back(v);
+			if(verbose_)
+			{
+				std::cout << v.getNiceString() << std::endl;
+				std::cout << std::endl;
+			}
+			moduleViewsTmp.erase(itr);
+			// After a loadable module has been found and an error happened
+			// before (another module could not be loaded), the first module
+			// in the list is the one that could not be loaded. Thus we put
+			// it to the end.
+			if(numberOfErrors > 0)
+			{
+				moduleViewsTmp.push_back((*moduleViewsTmp.begin()));
+				moduleViewsTmp.erase(moduleViewsTmp.begin());
+			}
+			itr = moduleViewsTmp.begin();
+			numberOfErrors = 0;
+		}
+
+		if(listLoadedModules)
+		{
+			std::cout << "The following Modules are available after dynamic loading:" << std::endl;
+			for(wns::module::Factory::CreateMap::iterator i = wns::module::Factory::getMap()->begin();
+			    i != wns::module::Factory::getMap()->end();
+			    ++i)
+			{
+				std::cout << "\t"<< i->first << std::endl;
+			}
+		}
+
+		try
+		{
+			checkModuleDependencies(moduleVersions);
+		}
+		catch(const ModuleDependencyMismatchException& exception)
+		{
+			if(!testing_)
+			{
+				// throw on, not handled
+				throw;
+			}
+			else
+			{
+				// Just print a warning
+				std::cerr << "WARNING: module dependencies in testing mode ignored!\n"
+					  << exception;
+			}
+		}
+	}
+}
+
+void
+Application::checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions)
+{
+	std::list<wns::module::VersionInformation>::iterator itrMV;
+	std::list<wns::module::VersionInformation>::iterator itrMVEnd = moduleVersions.end();
+
+	for (itrMV = moduleVersions.begin(); itrMV!=itrMVEnd; ++itrMV)
+	{
+		if (!(*itrMV).getDependencies().dependenciesMetBy(moduleVersions.begin(),
+								  moduleVersions.end()))
+		{
+			ModuleDependencyMismatchException exception;
+			exception << (*itrMV).getNiceString();
+			throw exception;
+		}
+	}
 }

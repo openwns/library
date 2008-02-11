@@ -30,6 +30,35 @@ import openwns.logger
 import openwns.rng
 import openwns.pyconfig
 
+class OutputStrategy(openwns.pyconfig.Frozen):
+    DELETE = openwns.pyconfig.Plugin('Delete')
+    MOVE = openwns.pyconfig.Plugin('Move')
+
+class Modules(object):
+    def __len__(self):
+        return len(self.__getAllModules())
+
+    def __iter__(self):
+        for it in self.__getAllModules():
+                yield it
+
+    def __getitem__(self, key):
+        return self.__getAllModules()[key]
+
+    def __getattr__(self, key):
+        # show available attributes
+        if self.__dict__.has_key(key):
+            return self.__dict__[key]
+        else:
+            raise Exception(key + " not available.\nAvailable modules are: "+", ".join(self.__dict__.keys()))
+
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
+
+    def __getAllModules(self):
+        return self.__dict__.values()
+
+
 # global simulator config -> will be read by wns::simulator::Application
 # needs to be set by the user via openwns.setSimulator(...)
 # example:
@@ -55,7 +84,10 @@ class OpenWNS(object):
     This class is the root of the configuration.
     """
 
-    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel"]
+    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel",
+                 "outputDir", "outputStrategy"]
+
+    modules = Modules()
 
     def __init__(self, **kw):
         # set defaults
@@ -64,6 +96,8 @@ class OpenWNS(object):
         self.maxSimTime = 0.0
         self.eventSchedulerMonitor = openwns.eventscheduler.Monitor()
         self.simulationModel = None
+        self.outputDir = "output"
+	self.outputStrategy = OutputStrategy.MOVE
 
         openwns.pyconfig.attrsetter(self, kw)
 

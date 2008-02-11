@@ -15,6 +15,7 @@ srcFiles['BASE'] = [
     'src/module/Base.cpp',
     'src/module/Release.cpp',
     'src/module/Version.cpp',
+    'src/module/CurrentVersion.cpp',
     'src/module/VersionInformation.cpp',
     'src/module/DependencyList.cpp',
     'src/module/DateTime.cpp',

@@ -33,6 +33,7 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/events/scheduler/Monitor.hpp>
 #include <WNS/simulator/ISimulationModel.hpp>
+#include <WNS/module/VersionInformation.hpp>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -42,7 +43,22 @@
 #include <string>
 #include <memory>
 
-namespace wns { namespace simulator {
+namespace wns {
+
+	namespace module {
+		class Base;
+	}
+}
+
+namespace wns {  namespace simulator {
+
+	class ModuleDependencyMismatchException :
+		public wns::Exception
+	{
+	public:
+		ModuleDependencyMismatchException();
+	};
+
 
     /**
      * @brief Run-time environment of openWNS
@@ -172,6 +188,17 @@ namespace wns { namespace simulator {
         static void
         disableX87ExtendedFloatingPointPrecision();
 
+
+		/**
+		 * @brief Retrieve an instance of Module from each library
+		 */
+		void
+		loadModules();
+
+		void
+		checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions);
+
+
         /**
          * @brief The status code of openWNS
          *
@@ -262,6 +289,22 @@ namespace wns { namespace simulator {
          * @brief Keeps the SimulationModel which is constructed by a StaticFactory
          */
         std::auto_ptr<wns::simulator::ISimulationModel> simulationModel_;
+
+		std::list<pyconfig::View> moduleViews;
+
+		bool listLoadedModules;
+
+		std::list<wns::module::Base*> configuredModules;
+
+		std::vector<std::string> commandLineModules;
+
+		bool lazyBinding;
+
+		bool absolute_path;
+
+		bool readLibsFromCommandLine;
+
+
     };
 
 } // simulator
