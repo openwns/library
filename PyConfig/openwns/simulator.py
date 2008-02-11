@@ -30,10 +30,6 @@ import openwns.logger
 import openwns.rng
 import openwns.pyconfig
 
-class OutputStrategy(openwns.pyconfig.Frozen):
-    DELETE = openwns.pyconfig.Plugin('Delete')
-    MOVE = openwns.pyconfig.Plugin('Move')
-
 class Modules(object):
     def __len__(self):
         return len(self.__getAllModules())
