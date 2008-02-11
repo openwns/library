@@ -290,21 +290,15 @@ namespace wns {  namespace simulator {
          */
         std::auto_ptr<wns::simulator::ISimulationModel> simulationModel_;
 
-		std::list<pyconfig::View> moduleViews;
+		std::list<pyconfig::View> moduleViews_;
 
-		bool listLoadedModules;
+		bool listLoadedModules_;
 
-		std::list<wns::module::Base*> configuredModules;
+		std::list<wns::module::Base*> configuredModules_;
 
-		std::vector<std::string> commandLineModules;
+		bool lazyBinding_;
 
-		bool lazyBinding;
-
-		bool absolute_path;
-
-		bool readLibsFromCommandLine;
-
-
+		bool absolutePath_;
     };
 
 } // simulator

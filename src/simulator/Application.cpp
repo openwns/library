@@ -83,13 +83,11 @@ Application::Application() :
     interactiveConfig_(false),
 	logger_("WNS", "Application", NULL),
     extendedPrecision_(false),
-    moduleViews(),
-	listLoadedModules(false),
-	configuredModules(),
-	commandLineModules(),
-	lazyBinding(false),
-	absolute_path(false),
-	readLibsFromCommandLine(false)
+    moduleViews_(),
+	listLoadedModules_(false),
+	configuredModules_(),
+	lazyBinding_(false),
+	absolutePath_(false)
 {
     options_.add_options()
 
@@ -135,15 +133,12 @@ Application::Application() :
          boost::program_options::bool_switch(&extendedPrecision_),
          "enabled arithmetic operations with extended precision (80 bit) in x87 (disables strict IEEE754 compatibility)")
 
-		("load-modules,m",
-		 boost::program_options::value< std::vector<std::string> >(&this->commandLineModules),
-		 "load modules as specified here (to load multiple modules, specify multiple times: -m foo -m bar)")
-
 		("show-modules,M",
+         boost::program_options::bool_switch(&listLoadedModules_),
 		 "show modules that have been loaded")
 
 		("lazy-linking,l",
-		 boost::program_options::bool_switch(&this->lazyBinding),
+		 boost::program_options::bool_switch(&lazyBinding_),
 		 "be lazy and link when needed (not at start-up)")
         ;
 }
@@ -263,6 +258,35 @@ Application::doInit()
         eventSchedulerMonitor_.reset(new wns::events::scheduler::Monitor(monitorConfig));
         eventSchedulerMonitor_->startObserving(wns::simulator::getEventScheduler());
     }
+
+	if (this->arguments_.count("show-modules"))
+	{
+		std::cout << "The following Modules are available before dynamic loading:" << std::endl;
+		for(module::Factory::CreateMap::iterator i = module::Factory::getMap()->begin();
+		    i != module::Factory::getMap()->end();
+		    ++i)
+		{
+			std::cout << "\t"<< i->first << std::endl;
+		}
+	}
+
+	int32_t nModules = wnsView.len("modules");
+	for(int i=0; i<nModules; ++i)
+	{
+		moduleViews_.push_back(wnsView.getView("modules", i));
+	}
+
+	loadModules();
+
+	// StartUp:
+	std::list<module::Base*>::iterator itr;
+	std::list<module::Base*>::iterator itrEnd = configuredModules_.end();
+
+	MESSAGE_SINGLE(NORMAL, logger_, "Start up modules");
+	for (itr = configuredModules_.begin(); itr != itrEnd; ++itr)
+	{
+		(*itr)->configure();
+	}
 }
 
 void
@@ -378,6 +402,23 @@ Application::doRun()
 void
 Application::doShutdown()
 {
+	MESSAGE_SINGLE(NORMAL, logger_, "Calling shutDown for all modules");
+	for(std::list<module::Base*>::iterator itr = configuredModules_.begin();
+	    itr != configuredModules_.end();
+	    ++itr)
+	{
+		(*itr)->shutDown();
+	}
+
+	MESSAGE_SINGLE(NORMAL, logger_, "Destroying all modules");
+	while(configuredModules_.empty() == false)
+	{
+		wns::module::Base* mm = *(configuredModules_.begin());
+		MESSAGE_SINGLE(NORMAL, logger_, "Destroying module " << wns::TypeInfo::create(*mm));
+		delete mm;
+		configuredModules_.erase(configuredModules_.begin());
+	}
+
     // print final stats and shut down the event scheduler monitor
     if (eventSchedulerMonitor_.get() != NULL)
     {
@@ -480,33 +521,9 @@ Application::loadModules()
 
 	moduleVersions.push_back(wns::module::CurrentVersion);
 
-	// If Modules should be read from command line, we will remove all modules
-	// specified in the config file, that haven't been specified on the command
-	// line. This means only Modules specified in the config file can be loaded
-	// on the command line.
-
-	// (msg) There must be an easier way to do this!! However, it's working ...
-	std::list<pyconfig::View> moduleViewsTmp = moduleViews;
-	if(readLibsFromCommandLine) {
-		moduleViews.clear();
-		for(std::list<pyconfig::View>::iterator i = moduleViewsTmp.begin();
-		    i != moduleViewsTmp.end();
-		    ++i) {
-			std::vector<std::string>::iterator i2;
-			for(i2 = commandLineModules.begin();
-			    i2 != commandLineModules.end();
-			    ++i2) {
-				if (i->get<std::string>("libname") == *i2) {
-					moduleViews.push_back(*i);
-					break;
-				}
-			}
-		}
-	}
-
-	if (!moduleViews.empty())
+	if (!moduleViews_.empty())
 	{
-		moduleViewsTmp = moduleViews;
+		std::list<pyconfig::View> moduleViewsTmp = moduleViews_;
 
 		std::list<pyconfig::View>::iterator itr = moduleViewsTmp.begin();
 		size_t numberOfErrors = 0;
@@ -547,7 +564,7 @@ Application::loadModules()
 			// library by hand.
 			if (wns::module::Factory::knows(moduleName) == false)
 			{
-				bool success = wns::module::Base::load(libName, absolute_path, verbose_, lazyBinding);
+				bool success = wns::module::Base::load(libName, absolutePath_, verbose_, lazyBinding_);
 				if(success == false)
 				{
 					// continue with next candidate
@@ -560,7 +577,7 @@ Application::loadModules()
 			// it seems we found a loadable module -> append to module list
 			wns::module::Creator* moduleCreator = wns::module::Factory::creator(moduleName);
 			wns::module::Base* m = moduleCreator->create(*itr);
-			configuredModules.push_back(m);
+			configuredModules_.push_back(m);
 			wns::module::VersionInformation v = m->getVersionInformation();
 			moduleVersions.push_back(v);
 			if(verbose_)
@@ -582,7 +599,7 @@ Application::loadModules()
 			numberOfErrors = 0;
 		}
 
-		if(listLoadedModules)
+		if(listLoadedModules_)
 		{
 			std::cout << "The following Modules are available after dynamic loading:" << std::endl;
 			for(wns::module::Factory::CreateMap::iterator i = wns::module::Factory::getMap()->begin();

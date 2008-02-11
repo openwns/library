@@ -84,8 +84,7 @@ class OpenWNS(object):
     This class is the root of the configuration.
     """
 
-    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel",
-                 "outputDir", "outputStrategy"]
+    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel"]
 
     modules = Modules()
 
@@ -96,8 +95,6 @@ class OpenWNS(object):
         self.maxSimTime = 0.0
         self.eventSchedulerMonitor = openwns.eventscheduler.Monitor()
         self.simulationModel = None
-        self.outputDir = "output"
-	self.outputStrategy = OutputStrategy.MOVE
 
         openwns.pyconfig.attrsetter(self, kw)
 
