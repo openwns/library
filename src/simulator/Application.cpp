@@ -277,7 +277,11 @@ Application::doInit()
 	}
 
 	loadModules();
+}
 
+void
+Application::doRun()
+{
 	// StartUp:
 	std::list<module::Base*>::iterator itr;
 	std::list<module::Base*>::iterator itrEnd = configuredModules_.end();
@@ -287,11 +291,7 @@ Application::doInit()
 	{
 		(*itr)->configure();
 	}
-}
 
-void
-Application::doRun()
-{
     // Unit tests are processed here
     if(testing_)
     {
