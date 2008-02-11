@@ -10,6 +10,14 @@ srcFiles['BASE'] = [
     'src/PythonicOutput.cpp',
     'src/Backtrace.cpp',
     'src/demangle.cpp',
+
+    # module
+    'src/module/Base.cpp',
+    'src/module/Release.cpp',
+    'src/module/Version.cpp',
+    'src/module/VersionInformation.cpp',
+    'src/module/DependencyList.cpp',
+    'src/module/DateTime.cpp',
     ]
 
 srcFiles['SIMULATOR'] = [
@@ -95,6 +103,9 @@ srcFiles['BASE-TESTS'] = [
     'src/tests/StopWatchTest.cpp',
     'src/tests/BacktraceTest.cpp',
     'src/tests/ObserverTest.cpp',
+
+    'src/module/tests/ModuleTest.cpp',
+    'src/module/tests/MultiTypeFactoryTest.cpp',
 ]
 
 srcFiles['SIMULATOR-TESTS'] = [
