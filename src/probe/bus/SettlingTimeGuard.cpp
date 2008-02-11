@@ -39,7 +39,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 
 SettlingTimeGuard::SettlingTimeGuard(const wns::pyconfig::View&):
-    settlingTime_(wns::simulator::getConfiguration().get<double>("WNS.PDataBase.settlingTime"))
+    settlingTime_(wns::simulator::getConfiguration().get<double>("PDataBase.settlingTime"))
 {
 }
 
