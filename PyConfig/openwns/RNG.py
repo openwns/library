@@ -34,6 +34,7 @@ class RNG(object):
     def __init__(self, useRandomSeed):
         super(RNG, self).__init__()
         self.useRandomSeed = useRandomSeed
+        self.seed = 4711 # all but not zero
 
         if (self.useRandomSeed):
             self.seed = int(round (time.time() / 10))
