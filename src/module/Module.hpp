@@ -39,10 +39,7 @@ registerService<CreateType, &CreateFunctionName>(Name);
 namespace wns { namespace module {
 
 	/**
-	 * @brief Derive from this class to connect your simulator to the WNS
-	 * framework
-	 *
-	 * @ingroup framework
+	 * @brief Support for the integration of extension modules to openWNS
 	 *
 	 * Here is an example what your class might look like:
 	 * @include module::ModuleClass.example
