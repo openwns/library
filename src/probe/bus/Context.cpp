@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <Python.h>
+#include <WNS/Python.hpp>
 
 #include <WNS/probe/bus/Context.hpp>
 #include <WNS/Assure.hpp>
@@ -176,7 +176,8 @@ Context::doToString() const
     assure(!pyDict_.isNull(), "NULL Python Object!");
 
     PyObject *key, *value;
-    int pos = 0;
+
+    Py_ssize_t pos = 0;
 
     std::stringstream str;
     str << "{";
