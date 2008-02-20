@@ -259,7 +259,7 @@ Application::doInit()
         eventSchedulerMonitor_->startObserving(wns::simulator::getEventScheduler());
     }
 
-	if (this->arguments_.count("show-modules"))
+	if (listLoadedModules_)
 	{
 		std::cout << "The following Modules are available before dynamic loading:" << std::endl;
 		for(module::Factory::CreateMap::iterator i = module::Factory::getMap()->begin();
