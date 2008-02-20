@@ -33,6 +33,7 @@
 #include <WNS/events/scheduler/Interface.hpp>
 #include <WNS/simulator/ISimulator.hpp>
 
+#include <boost/bind.hpp>
 
 namespace wns { namespace events {
 
@@ -50,6 +51,14 @@ namespace wns { namespace events {
 	public:
 		MemberFunction(T* obj, typename TFunctor<T>::functionPointer fptr) :
 			wns::TFunctor<T>(obj, fptr)
+		{
+		}
+
+		/**
+		 * @brief Destructor
+		 */
+		virtual
+		~MemberFunction()
 		{
 		}
 	};
@@ -79,7 +88,7 @@ namespace wns { namespace events {
 		/**
 		 * @brief Destructor
 		 */
-		virtual
+        virtual
 		~DelayedMemberFunction()
 		{
 		}
@@ -90,10 +99,7 @@ namespace wns { namespace events {
 		virtual void
 		operator()(T* obj)
 		{
-			wns::events::MemberFunction<T> memFun =
-				wns::events::MemberFunction<T>(obj, this->fptr);
-			wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(memFun, this->delay);
-
+			wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(boost::bind(fptr, obj), this->delay);
 		}
 
 		/**
@@ -102,10 +108,7 @@ namespace wns { namespace events {
 		virtual void
 		operator()(T& obj)
 		{
-			wns::events::MemberFunction<T> memFun =
-				wns::events::MemberFunction<T>(&obj, this->fptr);
-			wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(memFun, this->delay);
-
+			wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(boost::bind(fptr, &obj), this->delay);
 		}
 	private:
 		typename TFunctor<T>::functionPointer fptr;
