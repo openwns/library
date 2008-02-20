@@ -31,7 +31,7 @@
 using namespace wns::probe::bus;
 
 ProbeBusRegistry::ProbeBusRegistry(const wns::pyconfig::View& pyco):
-    protoConf_(pyco.getView("prototype")),
+    pyco_(pyco),
     registry_()
 {
 }
@@ -40,25 +40,41 @@ ProbeBusRegistry::~ProbeBusRegistry()
 {
 }
 
+void
+ProbeBusRegistry::startup()
+{
+    this->connectProbeBusses(pyco_);
+}
+
+void
+ProbeBusRegistry::connectProbeBusses(const wns::pyconfig::View& probeBusTrees)
+{
+    for(int ii=0 ; ii < probeBusTrees.len("subtrees"); ++ii)
+    {
+        wns::pyconfig::View subpyco = probeBusTrees.get("subtrees",ii);
+        ProbeBus* pb = this->getProbeBus(subpyco.get<std::string>("probeBusID"));
+        for(int jj=0 ; jj < subpyco.len("top"); ++jj)
+        {
+            pb->addReceivers(subpyco.get("top",jj));
+        }
+    }
+}
+
 ProbeBus*
 ProbeBusRegistry::getProbeBus(const std::string& probeBusID)
 {
-    if (registry_.knows(probeBusID))
+    if (!registry_.knows(probeBusID))
     {
-        return registry_.find(probeBusID);
-    }
-    else
-    {
-        std::string name = protoConf_.get<std::string>("nameInFactory");
+        wns::pyconfig::View protoConf = pyco_.get("prototype");
+        std::string name = protoConf.get<std::string>("nameInFactory");
         wns::probe::bus::ProbeBusCreator* c =
             wns::probe::bus::ProbeBusFactory::creator(name);
 
-        wns::probe::bus::ProbeBus* pb = c->create(protoConf_);
+        wns::probe::bus::ProbeBus* pb = c->create(protoConf);
 
         registry_.insert(probeBusID, pb);
-
-        return registry_.find(probeBusID);
     }
+    return registry_.find(probeBusID);
 }
 
 void

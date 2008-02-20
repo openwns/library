@@ -110,6 +110,12 @@ namespace wns { namespace simulator {
         /**
          * @brief NVI forward
          */
+        virtual wns::probe::bus::ProbeBusRegistry*
+        doGetProbeBusRegistry() const;
+
+        /**
+         * @brief NVI forward
+         */
         virtual ResetSignal*
         doGetResetSignal() const;
 
@@ -138,6 +144,11 @@ namespace wns { namespace simulator {
         configureMasterLogger(const pyconfig::View& masterLoggerConfiguration);
 
         /**
+         * @brief Gloabal Configuration
+         */
+        wns::pyconfig::View configuration_;
+
+        /**
          * @brief EventScheduler instance
          */
         std::auto_ptr<wns::events::scheduler::Interface> eventScheduler_;
@@ -153,19 +164,19 @@ namespace wns { namespace simulator {
         std::auto_ptr<wns::rng::RNGen> rng_;
 
         /**
-         * @brief Random number generator instance
+         * @brief GlobalUntypedRegistry instance
          */
         std::auto_ptr<Registry> registry_;
 
         /**
-         * @brief Random number generator instance
+         * @brief ProbeBusRegistry instance
          */
-        std::auto_ptr<ResetSignal> resetSignal_;
+        std::auto_ptr<wns::probe::bus::ProbeBusRegistry> probeBusRegistry_;
 
         /**
-         * @brief Gloabal Configuration
+         * @brief Container with reset signals
          */
-        wns::pyconfig::View configuration_;
+        std::auto_ptr<ResetSignal> resetSignal_;
     };
 
 } // namespace simulator

@@ -29,6 +29,7 @@ import openwns.eventscheduler
 import openwns.logger
 import openwns.rng
 import openwns.pyconfig
+import openwns.probebus
 
 class Modules(object):
     def __len__(self):
@@ -123,6 +124,12 @@ class OpenWNS(object):
     def __setEventScheduler(self, eventScheduler):
         self.environment.eventScheduler = eventScheduler
 
+    def __getProbeBusRegistry(self):
+        return self.environment.probeBusRegistry
+
+    def __setProbeBusRegistry(self, probeBusRegistry):
+        self.environment.probeBusRegistry = probeBusRegistry
+
     def __getMasterLogger(self):
         return self.environment.masterLogger
 
@@ -138,13 +145,15 @@ class OpenWNS(object):
     eventScheduler = property(__getEventScheduler, __setEventScheduler)
     masterLogger = property(__getMasterLogger, __setMasterLogger)
     rng = property(__getRNG, __setRNG)
+    probeBusRegistry = property(__getProbeBusRegistry, __setProbeBusRegistry)
 
 class Environment(object):
 
-    __slots__ = ["eventScheduler", "masterLogger", "rng"]
+    __slots__ = ["eventScheduler", "masterLogger", "rng", "probeBusRegistry"]
 
     def __init__(self, **kw):
         self.eventScheduler = openwns.eventscheduler.Map()
         self.masterLogger = openwns.logger.Master()
         self.rng = openwns.rng.RNG(useRandomSeed = False)
+        self.probeBusRegistry = openwns.probebus.ProbeBusRegistry(openwns.probebus.SettlingTimeGuard())
         openwns.pyconfig.attrsetter(self, kw)

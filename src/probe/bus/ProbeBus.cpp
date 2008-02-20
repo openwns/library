@@ -33,29 +33,15 @@
 
 using namespace wns::probe::bus;
 
-void
-wns::probe::bus::addProbeBusses(const wns::pyconfig::View& pyco)
-{
-    wns::simulator::Registry* reg = wns::simulator::getRegistry();
-    assure(reg != NULL, "wns::simulator::Registry is NULL!");
-
-    ProbeBusRegistry* pbreg = reg->find<ProbeBusRegistry*>("WNS.ProbeBusRegistry");
-    assure(pbreg != NULL, "Cannot find the ProbeBusRegistry!");
-
-    for(int ii=0 ; ii < pyco.len("subtrees"); ++ii)
-    {
-        wns::pyconfig::View subpyco = pyco.get("subtrees",ii);
-        ProbeBus* pb = pbreg->getProbeBus(subpyco.get<std::string>("probeBusID"));
-        for(int jj=0 ; jj < subpyco.len("top"); ++jj)
-        {
-            pb->addReceivers(subpyco.get("top",jj));
-        }
-    }
-}
 
 void
 ProbeBus::addReceivers(const wns::pyconfig::View& pyco)
 {
+    /**
+     * @todo This is a memory leak. The ProbeBus created here will never be
+     * deleted. We need to use SmartPtr for a ProbeBus in order automatically
+     * delete unused ProbeBuses.
+     */
     std::string nameInFactory = pyco.get<std::string>("nameInFactory");
     wns::probe::bus::ProbeBusCreator* c =
         wns::probe::bus::ProbeBusFactory::creator(nameInFactory);

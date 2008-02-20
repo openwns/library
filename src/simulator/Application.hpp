@@ -34,6 +34,7 @@
 #include <WNS/events/scheduler/Monitor.hpp>
 #include <WNS/simulator/ISimulationModel.hpp>
 #include <WNS/module/VersionInformation.hpp>
+#include <WNS/probe/bus/ProbeBusRegistry.hpp>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -290,15 +291,29 @@ namespace wns {  namespace simulator {
          */
         std::auto_ptr<wns::simulator::ISimulationModel> simulationModel_;
 
+        /**
+         * @brief List with the configuration of all modules
+         */
 		std::list<pyconfig::View> moduleViews_;
 
+        /**
+         * @brief If true, a list of loaded modules will be shown (set by "-m")
+         */
 		bool listLoadedModules_;
 
-		std::list<wns::module::Base*> configuredModules_;
+        /**
+         * @brief List with all loaded modules
+         */
+		std::list<wns::module::Base*> loadedModules_;
 
 		bool lazyBinding_;
 
 		bool absolutePath_;
+
+        /**
+         * @brief Anchor for all probe busses
+         */
+        std::auto_ptr<wns::probe::bus::ProbeBusRegistry> probeBusRegistry;
     };
 
 } // simulator

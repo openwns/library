@@ -85,7 +85,7 @@ Application::Application() :
     extendedPrecision_(false),
     moduleViews_(),
 	listLoadedModules_(false),
-	configuredModules_(),
+	loadedModules_(),
 	lazyBinding_(false),
 	absolutePath_(false)
 {
@@ -208,6 +208,7 @@ Application::doInit()
                              "pdb.set_trace()\n");
     }
 
+
     // after pyconfig is patched, bring up Simulator singelton
     if (testing_)
     {
@@ -277,6 +278,11 @@ Application::doInit()
 	}
 
 	loadModules();
+
+    // The ProbeBus must be configured AFTER all modules have been loaded (the
+    // modules may add implementations to static factories which can be accessed
+    // by the ProbeBusRegistry)
+    wns::simulator::getProbeBusRegistry()->startup();
 }
 
 void
@@ -284,10 +290,10 @@ Application::doRun()
 {
 	// StartUp:
 	std::list<module::Base*>::iterator itr;
-	std::list<module::Base*>::iterator itrEnd = configuredModules_.end();
+	std::list<module::Base*>::iterator itrEnd = loadedModules_.end();
 
 	MESSAGE_SINGLE(NORMAL, logger_, "Start up modules");
-	for (itr = configuredModules_.begin(); itr != itrEnd; ++itr)
+	for (itr = loadedModules_.begin(); itr != itrEnd; ++itr)
 	{
 		(*itr)->configure();
 	}
@@ -402,21 +408,24 @@ Application::doRun()
 void
 Application::doShutdown()
 {
+    // delete ProbeBusRegisty (auto_ptr)
+    probeBusRegistry.reset();
+
 	MESSAGE_SINGLE(NORMAL, logger_, "Calling shutDown for all modules");
-	for(std::list<module::Base*>::iterator itr = configuredModules_.begin();
-	    itr != configuredModules_.end();
+	for(std::list<module::Base*>::iterator itr = loadedModules_.begin();
+	    itr != loadedModules_.end();
 	    ++itr)
 	{
 		(*itr)->shutDown();
 	}
 
 	MESSAGE_SINGLE(NORMAL, logger_, "Destroying all modules");
-	while(configuredModules_.empty() == false)
+	while(loadedModules_.empty() == false)
 	{
-		wns::module::Base* mm = *(configuredModules_.begin());
+		wns::module::Base* mm = *(loadedModules_.begin());
 		MESSAGE_SINGLE(NORMAL, logger_, "Destroying module " << wns::TypeInfo::create(*mm));
 		delete mm;
-		configuredModules_.erase(configuredModules_.begin());
+		loadedModules_.erase(loadedModules_.begin());
 	}
 
     // print final stats and shut down the event scheduler monitor
@@ -577,7 +586,7 @@ Application::loadModules()
 			// it seems we found a loadable module -> append to module list
 			wns::module::Creator* moduleCreator = wns::module::Factory::creator(moduleName);
 			wns::module::Base* m = moduleCreator->create(*itr);
-			configuredModules_.push_back(m);
+			loadedModules_.push_back(m);
 			wns::module::VersionInformation v = m->getVersionInformation();
 			moduleVersions.push_back(v);
 			if(verbose_)

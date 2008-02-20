@@ -28,9 +28,37 @@
 import openwns.logger
 import copy
 
-class ProbeBusRegistry:
+class SubTreeRegistry(object):
+
+        def __init__(self):
+                super(SubTreeRegistry, self).__init__()
+                self.subtrees = []
+
+        def insertSubTree(self, _subtree):
+		assert isinstance(_subtree, SubTree)
+                self.subtrees.append(_subtree)
+
+        def insertProbeBus(self, _probeBusID, _probeBus):
+		s = SubTree(_probeBusID)
+		s.top.append(_probeBus)
+		self.subtrees.append(s)
+
+	def clear(self):
+		self.subtrees = []
+
+	def getSubTree(self, name):
+		for subtree in self.subtrees:
+			if subtree.probeBusID == name:
+				return subtree
+		raise Exception("'"+name+"' not found in "+str(self))
+
+
+class ProbeBusRegistry(SubTreeRegistry):
+
         def __init__(self, probeBusPrototype):
+                super(ProbeBusRegistry, self).__init__()
                 self.prototype = probeBusPrototype
+
 
 class ProbeBus:
         """ Base configuration class for all probe busses. It keeps track of
@@ -132,29 +160,6 @@ class SubTree:
 		# plug all the top busses into the parent
 		for bus in self.top:
 			bus.observe(parent)
-
-
-class SubTreeRegistry:
-        def __init__(self):
-                self.subtrees = []
-
-        def insertSubTree(self, _subtree):
-		assert isinstance(_subtree, SubTree)
-                self.subtrees.append(_subtree)
-
-        def insertProbeBus(self, _probeBusID, _probeBus):
-		s = SubTree(_probeBusID)
-		s.top.append(_probeBus)
-		self.subtrees.append(s)
-
-	def clear(self):
-		self.subtrees = []
-
-	def getSubTree(self, name):
-		for subtree in self.subtrees:
-			if subtree.probeBusID == name:
-				return subtree
-		raise Exception("'"+name+"' not found in "+str(self))
 
 class MasterProbeBus(ProbeBus):
         """ The MasterProbeBus always accepts and always forwards. Probably used as

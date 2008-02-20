@@ -40,14 +40,11 @@
 
 namespace wns { namespace probe { namespace bus {
 
-    void
-    addProbeBusses(const wns::pyconfig::View& pyco);
-
     /**
      * @brief Internal Interface for Subject/Observer implementation which is
      * used as backend for the ProbeBus
      *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
      */
     class ProbeBusNotificationInterface
     {
@@ -98,7 +95,7 @@ namespace wns { namespace probe { namespace bus {
      *
      * Use startObserving and stopObserving to interconnect ProbeBusses
      * @note This is a new feature. Consider it beta. Subject to change.
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
      */
     class ProbeBus:
         virtual private wns::Subject<ProbeBusNotificationInterface>,
@@ -183,7 +180,7 @@ namespace wns { namespace probe { namespace bus {
      * @brief Functor that is used send notifies using the forwardMeasurement
      * method.
      *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
      */
     class ProbeBusMeasurementFunctor
     {

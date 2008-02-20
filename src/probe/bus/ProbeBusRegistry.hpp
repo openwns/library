@@ -42,14 +42,21 @@ namespace wns { namespace probe { namespace bus {
      * Prototype which may then be used as the entry point for measurements to
      * the ProbeBus system.
      *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
      */
     class ProbeBusRegistry
     {
     public:
+        /**
+         * @brief Reads the prototype to be used for ProbeBus creation
+         */
         ProbeBusRegistry(const wns::pyconfig::View&);
 
-        virtual ~ProbeBusRegistry();
+        /**
+         * @brief Empty (Does NOT delete any ProbeBus)
+         */
+        virtual
+        ~ProbeBusRegistry();
 
         /**
          * @brief Retrieves an instance of a ProbeBus. The ProbeBus returned is
@@ -70,8 +77,22 @@ namespace wns { namespace probe { namespace bus {
         void
         forwardOutput();
 
+        /**
+         * @brief Reads a list of ProbeBus trees and connects these recursively
+         * to the ProbeBusses in this registry
+         */
+        void
+        connectProbeBusses(const wns::pyconfig::View& probeBusTrees);
+
+        /**
+         * @brief Reads the own list of ProbeBus trees and connects these recursively
+         * to the ProbeBusses in this registry
+         */
+        void
+        startup();
+
     private:
-        wns::pyconfig::View protoConf_;
+        wns::pyconfig::View pyco_;
 
         ProbeBusRegistryContainer registry_;
     };

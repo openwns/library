@@ -30,17 +30,19 @@
 #include <WNS/logger/Master.hpp>
 #include <WNS/rng/RNGen.hpp>
 #include <WNS/Assure.hpp>
+#include <WNS/probe/bus/ProbeBusRegistry.hpp>
 
 using namespace wns::simulator;
 
 
 Simulator::Simulator(const wns::pyconfig::View& configuration) :
+    configuration_(configuration),
     eventScheduler_(NULL),
     masterLogger_(NULL),
     rng_(NULL),
     registry_(new Registry()),
-    resetSignal_(new ResetSignal()),
-    configuration_(configuration)
+    probeBusRegistry_(new wns::probe::bus::ProbeBusRegistry(configuration_.getView("environment.probeBusRegistry"))),
+    resetSignal_(new ResetSignal())
 {
     this->configureEventScheduler(configuration_.getView("environment.eventScheduler"));
     this->configureMasterLogger(configuration_.getView("environment.masterLogger"));
@@ -74,6 +76,13 @@ Simulator::doGetRegistry() const
 {
     return registry_.get();
 }
+
+wns::probe::bus::ProbeBusRegistry*
+Simulator::doGetProbeBusRegistry() const
+{
+    return probeBusRegistry_.get();
+}
+
 
 ResetSignal*
 Simulator::doGetResetSignal() const

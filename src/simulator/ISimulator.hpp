@@ -44,6 +44,10 @@ namespace wns { namespace logger {
     class Master;
 }}
 
+namespace wns { namespace probe { namespace bus {
+    class ProbeBusRegistry;
+}}}
+
 namespace wns { namespace simulator {
 
     typedef boost::signal0<void> ResetSignal;
@@ -102,6 +106,12 @@ namespace wns { namespace simulator {
         getConfiguration() const;
 
         /**
+         * @brief Acces the gloabal ProbeBusRegistry
+         */
+        wns::probe::bus::ProbeBusRegistry*
+        getProbeBusRegistry() const;
+
+        /**
          * @brief Acces a container with global variables (should only be used
          * as last resort)
          */
@@ -144,6 +154,12 @@ namespace wns { namespace simulator {
          */
         virtual wns::pyconfig::View
         doGetConfiguration() const = 0;
+
+        /**
+         * @brief NVI forward
+         */
+        virtual wns::probe::bus::ProbeBusRegistry*
+        doGetProbeBusRegistry() const = 0;
 
         /**
          * @brief NVI forward
@@ -238,6 +254,12 @@ namespace wns { namespace simulator {
      */
     wns::rng::RNGen*
     getRNG();
+
+    /**
+     * @brief Provide access to global variables
+     */
+    wns::probe::bus::ProbeBusRegistry*
+    getProbeBusRegistry();
 
     /**
      * @brief Provide access to global variables

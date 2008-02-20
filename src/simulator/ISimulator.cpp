@@ -68,6 +68,14 @@ ISimulator::getRegistry() const
     return ur;
 }
 
+wns::probe::bus::ProbeBusRegistry*
+ISimulator::getProbeBusRegistry() const
+{
+    wns::probe::bus::ProbeBusRegistry* pbr = this->doGetProbeBusRegistry();
+    assure(pbr != NULL, "No ProbeBusRegistry available");
+    return pbr;
+}
+
 ResetSignal*
 ISimulator::getResetSignal() const
 {
@@ -165,6 +173,12 @@ wns::simulator::Registry*
 wns::simulator::getRegistry()
 {
     return wns::simulator::getInstance()->getRegistry();
+}
+
+wns::probe::bus::ProbeBusRegistry*
+wns::simulator::getProbeBusRegistry()
+{
+    return wns::simulator::getInstance()->getProbeBusRegistry();
 }
 
 wns::simulator::ResetSignal*
