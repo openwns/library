@@ -30,10 +30,6 @@
 
 using namespace wns;
 
-PythonicOutput::~PythonicOutput()
-{
-}
-
 std::string
 PythonicOutput::doToString() const
 {

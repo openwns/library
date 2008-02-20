@@ -44,7 +44,8 @@ namespace wns {
          * @brief Virtual d'tor
          */
         virtual
-        ~IOutputStreamable();
+        ~IOutputStreamable()
+        {}
 
         /**
          * @brief Called to generate the output

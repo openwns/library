@@ -61,13 +61,6 @@ namespace wns {
     class PythonicOutput :
         virtual public IOutputStreamable
     {
-    public:
-        /**
-         * @brief Virtual d'tor
-         */
-        virtual
-        ~PythonicOutput();
-
     protected:
         /**
          * @brief Provides pythonic output

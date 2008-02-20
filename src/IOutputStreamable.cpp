@@ -29,10 +29,6 @@
 
 using namespace wns;
 
-IOutputStreamable::~IOutputStreamable()
-{
-}
-
 std::string
 IOutputStreamable::toString() const
 {
