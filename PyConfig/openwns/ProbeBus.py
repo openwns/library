@@ -38,6 +38,11 @@ class SubTreeRegistry(object):
 		assert isinstance(_subtree, SubTree)
                 self.subtrees.append(_subtree)
 
+        def insertSubTrees(self, _subtrees):
+		for tree in _subtrees:
+			assert isinstance(tree, SubTree)
+			self.subtrees.append(tree)
+
         def insertProbeBus(self, _probeBusID, _probeBus):
 		s = SubTree(_probeBusID)
 		s.top.append(_probeBus)
@@ -126,6 +131,8 @@ class SubTree:
 		return bottom
 
 	def chain(self, other):
+		""" Adds deep copies of other to the leafs of self"""
+
 		if self.empty():
 			other.probeBusID = self.probeBusID
 			return other
