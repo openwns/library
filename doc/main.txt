@@ -1,5 +1,5 @@
 /**
- * @mainpage The view from 30.000 ft above
+ * @page The view from 30.000 ft above
  *
  * @dot
  digraph overview {
