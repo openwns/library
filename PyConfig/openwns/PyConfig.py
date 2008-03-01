@@ -26,6 +26,7 @@
 ###############################################################################
 
 import types
+import sys
 
 def attrsetter(it, attrs):
     for key, value in attrs.items():
@@ -184,8 +185,7 @@ class Parameter(IAttributeHandler):
 
     def __init__(self, doc, *hooks):
         super(Parameter, self).__init__(self.getter, self.setter)
-        # convert to string, __doc__ MUST be a string
-        self.__doc__ = str(doc)
+
         self.hooks = hooks
         # hooks can implement, if they implement it, they will be
         # asked to provide something. they all get: the
@@ -194,6 +194,19 @@ class Parameter(IAttributeHandler):
         # onAttributeGetButNotSet()
         # beforeAttributeSet()
         # afterAttributeGet()
+        # getDocString()
+
+        # convert to string, __doc__ MUST be a string
+        self.__doc__ = str(doc)
+
+        # append additional documentation contributed by hooks
+        for hook in self.hooks:
+            if hasattr(hook, "getDocString"):
+                self.__doc__ += "\n\n" + str(hook.getDocString())
+
+        for hook in self.hooks:
+            if hasattr(hook, "getDocField"):
+                self.__doc__ += "\n\n" + str(hook.getDocField())
 
     def setter(self, obj, attributeValue):
         """ The setter takes exactly two parameters: the object for
@@ -244,6 +257,9 @@ class RangeCheck(object):
         self.stop = stop
         self.afterAttributeGet = self.beforeAttributeSet
 
+    def getDocString(self):
+        return "B{Range}: [%s .. %s]" % (str(self.start), str(self.stop))
+
     def beforeAttributeSet(self, attributeValue, attributeHandler, obj):
         if not (attributeValue >= self.start and attributeValue <= self.stop):
             raise RangeCheck.Error(
@@ -269,6 +285,9 @@ class TypeCheck(object):
         self.theType = theType
         self.afterAttributeGet = self.beforeAttributeSet
 
+    def getDocField(self):
+        return "@type: L{%s}" % self.theType.__name__
+
     def beforeAttributeSet(self, attributeValue, attributeHandler, obj):
         if not isinstance(attributeValue, self.theType):
             raise TypeCheck.Error(
@@ -282,6 +301,9 @@ class TypeCheck(object):
 class Default(object):
     def __init__(self, default):
         self.value = default
+
+    def getDocString(self):
+        return "B{Default:} %s" % str(self.value)
 
     def onAttributeGetButNotSet(self, attributeHandler, obj):
         return self.value
@@ -306,8 +328,6 @@ class String(TypedParameter):
 class Float(TypedParameter):
     def __init__(self, doc, default):
         super(Float, self).__init__(doc, float, default)
-
-
 
 class PyConfigTest:
     foo = 42
