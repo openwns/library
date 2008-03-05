@@ -195,12 +195,6 @@ class Cerr(Output):
     def __init__(self):
         self.__plugin__ = "Cerr"
 
-class GUI(Output):
-    __slots__ = []
-
-    def __init__(self):
-        self.__plugin__ = "GUI"
-
 class File(Output):
     __slots__ = []
 
@@ -240,12 +234,6 @@ class Console(Format):
         self.timeWidth = 11
         self.maxLocationLength = 50
         self.colors = ColorMode.Auto
-
-class GUI(Format):
-    __slots__ = []
-
-    def __init__(self):
-        self.__plugin__ = "GUI"
 
 class XML(Format):
     __slots__ = []

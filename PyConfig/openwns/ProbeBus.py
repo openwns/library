@@ -104,7 +104,9 @@ class ProbeBus:
 
 class SubTree:
 	"""
-	Class that represents and handles subtrees of a probebus hierarchy.
+	Class that represents and handles subtrees of a probebus
+	hierarchy. The leafs are instances of ProbeBusses. This is a
+	management structure.
 	"""
 	probeBusID = None
 	top = None
@@ -112,6 +114,16 @@ class SubTree:
 	def __init__(self, _probeBusID = ""):
 		self.probeBusID = _probeBusID
 		self.top = []
+
+        def addToTop(self, busses):
+                """ takes a list or one instance of a probe bus """
+                if not isinstance(busses, list):
+                        busses = [busses]
+                for bus in busses:
+                        if not isinstance(bus, ProbeBus):
+                                raise Exception("Only instances of ProbeBus allowed")
+                        self.top.append(bus)
+
 
 	def empty(self):
 		return self.top == []
@@ -139,10 +151,9 @@ class SubTree:
 		if other.empty():
 			return self
 		assert isinstance(other, SubTree), "Can only chain other subtrees!"
-		template = other
 		newBottom = []
 		for b in self.getBottom():
-			newChild = copy.deepcopy(template)
+			newChild = copy.deepcopy(other)
 			newChild.__observe(b)
 			newBottom += newChild.getBottom()
 		s = SubTree(self.probeBusID)
