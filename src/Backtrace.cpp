@@ -126,10 +126,10 @@ Backtrace::doToString() const
 
 
 Backtrace::FunctionCall::FunctionCall(std::string line) :
-    origin_("unkown"),
-    name_("unkown"),
-    offset_("unkown"),
-    returnAddress_("unkown")
+    origin_("unknown"),
+    name_("unknown"),
+    offset_("unknown"),
+    returnAddress_("unknown")
 {
 
     // the line typically looks like this:

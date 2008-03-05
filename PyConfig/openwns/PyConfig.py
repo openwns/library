@@ -26,37 +26,24 @@
 ###############################################################################
 
 import types
-import sys
+import unittest
+from backend.pyconfig import View, OnlyImmutableAttributes
 
 def attrsetter(it, attrs):
     for key, value in attrs.items():
         setattr(it, key, value)
 
-class OnlyImmutableAttributes(object):
-    def __new__(cls, *args, **kw):
-        for name in dir(cls):
-            cls.__test(cls, name)
-
-        return super(OnlyImmutableAttributes, cls).__new__(cls, *args, **kw)
-
-    @staticmethod
-    def __test(cls, name):
-        if name.startswith('__'):
-            return
-
-        value = getattr(cls, name)
-        if not isinstance(value, (int, bool, float, str, tuple, property,
-                          types.ClassType, types.NoneType,
-                          types.FunctionType, types.MethodType)):
-            print "WARNING: class %s from module %s instantiated," \
-                  % (cls.__name__, cls.__module__)
-            print "         although attribute %s is of mutable type %s." \
-                  % (name, type(value))
-
 
 class Frozen(OnlyImmutableAttributes):
+    """ Deriving from this class will prevent write access to members of the
+    instance"""
+
+    class Error(Exception):
+        def __init__(self, obj, name):
+            Exception.__init__(self, "No write access to '%s' in frozen object %s" % (name, obj))
+
     def __setattr__(self, name, value):
-	raise AttributeError("No write access to the frozen object %s" % self)
+        raise Frozen.Error(self, name)
 
 def Plugin(name):
     class Strategy(Frozen):
@@ -64,40 +51,6 @@ def Plugin(name):
 
     return Strategy
 
-class View(dict):
-    """Dictionary implementation serving as globals() for wns::pyconfig::View"""
-
-    def __init__(self, obj):
-        super(View, self).__init__()
-        self.obj = obj
-
-    def __contains__(self, key):
-        return hasattr(self.obj, key)
-
-    def __getitem__(self, key):
-        try:
-            return getattr(self.obj, key)
-        except:
-            if key == '__id__':
-                return id(self.obj)
-            if key == '__visible__':
-                return self.asString(4)
-            if key == '__stringRepresentation__':
-                return self.asString(4)
-	    try:
-                return getattr(__builtins__, key)
-            except:
-                return __builtins__[key]
-
-    def asString(self, indentSize):
-        result = ' '*indentSize
-        result += 'Above entry is of type: ' + str(self.obj) + '\n'
-        result += ' '*indentSize
-        for it in dir(self.obj):
-            if not it.startswith('_'):
-                result += it + ' = ' + str(eval('obj.'+it, {'obj':self.obj})) + '\n'
-                result += ' '*indentSize
-        return result[:-indentSize].rstrip("\n")
 
 class IAttributeHandler(property):
     # we are a property ourselfs :)
@@ -114,12 +67,12 @@ class IAttributeHandler(property):
 class MetaConf(type):
 
     def __new__(cls, className, bases, dct):
-        # cls == MetaConf
         if not dct.has_key("__attributes__"):
             dct["__attributes__"] = []
         for attributeName, attribute in dct.items():
             if isinstance(attribute, IAttributeHandler):
                 # inject the name of the attribute and the name of the class
+                # into the IAttributeHandler
                 attribute.setAttributeName(attributeName)
                 attribute.setClassName(className)
                 dct["__attributes__"].append(attributeName)
@@ -129,7 +82,7 @@ class MetaConf(type):
         super(MetaConf, cls).__init__(className, bases, dct)
 
 
-class Config(object):
+class Config(OnlyImmutableAttributes):
 
     class NoSuchAttribute(Exception):
         """ This exception is thrown if an attribute is accessed that is
@@ -144,7 +97,7 @@ class Config(object):
             error += "\nAllowed attributes are:"
             for allowedAttribute in obj.__attributes__:
                 error += "\n  " + allowedAttribute
-            super(Config.NoSuchAttribute, self).__init__(error)
+            Exception.__init__(self, error)
 
     __metaclass__ = MetaConf
 
@@ -152,15 +105,14 @@ class Config(object):
     __attributeValues = None
 
     def __setattr__(self, attr, value):
-        try:
-            getattr(self, attr) # raises an exception in case attr is not known
-        except AttributeError:
-            raise Config.NoSuchAttribute(self, attr)
-        # we didn't find it in the alloweed attributes list
-        object.__setattr__(self, attr, value)
+        if hasattr(self, attr) or hasattr(self.__class__, attr):
+            object.__setattr__(self, attr, value)
+            return
+        # we didn't find it in the allowed attributes list
+        raise Config.NoSuchAttribute(self, attr)
 
-    def __new__(cls):
-        obj = object.__new__(cls)
+    def __new__(cls, *args, **kws):
+        obj = super(OnlyImmutableAttributes, cls).__new__(cls, *args, **kws)
         obj.__attributeValues = {}
         return obj
 
@@ -181,7 +133,7 @@ class Config(object):
 class Parameter(IAttributeHandler):
     class NoValueSet(Exception):
         def __init__(self):
-            super(Parameter.NoValueSet, self).__init__("No value is set!")
+            Exception.__init__(self, "No value is set!")
 
     def __init__(self, doc, *hooks):
         super(Parameter, self).__init__(self.getter, self.setter)
@@ -250,7 +202,7 @@ class RangeCheck(object):
             error += "\n  range: [%f, %f]" % (start, stop)
             error += "\n  value: '%f'" % (value)
             error += "\n    doc: %s" % (doc)
-            super(RangeCheck.Error, self).__init__(error)
+            Exception.__init__(self, error)
 
     def __init__(self, start, stop):
         self.start = start
@@ -279,7 +231,7 @@ class TypeCheck(object):
             error += "\n  expected: '%s'" % (paramType.__name__)
             error += "\n       got: '%s'" % (type(value).__name__)
             error += "\n       doc: %s" % (doc)
-            super(TypeCheck.Error, self).__init__(error)
+            Exception.__init__(self, error)
 
     def __init__(self, theType):
         self.theType = theType
@@ -329,6 +281,9 @@ class Float(TypedParameter):
     def __init__(self, doc, default):
         super(Float, self).__init__(doc, float, default)
 
+
+# For testing
+
 class PyConfigTest:
     foo = 42
     def __init__(self):
@@ -341,30 +296,74 @@ class PyConfigTestWithArg:
         """test wns::pyconfig::Parser::fromClass"""
         self.foo = n
 
-def main():
+class Tests(unittest.TestCase):
+
     class A(Frozen):
 	x = 3
 
     class B(A):
 	y = 42
 
-    a = A()
-    b = B()
-    print a.x, b.y
+    class C:
+        def __init__(self, z):
+            self.z = z
 
-    try:
-        b.z = 32
-    except:
-	pass
-    else:
-	raise "Expected exception"
+    class TestConfig(Config):
+        foo = Int("The parameter foo", 3)
+        bar = Float("The parameter bar", 3.3)
+        baz = String("The parameter baz", "3.3")
 
-    try:
-        a.x = 4
-    except:
-        pass
-    else:
-        raise "Expected exception"
+    def testFrozen(self):
+        a = Tests.A()
+        self.assertRaises(Frozen.Error, setattr, a, "x", 23)
+
+    def testFrozenArgNotAvailable(self):
+        b = Tests.B()
+        self.assertRaises(Frozen.Error, setattr, b, "z", 23)
+
+    def testIntParam(self):
+        t = Tests.TestConfig()
+        self.assertEqual(3, t.foo)
+        t.foo = 4
+        self.assertEqual(4, t.foo)
+        self.assertRaises(TypeCheck.Error, setattr, t, "foo", 3.3)
+
+    def testFloatParam(self):
+        t = Tests.TestConfig()
+        self.assertEqual(3.3, t.bar)
+        t.bar = 4.4
+        self.assertEqual(4.4, t.bar)
+        self.assertRaises(TypeCheck.Error, setattr, t, "bar", "4.4")
+
+    def testStringParam(self):
+        t = Tests.TestConfig()
+        self.assertEqual("3.3", t.baz)
+        t.baz = "4.4"
+        self.assertEqual("4.4", t.baz)
+        self.assertRaises(TypeCheck.Error, setattr, t, "baz", 3.3)
+
+    def testTypedParam(self):
+        class TestTypedParameters(Config):
+            bak = TypedParameter("The parameter bak", Tests.C, Tests.C(3))
+
+        t = TestTypedParameters()
+        self.assertEqual(3, t.bak.z)
+        t.bak = Tests.C(4)
+        self.assertEqual(4, t.bak.z)
+        self.assertRaises(TypeCheck.Error, setattr, t, "bak", 3)
+
+    def testRangeCheck(self):
+        class TestRangeCheck(Config):
+            bak = Parameter("The parameter bak", RangeCheck(0,3))
+
+        t = TestRangeCheck()
+        t.bak = 3
+        self.assertEqual(3, t.bak)
+        t.bak = 2
+        self.assertEqual(2, t.bak)
+        t.bak = 0
+        self.assertEqual(0, t.bak)
+        self.assertRaises(RangeCheck.Error, setattr, t, "bak", 4)
 
 if __name__ == '__main__':
-    main()
+    unittest.main()
