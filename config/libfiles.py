@@ -149,6 +149,7 @@ srcFiles['EVENTS-TESTS'] = [
     'src/events/scheduler/tests/MapInterfaceTest.cpp',
     'src/events/scheduler/tests/PerformanceTest.cpp',
     'src/events/scheduler/tests/MapPerformanceTest.cpp',
+    'src/events/scheduler/tests/BestPracticesTest.cpp',
     ]
 
 Return('srcFiles')
