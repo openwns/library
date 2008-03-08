@@ -32,6 +32,12 @@
 
 namespace wns { namespace probe { namespace bus {
 
+    /**
+     * @brief Records measurements for a given time window.
+     *
+     * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @ingroup probebusses
+     */
     class TimeWindowProbeBus :
         public wns::probe::bus::ProbeBus
     {

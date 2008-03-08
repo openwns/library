@@ -35,7 +35,8 @@ namespace wns { namespace probe { namespace bus {
     /**
      * @brief Only accepts if simulation time is larger than the settling time
      *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de> 
+     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
+     * @ingroup probebusses
      */
     class SettlingTimeGuard :
         public wns::probe::bus::ProbeBus

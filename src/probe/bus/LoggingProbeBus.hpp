@@ -42,6 +42,7 @@ namespace wns { namespace probe { namespace bus {
      * Use this for debugging purposes.
      *
      * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @ingroup probebusses
      */
     class LoggingProbeBus:
         public ProbeBus

@@ -41,6 +41,7 @@ namespace wns { namespace probe { namespace bus {
      * already available.
      *
      * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @ingroup probebusses
      */
     class MasterProbeBus:
         virtual public ProbeBus
