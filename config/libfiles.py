@@ -51,6 +51,7 @@ srcFiles['EVENTS'] = [
     'src/events/scheduler/Map.cpp',
     'src/events/scheduler/INotification.cpp',
     'src/events/scheduler/Monitor.cpp',
+    'src/events/scheduler/RealTime.cpp',
 ]
 
 srcFiles['LOGGER'] = [
@@ -150,6 +151,7 @@ srcFiles['EVENTS-TESTS'] = [
     'src/events/scheduler/tests/PerformanceTest.cpp',
     'src/events/scheduler/tests/MapPerformanceTest.cpp',
     'src/events/scheduler/tests/BestPracticesTest.cpp',
+    'src/events/scheduler/tests/RealTimeTest.cpp',
     ]
 
 Return('srcFiles')
