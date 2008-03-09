@@ -162,9 +162,13 @@ Map::doProcessOneEvent()
 	wns::simulator::Time newTime = nextEvent->getScheduled();
 
 	// run until all now events are processed
-	if ((simTime_ < newTime) && stop_)
+	if (simTime_ < newTime)
     {
-		return false;
+        if(stop_)
+        {
+            return false;
+        }
+        onNewSimTime(newTime);
 	}
 
 	simTime_ = newTime;
