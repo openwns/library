@@ -25,46 +25,65 @@
  *
  ******************************************************************************/
 
-#include <WNS/queuingsystem/MM1.hpp>
+#include <WNS/queuingsystem/MM1Step5.hpp>
+
+#include <WNS/probe/bus/ProbeBusRegistry.hpp>
 
 using namespace wns::queuingsystem;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    SimpleMM1,
+    SimpleMM1Step5,
     wns::simulator::ISimulationModel,
-    "openwns.queuingsystem.SimpleMM1",
+    "openwns.queuingsystem.SimpleMM1Step5",
     wns::PyConfigViewCreator);
 
-SimpleMM1::SimpleMM1(const wns::pyconfig::View& config) :
+SimpleMM1Step5::SimpleMM1Step5(const wns::pyconfig::View& config) :
     jobInterarrivalTime_(wns::simulator::getRNG(),
                          Exponential::distribution_type(
                              1.0/config.get<wns::simulator::Time>("meanJobInterArrivalTime"))),
     jobProcessingTime_(wns::simulator::getRNG(),
                        Exponential::distribution_type(
                            1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),
-    jobsInSystem_(0),
-    logger_(config.get("logger"))
+    config_(config),
+    logger_(config.get("logger")),
+    probeBus_()
 {
 }
 
+// begin example "wns.queuingsystem.mm1step5.doStartup.example"
 void
-SimpleMM1::doStartup()
+SimpleMM1Step5::doStartup()
 {
-    MESSAGE_SINGLE(NORMAL, logger_, "MM1 started, generating first job\n" << *this);
+    MESSAGE_SINGLE(NORMAL, logger_, "MM1Step5 started, generating first job\n" << *this);
+
+    std::string probeBusName = config_.get<std::string>("probeBusName");
+
+    wns::probe::bus::ProbeBusRegistry* reg = wns::simulator::getProbeBusRegistry();
+
+    probeBus_ = boost::shared_ptr<wns::probe::bus::ProbeBus>(
+        reg->getProbeBus(probeBusName));
+
+    // We need that probe bus!!
+    assure(probeBus_ != NULL, "ProbeBus could not be created");
 
     generateNewJob();
 }
+// end example
 
 void
-SimpleMM1::doShutdown()
+SimpleMM1Step5::doShutdown()
 {
-
+    assure(probeBus_ != NULL, "No ProbeBus");
+    probeBus_->forwardOutput();
 }
 
 void
-SimpleMM1::generateNewJob()
+SimpleMM1Step5::generateNewJob()
 {
-    ++jobsInSystem_;
+    // Create a new job
+    Job job = Job();
+
+    queue_.push_back(job);
 
     wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
 
@@ -72,44 +91,67 @@ SimpleMM1::generateNewJob()
 
     // The job is the only job in the system. There is no job that is currently
     // being served -> the server is free and can process the next job
-    if (jobsInSystem_ == 1)
+    if (queue_.size() == 1)
     {
         processNextJob();
     }
 
     wns::simulator::getEventScheduler()->scheduleDelay(
-        boost::bind(&SimpleMM1::generateNewJob, this),
+        boost::bind(&SimpleMM1Step5::generateNewJob, this),
         delayToNextJob);
 
 }
 
 void
-SimpleMM1::onJobProcessed()
+SimpleMM1Step5::onJobProcessed()
 {
-    --jobsInSystem_;
+    Job finished = queue_.front();
+
+    queue_.pop_front();
+
+    // Calculate the Jobs sojourn time
+    wns::simulator::Time  now;
+    wns::simulator::Time  sojournTime;
+    now = wns::simulator::getEventScheduler()->getTime();
+    sojournTime = now - finished.getCreationTime();
+
+    // Give some debug output
     MESSAGE_SINGLE(NORMAL, logger_, "Finished a job\n" << *this);
+    MESSAGE_BEGIN(NORMAL, logger_, m, "Sojourn Time of last job ");
+    m << sojournTime;
+    MESSAGE_END();
+
+    // Send the measurement to the probeBus
+    // We will soon learn what the context of a measurement is. For
+    // now, we just create an empty Context object
+    wns::probe::bus::Context emptyContext;
+
+    // Forward the measurement onto the probeBus_
+    assure(probeBus_ != NULL, "No ProbeBus");
+    probeBus_->forwardMeasurement(now, sojournTime, emptyContext);
+
     // if there are still jobs, serve them
-    if (jobsInSystem_ > 0)
+    if (!queue_.empty())
     {
         processNextJob();
     }
 }
 
 void
-SimpleMM1::processNextJob()
+SimpleMM1Step5::processNextJob()
 {
     wns::simulator::Time processingTime = jobProcessingTime_();
 
     wns::simulator::getEventScheduler()->scheduleDelay(
-        boost::bind(&SimpleMM1::onJobProcessed, this),
+        boost::bind(&SimpleMM1Step5::onJobProcessed, this),
         processingTime);
     MESSAGE_SINGLE(NORMAL, logger_, "Processing next job, processing time: " << processingTime << "s\n" << *this);
 }
 
 std::string
-SimpleMM1::doToString() const
+SimpleMM1Step5::doToString() const
 {
     std::stringstream ss;
-    ss << "Jobs in system: " << jobsInSystem_;
+    ss << "Jobs in system: " << queue_.size();
     return ss.str();
 }
