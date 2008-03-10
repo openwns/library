@@ -56,7 +56,11 @@ def getParentComponent(component):
     return component.getParentComponent()
 
 def getComponentPath(component):
-    return component.getComponentPath()
+    # if we get an empty string, this is a root component
+    path = component.getComponentPath()
+    if path == "":
+        path = "/"
+    return path
 
 def getComponentName(component):
     return component.getComponentName()
@@ -114,6 +118,8 @@ class Component(OnlyImmutableAttributes):
 
     # this is used by the params to store the actual instances
     __attributeValues = None
+    __parentComponent = None
+    __componentName = None
 
     def __setattr__(self, attr, value):
         if hasattr(self, attr) or hasattr(self.__class__, attr):
@@ -125,6 +131,7 @@ class Component(OnlyImmutableAttributes):
     def __new__(cls, *args, **kws):
         obj = super(OnlyImmutableAttributes, cls).__new__(cls)
         obj.__attributeValues = {}
+        obj.__parentComponent = None
         for attr in obj.__attributes__:
             if hasattr(getattr(cls, attr), "onComponentCreation"):
                 getattr(cls, attr).onComponentCreation(obj)
@@ -143,6 +150,25 @@ class Component(OnlyImmutableAttributes):
     def setAttribute(self, name, value):
         self.__attributeValues[name] = value
 
+    def setParentComponent(self, parent):
+        assert isinstance(parent, Component)
+        self.__parentComponent = parent
+
+    def getParentComponent(self):
+        return self.__parentComponent
+
+    def setComponentName(self, name):
+        assert isinstance(name, str)
+        self.__componentName = name
+
+    def getComponentName(self):
+        return self.__componentName
+
+    def getComponentPath(self):
+        if self.getParentComponent() == None:
+            # this is a root component
+            return ""
+        return self.getParentComponent().getComponentPath() + "/" + self.getComponentName()
 
 class Parameter(IAttributeHandler):
     class NoValueSet(Exception):
@@ -183,6 +209,10 @@ class Parameter(IAttributeHandler):
             if hasattr(hook, "beforeAttributeSet"):
                 attributeValue = hook.beforeAttributeSet(attributeValue, self, obj)
         obj.setAttribute(self._attributeName, attributeValue)
+        attribute = getattr(obj, self._attributeName)
+        if isinstance(attribute, Component):
+            attribute.setParentComponent(obj)
+            attribute.setComponentName(self._attributeName)
 
     def getter(self, obj):
         """ The getter takes exactly one parameters: the object from
@@ -386,6 +416,50 @@ class Tests(unittest.TestCase):
         f.bar.baz = 4
         self.assertEqual(f.bar.baz, 4)
         self.assertEqual(f2.bar.baz, 3)
+
+    def testComponentPath(self):
+        class Bar(Component):
+            baz = Int("The baz", 3)
+
+        class Foo(Component):
+            bar = TypedParameter("Instance of Bar", Bar)
+
+        class Baz(Component):
+            foo = TypedParameter("Instance of Foo", Foo)
+
+        b = Baz()
+        self.assertEqual(getComponentPath(b.foo.bar), "/foo/bar")
+        self.assertEqual(getComponentPath(b.foo), "/foo")
+        self.assertEqual(getComponentPath(b), "/")
+
+    def testParentComponent(self):
+        class Bar(Component):
+            baz = Int("The baz", 3)
+
+        class Foo(Component):
+            bar = TypedParameter("Instance of Bar", Bar)
+
+        class Baz(Component):
+            foo = TypedParameter("Instance of Foo", Foo)
+
+        b = Baz()
+        self.assertEqual(getParentComponent(b.foo.bar), b.foo)
+        self.assertEqual(getParentComponent(b.foo), b)
+
+    def testComponentName(self):
+        class Bar(Component):
+            baz = Int("The baz", 3)
+
+        class Foo(Component):
+            bar = TypedParameter("Instance of Bar", Bar)
+
+        class Baz(Component):
+            foo = TypedParameter("Instance of Foo", Foo)
+
+        b = Baz()
+        self.assertEqual(getComponentName(b.foo.bar), "bar")
+        self.assertEqual(getComponentName(b.foo), "foo")
+        self.assertEqual(getComponentName(b), None)
 
 
 if __name__ == '__main__':
