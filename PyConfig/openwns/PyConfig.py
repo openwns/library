@@ -52,19 +52,30 @@ def Plugin(name):
     return Strategy
 
 
+def getParentComponent(component):
+    return component.getParentComponent()
+
+def getComponentPath(component):
+    return component.getComponentPath()
+
+def getComponentName(component):
+    return component.getComponentName()
+
+
 class IAttributeHandler(property):
     # we are a property ourselfs :)
-    def __init__(self, getter=None, setter=None, deller=None, doc=None):
-        super(IAttributeHandler, self).__init__(getter, setter, deller, doc)
+    def __init__(self, getter=None, setter=None, deleter=None, doc=None):
+        super(IAttributeHandler, self).__init__(getter, setter, deleter, doc)
 
-    """ MetaConf uses these to inject the necessary information """
+    """ MetaComponent uses these to inject the necessary information """
     def setAttributeName(self, attrName):
         self._attributeName = attrName
 
     def setClassName(self, className):
         self._className = className
 
-class MetaConf(type):
+
+class MetaComponent(type):
 
     def __new__(cls, className, bases, dct):
         if not dct.has_key("__attributes__"):
@@ -79,10 +90,10 @@ class MetaConf(type):
         return type.__new__(cls, className, bases, dct)
 
     def __init__(cls, className, bases, dct):
-        super(MetaConf, cls).__init__(className, bases, dct)
+        super(MetaComponent, cls).__init__(className, bases, dct)
 
 
-class Config(OnlyImmutableAttributes):
+class Component(OnlyImmutableAttributes):
 
     class NoSuchAttribute(Exception):
         """ This exception is thrown if an attribute is accessed that is
@@ -99,7 +110,7 @@ class Config(OnlyImmutableAttributes):
                 error += "\n  " + allowedAttribute
             Exception.__init__(self, error)
 
-    __metaclass__ = MetaConf
+    __metaclass__ = MetaComponent
 
     # this is used by the params to store the actual instances
     __attributeValues = None
@@ -109,11 +120,14 @@ class Config(OnlyImmutableAttributes):
             object.__setattr__(self, attr, value)
             return
         # we didn't find it in the allowed attributes list
-        raise Config.NoSuchAttribute(self, attr)
+        raise Component.NoSuchAttribute(self, attr)
 
     def __new__(cls, *args, **kws):
-        obj = super(OnlyImmutableAttributes, cls).__new__(cls, *args, **kws)
+        obj = super(OnlyImmutableAttributes, cls).__new__(cls)
         obj.__attributeValues = {}
+        for attr in obj.__attributes__:
+            if hasattr(getattr(cls, attr), "onComponentCreation"):
+                getattr(cls, attr).onComponentCreation(obj)
         return obj
 
     @classmethod
@@ -139,11 +153,11 @@ class Parameter(IAttributeHandler):
         super(Parameter, self).__init__(self.getter, self.setter)
 
         self.hooks = hooks
-        # hooks can implement, if they implement it, they will be
+        # hooks can implement , if they implement it, they will be
         # asked to provide something. they all get: the
         # attributeValue, the AtrributeHandler and the object where to
         # set the attribute. Available hooks are:
-        # onAttributeGetButNotSet()
+        # onComponentCreation()
         # beforeAttributeSet()
         # afterAttributeGet()
         # getDocString()
@@ -164,7 +178,7 @@ class Parameter(IAttributeHandler):
         """ The setter takes exactly two parameters: the object for
         which the parameter should be set and the value to be set """
 
-        assert isinstance(obj, Config)
+        assert isinstance(obj, Component)
         for hook in self.hooks:
             if hasattr(hook, "beforeAttributeSet"):
                 attributeValue = hook.beforeAttributeSet(attributeValue, self, obj)
@@ -174,25 +188,20 @@ class Parameter(IAttributeHandler):
         """ The getter takes exactly one parameters: the object from
         which the parameter should be fetched"""
 
-        assert isinstance(obj, Config)
+        assert isinstance(obj, Component)
         if obj.isAttributeSet(self._attributeName):
             attributeValue = obj.getAttribute(self._attributeName)
             for hook in self.hooks:
                 if hasattr(hook, "afterAttributeGet"):
                     attributeValue = hook.afterAttributeGet(attributeValue, self, obj)
             return attributeValue
-        else:
-            for hook in self.hooks:
-                # the first hook that matches is fine!
-                if hasattr(hook, "onAttributeGetButNotSet"):
-                    attributeValue = hook.onAttributeGetButNotSet(self, obj)
-                    # call afterAttributeGet hooks
-                    for hook in self.hooks:
-                        if hasattr(hook, "afterAttributeGet"):
-                            attributeValue = hook.afterAttributeGet(attributeValue, self, obj)
-                    return attributeValue
-            raise Parameter.NoValueSet()
+        raise Parameter.NoValueSet()
 
+    def onComponentCreation(self, obj):
+        assert isinstance(obj, Component)
+        for hook in self.hooks:
+            if hasattr(hook, "onComponentCreation"):
+                hook.onComponentCreation(obj, self._attributeName)
 
 
 class RangeCheck(object):
@@ -251,23 +260,21 @@ class TypeCheck(object):
         return attributeValue
 
 class Default(object):
-    def __init__(self, default):
-        self.value = default
+    def __init__(self, cls, *args, **kwds):
+        self.cls = cls
+        self.args = args
+        self.kwds = kwds
 
     def getDocString(self):
-        return "B{Default:} %s" % str(self.value)
+        return "B{Default:} %s(%s, %s)" % (self.cls.__name__, self.args, self.kwds)
 
-    def onAttributeGetButNotSet(self, attributeHandler, obj):
-        return self.value
+    def onComponentCreation(self, obj, attributeName):
+        return setattr(obj, attributeName, self.cls(*self.args, **self.kwds))
 
 class TypedParameter(Parameter):
 
-    def __init__(self, doc, type, default):
-        self.default = Default(default)
-        super(TypedParameter, self).__init__(doc, TypeCheck(type), self.default)
-
-    def setDefault(self, default):
-        self.default.value = default
+    def __init__(self, doc, type, *args, **kwds):
+        super(TypedParameter, self).__init__(doc, TypeCheck(type), Default(type, *args, **kwds))
 
 class Int(TypedParameter):
     def __init__(self, doc, default):
@@ -308,7 +315,7 @@ class Tests(unittest.TestCase):
         def __init__(self, z):
             self.z = z
 
-    class TestConfig(Config):
+    class TestComponent(Component):
         foo = Int("The parameter foo", 3)
         bar = Float("The parameter bar", 3.3)
         baz = String("The parameter baz", "3.3")
@@ -322,29 +329,29 @@ class Tests(unittest.TestCase):
         self.assertRaises(Frozen.Error, setattr, b, "z", 23)
 
     def testIntParam(self):
-        t = Tests.TestConfig()
+        t = Tests.TestComponent()
         self.assertEqual(3, t.foo)
         t.foo = 4
         self.assertEqual(4, t.foo)
         self.assertRaises(TypeCheck.Error, setattr, t, "foo", 3.3)
 
     def testFloatParam(self):
-        t = Tests.TestConfig()
+        t = Tests.TestComponent()
         self.assertEqual(3.3, t.bar)
         t.bar = 4.4
         self.assertEqual(4.4, t.bar)
         self.assertRaises(TypeCheck.Error, setattr, t, "bar", "4.4")
 
     def testStringParam(self):
-        t = Tests.TestConfig()
+        t = Tests.TestComponent()
         self.assertEqual("3.3", t.baz)
         t.baz = "4.4"
         self.assertEqual("4.4", t.baz)
         self.assertRaises(TypeCheck.Error, setattr, t, "baz", 3.3)
 
     def testTypedParam(self):
-        class TestTypedParameters(Config):
-            bak = TypedParameter("The parameter bak", Tests.C, Tests.C(3))
+        class TestTypedParameters(Component):
+            bak = TypedParameter("The parameter bak", Tests.C, 3)
 
         t = TestTypedParameters()
         self.assertEqual(3, t.bak.z)
@@ -353,7 +360,7 @@ class Tests(unittest.TestCase):
         self.assertRaises(TypeCheck.Error, setattr, t, "bak", 3)
 
     def testRangeCheck(self):
-        class TestRangeCheck(Config):
+        class TestRangeCheck(Component):
             bak = Parameter("The parameter bak", RangeCheck(0,3))
 
         t = TestRangeCheck()
@@ -364,6 +371,22 @@ class Tests(unittest.TestCase):
         t.bak = 0
         self.assertEqual(0, t.bak)
         self.assertRaises(RangeCheck.Error, setattr, t, "bak", 4)
+
+    def testComplexObjects(self):
+        class Bar(Component):
+            baz = Int("The baz", 3)
+
+        class Foo(Component):
+            bar = TypedParameter("Instance of Bar", Bar)
+
+        f = Foo()
+        f2 = Foo()
+        self.assertEqual(f.bar.baz, 3)
+        self.assertEqual(f2.bar.baz, 3)
+        f.bar.baz = 4
+        self.assertEqual(f.bar.baz, 4)
+        self.assertEqual(f2.bar.baz, 3)
+
 
 if __name__ == '__main__':
     unittest.main()
