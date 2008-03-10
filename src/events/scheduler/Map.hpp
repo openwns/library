@@ -54,7 +54,7 @@ namespace wns { namespace events { namespace scheduler {
         virtual
         ~Map();
 
-    private:
+    protected:
         class Event :
             public virtual IEvent,
             public wns::container::SingleFastListEnabler< wns::SmartPtr<Event> >
@@ -216,6 +216,13 @@ namespace wns { namespace events { namespace scheduler {
         void
         doCancelMapEvent(const EventPtr& event);
         //@}
+
+        /**
+         * @brief This is called if the sim time will change
+         */
+        virtual void
+        onNewSimTime(const wns::simulator::Time& /*next Time*/)
+        {}
 
         // MEMBER
         wns::simulator::Time simTime_;

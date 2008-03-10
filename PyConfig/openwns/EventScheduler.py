@@ -58,6 +58,15 @@ class Map(EventScheduler):
         super(Map, self).__init__()
         self.type = "wns.events.scheduler.Map"
 
+class RealTime(EventScheduler):
+    """Tries to schedule the events in real time"""
+
+    __slots__ = []
+
+    def __init__(self):
+        super(RealTime, self).__init__()
+        self.type = "wns.events.scheduler.RealTime"
+
 class Monitor(object):
     """ Collects some basic statistics about the event scheduler
 
