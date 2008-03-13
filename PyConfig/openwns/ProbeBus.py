@@ -38,6 +38,10 @@ class SubTreeRegistry(object):
 		assert isinstance(_subtree, SubTree)
                 self.subtrees.append(_subtree)
 
+        def removeSubTree(self, _subtree):
+		assert isinstance(_subtree, SubTree)
+                self.subtrees.remove(_subtree)
+
         def insertSubTrees(self, _subtrees):
 		for tree in _subtrees:
 			assert isinstance(tree, SubTree)
