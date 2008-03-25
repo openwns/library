@@ -26,7 +26,9 @@
 ###############################################################################
 
 import openwns.logger
+import openwns
 import copy
+from openwns.pyconfig import attrsetter
 
 class SubTreeRegistry(object):
 
@@ -235,3 +237,21 @@ class TimeWindowProbeBus(ProbeBus):
                 ProbeBus.__init__(self,"")
                 self.start = start
                 self.end = end
+
+# final destination: write to file
+class LogEval(ProbeBus):
+        """ The LogEval ProbeBus always accepts and logs the values into a file.
+        """
+        nameInFactory = "LogEval"
+	outputDir = None
+	outputFilename = None
+	description = None # TODO
+	format = None
+	timePrecision = None
+	valuePrecision = None
+
+        def __init__(self, **kwargs):
+		ProbeBus.__init__(self,"")
+		outputDir = openwns.getSimulator().outputDir
+		attrsetter(self, kwargs)
+

@@ -109,6 +109,7 @@ namespace wns { namespace probe { namespace bus {
         virtual private wns::Subject<ProbeBusNotificationInterface>,
         virtual private wns::Observer<ProbeBusNotificationInterface>
     {
+
     public:
 
         /**
