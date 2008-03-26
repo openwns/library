@@ -25,14 +25,11 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SIMULATOR_TIME_HPP
-#define WNS_SIMULATOR_TIME_HPP
+#ifndef WNS_SIMULATOR_BIT_HPP
+#define WNS_SIMULATOR_BIT_HPP
 
-namespace wns { namespace simulator {
-    typedef double Time;
-}
-}
+#include <stdint.h>
 
-typedef wns::simulator::Time simTimeType;
+typedef int32_t Bit;
 
-#endif // NOT defined WNS_SIMULATOR_TIME_HPP
+#endif // WNS_SIMULATOR_BIT_HPP
