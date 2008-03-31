@@ -75,6 +75,7 @@ srcFiles['LOGGER'] = [
 srcFiles['PROBEBUS'] = [
     'src/probe/bus/Context.cpp',
     'src/probe/bus/LoggingProbeBus.cpp',
+    'src/probe/bus/LogEval.cpp',
     'src/probe/bus/MasterProbeBus.cpp',
     'src/probe/bus/ProbeBus.cpp',
     'src/probe/bus/ProbeBusRegistry.cpp',
