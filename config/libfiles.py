@@ -94,6 +94,7 @@ srcFiles['QUEUINGSYSTEM'] = [
     'src/queuingsystem/MM1Step2.cpp',
     'src/queuingsystem/MM1Step3.cpp',
     'src/queuingsystem/MM1Step5.cpp',
+    'src/queuingsystem/MM1Step6.cpp',
     ]
 
 srcFiles['BASE-TESTS'] = [

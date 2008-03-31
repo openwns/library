@@ -32,15 +32,22 @@
 
 using namespace wns::queuingsystem;
 
-Job::Job()
+Job::Job(Priority priority)
 {
     timeCreated_ = wns::simulator::getEventScheduler()->getTime();
+    priority_ = priority;
 }
 
 wns::simulator::Time
 Job::getCreationTime() const
 {
     return timeCreated_;
+}
+
+Job::Priority
+Job::getPriority() const
+{
+    return priority_;
 }
 
 // end example

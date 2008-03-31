@@ -37,14 +37,24 @@ namespace wns { namespace queuingsystem {
     {
     public:
 
-        Job();
+        enum Priority {
+            lowPriority = 0,
+            highPriority
+        };
+
+        Job(Priority priority = Job::lowPriority);
 
         wns::simulator::Time
         getCreationTime() const;
 
+        Job::Priority
+        getPriority() const;
+
     private:
 
         wns::simulator::Time timeCreated_;
+
+        Priority priority_;
     };
 } // queuingsystem
 } // wns
