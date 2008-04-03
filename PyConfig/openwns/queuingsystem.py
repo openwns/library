@@ -58,11 +58,11 @@ class SimpleMM1Step3(object):
         self.probeBus = openwns.probebus.LoggingProbeBus()
 
 class SimpleMM1Step5(object):
-    __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime']
+    __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime', 'probeBusName']
 
     def __init__(self, meanJobInterArrivalTime, meanJobProcessingTime):
-        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1Step3'
-        self.logger = openwns.logger.Logger("WNS", "SimpleMM1Step3", True)
+        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1Step5'
+        self.logger = openwns.logger.Logger("WNS", "SimpleMM1Step5", True)
         self.meanJobInterArrivalTime = meanJobInterArrivalTime
         self.meanJobProcessingTime = meanJobProcessingTime
 

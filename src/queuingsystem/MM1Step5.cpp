@@ -46,7 +46,7 @@ SimpleMM1Step5::SimpleMM1Step5(const wns::pyconfig::View& config) :
                            1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),
     config_(config),
     logger_(config.get("logger")),
-    probeBus_()
+    probeBus_(NULL)
 {
 }
 
@@ -60,8 +60,7 @@ SimpleMM1Step5::doStartup()
 
     wns::probe::bus::ProbeBusRegistry* reg = wns::simulator::getProbeBusRegistry();
 
-    probeBus_ = boost::shared_ptr<wns::probe::bus::ProbeBus>(
-        reg->getProbeBus(probeBusName));
+    probeBus_ = reg->getProbeBus(probeBusName);
 
     // We need that probe bus!!
     assure(probeBus_ != NULL, "ProbeBus could not be created");

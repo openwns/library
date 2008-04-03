@@ -84,7 +84,7 @@ namespace wns { namespace queuingsystem {
 
         wns::logger::Logger logger_;
 
-        boost::shared_ptr<wns::probe::bus::ProbeBus> probeBus_;
+        wns::probe::bus::ProbeBus* probeBus_;
     };
 }
 }
