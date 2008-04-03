@@ -25,46 +25,50 @@
  *
  ******************************************************************************/
 
-#include <WNS/queuingsystem/MM1.hpp>
+#include <WNS/queuingsystem/MM1Step2.hpp>
 
 using namespace wns::queuingsystem;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    SimpleMM1,
+    SimpleMM1Step2,
     wns::simulator::ISimulationModel,
-    "openwns.queuingsystem.SimpleMM1",
+    "openwns.queuingsystem.SimpleMM1Step2",
     wns::PyConfigViewCreator);
 
-SimpleMM1::SimpleMM1(const wns::pyconfig::View& config) :
+SimpleMM1Step2::SimpleMM1Step2(const wns::pyconfig::View& config) :
     jobInterarrivalTime_(wns::simulator::getRNG(),
                          Exponential::distribution_type(
                              1.0/config.get<wns::simulator::Time>("meanJobInterArrivalTime"))),
     jobProcessingTime_(wns::simulator::getRNG(),
                        Exponential::distribution_type(
                            1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),
-    jobsInSystem_(0),
     logger_(config.get("logger"))
 {
 }
 
 void
-SimpleMM1::doStartup()
+SimpleMM1Step2::doStartup()
 {
-    MESSAGE_SINGLE(NORMAL, logger_, "MM1 started, generating first job\n" << *this);
+    MESSAGE_SINGLE(NORMAL, logger_, "MM1Step2 started, generating first job\n" << *this);
 
     generateNewJob();
 }
 
 void
-SimpleMM1::doShutdown()
+SimpleMM1Step2::doShutdown()
 {
 
 }
 
+// begin example "wns.queuingsystem.mm1step2.generateNewJob.example"
 void
-SimpleMM1::generateNewJob()
+SimpleMM1Step2::generateNewJob()
 {
-    ++jobsInSystem_;
+    // Create a new job
+    Job job = Job();
+
+    // Insert the new job at the end of the queue
+    queue_.push_back(job);
 
     wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
 
@@ -72,44 +76,54 @@ SimpleMM1::generateNewJob()
 
     // The job is the only job in the system. There is no job that is currently
     // being served -> the server is free and can process the next job
-    if (jobsInSystem_ == 1)
+    if (queue_.size() == 1)
     {
         processNextJob();
     }
 
     wns::simulator::getEventScheduler()->scheduleDelay(
-        boost::bind(&SimpleMM1::generateNewJob, this),
+        boost::bind(&SimpleMM1Step2::generateNewJob, this),
         delayToNextJob);
 
 }
+// end example
 
+// begin example "wns.queuingsystem.mm1step2.onJobProcessed.example"
 void
-SimpleMM1::onJobProcessed()
+SimpleMM1Step2::onJobProcessed()
 {
-    --jobsInSystem_;
+    Job finished = queue_.front();
+
+    queue_.pop_front();
+
     MESSAGE_SINGLE(NORMAL, logger_, "Finished a job\n" << *this);
+    MESSAGE_BEGIN(NORMAL, logger_, m, "Sojourn Time of last job ");
+    m << wns::simulator::getEventScheduler()->getTime() - finished.getCreationTime();
+    MESSAGE_END();
+
     // if there are still jobs, serve them
-    if (jobsInSystem_ > 0)
+    if (!queue_.empty())
     {
         processNextJob();
     }
 }
+// end example
 
 void
-SimpleMM1::processNextJob()
+SimpleMM1Step2::processNextJob()
 {
     wns::simulator::Time processingTime = jobProcessingTime_();
 
     wns::simulator::getEventScheduler()->scheduleDelay(
-        boost::bind(&SimpleMM1::onJobProcessed, this),
+        boost::bind(&SimpleMM1Step2::onJobProcessed, this),
         processingTime);
     MESSAGE_SINGLE(NORMAL, logger_, "Processing next job, processing time: " << processingTime << "s\n" << *this);
 }
 
 std::string
-SimpleMM1::doToString() const
+SimpleMM1Step2::doToString() const
 {
     std::stringstream ss;
-    ss << "Jobs in system: " << jobsInSystem_;
+    ss << "Jobs in system: " << queue_.size();
     return ss.str();
 }
