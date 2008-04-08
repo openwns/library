@@ -110,7 +110,7 @@ namespace wns { namespace events { namespace scheduler {
     /**
      * @brief This class ignores all notifiactions
      *
-     * @autor Marc Schinnenburg <marc@schinnenburg.com>
+     * @author Marc Schinnenburg <marc@schinnenburg.com>
      *
      * This class can be used if only one notification of INotification should
      * be observed. Then, you don't need to implement the other implementations

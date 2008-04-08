@@ -51,6 +51,7 @@ srcFiles['EVENTS'] = [
     'src/events/scheduler/Map.cpp',
     'src/events/scheduler/INotification.cpp',
     'src/events/scheduler/Monitor.cpp',
+    'src/events/scheduler/RealTime.cpp',
 ]
 
 srcFiles['LOGGER'] = [
@@ -74,6 +75,7 @@ srcFiles['LOGGER'] = [
 srcFiles['PROBEBUS'] = [
     'src/probe/bus/Context.cpp',
     'src/probe/bus/LoggingProbeBus.cpp',
+    'src/probe/bus/LogEval.cpp',
     'src/probe/bus/MasterProbeBus.cpp',
     'src/probe/bus/ProbeBus.cpp',
     'src/probe/bus/ProbeBusRegistry.cpp',
@@ -88,7 +90,12 @@ srcFiles['TESTING'] = [
     ]
 
 srcFiles['QUEUINGSYSTEM'] = [
-    'src/queuingsystem/MM1.cpp',
+    'src/queuingsystem/Job.cpp',
+    'src/queuingsystem/MM1Step1.cpp',
+    'src/queuingsystem/MM1Step2.cpp',
+    'src/queuingsystem/MM1Step3.cpp',
+    'src/queuingsystem/MM1Step5.cpp',
+    'src/queuingsystem/MM1Step6.cpp',
     ]
 
 srcFiles['BASE-TESTS'] = [
@@ -150,6 +157,7 @@ srcFiles['EVENTS-TESTS'] = [
     'src/events/scheduler/tests/PerformanceTest.cpp',
     'src/events/scheduler/tests/MapPerformanceTest.cpp',
     'src/events/scheduler/tests/BestPracticesTest.cpp',
+    'src/events/scheduler/tests/RealTimeTest.cpp',
     ]
 
 Return('srcFiles')

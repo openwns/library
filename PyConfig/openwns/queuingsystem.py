@@ -27,12 +27,56 @@
 
 import openwns.logger
 
-class SimpleMM1(object):
+class SimpleMM1Step1(object):
     __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime']
 
 
     def __init__(self, meanJobInterArrivalTime, meanJobProcessingTime):
-        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1'
-        self.logger = openwns.logger.Logger("WNS", "SimpleMM1", True)
+        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1Step1'
+        self.logger = openwns.logger.Logger("WNS", "SimpleMM1Step1", True)
         self.meanJobInterArrivalTime = meanJobInterArrivalTime
         self.meanJobProcessingTime = meanJobProcessingTime
+
+class SimpleMM1Step2(object):
+    __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime']
+
+    def __init__(self, meanJobInterArrivalTime, meanJobProcessingTime):
+        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1Step2'
+        self.logger = openwns.logger.Logger("WNS", "SimpleMM1Step2", True)
+        self.meanJobInterArrivalTime = meanJobInterArrivalTime
+        self.meanJobProcessingTime = meanJobProcessingTime
+
+class SimpleMM1Step3(object):
+    __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime', 'probeBus']
+
+    def __init__(self, meanJobInterArrivalTime, meanJobProcessingTime):
+        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1Step3'
+        self.logger = openwns.logger.Logger("WNS", "SimpleMM1Step3", True)
+        self.meanJobInterArrivalTime = meanJobInterArrivalTime
+        self.meanJobProcessingTime = meanJobProcessingTime
+
+        self.probeBus = openwns.probebus.LoggingProbeBus()
+
+class SimpleMM1Step5(object):
+    __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime', 'probeBusName']
+
+    def __init__(self, meanJobInterArrivalTime, meanJobProcessingTime):
+        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1Step5'
+        self.logger = openwns.logger.Logger("WNS", "SimpleMM1Step5", True)
+        self.meanJobInterArrivalTime = meanJobInterArrivalTime
+        self.meanJobProcessingTime = meanJobProcessingTime
+
+        self.probeBusName = "openwns.queuingsystem.MM1.sojournTime"
+
+
+class SimpleMM1Step6(object):
+    __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime', 'probeBusName']
+
+    def __init__(self, meanJobInterArrivalTime, meanJobProcessingTime):
+        self.nameInFactory = 'openwns.queuingsystem.SimpleMM1Step6'
+        self.logger = openwns.logger.Logger("WNS", "SimpleMM1Step6", True)
+        self.meanJobInterArrivalTime = meanJobInterArrivalTime
+        self.meanJobProcessingTime = meanJobProcessingTime
+
+        self.probeBusName = "openwns.queuingsystem.MM1.sojournTime"
+

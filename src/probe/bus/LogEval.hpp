@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,47 +25,64 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_LOGGINGPROBEBUS_HPP
-#define WNS_PROBE_BUS_LOGGINGPROBEBUS_HPP
+#ifndef WNS_PROBE_BUS_LOGEVAL_HPP
+#define WNS_PROBE_BUS_LOGEVAL_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
-#include <WNS/pyconfig/View.hpp>
-#include <WNS/logger/Logger.hpp>
 
 namespace wns { namespace probe { namespace bus {
 
-    /**
-     * @brief A logger for the ProbeBus
-     *
-     * Attach the LoggingProbeBus to another ProbeBus to see the Measurements
-     * that pass that ProbeBus. The measurements are printed to std::out.
-     * Use this for debugging purposes.
-     *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
-     * @ingroup probebusses
-     */
-    class LoggingProbeBus:
-        public ProbeBus
+    //! How to format the output of numbers
+    enum formatType
     {
+		formatFixed, formatScientific
+    };
+
+    /**
+     * @brief backend for the LogEval ProbeBus
+     */
+    class LogEval:
+		public ProbeBus
+    {
+
+		struct LogEntry
+		{
+			double value;
+			wns::simulator::Time time;
+		};
+
     public:
-        LoggingProbeBus(const wns::pyconfig::View&);
+		LogEval(const wns::pyconfig::View&);
 
-        virtual ~LoggingProbeBus();
-
-        virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&, const IContext&);
+		virtual ~LogEval();
 
         virtual bool
         accepts(const wns::simulator::Time&, const IContext&);
 
         virtual void
+        onMeasurement(const wns::simulator::Time&,
+                      const double&,
+                      const IContext&);
+
+        virtual void
         output();
 
-    private:
-        wns::logger::Logger logger_;
-    };
+	private:
+		//! Suffix of log files
+		//String                  suffixLog;
+
+		//! Container for the logged entries
+		std::list<LogEntry>     logQueue;
+        std::string outputPath;
+        std::string filename;
+		bool firstWrite;
+		int timePrecision;
+		int valuePrecision;
+		formatType format;
+	};
+
 } // bus
 } // probe
 } // wns
-#endif //WNS_PROBE_BUS_LOGGINGPROBEBUS_HPP
+
+#endif // WNS_PROBE_BUS_LOGEVAL_HPP

@@ -44,7 +44,7 @@ namespace wns { namespace module {
 		 * Instantiate a VersionInformation object initialized by a
 		 * Version object and a dependency list.
 		 *
-		 * @param version the version.
+		 * @param ver the version.
 		 * @param deps the dependencies.
 		 */
 		explicit

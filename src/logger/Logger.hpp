@@ -96,13 +96,13 @@ namespace wns { namespace logger {
 		 * @param loggerName Name of this Logger (most likely the name
 		 * of the class where the Logger is used)
 		 *
-		 * @param m Pointer to the logger::Master where this Logger will
+		 * @param master Pointer to the logger::Master where this Logger will
 		 * write its Message to
 		 */
 		Logger(
 			const std::string& moduleName,
 			const std::string& loggerName,
-			logger::Master* m);
+			logger::Master* master);
 
 		/**
 		 * @brief Constructor specializing a Logger to a certain
@@ -124,10 +124,12 @@ namespace wns { namespace logger {
 		 * module::Module
 		 *
 		 * @param pyConfigView to configure the Logger
+		 * @param master Pointer to the logger::Master where this Logger will
+		 * write its Message to
 		 */
 		Logger(
 			const pyconfig::View& pyConfigView,
-			logger::Master* m);
+			logger::Master* master);
 
 		/**
 		 * @brief Tries to find the logger::Master on its own

@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,44 +25,11 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
-#define WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#ifndef WNS_SIMULATOR_BIT_HPP
+#define WNS_SIMULATOR_BIT_HPP
 
-#include <WNS/probe/bus/ProbeBus.hpp>
+#include <stdint.h>
 
-namespace wns { namespace probe { namespace bus {
+typedef int32_t Bit;
 
-    /**
-     * @brief Only accepts if simulation time is larger than the settling time
-     *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
-     * @ingroup probebusses
-     */
-    class SettlingTimeGuard :
-        public wns::probe::bus::ProbeBus
-    {
-    public:
-
-        SettlingTimeGuard(const wns::pyconfig::View&);
-
-        virtual ~SettlingTimeGuard();
-
-        virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&,
-                      const IContext&);
-
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
-
-        virtual void
-        output();
-
-    private:
-        wns::simulator::Time settlingTime_;
-    };
-} // bus
-} // probe
-} // wns
-
-#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#endif // WNS_SIMULATOR_BIT_HPP

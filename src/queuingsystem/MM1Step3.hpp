@@ -25,9 +25,10 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_QUEUINGSYSTEM_MM1_HPP
-#define WNS_QUEUINGSYSTEM_MM1_HPP
+#ifndef WNS_QUEUINGSYSTEM_MM1STEP3_HPP
+#define WNS_QUEUINGSYSTEM_MM1STEP3_HPP
 
+#include <WNS/queuingsystem/Job.hpp>
 
 #include <WNS/rng/RNGen.hpp>
 #include <WNS/simulator/ISimulator.hpp>
@@ -35,20 +36,21 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
+#include <WNS/probe/bus/ProbeBus.hpp>
 
 #include <boost/bind.hpp>
-
+#include <boost/shared_ptr.hpp>
 
 namespace wns { namespace queuingsystem {
 
-    class SimpleMM1 :
+    class SimpleMM1Step3 :
         public IOutputStreamable,
         public wns::simulator::ISimulationModel
     {
         typedef wns::rng::VariateGenerator< boost::exponential_distribution<> > Exponential;
     public:
         explicit
-        SimpleMM1(const wns::pyconfig::View& configuration);
+        SimpleMM1Step3(const wns::pyconfig::View& configuration);
 
     private:
         virtual void
@@ -72,15 +74,49 @@ namespace wns { namespace queuingsystem {
         virtual std::string
         doToString() const;
 
+// begin example "wns.queuingsystem.mm1step3.hpp.example"
         Exponential jobInterarrivalTime_;
 
         Exponential jobProcessingTime_;
 
-        int jobsInSystem_;
+        std::list<Job> queue_;
+
+        wns::pyconfig::View config_;
 
         wns::logger::Logger logger_;
+
+        // We use a shared_ptr to hold our probeBus.
+        // The shared_ptr will take care of proper removal of the probeBus
+        // when our M/M/1 model is destroyed
+        boost::shared_ptr<wns::probe::bus::ProbeBus> probeBus_;
+// end example
     };
 }
 }
 
-#endif // NOT defined WNS_QUEUINGSYSTEM_MM1_HPP
+#endif // NOT defined WNS_QUEUINGSYSTEM_MM1STEP3_HPP
+
+
+/**
+ * @page wns.queuingsystem.mm1step3 Queuingsystem Tutorial Step 3
+ *
+ * @section contents Contents
+ *   -# @ref probebus
+ *   -# @ref probebusconf
+ *
+ * @section probebus Collecting Measurements
+ *   - Introduce the Probebus basics
+ *   - Explain the plain ProbeBus interface (forwardMeasurement)
+ *   - Show how to use the StaticFactory::creator to allow selection
+ *   of the specific ProbeBus at configuration time
+ *   - Why doStartup and not Constructor?
+ *
+ * Modifications to the mm1 header
+ * @include "wns.queuingsystem.mm1step3.hpp.example"
+ * @include "wns.queuingsystem.mm1step3.doStartup.example"
+ *
+ * @section probebusconf Configuration
+ *
+ *   - Show how to do the configuration
+ *   - "NameInFactory" explain the interconnection between Python/C++
+ */

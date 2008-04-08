@@ -33,4 +33,6 @@ namespace wns { namespace simulator {
 }
 }
 
+typedef wns::simulator::Time simTimeType;
+
 #endif // NOT defined WNS_SIMULATOR_TIME_HPP

@@ -96,7 +96,7 @@ namespace wns { namespace module {
 		 */
 		bool operator<=(const Version b) const;
 		/**
-		 * @bire Greater than or equal to operator.
+		 * @brief Greater than or equal to operator.
 		 */
 		bool operator>=(const Version b) const;
 

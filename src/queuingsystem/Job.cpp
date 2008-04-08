@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,44 +25,29 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
-#define WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+//begin example "wns.queuingsystem.Job.cpp.example"
+#include <WNS/queuingsystem/Job.hpp>
+#include <WNS/simulator/ISimulator.hpp>
+#include <WNS/events/scheduler/Interface.hpp>
 
-#include <WNS/probe/bus/ProbeBus.hpp>
+using namespace wns::queuingsystem;
 
-namespace wns { namespace probe { namespace bus {
+Job::Job(Priority priority)
+{
+    timeCreated_ = wns::simulator::getEventScheduler()->getTime();
+    priority_ = priority;
+}
 
-    /**
-     * @brief Only accepts if simulation time is larger than the settling time
-     *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
-     * @ingroup probebusses
-     */
-    class SettlingTimeGuard :
-        public wns::probe::bus::ProbeBus
-    {
-    public:
+wns::simulator::Time
+Job::getCreationTime() const
+{
+    return timeCreated_;
+}
 
-        SettlingTimeGuard(const wns::pyconfig::View&);
+Job::Priority
+Job::getPriority() const
+{
+    return priority_;
+}
 
-        virtual ~SettlingTimeGuard();
-
-        virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&,
-                      const IContext&);
-
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
-
-        virtual void
-        output();
-
-    private:
-        wns::simulator::Time settlingTime_;
-    };
-} // bus
-} // probe
-} // wns
-
-#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+// end example

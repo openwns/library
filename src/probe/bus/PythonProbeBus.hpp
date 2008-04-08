@@ -55,6 +55,7 @@ namespace wns { namespace probe { namespace bus {
      *
      * @author Daniel Bültmann <me@daniel-bueltmann.de>
      * @todo dbn: Documentation is outdated. Rewrite.
+     * @ingroup probebusses
      */
     class PythonProbeBus:
         public wns::probe::bus::ProbeBus

@@ -60,9 +60,10 @@ namespace wns {
      * care of in tearDown(). To give the test writer the ability to prepare
      * and cleanup his test too, the wns::TestFixture provides two methods:
      *
-     * @ul
-     * @li prepare()
-     * @li cleanup()
+     * <ul>
+     *   <li> prepare()
+     *   <li> cleanup()
+     * </ul>
      *
      * prepare() is called after setUp() and cleanup() is called before the
      * tearDown()

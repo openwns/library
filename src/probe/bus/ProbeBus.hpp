@@ -77,6 +77,12 @@ namespace wns { namespace probe { namespace bus {
     };
 
     /**
+     * @defgroup probebusses ProbeBusses
+     *
+     * This group contains a list of all available ProbeBusses in openWNS
+     */
+
+    /**
      * @brief Interface for a ProbeBus. ProbeBusses may be chained.
      *
      * ProbeBus is the basis for measurement distribution within the simulator.
@@ -96,11 +102,14 @@ namespace wns { namespace probe { namespace bus {
      * Use startObserving and stopObserving to interconnect ProbeBusses
      * @note This is a new feature. Consider it beta. Subject to change.
      * @author Daniel Bueltmann <me@daniel-bueltmann.de>
+     * @ingroup probebusses
+     *
      */
     class ProbeBus:
         virtual private wns::Subject<ProbeBusNotificationInterface>,
         virtual private wns::Observer<ProbeBusNotificationInterface>
     {
+
     public:
 
         /**

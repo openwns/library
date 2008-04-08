@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,47 +25,46 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_LOGGINGPROBEBUS_HPP
-#define WNS_PROBE_BUS_LOGGINGPROBEBUS_HPP
+//begin example "wns.queuingsystem.Job.hpp.example"
+#ifndef WNS_QUEUINGSYSTEM_JOB_HPP
+#define WNS_QUEUINGSYSTEM_JOB_HPP
 
-#include <WNS/probe/bus/ProbeBus.hpp>
-#include <WNS/pyconfig/View.hpp>
-#include <WNS/logger/Logger.hpp>
+#include <WNS/simulator/Time.hpp>
 
-namespace wns { namespace probe { namespace bus {
+namespace wns { namespace queuingsystem {
 
-    /**
-     * @brief A logger for the ProbeBus
-     *
-     * Attach the LoggingProbeBus to another ProbeBus to see the Measurements
-     * that pass that ProbeBus. The measurements are printed to std::out.
-     * Use this for debugging purposes.
-     *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
-     * @ingroup probebusses
-     */
-    class LoggingProbeBus:
-        public ProbeBus
+	// Jobs are the tasks that a queuingsystem has to process. In this model a
+	// job can belong to two different job classes, jobs with low or high
+	// priority. A job knows its priority and the moment of its birth.
+    class Job
     {
     public:
-        LoggingProbeBus(const wns::pyconfig::View&);
 
-        virtual ~LoggingProbeBus();
+		// Each Job can have a low or high priority.
+        enum Priority {
+            lowPriority = 0,
+            highPriority
+        };
 
-        virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&, const IContext&);
+		// By default jobs are created with a low priority
+        Job(Priority priority = Job::lowPriority);
 
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
+	    wns::simulator::Time
+        getCreationTime() const;
 
-        virtual void
-        output();
+        Job::Priority
+        getPriority() const;
 
     private:
-        wns::logger::Logger logger_;
+
+		// Whenever a job is created it remembers its moment of birth
+        wns::simulator::Time timeCreated_;
+
+		// The assigned priority of the job
+        Priority priority_;
     };
-} // bus
-} // probe
+} // queuingsystem
 } // wns
-#endif //WNS_PROBE_BUS_LOGGINGPROBEBUS_HPP
+
+#endif // WNS_QUEUINGSYSTEM_JOB_HPP
+// end example
