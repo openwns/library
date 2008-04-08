@@ -96,32 +96,47 @@ namespace wns { namespace queuingsystem {
  *   -# @ref statefuljobs
  *
  * @section queue Implementing the Queue
- *   - Introduce Job class
- *   - Show how std::list may be used as container
- *   - Show how jobs are queued
+ * A Queue can be filled with jobs. For the time beeing it is only important
+ * that a job can be created, stored in a queue, and processed, which means that
+ * it leaves the queuing system. The Job class is used in order to create new
+ * jobs, which are inserted at the end of the queue with help of the push_back()
+ * method of the queue. The jobs within the queue are processed following the
+ * first-in-first-out strategy. Jobs arrive with an arrival rate. This is why we
+ * store the time when the next job arrives in the delayToNextJob variable. The
+ * EventScheduler is used to schedule a call to the generateNewJob function when
+ * delayToNextJob has passed. If the new generated job is the only job within
+ * the queue it is processed direclty. Notice, that the job still remains within
+ * the queue as long as the processing of the job has not finished. In our model
+ * the server of the queuing system is represented by the head of the queue. The
+ * queue is implemented as a std::list which acts as a container and is able to
+ * store objects of our Job class. See how easy this can be done:
+ * std::list<Job> queue_;
+ * To append jobs at the end of the list/queue, we use the push_back() method. To
+ * get the object at the head of the queue we call the front() function. The
+ * pop_front() method is used to remove the object at the front of the queue.
  * @include "wns.queuingsystem.Job.hpp.example"
  * @include "wns.queuingsystem.mm1step2.generateNewJob.example"
  *
  * @section statefuljobs Stateful Jobs
  *
- *   - Now we want to create some statistic for our queuing system, e.g. we want
- *   to compute the sojourn time of a job. Therefore the job has to remember its
- *   time when it has been created. In the constructor of the Job class we get
- *   the current simulation time, by requesting the current simulation time from
- *   the EventScheduler of the simulator.
- *   - When the job has been processed we can
- *   calculate the sojourn time, which is the time a job stayed in the
- *   queue. Therefore we take the actual time - again with the
- *   assistance of the EventScheduler - and subtract the
- *   creation time of the job. The first code snippet shows the Job class and
- *   the getter method (getCreationTime()) that is needed in order to retrieve
- *   the creation time of the finished job. The second code snippet gives an
- *   example for the implmentation of the debug output of the sojourn
- *   time. Whenever the queue processes a job, it takes the oldest job of the
- *   queue (first-in-first-out strategy) by calling the front method. Afterwards
- *   the job is removed from the queue by calling the pop method. Now we use the
- *   logger to output the sojourn time. Afterwards the queue continues to
- *   process the remaining jobs, if any.
+ * Now we want to create some statistic for our queuing system, e.g. we want
+ * to compute the sojourn time of a job. Therefore the job has to remember its
+ * time when it has been created. In the constructor of the Job class we get
+ * the current simulation time, by requesting the current simulation time from
+ * the EventScheduler of the simulator.
+ *
+ * When the job has been processed we can calculate the sojourn time, which is
+ * the time a job stayed in the queue. Therefore we take the actual time -
+ * again with the assistance of the EventScheduler - and subtract the
+ * creation time of the job. The first code snippet shows the Job class and
+ * the getter method (getCreationTime()) that is needed in order to retrieve
+ * the creation time of the finished job. The second code snippet gives an
+ * example for the implmentation of the debug output of the sojourn
+ * time. Whenever the queue processes a job, it takes the oldest job of the
+ * queue (first-in-first-out strategy) by calling the front method. Afterwards
+ * the job is removed from the queue by calling the pop method. Now we use the
+ * logger to output the sojourn time. Afterwards the queue continues to
+ * process the remaining jobs, if any.
  * @include "wns.queuingsystem.Job.cpp.example"
  * @include "wns.queuingsystem.mm1step2.onJobProcessed.example"
  */

@@ -40,13 +40,13 @@ namespace wns { namespace queuingsystem {
     {
     public:
 
-		// Each Job can have a low or high priority.
+        // Each Job can have a low or high priority.
         enum Priority {
             lowPriority = 0,
             highPriority
         };
 
-		// By default jobs are created with a low priority
+        // By default jobs are created with a low priority
         Job(Priority priority = Job::lowPriority);
 
 	    wns::simulator::Time
@@ -57,10 +57,10 @@ namespace wns { namespace queuingsystem {
 
     private:
 
-		// Whenever a job is created it remembers its moment of birth
+        // Whenever a job is created it remembers its moment of birth
         wns::simulator::Time timeCreated_;
 
-		// The assigned priority of the job
+        // The assigned priority of the job
         Priority priority_;
     };
 } // queuingsystem
