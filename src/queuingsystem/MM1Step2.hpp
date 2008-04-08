@@ -104,8 +104,24 @@ namespace wns { namespace queuingsystem {
  *
  * @section statefuljobs Stateful Jobs
  *
- *   - Show how to record the time of creation in the Job
- *   - Give debug output for sojourn time after Job finishes
+ *   - Now we want to create some statistic for our queuing system, e.g. we want
+ *   to compute the sojourn time of a job. Therefore the job has to remember its
+ *   time when it has been created. In the constructor of the Job class we get
+ *   the current simulation time, by requesting the current simulation time from
+ *   the EventScheduler of the simulator.
+ *   - When the job has been processed we can
+ *   calculate the sojourn time, which is the time a job stayed in the
+ *   queue. Therefore we take the actual time - again with the
+ *   assistance of the EventScheduler - and subtract the
+ *   creation time of the job. The first code snippet shows the Job class and
+ *   the getter method (getCreationTime()) that is needed in order to retrieve
+ *   the creation time of the finished job. The second code snippet gives an
+ *   example for the implmentation of the debug output of the sojourn
+ *   time. Whenever the queue processes a job, it takes the oldest job of the
+ *   queue (first-in-first-out strategy) by calling the front method. Afterwards
+ *   the job is removed from the queue by calling the pop method. Now we use the
+ *   logger to output the sojourn time. Afterwards the queue continues to
+ *   process the remaining jobs, if any.
  * @include "wns.queuingsystem.Job.cpp.example"
  * @include "wns.queuingsystem.mm1step2.onJobProcessed.example"
  */

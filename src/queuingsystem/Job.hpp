@@ -33,18 +33,23 @@
 
 namespace wns { namespace queuingsystem {
 
+	// Jobs are the tasks that a queuingsystem has to process. In this model a
+	// job can belong to two different job classes, jobs with low or high
+	// priority. A job knows its priority and the moment of its birth.
     class Job
     {
     public:
 
+		// Each Job can have a low or high priority.
         enum Priority {
             lowPriority = 0,
             highPriority
         };
 
+		// By default jobs are created with a low priority
         Job(Priority priority = Job::lowPriority);
 
-        wns::simulator::Time
+	    wns::simulator::Time
         getCreationTime() const;
 
         Job::Priority
@@ -52,8 +57,10 @@ namespace wns { namespace queuingsystem {
 
     private:
 
+		// Whenever a job is created it remembers its moment of birth
         wns::simulator::Time timeCreated_;
 
+		// The assigned priority of the job
         Priority priority_;
     };
 } // queuingsystem
