@@ -68,10 +68,8 @@ namespace wns { namespace probe { namespace bus {
         output();
 
 	private:
-		//! Suffix of log files
-		//String                  suffixLog;
-
-		//! Container for the logged entries
+		/**
+		 *@brief Container for the logged entries */
 		std::list<LogEntry>     logQueue;
         std::string outputPath;
         std::string filename;

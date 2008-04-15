@@ -27,7 +27,6 @@
 
 #include <WNS/probe/bus/LogEval.hpp>
 
-//#include <iostream>
 #include <fstream>
 #include <iomanip>
 
@@ -45,9 +44,6 @@ LogEval::LogEval(const wns::pyconfig::View& pyco):
 	firstWrite(true),
 	timePrecision(7),
 	valuePrecision(6),
-	/* this could be used later if we want it parameterizable:
-	   format((pyco.get<std::string>("format")=="scientific") ? formatScientific : formatFixed)
-	*/
 	format(formatFixed)
 {
 }
