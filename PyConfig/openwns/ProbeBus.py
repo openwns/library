@@ -254,4 +254,5 @@ class LogEval(ProbeBus):
 		ProbeBus.__init__(self,"")
 		outputDir = openwns.getSimulator().outputDir
 		attrsetter(self, kwargs)
+		print "LogEval(): outputDir=",outputDir
 
