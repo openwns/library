@@ -77,7 +77,7 @@ namespace wns { namespace events { namespace tests {
 	void
 	DelayedMemberFunctionTest::sendDelayed()
 	{
-		// begin example "wns.events.delayedMemberFunction.sendDelayed.example"
+		// begin example "wns.events.DelayedMemberFunction.sendDelayed.example"
 		std::vector<TestObject*> tos;
 		tos.push_back(new TestObject);
 		tos.push_back(new TestObject);

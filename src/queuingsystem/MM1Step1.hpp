@@ -153,9 +153,9 @@ namespace wns { namespace queuingsystem {
  * of a M/M/1 queuing system and will step by step expand it. The following
  * list shows the contents of this tutorial.
  *
- *   -# \subpage wns.queuingsystem.mm1step1 Simplistic MM1 model that
+ *   -# @subpage wns.queuingsystem.mm1step1 Simplistic MM1 model that
  *   demonstrates the basics of implementing your own simulation model.
- *   -# \subpage wns.queuingsystem.mm1step2 Augments the simplistic model to
+ *   -# @subpage wns.queuingsystem.mm1step2 Augments the simplistic model to
  *   support time measurements.
  *   -# \subpage wns.queuingsystem.mm1step3 Introduces the probing subsystem.
  *   -# \subpage wns.queuingsystem.mm1step4 Shows how to embed your evaluation within your configuration.

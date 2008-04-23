@@ -35,7 +35,7 @@ namespace wns { namespace simulator {
     /**
      * @brief Base class for SignalHandler callbacks
      *
-     * @author Marc Schinnenburg <marc@schinnenburg>
+     * @author Marc Schinnenburg <marc@schinnenburg.com>
      *
      * Although you can register anything callable (with operator()()), you can
      * use this class for your convience, when wrtiting such a call back. It

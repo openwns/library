@@ -83,13 +83,10 @@ namespace wns {
 
         /**
          * @brief The NotificationInterface used by SubjectInterface and
-         * @link SubjectInterface::ObserverInterface
-         * ObserverInterface@endlink.
+         * OBSERVERINTERFACE.
          *
          * This provides the NotificationInterface that is used by both
-         * this SubjectInterface and @link
-         * SubjectInterface::ObserverInterface
-         * ObserverInterface@endlink.
+         * this SubjectInterface and OBSERVERINTERFACE.
          */
         typedef typename ObserverInterface::NotificationInterface NotificationInterface;
 
@@ -107,10 +104,8 @@ namespace wns {
          * @pre @a observer must not have been added before.
          *
          * @post @a observer is attached an will receive notifications
-         * according to @link SubjectInterface::NotificationInterface
-         * NotificationInterface@endlink and @link
-         * SubjectInterface::ObserverInterface
-         * ObserverInterface@endlink.
+         * according to @link OBSERVERINTERFACE::NotificationInterface
+         * NotificationInterface@endlink and OBSERVERINTERFACE.
          */
         virtual void
         addObserver(ObserverInterface* observer) = 0;

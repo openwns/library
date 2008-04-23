@@ -222,4 +222,66 @@ namespace wns { namespace probe { namespace bus {
 } // probe
 } // wns
 
+/**
+ * @page probing Collecting Measurements
+ *
+ * @section Introduction Introduction to the designated openWNS Probe Subsystem
+ * In a nutshell, openWNS now decouples the generation and publication
+ * of measurements from their processing, may that be logging, filtering,
+ * sorting or simply storing them. In the following, it will shortly be
+ * explained what generation, publication and processing are about.
+ *
+ * @section Generation Generation of Measurements
+ * Generating measurement values is up to you, the Implementer of a certain,
+ * class, module, node, whatever that might be. Measurements may currently be
+ * everything that can be represented by a double value, like SINR,
+ * Interference, Power values, delay times, packet sizes,
+ * throughput figures ...
+ *
+ * @section Publication Publication of Measurements
+ * Assuming you have obtained a measurement, you would like to publish it so
+ * it can be handled in any way you desire. When publishing the measurement,
+ * it is not necessary to know in which way and by whom it is being processed.
+ * However, the entities that do process the measurement may require certain
+ * additional information about the circumstances under which the measurement
+ * was taken, e.g. which Node has taken the measurement, at which point in the
+ * scenario it was taken, what kind of node took it, which Traffic Category
+ * the measured packet belongs to, where the packet originated from, etc. etc.
+ *
+ * We refer to this kind of information as the so called @link wns::probe::bus::IContext context @endlink
+ * of the measurement. Hence, the process of publishing the measurement involves
+ * gathering and compiling this Context and then forwarding everything to the
+ * appropriate processing entities. All this is handled by the so-called
+ * ContextCollector. The only information the ContextCollector needs to have
+ * about the processing of the measurements is a configurable name of the
+ * processing channel into which to forward the measurement and the context
+ * info.
+ *
+ * Entry points to the existing processing channels are governed by a global
+ * registry called the wns::probe::bus::ProbeBusRegistry. They may be accessed
+ * via the aforementioned name.
+ * <b>NOTE</b> that the processing channels (further referred to as the
+ * ProbeBusses) are <b>centralized</b>, while the publication of measurements
+ * is <b>distributed</b>. This means that all entities that take and publish
+ * measurements of the same type have a ContextCollector of their own, but all
+ * these ContextCollectors forward their measurements and context into the same
+ * wns::probe::bus::ProbeBus.
+ *
+ * @section Processing Processing of Measurements
+ * Processing of measurements is accomplished by the so called
+ * wns::probe::bus::ProbeBus. The ProbeBus is an object that supports
+ * hierarchical chaining to form trees of ProbeBusses. The measurement and the
+ * wns::probe::bus::context are inserted at the root of the tree and each node
+ * may store and forward the received measurement, depending on the outcome of
+ * an internal decision unit that determines whether or not the current node
+ * will accept the measurement. By appropriate combination and parameterization,
+ * the said tree can then be used to filter and thus sort the measurements
+ * based on the available context information. openWNS provides a toolbox of
+ * different ProbeBus implementations that can be flexibly combined to
+ * accomplish all kinds of measurement processing tasks. In addition, the
+ * simple wns::probe::bus::ProbeBus interface and the very generic
+ * wns::probe::bus::context::IContext information concept allow for the
+ * quick prototyping of tailor-made solutions.
+
+ */
 #endif // WNS_PROBE_BUS_PROBEBUS_HPP

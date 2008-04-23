@@ -66,7 +66,7 @@
  *
  * The behavior of the macro must be configured at compile time. To throw on
  * error you don't need to define anything - this is the defaul. To make assure
- * behave like assert (abort on error) define @bWNS_ASSERT. To disable the
+ * behave like assert (abort on error) define WNS_ASSERT. To disable the
  * checking define WNS_NDEBUG.
  *
  * @note The WNS build system defines nothing if "dbg" is used as build flavour

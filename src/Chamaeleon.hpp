@@ -152,7 +152,7 @@ namespace wns {
         /**
          * @brief Takes an instance of ValueType
          *
-         * @param x data you want to "chamaelonize"
+         * @param data the data you want to "chamaelonize"
          *
          * Example:
          * @include wns.ChamaeleonConstructor.example
