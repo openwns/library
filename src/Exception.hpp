@@ -38,6 +38,7 @@ namespace wns {
     /**
      * @brief Base class of all WNS exceptions
      * @author Marc Schinnenburg <marc@schinnenburg.net>
+     * @ingroup group_main_classes
      *
      * This Exception also contains a backtrace of the program stack as it was
      * at creation time of the Exception. The backtrace can be accesed with

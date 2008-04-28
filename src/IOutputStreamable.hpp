@@ -36,6 +36,7 @@ namespace wns {
     /**
      * @brief Enable usage in output streams by deriving from this class (NVI)
      * @author Marc Schinnenburg <marc@schinnenburg.com>
+     * @ingroup group_main_classes
      */
     class IOutputStreamable
     {

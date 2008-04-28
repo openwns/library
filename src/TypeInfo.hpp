@@ -45,6 +45,7 @@ namespace wns {
 	/**
 	 * @brief A wrapper around type_info
      * @author Marc Schinnenburg <marc@schinnenburg.com>
+     * @ingroup group_main_classes
      *
      * This class provides "object-oriented" access to C++ RTTI.
 	 */

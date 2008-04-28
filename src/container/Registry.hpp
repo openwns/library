@@ -37,6 +37,9 @@
 
 namespace wns { namespace container {
 
+    /**
+     * @brief Registry policies
+     */
     namespace registry {
         /**
          * @brief This cleanup policy does nothing
@@ -73,6 +76,7 @@ namespace wns { namespace container {
     /**
      * @brief Stores elements of type ELEMENT with a key of type KEY
      * @author Marc Schinnenburg <marc@schinnenburg.net>
+     * @ingroup group_main_classes
      *
      * The key to the elements must be unique. Keys must provide strict weak
      * ordering.

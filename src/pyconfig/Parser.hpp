@@ -34,6 +34,7 @@ namespace wns { namespace pyconfig {
 
 	/**
 	 * @brief Load Python style config files
+	 * @ingroup group_main_classes
 	 */
 	class Parser
 		: public View

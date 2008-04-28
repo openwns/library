@@ -57,6 +57,7 @@ namespace wns { namespace simulator {
      * @brief Provides access to simulation wide event scheduler, random number
      * generator, ...
      * @author Marc Schinnenburg <marc@schinnenburg.com>
+     * @ingroup group_main_classes
      *
      * There is an indispensable need to access one global instance of a certain
      * type of variable within a simulator. Well known examples are the

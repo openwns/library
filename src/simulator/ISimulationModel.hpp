@@ -36,6 +36,7 @@ namespace wns { namespace simulator {
 
     /**
      * @author Marc Schinnenburg <marc@schinnenburg.com>
+     * @ingroup group_main_classes
      */
     class ISimulationModel
     {

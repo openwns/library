@@ -41,6 +41,8 @@
 namespace wns {
 	/**
 	 * @brief Intrusive reference counting
+	 * @author Marc Schinnenburg <marc@schinnenburg.com>
+	 * @ingroup group_main_classes
 	 *
 	 * SmartPtr is a template that supports automatic memory
 	 * management. Once a SmartPtr is allocated you don't need to care about
