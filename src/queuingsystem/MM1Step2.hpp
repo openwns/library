@@ -89,7 +89,7 @@ namespace wns { namespace queuingsystem {
 // end example
 
 /**
- * @page wns.queuingsystem.mm1step2 Queuingsystem Tutorial Step 2
+ * @page wns.queuingsystem.mm1step2 Calculating sojurn time
  *
  * @section contents Contents
  *   -# @ref queue

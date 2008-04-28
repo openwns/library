@@ -1,5 +1,5 @@
 /**
- * @page The view from 30.000 ft above
+ * @page wns_library_view openWNS Core Overview
  *
  * @dot
  digraph overview {

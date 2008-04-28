@@ -92,7 +92,7 @@ namespace wns { namespace queuingsystem {
 #endif // NOT defined WNS_QUEUINGSYSTEM_MM1STEP5_HPP
 
 /**
- * @page wns.queuingsystem.mm1step5 Queuingsystem Tutorial Step 5
+ * @page wns.queuingsystem.mm1step5 The Probe Bus Registry
  *
  * @section contents Contents
  *   -# @ref probebusregistry

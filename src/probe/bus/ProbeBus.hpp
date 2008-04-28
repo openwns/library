@@ -78,8 +78,9 @@ namespace wns { namespace probe { namespace bus {
 
     /**
      * @defgroup probebusses ProbeBusses
+     * @ingroup group_main_classes
      *
-     * This group contains a list of all available ProbeBusses in openWNS
+     * @brief List of available ProbeBusses
      */
 
     /**
