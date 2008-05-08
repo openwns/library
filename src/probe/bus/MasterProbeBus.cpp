@@ -35,6 +35,10 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     "MasterProbeBus",
     wns::PyConfigViewCreator);
 
+MasterProbeBus::MasterProbeBus()
+{
+}
+
 MasterProbeBus::MasterProbeBus(const wns::pyconfig::View&)
 {
 }

@@ -81,7 +81,7 @@ MasterProbeBusTest::testSingleListener()
 {
     ProbeBusStub listener;
 
-    listener.startReceiving(theMasterProbeBus_);
+    listener.startObserving(theMasterProbeBus_);
 
     wns::probe::bus::Context tmp;
     this->theMasterProbeBus_->forwardMeasurement(1.0, 2.0, tmp);
@@ -95,10 +95,10 @@ void
 MasterProbeBusTest::testMultipleListeners()
 {
     ProbeBusStub listener1;
-    listener1.startReceiving(theMasterProbeBus_);
+    listener1.startObserving(theMasterProbeBus_);
 
     ProbeBusStub listener2;
-    listener2.startReceiving(theMasterProbeBus_);
+    listener2.startObserving(theMasterProbeBus_);
 
     wns::probe::bus::Context tmp;
     this->theMasterProbeBus_->forwardMeasurement(2.0, 5.0, tmp);
@@ -120,11 +120,11 @@ MasterProbeBusTest::testRegistry()
     reg.insertInt("July", 7);
 
     ProbeBusStub listener1;
-    listener1.startReceiving(theMasterProbeBus_);
+    listener1.startObserving(theMasterProbeBus_);
     listener1.setFilter("Peter", 3);
 
     ProbeBusStub listener2;
-    listener2.startReceiving(theMasterProbeBus_);
+    listener2.startObserving(theMasterProbeBus_);
     listener2.setFilter("July", 15);
 
     this->theMasterProbeBus_->forwardMeasurement(3.0, 17.0, reg);

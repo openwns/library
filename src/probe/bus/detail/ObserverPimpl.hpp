@@ -25,49 +25,38 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_MASTERPROBEBUS_HPP
-#define WNS_PROBE_BUS_MASTERPROBEBUS_HPP
+#ifndef WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP
+#define WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP
 
-#include <WNS/probe/bus/ProbeBus.hpp>
-#include <WNS/pyconfig/View.hpp>
+#include <WNS/probe/bus/detail/IProbeBusNotification.hpp>
+#include <WNS/Observer.hpp>
 
-namespace wns { namespace probe { namespace bus {
-    /**
-     * @brief The MasterProbeBus publishes all Measurements available.
-     *
-     * If you want to receive messages implement the ProbeBus Interface and
-     * use the startObserving method on the MasterProbeBus to receive
-     * measurements. You may also use existing general purpose implementations
-     * already available.
-     *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
-     * @ingroup probebusses
-     */
-    class MasterProbeBus:
-        virtual public ProbeBus
+namespace wns { namespace probe { namespace bus { class ProbeBus; }}}
+
+namespace wns { namespace probe { namespace bus { namespace detail {
+
+    class ObserverPimpl:
+        public wns::Observer<IProbeBusNotification>        
     {
+
     public:
-
-        MasterProbeBus();
-
-        MasterProbeBus(const wns::pyconfig::View&);
-
-        virtual ~MasterProbeBus() {}
-
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
+        ObserverPimpl(wns::probe::bus::ProbeBus*);
 
         virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&,
-                      const IContext&);
+        forwardMeasurement(const wns::simulator::Time&,
+                           const double&,
+                           const IContext&);
 
         virtual void
-        output();
+        forwardOutput();
 
+    private:
+        wns::probe::bus::ProbeBus* pb_;
     };
-} // bus
-} // probe
-} // wns
 
-#endif // WNS_PROBE_BUS_MASTERPROBEBUS_HPP
+}
+}
+}
+}
+
+#endif // WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP

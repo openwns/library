@@ -33,26 +33,13 @@
 
 using namespace wns::probe::bus;
 
-
-void
-ProbeBus::addReceivers(const wns::pyconfig::View& pyco)
+ProbeBus::ProbeBus():
+    observer(this)
 {
-    /**
-     * @todo This is a memory leak. The ProbeBus created here will never be
-     * deleted. We need to use SmartPtr for a ProbeBus in order automatically
-     * delete unused ProbeBuses.
-     */
-    std::string nameInFactory = pyco.get<std::string>("nameInFactory");
-    wns::probe::bus::ProbeBusCreator* c =
-        wns::probe::bus::ProbeBusFactory::creator(nameInFactory);
-    wns::probe::bus::ProbeBus* pb = c->create(pyco);
+}
 
-    pb->startReceiving(this);
-
-    for(int ii=0; ii < pyco.len("observers"); ++ii)
-    {
-        pb->addReceivers(pyco.get<wns::pyconfig::View>("observers", ii));
-    }
+ProbeBus::~ProbeBus()
+{
 }
 
 void
@@ -64,13 +51,7 @@ ProbeBus::forwardMeasurement(const wns::simulator::Time& timestamp,
     {
         this->onMeasurement(timestamp, aValue, theRegistry);
 
-        this->forEachObserverNoDetachAllowed(
-            ProbeBusMeasurementFunctor(
-                &ProbeBusNotificationInterface::forwardMeasurement,
-                timestamp,
-                aValue,
-                theRegistry)
-            );
+        subject.forwardMeasurement(timestamp, aValue, theRegistry);
     }
 }
 
@@ -79,17 +60,17 @@ ProbeBus::forwardOutput()
 {
     this->output();
 
-    this->sendNotifies(&ProbeBusNotificationInterface::forwardOutput);
+    subject.forwardOutput();
 }
 
 void
-ProbeBus::startReceiving(ProbeBus* other)
+ProbeBus::startObserving(ProbeBus* other)
 {
-    this->startObserving(other);
+    observer.startObserving( &(other->subject) );
 }
 
 void
-ProbeBus::stopReceiving(ProbeBus* other)
+ProbeBus::stopObserving(ProbeBus* other)
 {
-    this->stopObserving(other);
+    observer.stopObserving( &(other->subject) );
 }

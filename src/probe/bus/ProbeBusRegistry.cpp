@@ -43,36 +43,50 @@ ProbeBusRegistry::~ProbeBusRegistry()
 void
 ProbeBusRegistry::startup()
 {
-    this->connectProbeBusses(pyco_);
+    this->spawnProbeBusses(pyco_);
 }
 
 void
-ProbeBusRegistry::connectProbeBusses(const wns::pyconfig::View& probeBusTrees)
+ProbeBusRegistry::spawnProbeBusses(const wns::pyconfig::View& config)
 {
-    for(int ii=0 ; ii < probeBusTrees.len("subtrees"); ++ii)
+    for(int ii=0 ; ii < config.len("measurementSources.keys()"); ++ii)
     {
-        wns::pyconfig::View subpyco = probeBusTrees.get("subtrees",ii);
-        ProbeBus* pb = this->getProbeBus(subpyco.get<std::string>("probeBusID"));
-        for(int jj=0 ; jj < subpyco.len("top"); ++jj)
+        wns::pyconfig::View subpyco = config.get("measurementSources.values()",ii);
+        ProbeBus* pb = this->getMasterProbeBus(config.get<std::string>("measurementSources.keys()",ii));
+
+        for (int jj=0; jj < subpyco.len("observers"); ++jj)
         {
-            pb->addReceivers(subpyco.get("top",jj));
+            this->spawnObservers(pb, subpyco.get("observers", jj));
         }
     }
 }
 
+void
+ProbeBusRegistry::spawnObservers(ProbeBus* subject, const wns::pyconfig::View& config)
+{
+    for(int ii=0 ; ii < config.len("observers"); ++ii)
+    {
+        wns::pyconfig::View subpyco = config.get("observers", ii);
+
+        std::string nameInFactory = subpyco.get<std::string>("nameInFactory");
+
+        wns::probe::bus::ProbeBusCreator* c =
+            wns::probe::bus::ProbeBusFactory::creator(nameInFactory);
+
+        wns::probe::bus::ProbeBus* pb = c->create(subpyco);
+
+        pb->startObserving(subject);
+
+        this->spawnObservers(pb, subpyco);
+    }  
+}
+
 ProbeBus*
-ProbeBusRegistry::getProbeBus(const std::string& probeBusID)
+ProbeBusRegistry::getMasterProbeBus(const std::string& probeBusID)
 {
     if (!registry_.knows(probeBusID))
     {
-        wns::pyconfig::View protoConf = pyco_.get("prototype");
-        std::string name = protoConf.get<std::string>("nameInFactory");
-        wns::probe::bus::ProbeBusCreator* c =
-            wns::probe::bus::ProbeBusFactory::creator(name);
-
-        wns::probe::bus::ProbeBus* pb = c->create(protoConf);
-
-        registry_.insert(probeBusID, pb);
+        registry_.insert(probeBusID, new MasterProbeBus());
     }
     return registry_.find(probeBusID);
 }

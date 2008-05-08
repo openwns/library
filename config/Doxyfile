@@ -84,7 +84,7 @@ EXAMPLE_PATH           = doc/examples/
 EXAMPLE_PATTERNS       = *.example
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = doc/pics
-INPUT_FILTER           = 
+INPUT_FILTER           = /home/dbn/src/openWNS/openwns-sdk/bin/doxygenInputFilter
 FILTER_PATTERNS        = 
 FILTER_SOURCE_FILES    = NO
 #---------------------------------------------------------------------------

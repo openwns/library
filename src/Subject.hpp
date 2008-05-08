@@ -153,10 +153,6 @@ namespace wns {
                     this));
         }
 
-    protected:
-        /** @brief */
-        typedef std::list<ObserverInterface*> ObserverContainer;
-
         /**
          * @brief Notify all observers via @a notificattionFunctionPtr.
          *
@@ -233,6 +229,10 @@ namespace wns {
             this->modificationGuard_ = false;
             return f;
         }
+
+    protected:
+        /** @brief */
+        typedef std::list<ObserverInterface*> ObserverContainer;
 
     private:
         /**

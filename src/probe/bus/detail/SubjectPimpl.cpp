@@ -25,49 +25,28 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_MASTERPROBEBUS_HPP
-#define WNS_PROBE_BUS_MASTERPROBEBUS_HPP
+#include <WNS/probe/bus/detail/SubjectPimpl.hpp>
+#include <WNS/probe/bus/detail/MeasurementFunctor.hpp>
 
-#include <WNS/probe/bus/ProbeBus.hpp>
-#include <WNS/pyconfig/View.hpp>
+using namespace wns::probe::bus::detail;
 
-namespace wns { namespace probe { namespace bus {
-    /**
-     * @brief The MasterProbeBus publishes all Measurements available.
-     *
-     * If you want to receive messages implement the ProbeBus Interface and
-     * use the startObserving method on the MasterProbeBus to receive
-     * measurements. You may also use existing general purpose implementations
-     * already available.
-     *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
-     * @ingroup probebusses
-     */
-    class MasterProbeBus:
-        virtual public ProbeBus
-    {
-    public:
+void
+SubjectPimpl::forwardMeasurement(const wns::simulator::Time& timestamp,
+                                 const double& aValue,
+                                 const IContext& theRegistry)
+{
+    forEachObserverNoDetachAllowed(
+        MeasurementFunctor(
+            &IProbeBusNotification::forwardMeasurement,
+            timestamp,
+            aValue,
+            theRegistry)
+        );
+}
 
-        MasterProbeBus();
 
-        MasterProbeBus(const wns::pyconfig::View&);
-
-        virtual ~MasterProbeBus() {}
-
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
-
-        virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&,
-                      const IContext&);
-
-        virtual void
-        output();
-
-    };
-} // bus
-} // probe
-} // wns
-
-#endif // WNS_PROBE_BUS_MASTERPROBEBUS_HPP
+void
+SubjectPimpl::forwardOutput()
+{
+   sendNotifies(&IProbeBusNotification::forwardOutput);
+}

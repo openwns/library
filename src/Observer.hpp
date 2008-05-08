@@ -140,7 +140,7 @@ namespace wns {
         /**
          * @brief Nicer to read: oberserver->startObserving(subject);
          */
-        void
+        virtual void
         startObserving(SubjectInterface* subject)
         {
             subject->addObserver(this);
@@ -150,7 +150,7 @@ namespace wns {
         /**
          * @brief Nicer to read: oberserver->stopObserving(subject);
          */
-        void
+        virtual void
         stopObserving(SubjectInterface* subject)
         {
             subject->removeObserver(this);

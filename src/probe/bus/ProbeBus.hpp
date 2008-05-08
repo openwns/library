@@ -29,52 +29,15 @@
 #define WNS_PROBE_BUS_PROBEBUS_HPP
 
 #include <WNS/simulator/Time.hpp>
-
-#include <WNS/Subject.hpp>
-#include <WNS/Observer.hpp>
-
 #include <WNS/probe/bus/Context.hpp>
-
 #include <WNS/PyConfigViewCreator.hpp>
 #include <WNS/StaticFactory.hpp>
 
+#include <WNS/probe/bus/detail/SubjectPimpl.hpp>
+#include <WNS/probe/bus/detail/ObserverPimpl.hpp>
+
+
 namespace wns { namespace probe { namespace bus {
-
-    /**
-     * @brief Internal Interface for Subject/Observer implementation which is
-     * used as backend for the ProbeBus
-     *
-     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
-     */
-    class ProbeBusNotificationInterface
-    {
-    public:
-        virtual ~ProbeBusNotificationInterface() {};
-
-        /**
-         * @brief Send a value on this ProbeBus
-         * @param probeId The ProbeID of the associated probe
-         * @param aValue The value to send (this was formerly the argument to
-         * probe->put)
-         * @param idRegistry The set of IDs known in this scope. You may sort
-         * according to these.
-         * @note The Context is deleted after the send call. Do not store it!
-         *
-         * This method is used to forward measurements. Call this if you
-         * generate a new measurement and want it to propagate through
-         * the ProbeBus Hierarchy.
-         */
-        virtual void
-        forwardMeasurement(const wns::simulator::Time&,
-                           const double&,
-                           const IContext&) = 0;
-
-        /**
-         * @brief Trigger writing of output.
-         */
-        virtual void
-        forwardOutput() = 0;
-    };
 
     /**
      * @defgroup probebusses ProbeBusses
@@ -95,7 +58,7 @@ namespace wns { namespace probe { namespace bus {
      * to persistant storage.
      *
      * The ProbeBus uses wns::Subject and wns::Observer as its backend.
-     * The NotficationInterface is defined by ProbeBusNotificationInterface.
+     * The NotficationInterface is defined by IProbeBusNotification.
      * Since ProbeBusses may be chained each ProbeBus is a Subject and an
      * Observer by itself.
      *
@@ -105,12 +68,13 @@ namespace wns { namespace probe { namespace bus {
      * @ingroup probebusses
      *
      */
-    class ProbeBus:
-        virtual private wns::Subject<ProbeBusNotificationInterface>,
-        virtual private wns::Observer<ProbeBusNotificationInterface>
+    class ProbeBus
     {
-
     public:
+
+        ProbeBus();
+
+        virtual ~ProbeBus();
 
         /**
          * @brief Called to decide wether the current ProbeBus wants to receive
@@ -172,52 +136,20 @@ namespace wns { namespace probe { namespace bus {
         forwardOutput();
 
         virtual void
-        addReceivers(const wns::pyconfig::View& pyco);
+        startObserving(ProbeBus* other);
 
         virtual void
-        startReceiving(ProbeBus* other);
+        stopObserving(ProbeBus* other);
 
-        virtual void
-        stopReceiving(ProbeBus* other);
-
+    private:
+        detail::SubjectPimpl subject;
+        detail::ObserverPimpl observer;
     };
 
     typedef PyConfigViewCreator<ProbeBus> ProbeBusCreator;
     typedef StaticFactory<ProbeBusCreator> ProbeBusFactory;
 
-    /**
-     * @brief Functor that is used send notifies using the forwardMeasurement
-     * method.
-     *
-     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
-     */
-    class ProbeBusMeasurementFunctor
-    {
-        typedef void (ProbeBusNotificationInterface::*fPtr)(const wns::simulator::Time&,
-                                                            const double&,
-                                                            const IContext&);
-    public:
-        ProbeBusMeasurementFunctor(fPtr f,
-                                   const wns::simulator::Time& time,
-                                   const double& value,
-                                   const IContext& reg):
-            f_(f),
-            time_(time),
-            value_(value),
-            registry_(reg)
-            {}
 
-        void
-        operator()(ProbeBusNotificationInterface* observer)
-            {
-                (*observer.*f_)(time_, value_, registry_);
-            }
-    private:
-        fPtr f_;
-        const wns::simulator::Time& time_;
-        const double& value_;
-        const IContext& registry_;
-    };
 } // bus
 } // probe
 } // wns

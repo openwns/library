@@ -75,14 +75,15 @@ srcFiles['LOGGER'] = [
 srcFiles['PROBEBUS'] = [
     'src/probe/bus/Context.cpp',
     'src/probe/bus/LoggingProbeBus.cpp',
-    'src/probe/bus/LogEval.cpp',
+    'src/probe/bus/LogEvalProbeBus.cpp',
     'src/probe/bus/MasterProbeBus.cpp',
     'src/probe/bus/ProbeBus.cpp',
     'src/probe/bus/ProbeBusRegistry.cpp',
     'src/probe/bus/PythonProbeBus.cpp',
     'src/probe/bus/SettlingTimeGuard.cpp',
     'src/probe/bus/TimeWindowProbeBus.cpp',
-
+    'src/probe/bus/detail/ObserverPimpl.cpp',
+    'src/probe/bus/detail/SubjectPimpl.cpp',
 ]
 
 srcFiles['TESTING'] = [

@@ -59,16 +59,15 @@ namespace wns { namespace probe { namespace bus {
         ~ProbeBusRegistry();
 
         /**
-         * @brief Retrieves an instance of a ProbeBus. The ProbeBus returned is
-         * an instance of the Prototype given in the configuration.
+         * @brief Retrieves an instance of the MasterProbeBus. 
          *
          * If the given name is asked for the first time the ProbeBusRegistry
-         * creates a ProbeBus from the Prototyp. Subsequent requests for the
-         * same ProbeBus then alwys get the same instance. In this way
+         * creates a MasterProbeBus. Subsequent requests for the
+         * same MasterProbeBus then always get the same instance. In this way
          * measurement sources and measurement sinks are decoupled.
          */
         ProbeBus*
-        getProbeBus(const std::string&);
+        getMasterProbeBus(const std::string&);
 
         /**
          * @brief All known ProbeBusses are triggered to write their results to
@@ -78,11 +77,18 @@ namespace wns { namespace probe { namespace bus {
         forwardOutput();
 
         /**
-         * @brief Reads a list of ProbeBus trees and connects these recursively
-         * to the ProbeBusses in this registry
+         * @brief Reads the configured measurement sources then spawns and connects
+         * all observing ProbeBusses recursively to the MasteProbeBus for that source.
          */
         void
-        connectProbeBusses(const wns::pyconfig::View& probeBusTrees);
+        spawnProbeBusses(const wns::pyconfig::View& probeBusTrees);
+
+        /**
+         * @brief Reads the configured measurement sources then spawns and connects
+         * all observing ProbeBusses recursively to the subject for that source.
+         */
+        void
+        spawnObservers(ProbeBus* subject, const wns::pyconfig::View& config);
 
         /**
          * @brief Reads the own list of ProbeBus trees and connects these recursively
