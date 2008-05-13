@@ -27,6 +27,8 @@
 
 #include <WNS/probe/bus/ProbeBus.hpp>
 #include <WNS/probe/bus/ProbeBusRegistry.hpp>
+#include <WNS/probe/bus/detail/SubjectPimpl.hpp>
+#include <WNS/probe/bus/detail/ObserverPimpl.hpp>
 #include <WNS/simulator/ISimulator.hpp>
 
 #include <iostream>
@@ -34,12 +36,17 @@
 using namespace wns::probe::bus;
 
 ProbeBus::ProbeBus():
-    observer(this)
+    subject_( new detail::SubjectPimpl() ),
+    observer_( new detail::ObserverPimpl(this) )
 {
 }
 
 ProbeBus::~ProbeBus()
 {
+    assure(subject_ != NULL, "This ProbeBus instance has no implementation of the subject detail");
+    delete subject_;
+    assure(observer_ != NULL, "This ProbeBus instance has no implementation of the observer detail");
+    delete observer_;
 }
 
 void
@@ -51,7 +58,8 @@ ProbeBus::forwardMeasurement(const wns::simulator::Time& timestamp,
     {
         this->onMeasurement(timestamp, aValue, theRegistry);
 
-        subject.forwardMeasurement(timestamp, aValue, theRegistry);
+        assure(subject_ != NULL, "This ProbeBus instance has no implementation of the subject detail");
+        subject_->forwardMeasurement(timestamp, aValue, theRegistry);
     }
 }
 
@@ -60,17 +68,20 @@ ProbeBus::forwardOutput()
 {
     this->output();
 
-    subject.forwardOutput();
+    assure(subject_ != NULL, "This ProbeBus instance has no implementation of the subject detail");
+    subject_->forwardOutput();
 }
 
 void
 ProbeBus::startObserving(ProbeBus* other)
 {
-    observer.startObserving( &(other->subject) );
+    assure(observer_ != NULL, "This ProbeBus instance has no implementation of the observer detail");
+    observer_->startObserving( other->subject_ );
 }
 
 void
 ProbeBus::stopObserving(ProbeBus* other)
 {
-    observer.stopObserving( &(other->subject) );
+    assure(observer_ != NULL, "This ProbeBus instance has no implementation of the observer detail");
+    observer_->stopObserving( other->subject_ );
 }
