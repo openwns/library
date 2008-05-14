@@ -217,9 +217,9 @@ class PassThroughProbeBus(ProbeBus):
                 ProbeBus.__init__(self)
 
 class SettlingTimeGuard(ProbeBus):
-        """ The SettlingTimeGuard only accepts if the global settling time (transient phase)
+        """ The SettlingTimeGuardProbeBus only accepts if the global settling time (transient phase)
         has elapsed"""
-        nameInFactory = "SettlingTimeGuard"
+        nameInFactory = "SettlingTimeGuardProbeBus"
 
         def __init__(self):
                 ProbeBus.__init__(self)

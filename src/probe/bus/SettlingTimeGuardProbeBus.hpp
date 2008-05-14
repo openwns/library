@@ -25,42 +25,44 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/ISimulator.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
+#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
+#define WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
 
-#include <WNS/probe/bus/SettlingTimeGuard.hpp>
+#include <WNS/probe/bus/ProbeBus.hpp>
 
-using namespace wns::probe::bus;
+namespace wns { namespace probe { namespace bus {
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    SettlingTimeGuard,
-    wns::probe::bus::ProbeBus,
-    "SettlingTimeGuard",
-    wns::PyConfigViewCreator);
+    /**
+     * @brief Only accepts if simulation time is larger than the settling time
+     *
+     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
+     * @ingroup probebusses
+     */
+    class SettlingTimeGuardProbeBus :
+        public wns::probe::bus::ProbeBus
+    {
+    public:
 
-SettlingTimeGuard::SettlingTimeGuard(const wns::pyconfig::View&):
-    settlingTime_(wns::simulator::getConfiguration().get<double>("PDataBase.settlingTime"))
-{
-}
+        SettlingTimeGuardProbeBus(const wns::pyconfig::View&);
 
-SettlingTimeGuard::~SettlingTimeGuard()
-{
-}
+        virtual ~SettlingTimeGuardProbeBus();
 
-bool
-SettlingTimeGuard::accepts(const wns::simulator::Time&, const IContext&)
-{
-    return wns::simulator::getEventScheduler()->getTime() >= settlingTime_;
-}
+        virtual void
+        onMeasurement(const wns::simulator::Time&,
+                      const double&,
+                      const IContext&);
 
-void
-SettlingTimeGuard::onMeasurement(const wns::simulator::Time&,
-                                 const double&,
-                                 const IContext&)
-{
-}
+        virtual bool
+        accepts(const wns::simulator::Time&, const IContext&);
 
-void
-SettlingTimeGuard::output()
-{
-}
+        virtual void
+        output();
+
+    private:
+        wns::simulator::Time settlingTime_;
+    };
+} // bus
+} // probe
+} // wns
+
+#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP

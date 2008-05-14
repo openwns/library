@@ -25,44 +25,42 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
-#define WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#include <WNS/simulator/ISimulator.hpp>
+#include <WNS/events/scheduler/Interface.hpp>
 
-#include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/probe/bus/SettlingTimeGuardProbeBus.hpp>
 
-namespace wns { namespace probe { namespace bus {
+using namespace wns::probe::bus;
 
-    /**
-     * @brief Only accepts if simulation time is larger than the settling time
-     *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
-     * @ingroup probebusses
-     */
-    class SettlingTimeGuard :
-        public wns::probe::bus::ProbeBus
-    {
-    public:
+STATIC_FACTORY_REGISTER_WITH_CREATOR(
+    SettlingTimeGuardProbeBus,
+    wns::probe::bus::ProbeBus,
+    "SettlingTimeGuardProbeBus",
+    wns::PyConfigViewCreator);
 
-        SettlingTimeGuard(const wns::pyconfig::View&);
+SettlingTimeGuardProbeBus::SettlingTimeGuardProbeBus(const wns::pyconfig::View&):
+    settlingTime_(wns::simulator::getConfiguration().get<double>("PDataBase.settlingTime"))
+{
+}
 
-        virtual ~SettlingTimeGuard();
+SettlingTimeGuardProbeBus::~SettlingTimeGuardProbeBus()
+{
+}
 
-        virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&,
-                      const IContext&);
+bool
+SettlingTimeGuardProbeBus::accepts(const wns::simulator::Time&, const IContext&)
+{
+    return wns::simulator::getEventScheduler()->getTime() >= settlingTime_;
+}
 
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
+void
+SettlingTimeGuardProbeBus::onMeasurement(const wns::simulator::Time&,
+                                 const double&,
+                                 const IContext&)
+{
+}
 
-        virtual void
-        output();
-
-    private:
-        wns::simulator::Time settlingTime_;
-    };
-} // bus
-} // probe
-} // wns
-
-#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+void
+SettlingTimeGuardProbeBus::output()
+{
+}

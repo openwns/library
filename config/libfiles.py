@@ -80,7 +80,7 @@ srcFiles['PROBEBUS'] = [
     'src/probe/bus/ProbeBus.cpp',
     'src/probe/bus/ProbeBusRegistry.cpp',
     'src/probe/bus/PythonProbeBus.cpp',
-    'src/probe/bus/SettlingTimeGuard.cpp',
+    'src/probe/bus/SettlingTimeGuardProbeBus.cpp',
     'src/probe/bus/TimeWindowProbeBus.cpp',
     'src/probe/bus/detail/ObserverPimpl.cpp',
     'src/probe/bus/detail/SubjectPimpl.cpp',
