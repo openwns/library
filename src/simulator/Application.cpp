@@ -278,11 +278,6 @@ Application::doInit()
 	}
 
 	loadModules();
-
-    // The ProbeBus must be configured AFTER all modules have been loaded (the
-    // modules may add implementations to static factories which can be accessed
-    // by the ProbeBusRegistry)
-    wns::simulator::getProbeBusRegistry()->startup();
 }
 
 void
@@ -379,6 +374,11 @@ Application::doRun()
             MESSAGE_SINGLE(NORMAL, logger_, "Startup simulation model: " << modelName);
             simulationModel_->startup();
         }
+
+        // The ProbeBus must be configured AFTER all modules have been loaded (the
+        // modules may add implementations to static factories which can be accessed
+        // by the ProbeBusRegistry)
+        wns::simulator::getProbeBusRegistry()->startup();
 
         // queue event for end of simulation
         Time maxSimTime = getWNSView().get<wns::simulator::Time>("maxSimTime");

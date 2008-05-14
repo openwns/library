@@ -26,7 +26,6 @@
  ******************************************************************************/
 
 #include <WNS/probe/bus/PythonProbeBus.hpp>
-#include <WNS/probe/bus/MasterProbeBus.hpp>
 #include <WNS/probe/bus/tests/ProbeBusStub.hpp>
 #include <WNS/pyconfig/Parser.hpp>
 

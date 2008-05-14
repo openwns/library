@@ -25,33 +25,33 @@
  *
  ******************************************************************************/
 
-#include <WNS/probe/bus/MasterProbeBus.hpp>
+#include <WNS/probe/bus/PassThroughProbeBus.hpp>
 
 using namespace wns::probe::bus;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    MasterProbeBus,
+    PassThroughProbeBus,
     wns::probe::bus::ProbeBus,
-    "MasterProbeBus",
+    "PassThroughProbeBus",
     wns::PyConfigViewCreator);
 
-MasterProbeBus::MasterProbeBus()
+PassThroughProbeBus::PassThroughProbeBus()
 {
 }
 
-MasterProbeBus::MasterProbeBus(const wns::pyconfig::View&)
+PassThroughProbeBus::PassThroughProbeBus(const wns::pyconfig::View&)
 {
 }
 
 bool
-MasterProbeBus::accepts(const wns::simulator::Time&, const IContext&)
+PassThroughProbeBus::accepts(const wns::simulator::Time&, const IContext&)
 {
     // We always accept everything
     return true;
 }
 
 void
-MasterProbeBus::onMeasurement(const wns::simulator::Time&,
+PassThroughProbeBus::onMeasurement(const wns::simulator::Time&,
                               const double&,
                               const IContext&)
 {
@@ -60,7 +60,7 @@ MasterProbeBus::onMeasurement(const wns::simulator::Time&,
 }
 
 void
-MasterProbeBus::output()
+PassThroughProbeBus::output()
 {
     // Nothing needs to be done here
 }

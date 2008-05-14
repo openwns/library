@@ -63,7 +63,7 @@ SimpleMM1Step6::doStartup()
 
     wns::probe::bus::ProbeBusRegistry* reg = wns::simulator::getProbeBusRegistry();
 
-    probeBus_ = reg->getMasterProbeBus(probeBusName);
+    probeBus_ = reg->getMeasurementSource(probeBusName);
 
     // We need that probe bus!!
     assure(probeBus_ != NULL, "ProbeBus could not be created");

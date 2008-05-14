@@ -25,34 +25,34 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_MASTERPROBEBUS_HPP
-#define WNS_PROBE_BUS_MASTERPROBEBUS_HPP
+#ifndef WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP
+#define WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
 #include <WNS/pyconfig/View.hpp>
 
 namespace wns { namespace probe { namespace bus {
     /**
-     * @brief The MasterProbeBus publishes all Measurements available.
+     * @brief The PassThroughProbeBus publishes all Measurements available.
      *
      * If you want to receive messages implement the ProbeBus Interface and
-     * use the startObserving method on the MasterProbeBus to receive
+     * use the startObserving method on the PassThroughProbeBus to receive
      * measurements. You may also use existing general purpose implementations
      * already available.
      *
      * @author Daniel Bültmann <me@daniel-bueltmann.de>
      * @ingroup probebusses
      */
-    class MasterProbeBus:
+    class PassThroughProbeBus:
         virtual public ProbeBus
     {
     public:
 
-        MasterProbeBus();
+        PassThroughProbeBus();
 
-        MasterProbeBus(const wns::pyconfig::View&);
+        PassThroughProbeBus(const wns::pyconfig::View&);
 
-        virtual ~MasterProbeBus() {}
+        virtual ~PassThroughProbeBus() {}
 
         virtual bool
         accepts(const wns::simulator::Time&, const IContext&);
@@ -70,4 +70,4 @@ namespace wns { namespace probe { namespace bus {
 } // probe
 } // wns
 
-#endif // WNS_PROBE_BUS_MASTERPROBEBUS_HPP
+#endif // WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP

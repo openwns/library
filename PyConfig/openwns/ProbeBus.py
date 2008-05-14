@@ -209,10 +209,9 @@ class ProbeBus(MeasurementSource):
 # 		for bus in self.top:
 # 			bus.observe(parent)
 
-class MasterProbeBus(ProbeBus):
-        """ The MasterProbeBus always accepts and always forwards. Probably used as
-        prototype in the ProbeBusRegistry"""
-        nameInFactory = "MasterProbeBus"
+class PassThroughProbeBus(ProbeBus):
+        """ The PassThroughProbeBus always accepts and always forwards. """
+        nameInFactory = "PassThroughProbeBus"
 
         def __init__(self):
                 ProbeBus.__init__(self)

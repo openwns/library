@@ -26,7 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <WNS/probe/bus/MasterProbeBus.hpp>
+#include <WNS/probe/bus/PassThroughProbeBus.hpp>
 
 using namespace wns::probe::bus;
 
@@ -52,12 +52,12 @@ ProbeBusRegistry::spawnProbeBusses(const wns::pyconfig::View& config)
     for(int ii=0 ; ii < config.len("measurementSources.keys()"); ++ii)
     {
         wns::pyconfig::View subpyco = config.get("measurementSources.values()",ii);
-        ProbeBus* pb = this->getMasterProbeBus(config.get<std::string>("measurementSources.keys()",ii));
 
-        for (int jj=0; jj < subpyco.len("observers"); ++jj)
-        {
-            this->spawnObservers(pb, subpyco.get("observers", jj));
-        }
+        std::string probeBusID = config.get<std::string>("measurementSources.keys()",ii);
+
+        ProbeBus* pb = registry_.find(probeBusID);
+
+        this->spawnObservers(pb, subpyco);
     }
 }
 
@@ -82,11 +82,11 @@ ProbeBusRegistry::spawnObservers(ProbeBus* subject, const wns::pyconfig::View& c
 }
 
 ProbeBus*
-ProbeBusRegistry::getMasterProbeBus(const std::string& probeBusID)
+ProbeBusRegistry::getMeasurementSource(const std::string& probeBusID)
 {
     if (!registry_.knows(probeBusID))
     {
-        registry_.insert(probeBusID, new MasterProbeBus());
+        registry_.insert(probeBusID, new PassThroughProbeBus());
     }
     return registry_.find(probeBusID);
 }

@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <WNS/probe/bus/MasterProbeBus.hpp>
+#include <WNS/probe/bus/PassThroughProbeBus.hpp>
 #include <WNS/probe/bus/tests/ProbeBusStub.hpp>
 
 #include <WNS/pyconfig/Parser.hpp>
@@ -36,11 +36,11 @@
 namespace wns { namespace probe { namespace bus { namespace tests {
 
     /**
-     * @brief Tests for the MasterProbeBus
+     * @brief Tests for the PassThroughProbeBus
      * @author Daniel Bültmann <me@daniel-bueltmann.de>
      */
-    class MasterProbeBusTest : public wns::TestFixture  {
-        CPPUNIT_TEST_SUITE( MasterProbeBusTest );
+    class PassThroughProbeBusTest : public wns::TestFixture  {
+        CPPUNIT_TEST_SUITE( PassThroughProbeBusTest );
         CPPUNIT_TEST( testSingleListener );
         CPPUNIT_TEST( testMultipleListeners );
         CPPUNIT_TEST( testRegistry );
@@ -55,36 +55,36 @@ namespace wns { namespace probe { namespace bus { namespace tests {
         void testRegistry();
 
     private:
-        ProbeBus* theMasterProbeBus_;
+        ProbeBus* thePassThroughProbeBus_;
     };
 }}}}
 
 using namespace wns::probe::bus::tests;
 
-CPPUNIT_TEST_SUITE_REGISTRATION( MasterProbeBusTest );
+CPPUNIT_TEST_SUITE_REGISTRATION( PassThroughProbeBusTest );
 
 void
-MasterProbeBusTest::prepare()
+PassThroughProbeBusTest::prepare()
 {
     wns::pyconfig::Parser empty;
-    theMasterProbeBus_ = new MasterProbeBus(empty);
+    thePassThroughProbeBus_ = new PassThroughProbeBus(empty);
 }
 
 void
-MasterProbeBusTest::cleanup()
+PassThroughProbeBusTest::cleanup()
 {
-    delete theMasterProbeBus_;
+    delete thePassThroughProbeBus_;
 }
 
 void
-MasterProbeBusTest::testSingleListener()
+PassThroughProbeBusTest::testSingleListener()
 {
     ProbeBusStub listener;
 
-    listener.startObserving(theMasterProbeBus_);
+    listener.startObserving(thePassThroughProbeBus_);
 
     wns::probe::bus::Context tmp;
-    this->theMasterProbeBus_->forwardMeasurement(1.0, 2.0, tmp);
+    this->thePassThroughProbeBus_->forwardMeasurement(1.0, 2.0, tmp);
 
     CPPUNIT_ASSERT(listener.receivedCounter == 1);
     CPPUNIT_ASSERT(listener.receivedTimestamps[0] == 1.0);
@@ -92,16 +92,16 @@ MasterProbeBusTest::testSingleListener()
 }
 
 void
-MasterProbeBusTest::testMultipleListeners()
+PassThroughProbeBusTest::testMultipleListeners()
 {
     ProbeBusStub listener1;
-    listener1.startObserving(theMasterProbeBus_);
+    listener1.startObserving(thePassThroughProbeBus_);
 
     ProbeBusStub listener2;
-    listener2.startObserving(theMasterProbeBus_);
+    listener2.startObserving(thePassThroughProbeBus_);
 
     wns::probe::bus::Context tmp;
-    this->theMasterProbeBus_->forwardMeasurement(2.0, 5.0, tmp);
+    this->thePassThroughProbeBus_->forwardMeasurement(2.0, 5.0, tmp);
 
     CPPUNIT_ASSERT(listener1.receivedCounter == 1);
     CPPUNIT_ASSERT(listener1.receivedTimestamps[0] == 2.0);
@@ -113,21 +113,21 @@ MasterProbeBusTest::testMultipleListeners()
 }
 
 void
-MasterProbeBusTest::testRegistry()
+PassThroughProbeBusTest::testRegistry()
 {
     wns::probe::bus::Context reg;
     reg.insertInt("Peter", 3);
     reg.insertInt("July", 7);
 
     ProbeBusStub listener1;
-    listener1.startObserving(theMasterProbeBus_);
+    listener1.startObserving(thePassThroughProbeBus_);
     listener1.setFilter("Peter", 3);
 
     ProbeBusStub listener2;
-    listener2.startObserving(theMasterProbeBus_);
+    listener2.startObserving(thePassThroughProbeBus_);
     listener2.setFilter("July", 15);
 
-    this->theMasterProbeBus_->forwardMeasurement(3.0, 17.0, reg);
+    this->thePassThroughProbeBus_->forwardMeasurement(3.0, 17.0, reg);
 
     CPPUNIT_ASSERT(listener1.receivedCounter == 1);
 

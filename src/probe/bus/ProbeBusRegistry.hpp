@@ -59,15 +59,15 @@ namespace wns { namespace probe { namespace bus {
         ~ProbeBusRegistry();
 
         /**
-         * @brief Retrieves an instance of the MasterProbeBus. 
+         * @brief Retrieves an instance of the PassThroughProbeBus. 
          *
          * If the given name is asked for the first time the ProbeBusRegistry
-         * creates a MasterProbeBus. Subsequent requests for the
+         * creates a PassThroughProbeBus. Subsequent requests for the
          * same MasterProbeBus then always get the same instance. In this way
          * measurement sources and measurement sinks are decoupled.
          */
         ProbeBus*
-        getMasterProbeBus(const std::string&);
+        getMeasurementSource(const std::string&);
 
         /**
          * @brief All known ProbeBusses are triggered to write their results to
@@ -75,6 +75,15 @@ namespace wns { namespace probe { namespace bus {
          */
         void
         forwardOutput();
+
+        /**
+         * @brief Reads the own list of ProbeBus trees and connects these recursively
+         * to the ProbeBusses in this registry
+         */
+        void
+        startup();
+
+    private:
 
         /**
          * @brief Reads the configured measurement sources then spawns and connects
@@ -90,14 +99,6 @@ namespace wns { namespace probe { namespace bus {
         void
         spawnObservers(ProbeBus* subject, const wns::pyconfig::View& config);
 
-        /**
-         * @brief Reads the own list of ProbeBus trees and connects these recursively
-         * to the ProbeBusses in this registry
-         */
-        void
-        startup();
-
-    private:
         wns::pyconfig::View pyco_;
 
         ProbeBusRegistryContainer registry_;
