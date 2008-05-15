@@ -32,7 +32,8 @@ using namespace wns::probe::bus;
 
 ProbeBusRegistry::ProbeBusRegistry(const wns::pyconfig::View& pyco):
     pyco_(pyco),
-    registry_()
+    registry_(),
+    logger_(pyco.get("logger"))
 {
 }
 

@@ -35,8 +35,6 @@
 
 namespace wns { namespace probe { namespace bus {
 
-    typedef wns::container::Registry<std::string, ProbeBus*, wns::container::registry::DeleteOnErase> ProbeBusRegistryContainer;
-
     /**
      * @brief The ProbeBusRegistry resolves a ProbeBus name to a ProbeBus
      * Prototype which may then be used as the entry point for measurements to
@@ -47,6 +45,9 @@ namespace wns { namespace probe { namespace bus {
     class ProbeBusRegistry
     {
     public:
+
+        typedef wns::container::Registry<std::string, ProbeBus*, wns::container::registry::DeleteOnErase> ProbeBusRegistryContainer;
+
         /**
          * @brief Reads the prototype to be used for ProbeBus creation
          */
@@ -102,6 +103,8 @@ namespace wns { namespace probe { namespace bus {
         wns::pyconfig::View pyco_;
 
         ProbeBusRegistryContainer registry_;
+
+        wns::logger::Logger logger_;
     };
 } // bus
 } // probe

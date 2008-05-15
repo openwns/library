@@ -143,6 +143,7 @@ srcFiles['LOGGER-TESTS'] = [
 srcFiles['PROBEBUS-TESTS'] = [
     'src/probe/bus/tests/ContextTest.cpp',
     'src/probe/bus/tests/PassThroughProbeBusTest.cpp',
+    'src/probe/bus/tests/ProbeBusRegistryTest.cpp',
     'src/probe/bus/tests/ProbeBusStub.cpp',
     'src/probe/bus/tests/PythonProbeBusTest.cpp',
     'src/probe/bus/tests/TimeWindowProbeBusTest.cpp',
