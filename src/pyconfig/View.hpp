@@ -42,7 +42,8 @@ namespace wns { namespace pyconfig {
 	}
 
 	/**
-	 * @brief Use Python style config files
+	 * @brief Node in a configuration tree
+	 * @ingroup group_main_classes
 	 */
 	class View
 	{

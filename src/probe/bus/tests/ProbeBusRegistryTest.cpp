@@ -102,10 +102,7 @@ ProbeBusRegistryTest::measurementSink()
 
     pbr->startup();
 
-    /**
-     * @todo dbn: Use ProbeBus::hasObservers to check if observers are attached. Remove dummy below to suppress warning.
-     */
-    pb = pb; 
+    CPPUNIT_ASSERT(pb->hasObservers());
 }
 
 void

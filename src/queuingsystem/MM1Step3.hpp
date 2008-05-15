@@ -98,7 +98,7 @@ namespace wns { namespace queuingsystem {
 
 
 /**
- * @page wns.queuingsystem.mm1step3 Queuingsystem Tutorial Step 3
+ * @page wns.queuingsystem.mm1step3 Taking Measurements
  *
  * @section contents Contents
  *   -# @ref probebus

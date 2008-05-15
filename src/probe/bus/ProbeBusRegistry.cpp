@@ -37,6 +37,13 @@ ProbeBusRegistry::ProbeBusRegistry(const wns::pyconfig::View& pyco):
 {
 }
 
+ProbeBusRegistry::ProbeBusRegistry(const wns::pyconfig::View& pyco, wns::logger::Master* ml):
+    pyco_(pyco),
+    registry_(),
+    logger_(pyco.get("logger"), ml)
+{
+}
+
 ProbeBusRegistry::~ProbeBusRegistry()
 {
 }
@@ -45,6 +52,13 @@ void
 ProbeBusRegistry::startup()
 {
     this->spawnProbeBusses(pyco_);
+
+    if (registry_.size() > 0)
+    {
+        MESSAGE_BEGIN(NORMAL, logger_, m, "");
+        m << registry_;
+        MESSAGE_END();
+    }
 }
 
 void
@@ -101,4 +115,10 @@ ProbeBusRegistry::forwardOutput()
     {
         it->second->forwardOutput();
     }
+}
+
+std::string
+ProbeBusRegistry::doToString() const
+{
+    return registry_.toString();
 }

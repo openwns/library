@@ -32,6 +32,7 @@
 
 #include <WNS/container/Registry.hpp>
 #include <WNS/pyconfig/View.hpp>
+#include <WNS/logger/Logger.hpp>
 
 namespace wns { namespace probe { namespace bus {
 
@@ -42,7 +43,8 @@ namespace wns { namespace probe { namespace bus {
      *
      * @author Daniel Bueltmann <me@daniel-bueltmann.de>
      */
-    class ProbeBusRegistry
+    class ProbeBusRegistry :
+        public IOutputStreamable
     {
     public:
 
@@ -52,6 +54,11 @@ namespace wns { namespace probe { namespace bus {
          * @brief Reads the prototype to be used for ProbeBus creation
          */
         ProbeBusRegistry(const wns::pyconfig::View&);
+
+        /**
+         * @brief Reads the prototype to be used for ProbeBus creation
+         */
+        ProbeBusRegistry(const wns::pyconfig::View&, wns::logger::Master*);
 
         /**
          * @brief Empty (Does NOT delete any ProbeBus)
@@ -85,6 +92,12 @@ namespace wns { namespace probe { namespace bus {
         startup();
 
     private:
+
+        /**
+         * @brief Used to dump the contents of ProbeBusRegistry.
+         */
+        std::string
+        doToString() const;
 
         /**
          * @brief Reads the configured measurement sources then spawns and connects

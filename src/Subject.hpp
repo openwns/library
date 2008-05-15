@@ -230,6 +230,12 @@ namespace wns {
             return f;
         }
 
+        bool
+        hasObservers() const
+        {
+            return !observers.empty();
+        }
+
     protected:
         /** @brief */
         typedef std::list<ObserverInterface*> ObserverContainer;

@@ -39,6 +39,7 @@ namespace wns { namespace container {
      * @brief List supporting removing and inserting elements with O(1)
      *
      * @author Marc Schinnenburg <marc@schinnenburg.com>
+     * @ingroup group_main_classes
      *
      * Enable a class to be used by FastLists:
      * @include wns.container.FastListEnabler.example

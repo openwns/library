@@ -80,6 +80,7 @@ namespace wns { namespace logger {
 
 	/**
 	 * @brief Writes Message to logger::Master
+	 * @ingroup group_main_classes
 	 *
 	 * @ingroup logging
 	 */

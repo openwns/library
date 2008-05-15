@@ -85,3 +85,9 @@ ProbeBus::stopObserving(ProbeBus* other)
     assure(observer_ != NULL, "This ProbeBus instance has no implementation of the observer detail");
     observer_->stopObserving( other->subject_ );
 }
+
+bool
+ProbeBus::hasObservers() const
+{
+    return subject_->hasObservers();
+}

@@ -35,6 +35,7 @@ namespace wns {
     /**
      * @brief Provide default (pythonic) output for C++ objects
      * @author Marc Schinnenburg <marc@schinnenburg.com>
+     * @ingroup group_main_classes
      *
      * This class is named PythonicOuput because the format of the output being
      * generated is very similar to the output an object in Python generates, if

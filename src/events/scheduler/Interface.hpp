@@ -42,6 +42,7 @@ namespace wns { namespace events { namespace scheduler {
     /**
      * @brief Schedules and excutes Events in simulation. See
      * @ref schedulerBestPractices for examples.
+     * @ingroup group_main_classes
      *
      * @author Marc Schinnenburg <marc@schinnenburg.com>
      * @author Karsten Klagges <kks@comnets.rwth-aachen.de>
@@ -290,7 +291,7 @@ namespace wns { namespace events { namespace scheduler {
 /**
  * @page schedulerBestPractices Scheduler Best Practices
  *
- * With the WNS scheduler you can schedule anything that is callable
+ * With the openWNS scheduler you can schedule anything that is callable
  * in your simulation. A callable can be a function pointer, a function object
  * or anything else that implements the call operator, requires no arguments and
  * has a return value of void. This page shows you how to use boost::bind to
@@ -349,7 +350,7 @@ namespace wns { namespace events { namespace scheduler {
  * address (& operator) of your callback object and pass it to boost::bind to
  * enforce pointer semantics.
  * @include wns.events.scheduler.bestpractices.boostBindMemberFunctionRef.example
- * @section schedulingMemberFunctionsArguments Scheduling functions that take aguments
+ * @section schedulingMemberFunctionsArguments Scheduling functions that take arguments
  * The examples above lack a very important feature. None of the above callbacks
  * can take an argument. Most often within your simulation you want to schedule
  * calls that take parameters. Boost::bind offers partial binding of parameters,

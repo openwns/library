@@ -79,6 +79,7 @@ class ProbeBusRegistry(object):
         def __init__(self):
                 super(ProbeBusRegistry, self).__init__()
 		self.measurementSources = {}
+                self.logger = openwns.logger.Logger("WNS", "ProbeBusRegistry", True)
 
 	def getMeasurementSource(self, probeBusID):
 		if not self.measurementSources.has_key(probeBusID):
