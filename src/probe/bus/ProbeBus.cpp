@@ -93,3 +93,9 @@ ProbeBus::stopReceiving(ProbeBus* other)
 {
     this->stopObserving(other);
 }
+
+bool
+ProbeBus::hasObservers() const
+{
+    return Subject<ProbeBusNotificationInterface>::hasObservers();
+}

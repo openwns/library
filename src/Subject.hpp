@@ -234,6 +234,12 @@ namespace wns {
             return f;
         }
 
+        bool
+        hasObservers() const
+        {
+            return !observers.empty();
+        }
+
     private:
         /**
          * @copydoc SubjectInterface::addObserver()

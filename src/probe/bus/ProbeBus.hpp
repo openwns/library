@@ -181,6 +181,8 @@ namespace wns { namespace probe { namespace bus {
         virtual void
         stopReceiving(ProbeBus* other);
 
+        virtual bool
+        hasObservers() const;
     };
 
     typedef PyConfigViewCreator<ProbeBus> ProbeBusCreator;
