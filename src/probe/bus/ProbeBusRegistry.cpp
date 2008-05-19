@@ -46,6 +46,12 @@ ProbeBusRegistry::ProbeBusRegistry(const wns::pyconfig::View& pyco, wns::logger:
 
 ProbeBusRegistry::~ProbeBusRegistry()
 {
+    for (CreatedProbeBussesContainer::iterator it = createdProbeBusses_.begin();
+         it != createdProbeBusses_.end();
+         ++it)
+    {
+        delete *it;
+    }
 }
 
 void
@@ -89,6 +95,8 @@ ProbeBusRegistry::spawnObservers(ProbeBus* subject, const wns::pyconfig::View& c
             wns::probe::bus::ProbeBusFactory::creator(nameInFactory);
 
         wns::probe::bus::ProbeBus* pb = c->create(subpyco);
+
+        createdProbeBusses_.push_back(pb);
 
         pb->startObserving(subject);
 

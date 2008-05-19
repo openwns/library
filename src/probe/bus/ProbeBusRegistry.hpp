@@ -37,9 +37,8 @@
 namespace wns { namespace probe { namespace bus {
 
     /**
-     * @brief The ProbeBusRegistry resolves a ProbeBus name to a ProbeBus
-     * Prototype which may then be used as the entry point for measurements to
-     * the ProbeBus system.
+     * @brief The ProbeBusRegistry resolves a ProbeBus name to a PassThroughProbeBus
+     * which may then be used as the entry point for measurements to the ProbeBus system.
      *
      * @author Daniel Bueltmann <me@daniel-bueltmann.de>
      */
@@ -50,18 +49,20 @@ namespace wns { namespace probe { namespace bus {
 
         typedef wns::container::Registry<std::string, ProbeBus*, wns::container::registry::DeleteOnErase> ProbeBusRegistryContainer;
 
+        typedef std::list<ProbeBus*> CreatedProbeBussesContainer;
+
         /**
-         * @brief Reads the prototype to be used for ProbeBus creation
+         * @brief Constructs the registry and uses the default MasterLogger.
          */
         ProbeBusRegistry(const wns::pyconfig::View&);
 
         /**
-         * @brief Reads the prototype to be used for ProbeBus creation
+         * @brief Constructs the registry and uses a cusom masterLogger.
          */
         ProbeBusRegistry(const wns::pyconfig::View&, wns::logger::Master*);
 
         /**
-         * @brief Empty (Does NOT delete any ProbeBus)
+         * @brief Empty (Does NOT delete any ProbeBusses)
          */
         virtual
         ~ProbeBusRegistry();
@@ -118,6 +119,8 @@ namespace wns { namespace probe { namespace bus {
         ProbeBusRegistryContainer registry_;
 
         wns::logger::Logger logger_;
+
+        CreatedProbeBussesContainer createdProbeBusses_;
     };
 } // bus
 } // probe
