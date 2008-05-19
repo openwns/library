@@ -103,6 +103,8 @@ ProbeBusRegistryTest::measurementSink()
     pbr->startup();
 
     CPPUNIT_ASSERT(pb->hasObservers());
+    
+    delete pbr;
 }
 
 void
@@ -119,5 +121,7 @@ ProbeBusRegistryTest::measurementSinkThrows()
     pbr->getMeasurementSource("wns.probe.bus.tests.TestMeasurementsink");
 
     pbr->startup();
+    
+    delete pbr;
 }
 
