@@ -309,6 +309,28 @@ namespace wns { namespace container {
         }
 
         /**
+         * @brief Return an element according to the key it has been
+         * registerd with
+         *
+         * @pre An element with this key MUST have been registered
+         * before
+         *
+         * @exception UnkownKeyValue Thrown if element to key is not
+         * found
+         */
+        virtual ElementType&
+        find(const KeyType& key)
+            throw(UnknownKeyValue)
+        {
+            iterator itr = this->elements_.find(key);
+            if (itr == this->elements_.end())
+            {
+                throw UnknownKeyValue(key, *this);
+            }
+            return itr->second;
+        }
+
+        /**
          * @brief STL-style iterator interface
          */
         virtual const_iterator
