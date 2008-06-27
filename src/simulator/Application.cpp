@@ -59,6 +59,10 @@
 #include <memory>
 #include <fstream>
 #include <climits>
+#ifdef CALLGRIND
+// For callgrind flavour, to turn on instrumentalisation
+#include <valgrind/callgrind.h>
+#endif
 
 using namespace wns::simulator;
 
@@ -387,9 +391,22 @@ Application::doRun()
 	    wns::simulator::getEventScheduler()->stopAt(maxSimTime);
         }
 
+
 	MESSAGE_SINGLE(NORMAL, logger_, "Start Scheduler");
+#ifdef CALLGRIND
+	// If we run in flavour callgrind we are only interested in collecting
+	// profiling traces of the main event loop. So we start instrumentalization
+	// here. Startup and shutdown are of no interest to us.
+	CALLGRIND_START_INSTRUMENTATION;
+#endif
+
 	wns::simulator::getEventScheduler()->start();
 
+
+#ifdef CALLGRIND
+	// Stop tracing profiling information
+	CALLGRIND_STOP_INSTRUMENTATION;
+#endif
 
         // shutdown the simulation if it has been created before
         if (simulationModel_.get() != NULL)
