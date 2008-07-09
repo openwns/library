@@ -27,7 +27,7 @@
 
 import openwns
 import openwns.logger
-import openwns.pyconfig.attrsetter
+from openwns.pyconfig import attrsetter
 
 class MeasurementSource(object):
 
