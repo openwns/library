@@ -191,11 +191,12 @@ Application::doInit()
     // patch pyconfig (sys.path, command line patches ...)
     configuration_.appendPath(getPathToPyConfig());
     configuration_.appendPath(".");
+    configuration_.patch("__file__ = \""+configFile_+"\"\n"); // Python script should know its own name
     configuration_.load(configFile_);
 
     // backward compatibility: patch "WNS" variable into the configuration
     configuration_.patch("import openwns\n"
-                         "WNS = openwns.getSimulator()");
+                         "WNS = openwns.getSimulator()\n");
 
     for(PyConfigPatchContainer::const_iterator it = pyConfigPatches_.begin();
         it != pyConfigPatches_.end();
