@@ -45,6 +45,7 @@ namespace wns { namespace tests {
 		CPPUNIT_TEST( assignmentSubject );
 		CPPUNIT_TEST( stopObservingOnNotification );
 		CPPUNIT_TEST( noUnsafeDetach );
+        CPPUNIT_TEST( hasObservers );
 		CPPUNIT_TEST_SUITE_END();
 
 		class BarSubject;
@@ -102,6 +103,13 @@ namespace wns { namespace tests {
 				Subject::SubjectInterface(other),
 				Subject(other)
 			{}
+
+            bool
+            hasObservers() const
+            {
+                return Subject::hasObservers();
+            }
+
 
 			virtual void
 			fooUpdated()
@@ -820,6 +828,23 @@ namespace wns { namespace tests {
 			observer.setSubject(&subject);
 			CPPUNIT_ASSERT_THROW(subject.fooUpdated(), wns::Exception);
 		}
+
+        void
+        hasObservers()
+        {
+			FooObserver observer;
+			FooObserver observer2;
+			FooSubject subject;
+            CPPUNIT_ASSERT( !subject.hasObservers() );
+			observer.startObserving(&subject);
+            CPPUNIT_ASSERT( subject.hasObservers() );
+			observer2.startObserving(&subject);
+            CPPUNIT_ASSERT( subject.hasObservers() );
+			observer.stopObserving(&subject);
+            CPPUNIT_ASSERT( subject.hasObservers() );
+			observer2.stopObserving(&subject);
+            CPPUNIT_ASSERT( !subject.hasObservers() );
+        }
 	};
 
 	CPPUNIT_TEST_SUITE_REGISTRATION( ObserverTest );

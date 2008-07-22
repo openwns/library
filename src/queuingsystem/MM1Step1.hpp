@@ -143,8 +143,9 @@ namespace wns { namespace queuingsystem {
 // documentation by the "Doxygen" system.
 
 /**
- * @page wns.queuingsystem.tutorial openWNS Tutorial
- *
+ * @defgroup group_wns_queuingsystem_tutorial Beginners Tutorial
+ * @ingroup group_tutorials
+ * @brief Simulating a M/M/1 queuing system
  * @section intro Introduction
  *
  * Welcome to the openWNS tutorial. This tutorial consists of several
@@ -153,13 +154,11 @@ namespace wns { namespace queuingsystem {
  * of a M/M/1 queuing system and will step by step expand it. The following
  * list shows the contents of this tutorial.
  *
- *   -# @subpage wns.queuingsystem.mm1step1 Simplistic MM1 model that
- *   demonstrates the basics of implementing your own simulation model.
- *   -# @subpage wns.queuingsystem.mm1step2 Augments the simplistic model to
- *   support time measurements.
- *   -# \subpage wns.queuingsystem.mm1step3 Introduces the probing subsystem.
- *   -# \subpage wns.queuingsystem.mm1step4 Shows how to embed your evaluation within your configuration.
- *   -# \subpage wns.queuingsystem.mm1step5 Introduces the ProbeBusRegistry
+ *   -# @subpage wns.queuingsystem.mm1step1
+ *   -# @subpage wns.queuingsystem.mm1step2
+ *   -# @subpage wns.queuingsystem.mm1step3
+ *   -# @subpage wns.queuingsystem.mm1step4 Shows how to embed your evaluation within your configuration.
+ *   -# @subpage wns.queuingsystem.mm1step5
  *
  * @section mm1queueingsystem The M/M/1 Queuing System
  * The M/M/1 system consists of a queue with unlimited size
@@ -234,7 +233,8 @@ namespace wns { namespace queuingsystem {
  *     - Have a look into MM1Step1.hpp and cpp to familiarize yourself with the C++ use in OpenWNS.
  *
  *
- * @page wns.queuingsystem.mm1step1 Queuingsystem Tutorial Step 1
+ * @page wns.queuingsystem.mm1step1 Implementing a SimulationModel
+ * @ref group_wns_queuingsystem_tutorial
  * @section simulationmodel Implementing a SimulationModel
  *
  *   - The simulator core implements the main() function, you don't need to know this.

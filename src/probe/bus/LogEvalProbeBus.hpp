@@ -32,29 +32,31 @@
 
 namespace wns { namespace probe { namespace bus {
 
-    //! How to format the output of numbers
+    /**
+     * @brief How to format the output of numbers
+     */
     enum formatType
     {
 		formatFixed, formatScientific
     };
 
     /**
-     * @brief backend for the LogEval ProbeBus
+     * @brief Writes time series of measurements received on a ProbeBus
      */
-    class LogEval:
-		public ProbeBus
+    class LogEvalProbeBus:
+        public ProbeBus
     {
 
-		struct LogEntry
-		{
-			double value;
-			wns::simulator::Time time;
-		};
+        struct LogEntry
+        {
+            double value;
+            wns::simulator::Time time;
+        };
 
     public:
-		LogEval(const wns::pyconfig::View&);
-
-		virtual ~LogEval();
+        LogEvalProbeBus(const wns::pyconfig::View&);
+        
+        virtual ~LogEvalProbeBus();
 
         virtual bool
         accepts(const wns::simulator::Time&, const IContext&);
@@ -67,17 +69,34 @@ namespace wns { namespace probe { namespace bus {
         virtual void
         output();
 
-	private:
-		/**
-		 *@brief Container for the logged entries */
-		std::list<LogEntry>     logQueue;
+    private:
+        /**
+         * @brief Container for the logged entries not yet written to persistant storage
+         */
+        std::list<LogEntry>     logQueue;
+
+        /**
+         * @brief Where to write the file
+         */
         std::string outputPath;
+
+        /**
+         * @brief The filename for persistant storage
+         */
         std::string filename;
-		bool firstWrite;
-		int timePrecision;
-		int valuePrecision;
-		formatType format;
-	};
+
+        /**
+         * @brief Flag that shows if it is the first time we write to persistant storage
+         */
+        bool firstWrite;
+
+
+        int timePrecision;
+
+        int valuePrecision;
+
+        formatType format;
+    };
 
 } // bus
 } // probe

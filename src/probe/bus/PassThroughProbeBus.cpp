@@ -25,60 +25,42 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/ISimulator.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-
-#include <WNS/probe/bus/TimeWindowProbeBus.hpp>
-#include <WNS/container/UntypedRegistry.hpp>
-
+#include <WNS/probe/bus/PassThroughProbeBus.hpp>
 
 using namespace wns::probe::bus;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    TimeWindowProbeBus,
+    PassThroughProbeBus,
     wns::probe::bus::ProbeBus,
-    "TimeWindowProbeBus",
+    "PassThroughProbeBus",
     wns::PyConfigViewCreator);
 
-TimeWindowProbeBus::TimeWindowProbeBus(const wns::pyconfig::View& pyco):
-    evsched_(wns::simulator::getEventScheduler()),
-    start_(pyco.get<wns::simulator::Time>("start")),
-    end_(pyco.get<wns::simulator::Time>("end"))
+PassThroughProbeBus::PassThroughProbeBus()
 {
 }
 
-TimeWindowProbeBus::~TimeWindowProbeBus()
+PassThroughProbeBus::PassThroughProbeBus(const wns::pyconfig::View&)
 {
 }
 
 bool
-TimeWindowProbeBus::accepts(const wns::simulator::Time&, const IContext&)
+PassThroughProbeBus::accepts(const wns::simulator::Time&, const IContext&)
 {
+    // We always accept everything
     return true;
 }
 
 void
-TimeWindowProbeBus::onMeasurement(const wns::simulator::Time&,
-                                  const double&,
-                                  const IContext&)
+PassThroughProbeBus::onMeasurement(const wns::simulator::Time&,
+                              const double&,
+                              const IContext&)
 {
+    // We do not do anything with a measurement
+    // ProbeBus will forward to all attached servers
 }
 
 void
-TimeWindowProbeBus::output()
+PassThroughProbeBus::output()
 {
-}
-
-void
-TimeWindowProbeBus::startObserving(ProbeBus* other)
-{
-    StartStopObservingCommand command = StartStopObservingCommand(this,
-                                                                  other,
-                                                                  true);
-
-    evsched_->schedule(command, start_);
-
-    command = StartStopObservingCommand(this, other, false);
-
-    evsched_->schedule(command, end_);
+    // Nothing needs to be done here
 }

@@ -38,6 +38,7 @@ namespace wns { namespace events { namespace scheduler {
 
 	/**
 	 * @brief Base class for all scheduler events.
+     * @ingroup group_main_classes
 	 *
 	 * The IEvent is the base class for all event types that are
 	 * used in all WNS scheduler.

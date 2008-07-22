@@ -83,9 +83,9 @@ TimeWindowProbeBusTest::prepare()
     testee_ = new TimeWindowProbeBus(p.get<wns::pyconfig::View>("timewindow"));
     listener_ = new ProbeBusStub();
     // This is delayed by the TimeWindowProbeBus
-    testee_->startReceiving(master_);
+    testee_->startObserving(master_);
     // The listener immediately connects to the testee
-    listener_->startReceiving(testee_);
+    listener_->startObserving(testee_);
 }
 
 void

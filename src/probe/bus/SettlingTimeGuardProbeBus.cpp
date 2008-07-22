@@ -28,39 +28,39 @@
 #include <WNS/simulator/ISimulator.hpp>
 #include <WNS/events/scheduler/Interface.hpp>
 
-#include <WNS/probe/bus/SettlingTimeGuard.hpp>
+#include <WNS/probe/bus/SettlingTimeGuardProbeBus.hpp>
 
 using namespace wns::probe::bus;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    SettlingTimeGuard,
+    SettlingTimeGuardProbeBus,
     wns::probe::bus::ProbeBus,
-    "SettlingTimeGuard",
+    "SettlingTimeGuardProbeBus",
     wns::PyConfigViewCreator);
 
-SettlingTimeGuard::SettlingTimeGuard(const wns::pyconfig::View&):
+SettlingTimeGuardProbeBus::SettlingTimeGuardProbeBus(const wns::pyconfig::View&):
     settlingTime_(wns::simulator::getConfiguration().get<double>("PDataBase.settlingTime"))
 {
 }
 
-SettlingTimeGuard::~SettlingTimeGuard()
+SettlingTimeGuardProbeBus::~SettlingTimeGuardProbeBus()
 {
 }
 
 bool
-SettlingTimeGuard::accepts(const wns::simulator::Time&, const IContext&)
+SettlingTimeGuardProbeBus::accepts(const wns::simulator::Time&, const IContext&)
 {
     return wns::simulator::getEventScheduler()->getTime() >= settlingTime_;
 }
 
 void
-SettlingTimeGuard::onMeasurement(const wns::simulator::Time&,
+SettlingTimeGuardProbeBus::onMeasurement(const wns::simulator::Time&,
                                  const double&,
                                  const IContext&)
 {
 }
 
 void
-SettlingTimeGuard::output()
+SettlingTimeGuardProbeBus::output()
 {
 }

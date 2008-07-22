@@ -26,7 +26,6 @@
  ******************************************************************************/
 
 #include <WNS/probe/bus/PythonProbeBus.hpp>
-#include <WNS/probe/bus/MasterProbeBus.hpp>
 #include <WNS/probe/bus/tests/ProbeBusStub.hpp>
 #include <WNS/pyconfig/Parser.hpp>
 
@@ -90,7 +89,7 @@ PythonProbeBusTest::testIsAccepting()
     ProbeBus* theProbeBus = new PythonProbeBus(pp.get<wns::pyconfig::View>("a"));
     ProbeBusStub listener;
 
-    listener.startReceiving(theProbeBus);
+    listener.startObserving(theProbeBus);
 
     Context reg;
     reg.insertInt("testkey", 5);
@@ -139,7 +138,7 @@ PythonProbeBusTest::testOnMeasurement()
     ProbeBus* theProbeBus = new PythonProbeBus(pp.get<wns::pyconfig::View>("a"));
     ProbeBusStub listener;
 
-    listener.startReceiving(theProbeBus);
+    listener.startObserving(theProbeBus);
 
     Context reg;
     reg.insertInt("testkey", 5);
@@ -190,7 +189,7 @@ PythonProbeBusTest::testBrokenFunction()
     ProbeBus* theProbeBus = new PythonProbeBus(pp.get<wns::pyconfig::View>("a"));
     ProbeBusStub listener;
 
-    listener.startReceiving(theProbeBus);
+    listener.startObserving(theProbeBus);
 
     Context reg;
     reg.insertInt("festknie", 9);

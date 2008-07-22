@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the
+ * terms of the GNU Lesser General Public License version 2 as published by the 
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,52 +25,44 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_IOUTPUTSTREAMABLE_HPP
-#define WNS_IOUTPUTSTREAMABLE_HPP
+#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
+#define WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
 
-#include <string>
-#include <sstream>
+#include <WNS/probe/bus/ProbeBus.hpp>
 
-namespace wns {
+namespace wns { namespace probe { namespace bus {
 
     /**
-     * @brief Enable usage in output streams by deriving from this class (NVI)
-     * @author Marc Schinnenburg <marc@schinnenburg.com>
-     * @ingroup group_main_classes
+     * @brief Only accepts if simulation time is larger than the settling time
+     *
+     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
+     * @ingroup probebusses
      */
-    class IOutputStreamable
+    class SettlingTimeGuardProbeBus :
+        public wns::probe::bus::ProbeBus
     {
     public:
-        /**
-         * @brief Virtual d'tor
-         */
-        virtual
-        ~IOutputStreamable()
-        {}
 
-        /**
-         * @brief Called to generate the output
-         *
-         * This is a NVI. Overload doToString() to customize the output
-         */
-        std::string
-        toString() const;
+        SettlingTimeGuardProbeBus(const wns::pyconfig::View&);
+
+        virtual ~SettlingTimeGuardProbeBus();
+
+        virtual void
+        onMeasurement(const wns::simulator::Time&,
+                      const double&,
+                      const IContext&);
+
+        virtual bool
+        accepts(const wns::simulator::Time&, const IContext&);
+
+        virtual void
+        output();
 
     private:
-        /**
-         * @brief Overload to customize the representation of your class
-         */
-        virtual std::string
-        doToString() const = 0;
+        wns::simulator::Time settlingTime_;
     };
-
-    /**
-     * @brief Ouput stream operator for IOutputSteamable
-     */
-    std::ostream&
-    operator<<(std::ostream& other, const wns::IOutputStreamable& outputStreamable);
+} // bus
+} // probe
 } // wns
 
-
-
-#endif // NOT defined WNS_IOUTPUTSTREAMABLE_HPP
+#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP

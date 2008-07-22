@@ -29,122 +29,126 @@
 #define WNS_PROBE_BUS_PROBEBUS_HPP
 
 #include <WNS/simulator/Time.hpp>
-
-#include <WNS/Subject.hpp>
-#include <WNS/Observer.hpp>
-
 #include <WNS/probe/bus/Context.hpp>
-
 #include <WNS/PyConfigViewCreator.hpp>
 #include <WNS/StaticFactory.hpp>
 
 namespace wns { namespace probe { namespace bus {
 
-    /**
-     * @brief Internal Interface for Subject/Observer implementation which is
-     * used as backend for the ProbeBus
-     *
-     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
-     */
-    class ProbeBusNotificationInterface
-    {
-    public:
-        virtual ~ProbeBusNotificationInterface() {};
 
-        /**
-         * @brief Send a value on this ProbeBus
-         * @param probeId The ProbeID of the associated probe
-         * @param aValue The value to send (this was formerly the argument to
-         * probe->put)
-         * @param idRegistry The set of IDs known in this scope. You may sort
-         * according to these.
-         * @note The Context is deleted after the send call. Do not store it!
-         *
-         * This method is used to forward measurements. Call this if you
-         * generate a new measurement and want it to propagate through
-         * the ProbeBus Hierarchy.
-         */
-        virtual void
-        forwardMeasurement(const wns::simulator::Time&,
-                           const double&,
-                           const IContext&) = 0;
-
-        /**
-         * @brief Trigger writing of output.
-         */
-        virtual void
-        forwardOutput() = 0;
-    };
+    namespace detail {
+        class SubjectPimpl;
+        class ObserverPimpl;
+    }
 
     /**
      * @defgroup probebusses ProbeBusses
+     * @ingroup group_main_classes
      *
-     * This group contains a list of all available ProbeBusses in openWNS
+     * @brief List of available ProbeBusses
      */
 
     /**
-     * @brief Interface for a ProbeBus. ProbeBusses may be chained.
+     * @brief Interface and elementary behaviour of a ProbeBus.
      *
-     * ProbeBus is the basis for measurement distribution within the simulator.
-     * Each concrete ProbeBus Instance must implement three methods
+     * A  ProbeBus is the basic element used  for measurement distribution within the simulator.
+     * It comprises three aspects:
+     *  - Processing
+     *  - Forwarding
+     *  - Connecting
+     *
+     * The Forwarding and Connecting aspect constitute the elementary behaviour and are already
+     * implemented by ProbeBus. The Processing aspect is left unimplemented and Each implementation
+     * must implement the processing aspect which comprises the methods
+     *
      * accepts : Which is called to determine if the ProbeBus would accept the
      * measurement
-     * onMeasurement : Which is called when accepts returned true and delivers
-     * the measurement
-     * output : Is called when attached ProbeBusses should write theirselves
-     * to persistant storage.
      *
-     * The ProbeBus uses wns::Subject and wns::Observer as its backend.
-     * The NotficationInterface is defined by ProbeBusNotificationInterface.
-     * Since ProbeBusses may be chained each ProbeBus is a Subject and an
-     * Observer by itself.
+     * onMeasurement : Which is called to actually process the measurement. This is only called
+     * if 'accepts' returned true.
      *
-     * Use startObserving and stopObserving to interconnect ProbeBusses
-     * @note This is a new feature. Consider it beta. Subject to change.
+     * output : Which is called when the simulator triggers writing to persistant storage.
+     *
+     * The Forwarding aspect comprises the methods:
+     *
+     * forwardMeasurement : Which is called by a measurement source or by chained ProbeBusses. Calls
+     * accepts and onMeasurement if accepts returned true. Calls forwardMeasurement on all observing
+     * ProbeBusses (see Connecting aspect) if a call to this->accepts returns true.
+     *
+     * forwardOutput : Which is typically called by the simulator to trigger periodical storage of
+     * measurement data. Unconditionally calls output and forwardOutput on all observing ProbeBusses.
+     *
+     * The Connecting aspect comprises the methods:
+     *
+     * startObserving : Which triggers this ProbeBus (Observer) to observe another ProbeBus (Subject).
+     * Subject must be given as a parameter. After this the Subject includes the Observer in its
+     * Forwarding aspect.
+     * 
+     * stopObserving : The Observer stops observing the subject ProbeBus.
+     *
+     * Use startObserving and stopObserving to interconnect ProbeBusses.
+     *
      * @author Daniel Bueltmann <me@daniel-bueltmann.de>
      * @ingroup probebusses
      *
      */
-    class ProbeBus:
-        virtual private wns::Subject<ProbeBusNotificationInterface>,
-        virtual private wns::Observer<ProbeBusNotificationInterface>
+    class ProbeBus
     {
-
     public:
 
+        ProbeBus();
+
+        virtual ~ProbeBus();
+
         /**
-         * @brief Called to decide wether the current ProbeBus wants to receive
-         * this measurement
-         * @param probeId This is the ProbeID which is the source of the
+         * @name Processing Aspect
+         */
+        /*@{*/
+        /**
+         * @brief Called to determine if the ProbeBus would accept the
          * measurement
-         * @param registry This is a wns::Registry that contains key, value
-         * pairs that you may use for filtering
+         *
+         * @param time The current timestamp of the simulation
+         *
+         * @param context The context of your measurement.
          */
         virtual bool
-        accepts(const wns::simulator::Time&, const IContext&) = 0;
+        accepts(const wns::simulator::Time& time, const IContext& context) = 0;
 
         /**
-         * @brief Called to deliver a measurement to client classes
-         * @param probeId This is the ProbeID which is the source of the
-         * measurement
-         * @param aValue The measurement itself
-         * @param registry This is a wns::Registry that contains key, value
-         * pairs that you may use for filtering
+         * @brief Called to actually process the measurement
+         *
+         * @param time The current timestamp of the simulation
+         *
+         * @param measurement The measured value.
+         *
+         * @param context The context of your measurement.
          */
         virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&,
-                      const IContext&) = 0;
+        onMeasurement(const wns::simulator::Time& time,
+                      const double& measurement,
+                      const IContext& context) = 0;
 
         /**
-         * @brief Called to trigger writing to persistant storage.
+         * @brief Called by the simulator to trigger periodical storage of
+         * measurement data
          */
         virtual void
         output() = 0;
+        /*@}*/
 
         /**
-         * @brief Method used by backend to propagate measurements. This is the
-         * entry point for new measurements.
+         * @name Forwarding Aspect
+         */
+        /*@{*/
+        /**
+         * @brief Forward measurement to self and all observers if self accepts.
+         *
+         * @param time The current timestamp of the simulation
+         *
+         * @param measurement The measured value.
+         *
+         * @param context The context of your measurement.
          *
          * It wraps the subject/observer backend nicely and allows users to
          * determine the behaviour by implementing accepts and onMeasurement.
@@ -154,15 +158,14 @@ namespace wns { namespace probe { namespace bus {
          * local delivery the measurement is propagated to all Observers. If
          * the call to accepts returns false, the measurement is not delivered
          * locally and is not forwarded to the Observers.
-         *
          */
         virtual void
-        forwardMeasurement(const wns::simulator::Time&,
-                           const double&,
-                           const IContext&);
+        forwardMeasurement(const wns::simulator::Time& time,
+                           const double& measurement,
+                           const IContext& context);
 
         /**
-         * @brief Method used by backend to propagate the output trigger.
+         * @brief Forward output trigger to self and all observers.
          *
          * This method unconditionally calls the output method to trigger
          * writing to persistant storage. After this it unconditionally
@@ -170,54 +173,42 @@ namespace wns { namespace probe { namespace bus {
          */
         virtual void
         forwardOutput();
+        /*@}*/
 
+        /**
+         * @name Connecting Aspect
+         */
+        /*@{*/
+
+        /**
+         * @brief Start observing (connect to) another Probebus.
+         *
+         * @param other The ProbeBus to observe
+         */
         virtual void
-        addReceivers(const wns::pyconfig::View& pyco);
+        startObserving(ProbeBus* other);
 
+        /**
+         * @brief Stop observing (connect to) another Probebus.
+         *
+         * @param other The ProbeBus to stop observing
+         */
         virtual void
-        startReceiving(ProbeBus* other);
+        stopObserving(ProbeBus* other);
 
-        virtual void
-        stopReceiving(ProbeBus* other);
+        virtual bool
+        hasObservers() const;
+        /*@}*/
 
+    private:
+        detail::SubjectPimpl* subject_;
+        detail::ObserverPimpl* observer_;
     };
 
     typedef PyConfigViewCreator<ProbeBus> ProbeBusCreator;
     typedef StaticFactory<ProbeBusCreator> ProbeBusFactory;
 
-    /**
-     * @brief Functor that is used send notifies using the forwardMeasurement
-     * method.
-     *
-     * @author Daniel Bueltmann <me@daniel-bueltmann.de>
-     */
-    class ProbeBusMeasurementFunctor
-    {
-        typedef void (ProbeBusNotificationInterface::*fPtr)(const wns::simulator::Time&,
-                                                            const double&,
-                                                            const IContext&);
-    public:
-        ProbeBusMeasurementFunctor(fPtr f,
-                                   const wns::simulator::Time& time,
-                                   const double& value,
-                                   const IContext& reg):
-            f_(f),
-            time_(time),
-            value_(value),
-            registry_(reg)
-            {}
 
-        void
-        operator()(ProbeBusNotificationInterface* observer)
-            {
-                (*observer.*f_)(time_, value_, registry_);
-            }
-    private:
-        fPtr f_;
-        const wns::simulator::Time& time_;
-        const double& value_;
-        const IContext& registry_;
-    };
 } // bus
 } // probe
 } // wns

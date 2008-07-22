@@ -25,44 +25,49 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
-#define WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#ifndef WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP
+#define WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/pyconfig/View.hpp>
 
 namespace wns { namespace probe { namespace bus {
-
     /**
-     * @brief Only accepts if simulation time is larger than the settling time
+     * @brief The PassThroughProbeBus publishes all Measurements available.
      *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
+     * If you want to receive messages implement the ProbeBus Interface and
+     * use the startObserving method on the PassThroughProbeBus to receive
+     * measurements. You may also use existing general purpose implementations
+     * already available.
+     *
+     * @author Daniel Bültmann <me@daniel-bueltmann.de>
      * @ingroup probebusses
      */
-    class SettlingTimeGuard :
-        public wns::probe::bus::ProbeBus
+    class PassThroughProbeBus:
+        virtual public ProbeBus
     {
     public:
 
-        SettlingTimeGuard(const wns::pyconfig::View&);
+        PassThroughProbeBus();
 
-        virtual ~SettlingTimeGuard();
+        PassThroughProbeBus(const wns::pyconfig::View&);
+
+        virtual ~PassThroughProbeBus() {}
+
+        virtual bool
+        accepts(const wns::simulator::Time&, const IContext&);
 
         virtual void
         onMeasurement(const wns::simulator::Time&,
                       const double&,
                       const IContext&);
 
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
-
         virtual void
         output();
 
-    private:
-        wns::simulator::Time settlingTime_;
     };
 } // bus
 } // probe
 } // wns
 
-#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#endif // WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP

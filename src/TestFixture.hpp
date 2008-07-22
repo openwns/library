@@ -47,6 +47,7 @@ namespace wns {
      * @brief Derive from this class instead of CppUnit::TestFixture
      *
      * @author Marc Schinnenburg <marc@schinnenburg.com>
+     * @ingroup group_main_classes
      *
      * This class sets up the WNS environment to run unit tests. Many units
      * which are under test in WNS need an EventScheduler or
