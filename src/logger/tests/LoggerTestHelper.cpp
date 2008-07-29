@@ -25,8 +25,8 @@
  *
  ******************************************************************************/
 
-#include "PyConfigViewCreator.hpp"
-#include "LoggerTestHelper.hpp"
+#include <WNS/PyConfigViewCreator.hpp>
+#include <WNS/logger/tests/LoggerTestHelper.hpp>
 
 using namespace wns::logger;
 

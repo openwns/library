@@ -33,7 +33,7 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/events/scheduler/Monitor.hpp>
 #include <WNS/simulator/ISimulationModel.hpp>
-#include <WNS/module/VersionInformation.hpp>
+//#include <WNS/module/VersionInformation.hpp>
 #include <WNS/probe/bus/ProbeBusRegistry.hpp>
 
 #include <boost/program_options/options_description.hpp>
@@ -196,8 +196,8 @@ namespace wns {  namespace simulator {
 		void
 		loadModules();
 
-		void
-		checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions);
+	    //void
+	    //checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions);
 
 
         /**

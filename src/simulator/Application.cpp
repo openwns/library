@@ -38,7 +38,7 @@
 #include <WNS/simulator/UnitTests.hpp>
 #include <WNS/events/MemberFunction.hpp>
 
-#include <WNS/module/CurrentVersion.hpp>
+//#include <WNS/module/CurrentVersion.hpp>
 #include <WNS/module/Base.hpp>
 
 #include <WNS/simulator/AbortHandler.hpp>
@@ -538,15 +538,15 @@ Application::disableX87ExtendedFloatingPointPrecision()
 void
 Application::loadModules()
 {
-	std::list<wns::module::VersionInformation> moduleVersions;
+	//std::list<wns::module::VersionInformation> moduleVersions;
 
 	if(verbose_)
 	{
-		std::cout << wns::module::CurrentVersion.getNiceString() << std::endl;
+		//std::cout << wns::module::CurrentVersion.getNiceString() << std::endl;
 		std::cout << "Loading..." << std::endl;
 	}
 
-	moduleVersions.push_back(wns::module::CurrentVersion);
+	//moduleVersions.push_back(wns::module::CurrentVersion);
 
 	if (!moduleViews_.empty())
 	{
@@ -605,11 +605,11 @@ Application::loadModules()
 			wns::module::Creator* moduleCreator = wns::module::Factory::creator(moduleName);
 			wns::module::Base* m = moduleCreator->create(*itr);
 			loadedModules_.push_back(m);
-			wns::module::VersionInformation v = m->getVersionInformation();
-			moduleVersions.push_back(v);
+			//wns::module::VersionInformation v = m->getVersionInformation();
+			//moduleVersions.push_back(v);
 			if(verbose_)
 			{
-				std::cout << v.getNiceString() << std::endl;
+				//std::cout << v.getNiceString() << std::endl;
 				std::cout << std::endl;
 			}
 			moduleViewsTmp.erase(itr);
@@ -637,41 +637,41 @@ Application::loadModules()
 			}
 		}
 
-		try
-		{
-			checkModuleDependencies(moduleVersions);
-		}
-		catch(const ModuleDependencyMismatchException& exception)
-		{
-			if(!testing_)
-			{
-				// throw on, not handled
-				throw;
-			}
-			else
-			{
-				// Just print a warning
-				std::cerr << "WARNING: module dependencies in testing mode ignored!\n"
-					  << exception;
-			}
-		}
+// 		try
+// 		{
+// 			checkModuleDependencies(moduleVersions);
+// 		}
+// 		catch(const ModuleDependencyMismatchException& exception)
+// 		{
+// 			if(!testing_)
+// 			{
+// 				// throw on, not handled
+// 				throw;
+// 			}
+// 			else
+// 			{
+// 				// Just print a warning
+// 				std::cerr << "WARNING: module dependencies in testing mode ignored!\n"
+// 					  << exception;
+// 			}
+// 		}
 	}
 }
 
-void
-Application::checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions)
-{
-	std::list<wns::module::VersionInformation>::iterator itrMV;
-	std::list<wns::module::VersionInformation>::iterator itrMVEnd = moduleVersions.end();
+// void
+// Application::checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions)
+// {
+// 	std::list<wns::module::VersionInformation>::iterator itrMV;
+// 	std::list<wns::module::VersionInformation>::iterator itrMVEnd = moduleVersions.end();
 
-	for (itrMV = moduleVersions.begin(); itrMV!=itrMVEnd; ++itrMV)
-	{
-		if (!(*itrMV).getDependencies().dependenciesMetBy(moduleVersions.begin(),
-								  moduleVersions.end()))
-		{
-			ModuleDependencyMismatchException exception;
-			exception << (*itrMV).getNiceString();
-			throw exception;
-		}
-	}
-}
+// 	for (itrMV = moduleVersions.begin(); itrMV!=itrMVEnd; ++itrMV)
+// 	{
+// 		if (!(*itrMV).getDependencies().dependenciesMetBy(moduleVersions.begin(),
+// 								  moduleVersions.end()))
+// 		{
+// 			ModuleDependencyMismatchException exception;
+// 			exception << (*itrMV).getNiceString();
+// 			throw exception;
+// 		}
+// 	}
+// }
