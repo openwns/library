@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,27 +25,28 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
-#define WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#ifndef WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP
+#define WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/pyconfig/View.hpp>
+
+#include <set>
 
 namespace wns { namespace probe { namespace bus {
 
     /**
-     * @brief Only accepts if simulation time is larger than the settling time
+     * @brief Filter Measurements by checking id/value pair
      *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
      * @ingroup probebusses
      */
-    class SettlingTimeGuard :
+    class ContextFilterProbeBus:
         public wns::probe::bus::ProbeBus
     {
     public:
+        ContextFilterProbeBus(const wns::pyconfig::View& pyco);
 
-        SettlingTimeGuard(const wns::pyconfig::View&);
-
-        virtual ~SettlingTimeGuard();
+        virtual ~ContextFilterProbeBus();
 
         virtual void
         onMeasurement(const wns::simulator::Time&,
@@ -59,10 +60,11 @@ namespace wns { namespace probe { namespace bus {
         output();
 
     private:
-        wns::simulator::Time settlingTime_;
+        std::string idName;
+        std::set<int> values;
     };
 } // bus
 } // probe
 } // wns
 
-#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#endif //WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP

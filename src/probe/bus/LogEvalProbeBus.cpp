@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <WNS/probe/bus/LogEval.hpp>
+#include <WNS/probe/bus/LogEvalProbeBus.hpp>
 
 #include <fstream>
 #include <iomanip>
@@ -33,63 +33,64 @@
 using namespace wns::probe::bus;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    LogEval,
+    LogEvalProbeBus,
     wns::probe::bus::ProbeBus,
-    "LogEval",
+    "LogEvalProbeBus",
     wns::PyConfigViewCreator);
 
-LogEval::LogEval(const wns::pyconfig::View& pyco):
+LogEvalProbeBus::LogEvalProbeBus(const wns::pyconfig::View& pyco):
     outputPath(pyco.get<std::string>("outputDir")),
     filename(pyco.get<std::string>("outputFilename")),
-	firstWrite(true),
-	timePrecision(7),
-	valuePrecision(6),
-	format(formatFixed)
+    firstWrite(true),
+    timePrecision(7),
+    valuePrecision(6),
+    format(formatFixed)
 {
 }
 
-LogEval::~LogEval()
+LogEvalProbeBus::~LogEvalProbeBus()
 {
 }
 
 bool
-LogEval::accepts(const wns::simulator::Time&, const IContext&)
+LogEvalProbeBus::accepts(const wns::simulator::Time&, const IContext&)
 {
-	return true;
+    return true;
 }
 
 void
-LogEval::onMeasurement(const wns::simulator::Time& _time,
-			  const double& _value,
-			  const IContext&)
+LogEvalProbeBus::onMeasurement(const wns::simulator::Time& _time,
+                               const double& _value,
+                               const IContext&)
 {
-	LogEntry entry;
-	entry.value = _value;
-	entry.time  = _time;
+    LogEntry entry;
+    entry.value = _value;
+    entry.time  = _time;
 
     // Store value for later output
-	logQueue.push_back(entry);
+    logQueue.push_back(entry);
 }
 
 void
-LogEval::output()
+LogEvalProbeBus::output()
 {
-	std::ofstream out((outputPath + "/" + filename).c_str(),
-					  (firstWrite ? std::ios::out : (std::ios::out |  std::ios::app)));
-	if (firstWrite) firstWrite = false;
-	out << (format == formatFixed ? std::setiosflags(std::ios::fixed) :
-			std::setiosflags(std::ios::scientific))
-		<< std::resetiosflags(std::ios::right)
-		<< std::setiosflags(std::ios::left);
-	assure(out, "I/O Error: Can't dump LogEval log file");
-    while (!logQueue.empty())
-    {
-		LogEntry entry = logQueue.front();
-		logQueue.pop_front();
-		out << std::setprecision(timePrecision) << entry.time
-			<< " " << std::setprecision(valuePrecision) << entry.value << std::endl;
-		assure(out, "I/O Error: Can't dump LogEval log file");
-    }
+    std::ofstream out((outputPath + "/" + filename).c_str(),
+                      (firstWrite ? std::ios::out : (std::ios::out |  std::ios::app)));
 
-} // output()
+    if (firstWrite) firstWrite = false;
+
+    out << (format == formatFixed ? std::setiosflags(std::ios::fixed) : std::setiosflags(std::ios::scientific))
+        << std::resetiosflags(std::ios::right)
+        << std::setiosflags(std::ios::left);
+
+    assure(out, "I/O Error: Can't dump LogEvalProbeBus log file");
+    while (!logQueue.empty())
+        {
+            LogEntry entry = logQueue.front();
+            logQueue.pop_front();
+            out << std::setprecision(timePrecision) << entry.time
+                << " " << std::setprecision(valuePrecision) << entry.value << std::endl;
+            assure(out, "I/O Error: Can't dump LogEvalProbeBus log file");
+        }
+}
 

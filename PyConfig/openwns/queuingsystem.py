@@ -37,6 +37,9 @@ class SimpleMM1Step1(object):
         self.meanJobInterArrivalTime = meanJobInterArrivalTime
         self.meanJobProcessingTime = meanJobProcessingTime
 
+# a simple alias
+SimpleMM1 = SimpleMM1Step1
+
 class SimpleMM1Step2(object):
     __slots__ = ['nameInFactory', 'logger', 'meanJobInterArrivalTime', 'meanJobProcessingTime']
 

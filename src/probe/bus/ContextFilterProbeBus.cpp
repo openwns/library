@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,60 +25,57 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/ISimulator.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
+#include <WNS/probe/bus/ContextFilterProbeBus.hpp>
 
-#include <WNS/probe/bus/TimeWindowProbeBus.hpp>
-#include <WNS/container/UntypedRegistry.hpp>
-
+#include <sstream>
 
 using namespace wns::probe::bus;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    TimeWindowProbeBus,
+    ContextFilterProbeBus,
     wns::probe::bus::ProbeBus,
-    "TimeWindowProbeBus",
+    "ContextFilterProbeBus",
     wns::PyConfigViewCreator);
 
-TimeWindowProbeBus::TimeWindowProbeBus(const wns::pyconfig::View& pyco):
-    evsched_(wns::simulator::getEventScheduler()),
-    start_(pyco.get<wns::simulator::Time>("start")),
-    end_(pyco.get<wns::simulator::Time>("end"))
+ContextFilterProbeBus::ContextFilterProbeBus(const wns::pyconfig::View& _pyco):
+    idName(_pyco.get<std::string>("idName")),
+    values()
+{
+    for (int ii = 0; ii < _pyco.len("idValues"); ++ii)
+    {
+        int value = _pyco.get<int>("idValues",ii);
+        values.insert(value);
+    }
+}
+
+ContextFilterProbeBus::~ContextFilterProbeBus()
 {
 }
 
-TimeWindowProbeBus::~TimeWindowProbeBus()
+void
+ContextFilterProbeBus::output()
 {
+    // We do not do any output ourself
+}
+
+void
+ContextFilterProbeBus::onMeasurement(const wns::simulator::Time&,
+                                     const double&,
+                                     const IContext&)
+{
+    // Nothing done here, we only filter within accepts
 }
 
 bool
-TimeWindowProbeBus::accepts(const wns::simulator::Time&, const IContext&)
+ContextFilterProbeBus::accepts(const wns::simulator::Time&,
+                               const IContext& reg)
 {
-    return true;
-}
-
-void
-TimeWindowProbeBus::onMeasurement(const wns::simulator::Time&,
-                                  const double&,
-                                  const IContext&)
-{
-}
-
-void
-TimeWindowProbeBus::output()
-{
-}
-
-void
-TimeWindowProbeBus::startObserving(ProbeBus* other)
-{
-    StartStopObservingCommand command = StartStopObservingCommand(this,
-                                                                  other,
-                                                                  true);
-
-    evsched_->schedule(command, start_);
-
-    command = StartStopObservingCommand(this, other, false);
-
-    evsched_->schedule(command, end_);
+    try
+    {
+        return values.find( reg.getInt(idName) ) != values.end();
+    }
+    catch (context::NotFound)
+    {
+        return false;
+    }
 }

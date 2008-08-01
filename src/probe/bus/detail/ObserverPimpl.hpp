@@ -25,38 +25,38 @@
  *
  ******************************************************************************/
 
-#include <WNS/probe/bus/MasterProbeBus.hpp>
+#ifndef WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP
+#define WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP
 
-using namespace wns::probe::bus;
+#include <WNS/probe/bus/detail/IProbeBusNotification.hpp>
+#include <WNS/Observer.hpp>
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    MasterProbeBus,
-    wns::probe::bus::ProbeBus,
-    "MasterProbeBus",
-    wns::PyConfigViewCreator);
+namespace wns { namespace probe { namespace bus { class ProbeBus; }}}
 
-MasterProbeBus::MasterProbeBus(const wns::pyconfig::View&)
-{
+namespace wns { namespace probe { namespace bus { namespace detail {
+
+    class ObserverPimpl:
+        public wns::Observer<IProbeBusNotification>        
+    {
+
+    public:
+        ObserverPimpl(wns::probe::bus::ProbeBus*);
+
+        virtual void
+        forwardMeasurement(const wns::simulator::Time&,
+                           const double&,
+                           const IContext&);
+
+        virtual void
+        forwardOutput();
+
+    private:
+        wns::probe::bus::ProbeBus* pb_;
+    };
+
+}
+}
+}
 }
 
-bool
-MasterProbeBus::accepts(const wns::simulator::Time&, const IContext&)
-{
-    // We always accept everything
-    return true;
-}
-
-void
-MasterProbeBus::onMeasurement(const wns::simulator::Time&,
-                              const double&,
-                              const IContext&)
-{
-    // We do not do anything with a measurement
-    // ProbeBus will forward to all attached servers
-}
-
-void
-MasterProbeBus::output()
-{
-    // Nothing needs to be done here
-}
+#endif // WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP

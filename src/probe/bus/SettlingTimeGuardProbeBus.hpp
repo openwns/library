@@ -25,27 +25,27 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_TIMEWINDOWPROBEBUS_HPP
-#define WNS_PROBE_BUS_TIMEWINDOWPROBEBUS_HPP
+#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
+#define WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
 
 namespace wns { namespace probe { namespace bus {
 
     /**
-     * @brief Records measurements for a given time window.
+     * @brief Only accepts if simulation time is larger than the settling time
      *
-     * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
      * @ingroup probebusses
      */
-    class TimeWindowProbeBus :
+    class SettlingTimeGuardProbeBus :
         public wns::probe::bus::ProbeBus
     {
     public:
 
-        TimeWindowProbeBus(const wns::pyconfig::View&);
+        SettlingTimeGuardProbeBus(const wns::pyconfig::View&);
 
-        virtual ~TimeWindowProbeBus();
+        virtual ~SettlingTimeGuardProbeBus();
 
         virtual void
         onMeasurement(const wns::simulator::Time&,
@@ -58,54 +58,11 @@ namespace wns { namespace probe { namespace bus {
         virtual void
         output();
 
-        virtual void
-        startObserving(ProbeBus* other);
-
     private:
-
-        class StartStopObservingCommand
-        {
-        public:
-            StartStopObservingCommand(TimeWindowProbeBus* who,
-                                      ProbeBus* other,
-                                      bool starting) :
-                who_(who),
-                other_(other),
-                starting_(starting)
-                {
-                }
-
-            virtual void operator()()
-                {
-                    if (starting_)
-                    {
-                        who_->wns::probe::bus::ProbeBus::startObserving(other_);
-                    }
-                    else
-                    {
-                        who_->wns::probe::bus::ProbeBus::stopObserving(other_);
-                    }
-                }
-            virtual
-            ~StartStopObservingCommand()
-            {}
-
-        private:
-            TimeWindowProbeBus* who_;
-
-            ProbeBus* other_;
-
-            bool starting_;
-        };
-
-        wns::events::scheduler::Interface* evsched_;
-
-        wns::simulator::Time start_;
-
-        wns::simulator::Time end_;
+        wns::simulator::Time settlingTime_;
     };
 } // bus
 } // probe
 } // wns
 
-#endif // WNS_PROBE_BUS_TIMEWINDOWPROBEBUS_HPP
+#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP

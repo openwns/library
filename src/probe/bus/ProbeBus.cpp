@@ -27,32 +27,26 @@
 
 #include <WNS/probe/bus/ProbeBus.hpp>
 #include <WNS/probe/bus/ProbeBusRegistry.hpp>
+#include <WNS/probe/bus/detail/SubjectPimpl.hpp>
+#include <WNS/probe/bus/detail/ObserverPimpl.hpp>
 #include <WNS/simulator/ISimulator.hpp>
 
 #include <iostream>
 
 using namespace wns::probe::bus;
 
-
-void
-ProbeBus::addReceivers(const wns::pyconfig::View& pyco)
+ProbeBus::ProbeBus():
+    subject_( new detail::SubjectPimpl() ),
+    observer_( new detail::ObserverPimpl(this) )
 {
-    /**
-     * @todo This is a memory leak. The ProbeBus created here will never be
-     * deleted. We need to use SmartPtr for a ProbeBus in order automatically
-     * delete unused ProbeBuses.
-     */
-    std::string nameInFactory = pyco.get<std::string>("nameInFactory");
-    wns::probe::bus::ProbeBusCreator* c =
-        wns::probe::bus::ProbeBusFactory::creator(nameInFactory);
-    wns::probe::bus::ProbeBus* pb = c->create(pyco);
+}
 
-    pb->startReceiving(this);
-
-    for(int ii=0; ii < pyco.len("observers"); ++ii)
-    {
-        pb->addReceivers(pyco.get<wns::pyconfig::View>("observers", ii));
-    }
+ProbeBus::~ProbeBus()
+{
+    assure(subject_ != NULL, "This ProbeBus instance has no implementation of the subject detail");
+    delete subject_;
+    assure(observer_ != NULL, "This ProbeBus instance has no implementation of the observer detail");
+    delete observer_;
 }
 
 void
@@ -64,13 +58,8 @@ ProbeBus::forwardMeasurement(const wns::simulator::Time& timestamp,
     {
         this->onMeasurement(timestamp, aValue, theRegistry);
 
-        this->forEachObserverNoDetachAllowed(
-            ProbeBusMeasurementFunctor(
-                &ProbeBusNotificationInterface::forwardMeasurement,
-                timestamp,
-                aValue,
-                theRegistry)
-            );
+        assure(subject_ != NULL, "This ProbeBus instance has no implementation of the subject detail");
+        subject_->forwardMeasurement(timestamp, aValue, theRegistry);
     }
 }
 
@@ -79,23 +68,26 @@ ProbeBus::forwardOutput()
 {
     this->output();
 
-    this->sendNotifies(&ProbeBusNotificationInterface::forwardOutput);
+    assure(subject_ != NULL, "This ProbeBus instance has no implementation of the subject detail");
+    subject_->forwardOutput();
 }
 
 void
-ProbeBus::startReceiving(ProbeBus* other)
+ProbeBus::startObserving(ProbeBus* other)
 {
-    this->startObserving(other);
+    assure(observer_ != NULL, "This ProbeBus instance has no implementation of the observer detail");
+    observer_->startObserving( other->subject_ );
 }
 
 void
-ProbeBus::stopReceiving(ProbeBus* other)
+ProbeBus::stopObserving(ProbeBus* other)
 {
-    this->stopObserving(other);
+    assure(observer_ != NULL, "This ProbeBus instance has no implementation of the observer detail");
+    observer_->stopObserving( other->subject_ );
 }
 
 bool
 ProbeBus::hasObservers() const
 {
-    return Subject<ProbeBusNotificationInterface>::hasObservers();
+    return subject_->hasObservers();
 }

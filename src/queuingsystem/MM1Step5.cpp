@@ -50,7 +50,7 @@ SimpleMM1Step5::SimpleMM1Step5(const wns::pyconfig::View& config) :
 {
 }
 
-// begin example "wns.queuingsystem.mm1step5.doStartup.example"
+// begin example "wns.queuingsystem.mm1step5.doStartup.example" 
 void
 SimpleMM1Step5::doStartup()
 {
@@ -60,7 +60,7 @@ SimpleMM1Step5::doStartup()
 
     wns::probe::bus::ProbeBusRegistry* reg = wns::simulator::getProbeBusRegistry();
 
-    probeBus_ = reg->getProbeBus(probeBusName);
+    probeBus_ = reg->getMeasurementSource(probeBusName);
 
     // We need that probe bus!!
     assure(probeBus_ != NULL, "ProbeBus could not be created");

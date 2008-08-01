@@ -41,12 +41,13 @@ Simulator::Simulator(const wns::pyconfig::View& configuration) :
     masterLogger_(NULL),
     rng_(NULL),
     registry_(new Registry()),
-    probeBusRegistry_(new wns::probe::bus::ProbeBusRegistry(configuration_.getView("environment.probeBusRegistry"))),
+    probeBusRegistry_(NULL),
     resetSignal_(new ResetSignal())
 {
     this->configureEventScheduler(configuration_.getView("environment.eventScheduler"));
     this->configureMasterLogger(configuration_.getView("environment.masterLogger"));
     this->configureRNG(configuration_.getView("environment.rng"));
+    this->configureProbeBusRegistry(configuration_.getView("environment.probeBusRegistry"));
 }
 
 Simulator::~Simulator()
@@ -133,3 +134,15 @@ Simulator::configureRNG(
     }
 }
 
+void
+Simulator::configureProbeBusRegistry(
+    const pyconfig::View& pbrConfiguration)
+{
+
+    assure(probeBusRegistry_.get() == NULL, "ProbeBusRegistry already set / configured");
+
+    assure(masterLogger_.get() != NULL, "MasterLogger not available");
+
+    probeBusRegistry_.reset(new wns::probe::bus::ProbeBusRegistry(pbrConfiguration,
+                                                                  masterLogger_.get()));
+}
