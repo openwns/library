@@ -206,9 +206,11 @@ class LoggingProbeBus(ProbeBus):
         """
         nameInFactory = "LoggingProbeBus"
 
-        def __init__(self, parentLogger=None):
+        def __init__(self, probeName='', parentLogger=None):
                 ProbeBus.__init__(self,"")
-                self.logger = openwns.logger.Logger("WNS", "ProbeBus", True, parentLogger)
+		if len(probeName) > 0:
+			probeName = '.' + probeName
+                self.logger = openwns.logger.Logger("WNS", "LoggingProbeBus"+probeName, True, parentLogger)
 
 class PythonProbeBus(ProbeBus):
         """ Use the PythonProbeBus to do all your probing work in python. Specify what to do
