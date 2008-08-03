@@ -54,6 +54,12 @@ srcFiles['EVENTS'] = [
     'src/events/scheduler/RealTime.cpp',
 ]
 
+srcFiles['EVALUATION'] = [
+    'src/evaluation/statistics/stateval.cpp',
+    'src/evaluation/statistics/moments.cpp',
+    'src/evaluation/statistics/pdf.cpp',
+]
+
 srcFiles['LOGGER'] = [
     ## TODO needs inspection!
     # logger
@@ -82,13 +88,20 @@ srcFiles['PROBEBUS'] = [
     'src/probe/bus/ProbeBusRegistry.cpp',
     'src/probe/bus/PythonProbeBus.cpp',
     'src/probe/bus/SettlingTimeGuardProbeBus.cpp',
+    'src/probe/bus/StatEvalProbeBus.cpp',
+    'src/probe/bus/TableProbeBus.cpp',
+    'src/probe/bus/TextProbeBus.cpp',
     'src/probe/bus/TimeWindowProbeBus.cpp',
     'src/probe/bus/detail/ObserverPimpl.cpp',
+    'src/probe/bus/detail/OutputFormatter.cpp',
     'src/probe/bus/detail/SubjectPimpl.cpp',
+    'src/probe/bus/detail/Sorter.cpp',
+    'src/probe/bus/detail/StatEvalTable.cpp',
 ]
 
 srcFiles['TESTING'] = [
     'src/testing/DetailedListener.cpp',
+    'src/testing/TestTool.cpp',
     ]
 
 srcFiles['QUEUINGSYSTEM'] = [
@@ -149,6 +162,8 @@ srcFiles['PROBEBUS-TESTS'] = [
     'src/probe/bus/tests/ProbeBusStub.cpp',
     'src/probe/bus/tests/PythonProbeBusTest.cpp',
     'src/probe/bus/tests/TimeWindowProbeBusTest.cpp',
+    'src/probe/bus/tests/TableProbeBusTest.cpp',
+    'src/probe/bus/detail/tests/SorterTest.cpp',
 ]
 
 srcFiles['EVENTS-TESTS'] = [

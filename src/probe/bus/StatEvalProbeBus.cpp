@@ -25,73 +25,71 @@
  *
  ******************************************************************************/
 
-#include <WNS/probe/bus/LogEvalProbeBus.hpp>
+#include <WNS/probe/bus/StatEvalProbeBus.hpp>
+#include <WNS/container/UntypedRegistry.hpp>
 #include <WNS/simulator/ISimulator.hpp>
+
 #include <fstream>
-#include <iomanip>
 
 using namespace wns::probe::bus;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    LogEvalProbeBus,
+    StatEvalProbeBus,
     wns::probe::bus::ProbeBus,
-    "LogEvalProbeBus",
+    "StatEvalProbeBus",
     wns::PyConfigViewCreator);
 
-LogEvalProbeBus::LogEvalProbeBus(const wns::pyconfig::View& pyco):
+StatEvalProbeBus::StatEvalProbeBus(const wns::pyconfig::View& pyco) :
+    outputPath(wns::simulator::getConfiguration().get<std::string>("outputDir")),
     filename(pyco.get<std::string>("outputFilename")),
-    firstWrite(true),
-    timePrecision(7),
-    valuePrecision(6),
-    format(formatFixed)
+    appendFlag(pyco.get<bool>("appendFlag")),
+    firstWrite(true)
 {
     wns::pyconfig::View pycoRoot = wns::simulator::getConfiguration();
     outputPath = pycoRoot.get<std::string>("outputDir");
+
+    statEval = wns::probe::stateval::Factory::creator(pyco.get<std::string>("statEval.nameInFactory"))
+        ->create(pyco.get("statEval"));
 }
 
-LogEvalProbeBus::~LogEvalProbeBus()
+StatEvalProbeBus::~StatEvalProbeBus()
 {
+    delete statEval;
 }
 
 bool
-LogEvalProbeBus::accepts(const wns::simulator::Time&, const IContext&)
+StatEvalProbeBus::accepts(const wns::simulator::Time&, const IContext&)
 {
     return true;
 }
 
 void
-LogEvalProbeBus::onMeasurement(const wns::simulator::Time& _time,
-                               const double& _value,
-                               const IContext&)
+StatEvalProbeBus::onMeasurement(const wns::simulator::Time&,
+                                const double& aValue,
+                                const IContext&)
 {
-    LogEntry entry;
-    entry.value = _value;
-    entry.time  = _time;
-
-    // Store value for later output
-    logQueue.push_back(entry);
+    this->statEval->put(aValue);
 }
 
 void
-LogEvalProbeBus::output()
+StatEvalProbeBus::output()
 {
-    std::ofstream out((outputPath + "/" + filename).c_str(),
-                      (firstWrite ? std::ios::out : (std::ios::out |  std::ios::app)));
+    if (!appendFlag || firstWrite)
+    {
+        std::ofstream out((outputPath + "/" + filename).c_str(),
+                          std::ios::out);
 
-    if (firstWrite) firstWrite = false;
+        statEval->print(out); // header only
+        statEval->printLog(out);
+        firstWrite = false;
+    }
+    else
+    {
+        std::ofstream out((outputPath + "/" + filename).c_str(),
+                          std::ios::out | std::ios::app);
 
-    out << (format == formatFixed ? std::setiosflags(std::ios::fixed) : std::setiosflags(std::ios::scientific))
-        << std::resetiosflags(std::ios::right)
-        << std::setiosflags(std::ios::left);
-
-    assure(out, "I/O Error: Can't dump LogEvalProbeBus log file");
-    while (!logQueue.empty())
-        {
-            LogEntry entry = logQueue.front();
-            logQueue.pop_front();
-            out << std::setprecision(timePrecision) << entry.time
-                << " " << std::setprecision(valuePrecision) << entry.value << std::endl;
-            assure(out, "I/O Error: Can't dump LogEvalProbeBus log file");
-        }
+        statEval->print(out); // header only
+        statEval->printLog(out);
+    }
 }
 

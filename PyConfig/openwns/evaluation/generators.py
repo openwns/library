@@ -38,9 +38,9 @@ which describes how the contents are connected.
  
 import openwns.interface
 import openwns.probebus
-import wns.ProbeBus
 import tree
 import wrappers
+import statistics
 
 class ITreeNodeGenerator(openwns.interface.Interface):
     """ Interface for a TreeNodeGenerator """
@@ -156,11 +156,9 @@ class PDF(ITreeNodeGenerator):
         self.kwargs = kwargs
 
     def __call__(self, pathname):
-        import speetcl.probes.StatEval
-        import wns.ProbeBus
-        pdf = speetcl.probes.StatEval.PDFEval(*self.args, **self.kwargs)
+        pdf = statistics.PDFEval(*self.args, **self.kwargs)
 
-        pb = wns.ProbeBus.StatEvalProbeBus(pathname + '_PDF.dat', pdf)
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_PDF.dat', pdf)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
@@ -171,11 +169,9 @@ class DLRE(ITreeNodeGenerator):
         self.kwargs = kwargs
 
     def __call__(self, pathname):
-        import speetcl.probes.StatEval
-        import wns.ProbeBus
-        dlre = speetcl.probes.StatEval.DLREEval(*self.args, **self.kwargs)
+        dlre = statistics.DLREEval(*self.args, **self.kwargs)
 
-        pb = wns.ProbeBus.StatEvalProbeBus(pathname + '_DLREF.dat', dlre)
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_DLREF.dat', dlre)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
@@ -186,8 +182,7 @@ class TextTrace(ITreeNodeGenerator):
         self.kwargs = kwargs
 
     def __call__(self, pathname):
-        import wns.ProbeBus
-        t = wns.ProbeBus.TextProbeBus(*self.args, **self.kwargs)
+        t = openwns.probebus.TextProbeBus(*self.args, **self.kwargs)
         t.evalConfig.prependSimTime = False
         t.evalConfig.width = 7
         t.evalConfig.precision = 20
@@ -199,11 +194,7 @@ class TimeSeries(ITreeNodeGenerator):
         pass
 
     def __call__(self, pathname):
-        import speetcl.probes.StatEval
-        import wns.ProbeBus
-        logeval = speetcl.probes.StatEval.LogEval()
-
-        pb = wns.ProbeBus.StatEvalProbeBus(pathname + '_Log.log.dat', logeval)
+        pb = openwns.probebus.LogEvalProbeBus(outputFilename = pathname + "_Log.log.dat", format="fixed", timePrecision = 7, valuePrecision = 7)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
@@ -213,11 +204,9 @@ class Moments(ITreeNodeGenerator):
         pass
 
     def __call__(self, pathname):
-        import speetcl.probes.StatEval
-        import wns.ProbeBus
-        momentseval = speetcl.probes.StatEval.MomentsEval()
+        momentseval = statistics.MomentsEval()
         
-        pb = wns.ProbeBus.StatEvalProbeBus(pathname + '_Log.dat', momentseval)
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Log.dat', momentseval)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
@@ -250,14 +239,14 @@ class Table(ITreeNodeGenerator):
                 assert paramdict.has_key("maxValue%d" % numAxes), "You need to specify all parameters for an axis (axisN, minValueN, maxValueN, resolutionN)"
                 assert paramdict.has_key("resolution%d" % numAxes), "You need to specify all parameters for an axis (axisN, minValueN, maxValueN, resolutionN)"
 
-                self.tabPars.append(wns.ProbeBus.TabPar(paramdict["axis%d" % numAxes],
-                                                        paramdict["minValue%d" % numAxes],
-                                                        paramdict["maxValue%d" % numAxes],
-                                                        paramdict["resolution%d" % numAxes]))
+                self.tabPars.append(openwns.probebus.TabPar(paramdict["axis%d" % numAxes],
+                                                            paramdict["minValue%d" % numAxes],
+                                                            paramdict["maxValue%d" % numAxes],
+                                                            paramdict["resolution%d" % numAxes]))
                 numAxes += 1
             else:
                 break
 
     def __call__(self, pathname):
-        pb = wns.ProbeBus.TableProbeBus(self.tabPars, pathname, self.values, self.formats)
+        pb = openwns.probebus.TableProbeBus(self.tabPars, pathname, self.values, self.formats)
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))

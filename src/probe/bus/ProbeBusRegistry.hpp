@@ -68,6 +68,12 @@ namespace wns { namespace probe { namespace bus {
         ~ProbeBusRegistry();
 
         /**
+         * @brief Reset the registry. Primarily needed for testig.
+         */
+        void
+        reset();
+
+        /**
          * @brief Retrieves an instance of the PassThroughProbeBus. 
          *
          * If the given name is asked for the first time the ProbeBusRegistry
@@ -92,6 +98,13 @@ namespace wns { namespace probe { namespace bus {
         void
         startup();
 
+        /**
+         * @brief Reads the configured measurement sources then spawns and connects
+         * all observing ProbeBusses recursively to the MasteProbeBus for that source.
+         */
+        void
+        spawnProbeBusses(const wns::pyconfig::View& probeBusTrees);
+
     private:
 
         /**
@@ -99,13 +112,6 @@ namespace wns { namespace probe { namespace bus {
          */
         std::string
         doToString() const;
-
-        /**
-         * @brief Reads the configured measurement sources then spawns and connects
-         * all observing ProbeBusses recursively to the MasteProbeBus for that source.
-         */
-        void
-        spawnProbeBusses(const wns::pyconfig::View& probeBusTrees);
 
         /**
          * @brief Reads the configured measurement sources then spawns and connects

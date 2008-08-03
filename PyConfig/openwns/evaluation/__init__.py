@@ -46,12 +46,6 @@ class TreeNodeProbeBusRegistry(object):
         self.treeNodes.pop(measurementSource)
 
     def createMeasurementSourceNode(self, measurementSource):
-        sourceNode = self.getMeasurementSourceNode(measurementSource)
-        assert not sourceNode.hasChildren(), "The source node was already created and has children. Either remove the source node first by using removeMeasurementSource() or use getMeasurementSourceNode()"
-        return sourceNode
-
-    def getMeasurementSourceNode(self, measurementSource):
-
         if not self.treeNodes.has_key(measurementSource):
             pb = self.probeBusRegistry.getMeasurementSource(measurementSource)
 
@@ -60,7 +54,19 @@ class TreeNodeProbeBusRegistry(object):
             node = TreeNode(wrapper)
 
             self.treeNodes[measurementSource] = node
-            
+
+        sourceNode = self.treeNodes[measurementSource]
+        assert not sourceNode.hasChildren(), "The source node was already created and has children. Either remove the source node first by using removeMeasurementSource() or use getMeasurementSourceNode()"
+        return sourceNode
+
+    def getMeasurementSourceNode(self, measurementSource):
+        if not self.treeNodes.has_key(measurementSource):
+            message = "That source node was not yet created. Use createMeasurementSource()\n\n"
+            message += "The following source nodes were created by now:\n"
+            for s in self.treeNodes.keys():
+                message += str(s)
+            assert self.treeNodes.has_key(measurementSource), message
+
         return self.treeNodes[measurementSource]
 
     def getLogger(self):

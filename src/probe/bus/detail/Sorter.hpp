@@ -25,42 +25,36 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/UnitTests.hpp>
-#include <WNS/rng/RNGen.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <ios>
+#ifndef WNS_PROBE_BUS_DETAIL_SORTER_HPP
+#define WNS_PROBE_BUS_DETAIL_SORTER_HPP
 
-using namespace wns::simulator;
+#include <WNS/pyconfig/View.hpp>
 
-UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration),
-    initialRNGState_()
-{
-}
+namespace wns { namespace probe { namespace bus { namespace detail {
 
-UnitTests::~UnitTests()
-{
-}
+	typedef uint32_t IDType;
 
-void
-UnitTests::doReset()
-{
-    // Another implementation may also decide to delete and rebuild its members
-    // from scratch, rather than resetting them (since reset is error prone,
-    // needs to be implemented and tested thoroughly to not carry any old state
-    // in itself.
-    getEventScheduler()->reset();
-    // seek to the beginning of the stream
-    initialRNGState_.seekg (0, std::ios::beg);
-    initialRNGState_ >> *getRNG();
-    getProbeBusRegistry()->reset();
-    (*getResetSignal())();
-}
+	/** @brief Helper class for equidistant sorting */
+	class Sorter
+	{
+		std::string idName_;
+		IDType min_;
+		IDType max_;
+		int resolution_;
+		IDType stepsize_;
 
-void
-UnitTests::configureRNG(const wns::pyconfig::View& config)
-{
-    Simulator::configureRNG(config);
-    initialRNGState_ << *getRNG();
-}
+		int calcIndex(IDType id) const;
+	public:
+		Sorter(const wns::pyconfig::View& pyco);
+		Sorter(std::string _idName, IDType _min, IDType _max, int _resolution);
+
+		int getIndex(IDType id) const;
+		bool checkIndex(IDType id) const;
+		std::string getInterval(int index) const;
+		IDType getMin(int index) const;
+		int getResolution() const;
+		std::string getIdName() const;
+	};
+
+}}}}
+#endif // not defined WNS_PROBE_BUS_DETAIL_SORTER_HPP

@@ -46,12 +46,21 @@ ProbeBusRegistry::ProbeBusRegistry(const wns::pyconfig::View& pyco, wns::logger:
 
 ProbeBusRegistry::~ProbeBusRegistry()
 {
+    reset();
+}
+
+void
+ProbeBusRegistry::reset()
+{
+    // Delete all busses
     for (CreatedProbeBussesContainer::iterator it = createdProbeBusses_.begin();
          it != createdProbeBusses_.end();
          ++it)
     {
         delete *it;
     }
+    registry_ = ProbeBusRegistryContainer();
+    createdProbeBusses_ = CreatedProbeBussesContainer();
 }
 
 void
