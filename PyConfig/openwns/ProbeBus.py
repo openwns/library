@@ -87,8 +87,9 @@ class SettlingTimeGuard(ProbeBus):
         has elapsed"""
         nameInFactory = "SettlingTimeGuardProbeBus"
 
-        def __init__(self):
+        def __init__(self, settlingTime):
                 ProbeBus.__init__(self)
+                self.settlingTime = settlingTime
 
 class LoggingProbeBus(ProbeBus):
         """ The LoggingProbeBus always accepts and logs the message to the logging subsystem.

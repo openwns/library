@@ -48,11 +48,8 @@ StatEval::StatEval(bool anActiveFlag,
 	  pd_format(aFormat),
 	  pd_name(aName),
 	  pd_desc(aDesc),
-	  pd_prefix()
+	  pd_prefix("#")
 {
-	// While migrating to PyConfig, we read the values from the 'old' global PDataBase config
-	wns::pyconfig::View global = wns::simulator::getConfiguration();
-	pd_prefix = global.get<std::string>("PDataBase.prefix");
 }
 
 
