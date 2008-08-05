@@ -162,7 +162,7 @@ srcFiles['EVENTS-TESTS'] = [
     ]
 
 hppFiles = [
-
+'src/queuingsystem/Job.hpp',
 'src/queuingsystem/MM1Step1.hpp',
 'src/queuingsystem/MM1Step6.hpp',
 'src/queuingsystem/MM1Step3.hpp',
