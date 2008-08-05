@@ -25,42 +25,57 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/UnitTests.hpp>
-#include <WNS/rng/RNGen.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <ios>
+#include <WNS/probe/bus/ContextFilterProbeBus.hpp>
 
-using namespace wns::simulator;
+#include <sstream>
 
-UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration),
-    initialRNGState_()
+using namespace wns::probe::bus;
+
+STATIC_FACTORY_REGISTER_WITH_CREATOR(
+    ContextFilterProbeBus,
+    wns::probe::bus::ProbeBus,
+    "ContextFilterProbeBus",
+    wns::PyConfigViewCreator);
+
+ContextFilterProbeBus::ContextFilterProbeBus(const wns::pyconfig::View& _pyco):
+    idName(_pyco.get<std::string>("idName")),
+    values()
 {
+    for (int ii = 0; ii < _pyco.len("idValues"); ++ii)
+    {
+        int value = _pyco.get<int>("idValues",ii);
+        values.insert(value);
+    }
 }
 
-UnitTests::~UnitTests()
+ContextFilterProbeBus::~ContextFilterProbeBus()
 {
-}
-
-void
-UnitTests::doReset()
-{
-    // Another implementation may also decide to delete and rebuild its members
-    // from scratch, rather than resetting them (since reset is error prone,
-    // needs to be implemented and tested thoroughly to not carry any old state
-    // in itself.
-    getEventScheduler()->reset();
-    // seek to the beginning of the stream
-    initialRNGState_.seekg (0, std::ios::beg);
-    initialRNGState_ >> *getRNG();
-    getProbeBusRegistry()->reset();
-    (*getResetSignal())();
 }
 
 void
-UnitTests::configureRNG(const wns::pyconfig::View& config)
+ContextFilterProbeBus::output()
 {
-    Simulator::configureRNG(config);
-    initialRNGState_ << *getRNG();
+    // We do not do any output ourself
+}
+
+void
+ContextFilterProbeBus::onMeasurement(const wns::simulator::Time&,
+                                     const double&,
+                                     const IContext&)
+{
+    // Nothing done here, we only filter within accepts
+}
+
+bool
+ContextFilterProbeBus::accepts(const wns::simulator::Time&,
+                               const IContext& reg)
+{
+    try
+    {
+        return values.find( reg.getInt(idName) ) != values.end();
+    }
+    catch (context::NotFound)
+    {
+        return false;
+    }
 }

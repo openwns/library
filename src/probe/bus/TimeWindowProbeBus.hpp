@@ -59,13 +59,14 @@ namespace wns { namespace probe { namespace bus {
         output();
 
         virtual void
-        startReceiving(ProbeBus* other);
+        startObserving(ProbeBus* other);
+
     private:
 
-        class StartStopReceivingCommand
+        class StartStopObservingCommand
         {
         public:
-            StartStopReceivingCommand(TimeWindowProbeBus* who,
+            StartStopObservingCommand(TimeWindowProbeBus* who,
                                       ProbeBus* other,
                                       bool starting) :
                 who_(who),
@@ -78,15 +79,15 @@ namespace wns { namespace probe { namespace bus {
                 {
                     if (starting_)
                     {
-                        who_->wns::probe::bus::ProbeBus::startReceiving(other_);
+                        who_->wns::probe::bus::ProbeBus::startObserving(other_);
                     }
                     else
                     {
-                        who_->wns::probe::bus::ProbeBus::stopReceiving(other_);
+                        who_->wns::probe::bus::ProbeBus::stopObserving(other_);
                     }
                 }
             virtual
-            ~StartStopReceivingCommand()
+            ~StartStopObservingCommand()
             {}
 
         private:

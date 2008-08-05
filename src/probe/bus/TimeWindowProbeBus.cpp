@@ -70,15 +70,15 @@ TimeWindowProbeBus::output()
 }
 
 void
-TimeWindowProbeBus::startReceiving(ProbeBus* other)
+TimeWindowProbeBus::startObserving(ProbeBus* other)
 {
-    StartStopReceivingCommand command = StartStopReceivingCommand(this,
+    StartStopObservingCommand command = StartStopObservingCommand(this,
                                                                   other,
                                                                   true);
 
     evsched_->schedule(command, start_);
 
-    command = StartStopReceivingCommand(this, other, false);
+    command = StartStopObservingCommand(this, other, false);
 
     evsched_->schedule(command, end_);
 }

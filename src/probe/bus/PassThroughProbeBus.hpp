@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the
+ * terms of the GNU Lesser General Public License version 2 as published by the 
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,36 +25,34 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_LOGEVAL_HPP
-#define WNS_PROBE_BUS_LOGEVAL_HPP
+#ifndef WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP
+#define WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/pyconfig/View.hpp>
 
 namespace wns { namespace probe { namespace bus {
-
-    //! How to format the output of numbers
-    enum formatType
-    {
-		formatFixed, formatScientific
-    };
-
     /**
-     * @brief backend for the LogEval ProbeBus
+     * @brief The PassThroughProbeBus publishes all Measurements available.
+     *
+     * If you want to receive messages implement the ProbeBus Interface and
+     * use the startObserving method on the PassThroughProbeBus to receive
+     * measurements. You may also use existing general purpose implementations
+     * already available.
+     *
+     * @author Daniel Bültmann <me@daniel-bueltmann.de>
+     * @ingroup probebusses
      */
-    class LogEval:
-		public ProbeBus
+    class PassThroughProbeBus:
+        virtual public ProbeBus
     {
-
-		struct LogEntry
-		{
-			double value;
-			wns::simulator::Time time;
-		};
-
     public:
-		LogEval(const wns::pyconfig::View&);
 
-		virtual ~LogEval();
+        PassThroughProbeBus();
+
+        PassThroughProbeBus(const wns::pyconfig::View&);
+
+        virtual ~PassThroughProbeBus() {}
 
         virtual bool
         accepts(const wns::simulator::Time&, const IContext&);
@@ -67,20 +65,9 @@ namespace wns { namespace probe { namespace bus {
         virtual void
         output();
 
-	private:
-		/**
-		 *@brief Container for the logged entries */
-		std::list<LogEntry>     logQueue;
-        std::string outputPath;
-        std::string filename;
-		bool firstWrite;
-		int timePrecision;
-		int valuePrecision;
-		formatType format;
-	};
-
+    };
 } // bus
 } // probe
 } // wns
 
-#endif // WNS_PROBE_BUS_LOGEVAL_HPP
+#endif // WNS_PROBE_BUS_PASSTHROUGHPROBEBUS_HPP

@@ -155,5 +155,5 @@ class Environment(object):
         self.eventScheduler = openwns.eventscheduler.Map()
         self.masterLogger = openwns.logger.Master()
         self.rng = openwns.rng.RNG(useRandomSeed = False)
-        self.probeBusRegistry = openwns.probebus.ProbeBusRegistry(openwns.probebus.SettlingTimeGuard())
+        self.probeBusRegistry = openwns.probebus.ProbeBusRegistry()
         openwns.pyconfig.attrsetter(self, kw)

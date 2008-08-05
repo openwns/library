@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,27 +25,34 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
-#define WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#ifndef WNS_PROBE_BUS_STATEVALPROBEBUS_HPP
+#define WNS_PROBE_BUS_STATEVALPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/probe/stateval/StatEval.hpp>
+#include <WNS/pyconfig/View.hpp>
+
+class StatEval;
 
 namespace wns { namespace probe { namespace bus {
 
     /**
-     * @brief Only accepts if simulation time is larger than the settling time
+     * @brief Wrap StatEval Objects and attach them to a ProbeBus.
      *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
+     * The StatEvalProbeBus accepts values for a single ProbeID.
+     * Measurements that are received for the ProbID are put to the StatEval
+     * object. output triggers writing of the probe.
+     *
+     * @author Daniel Bültmann <dbn@comnets.rwth-aachen.de>
      * @ingroup probebusses
      */
-    class SettlingTimeGuard :
+    class StatEvalProbeBus :
         public wns::probe::bus::ProbeBus
     {
     public:
+        StatEvalProbeBus(const wns::pyconfig::View&);
 
-        SettlingTimeGuard(const wns::pyconfig::View&);
-
-        virtual ~SettlingTimeGuard();
+        virtual ~StatEvalProbeBus();
 
         virtual void
         onMeasurement(const wns::simulator::Time&,
@@ -59,10 +66,18 @@ namespace wns { namespace probe { namespace bus {
         output();
 
     private:
-        wns::simulator::Time settlingTime_;
+
+        std::string outputPath;
+
+        std::string filename;
+
+        bool appendFlag;
+
+        bool firstWrite;
+
+        wns::probe::stateval::Interface* statEval;
     };
 } // bus
 } // probe
 } // wns
-
-#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#endif // WNS_PROBE_BUS_STATEVALPROBEBUS_HPP

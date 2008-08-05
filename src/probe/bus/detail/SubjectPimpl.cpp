@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the
+ * terms of the GNU Lesser General Public License version 2 as published by the 
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,42 +25,28 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/UnitTests.hpp>
-#include <WNS/rng/RNGen.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <ios>
+#include <WNS/probe/bus/detail/SubjectPimpl.hpp>
+#include <WNS/probe/bus/detail/MeasurementFunctor.hpp>
 
-using namespace wns::simulator;
-
-UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration),
-    initialRNGState_()
-{
-}
-
-UnitTests::~UnitTests()
-{
-}
+using namespace wns::probe::bus::detail;
 
 void
-UnitTests::doReset()
+SubjectPimpl::forwardMeasurement(const wns::simulator::Time& timestamp,
+                                 const double& aValue,
+                                 const IContext& theRegistry)
 {
-    // Another implementation may also decide to delete and rebuild its members
-    // from scratch, rather than resetting them (since reset is error prone,
-    // needs to be implemented and tested thoroughly to not carry any old state
-    // in itself.
-    getEventScheduler()->reset();
-    // seek to the beginning of the stream
-    initialRNGState_.seekg (0, std::ios::beg);
-    initialRNGState_ >> *getRNG();
-    getProbeBusRegistry()->reset();
-    (*getResetSignal())();
+    forEachObserverNoDetachAllowed(
+        MeasurementFunctor(
+            &IProbeBusNotification::forwardMeasurement,
+            timestamp,
+            aValue,
+            theRegistry)
+        );
 }
 
+
 void
-UnitTests::configureRNG(const wns::pyconfig::View& config)
+SubjectPimpl::forwardOutput()
 {
-    Simulator::configureRNG(config);
-    initialRNGState_ << *getRNG();
+   sendNotifies(&IProbeBusNotification::forwardOutput);
 }

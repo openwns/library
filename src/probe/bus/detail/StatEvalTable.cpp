@@ -25,42 +25,57 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/UnitTests.hpp>
-#include <WNS/rng/RNGen.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <ios>
+#include <WNS/probe/bus/detail/StatEvalTable.hpp>
 
-using namespace wns::simulator;
+using namespace wns::probe::bus::detail;
 
-UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration),
-    initialRNGState_()
-{
-}
+Storage::Storage() :
+	se(false,
+	   wns::probe::stateval::StatEval::initialize,
+	   wns::probe::stateval::StatEval::scientific,
+	   "dummy", "dummy")
+{}
 
-UnitTests::~UnitTests()
-{
-}
+Storage::~Storage()
+{}
 
 void
-UnitTests::doReset()
+Storage::put(double value)
 {
-    // Another implementation may also decide to delete and rebuild its members
-    // from scratch, rather than resetting them (since reset is error prone,
-    // needs to be implemented and tested thoroughly to not carry any old state
-    // in itself.
-    getEventScheduler()->reset();
-    // seek to the beginning of the stream
-    initialRNGState_.seekg (0, std::ios::beg);
-    initialRNGState_ >> *getRNG();
-    getProbeBusRegistry()->reset();
-    (*getResetSignal())();
+	se.put(value);
 }
 
-void
-UnitTests::configureRNG(const wns::pyconfig::View& config)
+double
+Storage::get(const std::string& valueType) const
 {
-    Simulator::configureRNG(config);
-    initialRNGState_ << *getRNG();
+	if (valueType == "mean")
+		return se.mean();
+	else if (valueType == "variance")
+		return se.variance();
+	else if (valueType == "relativeVariance")
+		return se.relativeVariance();
+	else if (valueType == "coeffOfVariation")
+		return se.coeffOfVariation();
+	else if (valueType == "M2")
+		return se.M2();
+	else if (valueType == "M3")
+		return se.M3();
+	else if (valueType == "Z3")
+		return se.Z3();
+	else if (valueType == "skewness")
+		return se.skewness();
+	else if (valueType == "deviation")
+		return se.deviation();
+	else if (valueType == "relativeDeviation")
+		return se.relativeDeviation();
+	else if (valueType == "trials")
+		return se.trials();
+	else if (valueType == "min")
+		return se.min();
+	else if (valueType == "max")
+		return se.max();
+	else
+		assure(false, "Table requested unknown statistics: " << valueType);
+
+	return 0;
 }

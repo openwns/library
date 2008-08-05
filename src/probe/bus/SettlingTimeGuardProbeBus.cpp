@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the
+ * terms of the GNU Lesser General Public License version 2 as published by the 
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,42 +25,42 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/UnitTests.hpp>
-#include <WNS/rng/RNGen.hpp>
+#include <WNS/simulator/ISimulator.hpp>
 #include <WNS/events/scheduler/Interface.hpp>
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <ios>
 
-using namespace wns::simulator;
+#include <WNS/probe/bus/SettlingTimeGuardProbeBus.hpp>
 
-UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration),
-    initialRNGState_()
+using namespace wns::probe::bus;
+
+STATIC_FACTORY_REGISTER_WITH_CREATOR(
+    SettlingTimeGuardProbeBus,
+    wns::probe::bus::ProbeBus,
+    "SettlingTimeGuardProbeBus",
+    wns::PyConfigViewCreator);
+
+SettlingTimeGuardProbeBus::SettlingTimeGuardProbeBus(const wns::pyconfig::View& config):
+    settlingTime_(config.get<double>("settlingTime"))
 {
 }
 
-UnitTests::~UnitTests()
+SettlingTimeGuardProbeBus::~SettlingTimeGuardProbeBus()
+{
+}
+
+bool
+SettlingTimeGuardProbeBus::accepts(const wns::simulator::Time&, const IContext&)
+{
+    return wns::simulator::getEventScheduler()->getTime() >= settlingTime_;
+}
+
+void
+SettlingTimeGuardProbeBus::onMeasurement(const wns::simulator::Time&,
+                                 const double&,
+                                 const IContext&)
 {
 }
 
 void
-UnitTests::doReset()
+SettlingTimeGuardProbeBus::output()
 {
-    // Another implementation may also decide to delete and rebuild its members
-    // from scratch, rather than resetting them (since reset is error prone,
-    // needs to be implemented and tested thoroughly to not carry any old state
-    // in itself.
-    getEventScheduler()->reset();
-    // seek to the beginning of the stream
-    initialRNGState_.seekg (0, std::ios::beg);
-    initialRNGState_ >> *getRNG();
-    getProbeBusRegistry()->reset();
-    (*getResetSignal())();
-}
-
-void
-UnitTests::configureRNG(const wns::pyconfig::View& config)
-{
-    Simulator::configureRNG(config);
-    initialRNGState_ << *getRNG();
 }

@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the
+ * terms of the GNU Lesser General Public License version 2 as published by the 
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,42 +25,44 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/UnitTests.hpp>
-#include <WNS/rng/RNGen.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <ios>
+#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
+#define WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP
 
-using namespace wns::simulator;
+#include <WNS/probe/bus/ProbeBus.hpp>
 
-UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration),
-    initialRNGState_()
-{
-}
+namespace wns { namespace probe { namespace bus {
 
-UnitTests::~UnitTests()
-{
-}
+    /**
+     * @brief Only accepts if simulation time is larger than the settling time
+     *
+     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
+     * @ingroup probebusses
+     */
+    class SettlingTimeGuardProbeBus :
+        public wns::probe::bus::ProbeBus
+    {
+    public:
 
-void
-UnitTests::doReset()
-{
-    // Another implementation may also decide to delete and rebuild its members
-    // from scratch, rather than resetting them (since reset is error prone,
-    // needs to be implemented and tested thoroughly to not carry any old state
-    // in itself.
-    getEventScheduler()->reset();
-    // seek to the beginning of the stream
-    initialRNGState_.seekg (0, std::ios::beg);
-    initialRNGState_ >> *getRNG();
-    getProbeBusRegistry()->reset();
-    (*getResetSignal())();
-}
+        SettlingTimeGuardProbeBus(const wns::pyconfig::View&);
 
-void
-UnitTests::configureRNG(const wns::pyconfig::View& config)
-{
-    Simulator::configureRNG(config);
-    initialRNGState_ << *getRNG();
-}
+        virtual ~SettlingTimeGuardProbeBus();
+
+        virtual void
+        onMeasurement(const wns::simulator::Time&,
+                      const double&,
+                      const IContext&);
+
+        virtual bool
+        accepts(const wns::simulator::Time&, const IContext&);
+
+        virtual void
+        output();
+
+    private:
+        wns::simulator::Time settlingTime_;
+    };
+} // bus
+} // probe
+} // wns
+
+#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARDPROBEBUS_HPP

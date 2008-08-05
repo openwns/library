@@ -144,6 +144,12 @@ namespace wns { namespace simulator {
         configureMasterLogger(const pyconfig::View& masterLoggerConfiguration);
 
         /**
+         * @brief helper to setup ProbeBusRegistry
+         */
+        void
+        configureProbeBusRegistry(const pyconfig::View& pbrConfiguration);
+
+        /**
          * @brief Gloabal Configuration
          */
         wns::pyconfig::View configuration_;

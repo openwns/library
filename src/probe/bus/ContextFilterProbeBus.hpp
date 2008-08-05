@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,38 +25,46 @@
  *
  ******************************************************************************/
 
-#include <WNS/probe/bus/MasterProbeBus.hpp>
+#ifndef WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP
+#define WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP
 
-using namespace wns::probe::bus;
+#include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/pyconfig/View.hpp>
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    MasterProbeBus,
-    wns::probe::bus::ProbeBus,
-    "MasterProbeBus",
-    wns::PyConfigViewCreator);
+#include <set>
 
-MasterProbeBus::MasterProbeBus(const wns::pyconfig::View&)
-{
-}
+namespace wns { namespace probe { namespace bus {
 
-bool
-MasterProbeBus::accepts(const wns::simulator::Time&, const IContext&)
-{
-    // We always accept everything
-    return true;
-}
+    /**
+     * @brief Filter Measurements by checking id/value pair
+     *
+     * @ingroup probebusses
+     */
+    class ContextFilterProbeBus:
+        public wns::probe::bus::ProbeBus
+    {
+    public:
+        ContextFilterProbeBus(const wns::pyconfig::View& pyco);
 
-void
-MasterProbeBus::onMeasurement(const wns::simulator::Time&,
-                              const double&,
-                              const IContext&)
-{
-    // We do not do anything with a measurement
-    // ProbeBus will forward to all attached servers
-}
+        virtual ~ContextFilterProbeBus();
 
-void
-MasterProbeBus::output()
-{
-    // Nothing needs to be done here
-}
+        virtual void
+        onMeasurement(const wns::simulator::Time&,
+                      const double&,
+                      const IContext&);
+
+        virtual bool
+        accepts(const wns::simulator::Time&, const IContext&);
+
+        virtual void
+        output();
+
+    private:
+        std::string idName;
+        std::set<int> values;
+    };
+} // bus
+} // probe
+} // wns
+
+#endif //WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP

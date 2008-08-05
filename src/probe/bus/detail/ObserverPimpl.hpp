@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the
+ * terms of the GNU Lesser General Public License version 2 as published by the 
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,42 +25,38 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/UnitTests.hpp>
-#include <WNS/rng/RNGen.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
-#include <ios>
+#ifndef WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP
+#define WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP
 
-using namespace wns::simulator;
+#include <WNS/probe/bus/detail/IProbeBusNotification.hpp>
+#include <WNS/Observer.hpp>
 
-UnitTests::UnitTests(const wns::pyconfig::View& configuration) :
-    Simulator(configuration),
-    initialRNGState_()
-{
+namespace wns { namespace probe { namespace bus { class ProbeBus; }}}
+
+namespace wns { namespace probe { namespace bus { namespace detail {
+
+    class ObserverPimpl:
+        public wns::Observer<IProbeBusNotification>        
+    {
+
+    public:
+        ObserverPimpl(wns::probe::bus::ProbeBus*);
+
+        virtual void
+        forwardMeasurement(const wns::simulator::Time&,
+                           const double&,
+                           const IContext&);
+
+        virtual void
+        forwardOutput();
+
+    private:
+        wns::probe::bus::ProbeBus* pb_;
+    };
+
+}
+}
+}
 }
 
-UnitTests::~UnitTests()
-{
-}
-
-void
-UnitTests::doReset()
-{
-    // Another implementation may also decide to delete and rebuild its members
-    // from scratch, rather than resetting them (since reset is error prone,
-    // needs to be implemented and tested thoroughly to not carry any old state
-    // in itself.
-    getEventScheduler()->reset();
-    // seek to the beginning of the stream
-    initialRNGState_.seekg (0, std::ios::beg);
-    initialRNGState_ >> *getRNG();
-    getProbeBusRegistry()->reset();
-    (*getResetSignal())();
-}
-
-void
-UnitTests::configureRNG(const wns::pyconfig::View& config)
-{
-    Simulator::configureRNG(config);
-    initialRNGState_ << *getRNG();
-}
+#endif // WNS_PROBE_BUS_DETAIL_OBSERVERPIMPL_HPP

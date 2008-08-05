@@ -106,7 +106,8 @@ namespace wns { namespace container {
         typename ELEMENT,
         typename CLEANUPPOLICY = registry::NoneOnErase,
         typename SORTINGPOLICY = std::less<KEY> >
-    class Registry
+    class Registry:
+        public IOutputStreamable
     {
 
         /**
@@ -156,13 +157,7 @@ namespace wns { namespace container {
                 (*this) << "No " << TypeInfo::create<ElementType>()
                         << " with this key registered.\n"
                         << "Key: " << key << "\n"
-                        << "Elements with the following keys are registered:\n";
-                for (typename Registry::const_iterator itr = reg.elements_.begin();
-                     itr != reg.elements_.end();
-                     ++itr)
-                {
-                    (*this) << " - " << itr->first << "\n";
-                }
+                        << reg;
             }
 
             virtual
@@ -394,7 +389,24 @@ namespace wns { namespace container {
             }
             return retVal;
         }
+
     private:
+        std::string
+        doToString() const
+        {
+            std::stringstream repr;
+
+            repr << "Elements with the following keys are registered:\n";
+
+            for (typename Registry::const_iterator itr = elements_.begin();
+                 itr != elements_.end();
+                 ++itr)
+                {
+                    repr << " - " << itr->first << "\n";
+                }
+
+            return repr.str();
+        }
 
         /**
          * @brief Strores the elements of the Registry
