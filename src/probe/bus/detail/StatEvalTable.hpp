@@ -29,7 +29,7 @@
 #define WNS_PROBE_BUS_DETAIL_STATEVALTABLE_HPP
 
 #include <WNS/container/DynamicMatrix.hpp>
-#include <WNS/probe/stateval/StatEval.hpp>
+#include <WNS/evaluation/statistics/stateval.hpp>
 #include <WNS/probe/bus/detail/Sorter.hpp>
 
 #include <vector>
@@ -42,7 +42,7 @@ namespace wns { namespace probe { namespace bus { namespace detail {
 		/** @brief Wrapper for default construction of a StatEval Object */
 		class Storage
 		{
-			wns::probe::stateval::StatEval se;
+                    wns::evaluation::statistics::StatEval se;
 		public:
 			Storage();
 

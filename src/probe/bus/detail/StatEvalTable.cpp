@@ -30,9 +30,7 @@
 using namespace wns::probe::bus::detail;
 
 Storage::Storage() :
-	se(false,
-	   wns::probe::stateval::StatEval::initialize,
-	   wns::probe::stateval::StatEval::scientific,
+	se(wns::evaluation::statistics::StatEval::scientific,
 	   "dummy", "dummy")
 {}
 

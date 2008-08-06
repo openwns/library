@@ -32,7 +32,6 @@
 #include <fstream>
 
 using namespace wns::probe::bus;
-using namespace wns::probe::stateval;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     TableProbeBus,

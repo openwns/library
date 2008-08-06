@@ -48,7 +48,7 @@ StatEvalProbeBus::StatEvalProbeBus(const wns::pyconfig::View& pyco) :
     wns::pyconfig::View pycoRoot = wns::simulator::getConfiguration();
     outputPath = pycoRoot.get<std::string>("outputDir");
 
-    statEval = wns::probe::stateval::Factory::creator(pyco.get<std::string>("statEval.nameInFactory"))
+    statEval = wns::evaluation::statistics::Factory::creator(pyco.get<std::string>("statEval.nameInFactory"))
         ->create(pyco.get("statEval"));
 }
 

@@ -25,417 +25,412 @@
  *
  ******************************************************************************/
 
-#include "pdf.hpp"
+#include <WNS/evaluation/statistics/pdf.hpp>
 
 #include <cmath>
 #include <iomanip>
 #include <climits>
 #include <cfloat>
 
-using namespace std;
+using namespace wns::evaluation::statistics;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(PDF,
-									 StatEvalInterface,
-									 "openwns.evaluation.statistics.PDF",
-									 wns::PyConfigViewCreator);
+                                     StatEvalInterface,
+                                     "openwns.evaluation.statistics.PDF",
+                                     wns::PyConfigViewCreator);
 
-//! Default constructor
-
-PDF::PDF(double aMinXValue,
-		 double aMaxXValue,
-		 uint32_t aResolution,
-		 scaleType aScaleType,
-		 formatType aFormat,
-		 const char* aName,
-		 const char* aDescription) 
-    : StatEval(false, initialize, aFormat, aName, aDescription),
-      p_minXValue(aMinXValue),
-      p_maxXValue(aMaxXValue),
-      p_resolution(aResolution),
-      p_scaleType(aScaleType),
-      p_values(p_resolution+1, 0),
-      p_underFlows(0),
-      p_overFlows(0)
+PDF::PDF(double minXValue,
+         double maxXValue,
+         uint32_t resolution,
+         scaleType scaleType,
+         formatType format,
+         std::string name,
+         std::string description)
+    : StatEval(format, name, description),
+      minXValue_(minXValue),
+      maxXValue_(maxXValue),
+      resolution_(resolution),
+      scaleType_(scaleType),
+      values_(resolution_+1, 0),
+      underFlows_(0),
+      overFlows_(0)
 {
-	assure(p_minXValue < p_maxXValue,
-		   "Wrong min/max values. min=" << p_minXValue << ", max="<<p_maxXValue);
-	assure(p_resolution > 0, "Resolution must be >0, but is " << p_resolution);
+    assure(minXValue_ < maxXValue_,
+           "Wrong min/max values. min=" << minXValue_ << ", max="<<maxXValue_);
+    assure(resolution_ > 0, "Resolution must be >0, but is " << resolution_);
 }
 
 PDF::PDF(const wns::pyconfig::View& config)
     : StatEval(config),
-      p_minXValue(config.get<double>("minXValue")),
-      p_maxXValue(config.get<double>("maxXValue")),
-      p_resolution(config.get<int>("resolution")),
-      p_scaleType(config.get<std::string>("xScaleType") == "logarithmical" ? logarithmical : linear),
-      p_values(p_resolution+1, 0),
-      p_underFlows(0),
-      p_overFlows(0)
+      minXValue_(config.get<double>("minXValue")),
+      maxXValue_(config.get<double>("maxXValue")),
+      resolution_(config.get<int>("resolution")),
+      scaleType_(config.get<std::string>("xScaleType") == "logarithmical" ? logarithmical : linear),
+      values_(resolution_+1, 0),
+      underFlows_(0),
+      overFlows_(0)
 {
-	assure(p_minXValue < p_maxXValue,
-		   "Wrong min/max values. min=" << p_minXValue << ", max="<<p_maxXValue);
-	assure(p_resolution > 0, "Resolution must be >0, but is " << p_resolution);
+    assure(minXValue_ < maxXValue_,
+           "Wrong min/max values. min=" << minXValue_ << ", max="<<maxXValue_);
+    assure(resolution_ > 0, "Resolution must be >0, but is " << resolution_);
 }
 
 
 //! Default copy constructor is correct
 
-PDF::PDF(const PDF& aPDFRef) 
-    : StatEval(aPDFRef),
-      p_minXValue(0.0),
-      p_maxXValue(1.0),
-      p_resolution(100),
-      p_scaleType(linear),
-      p_values(),
-      p_underFlows(0),
-      p_overFlows(0)
+PDF::PDF(const PDF& other)
+    : StatEval(other),
+      minXValue_(0.0),
+      maxXValue_(1.0),
+      resolution_(100),
+      scaleType_(linear),
+      values_(),
+      underFlows_(0),
+      overFlows_(0)
 {
     // Copy all internal data
-    p_minXValue                   = aPDFRef.p_minXValue;
-    p_maxXValue                   = aPDFRef.p_maxXValue;
-    p_resolution                  = aPDFRef.p_resolution;
-    p_scaleType                   = aPDFRef.p_scaleType;
-    p_values                      = aPDFRef.p_values;
-    p_name                        = aPDFRef.p_name;
-    p_desc                        = aPDFRef.p_desc;
+    minXValue_ = other.minXValue_;
+    maxXValue_ = other.maxXValue_;
+    resolution_ = other.resolution_;
+    scaleType_ = other.scaleType_;
+    values_ = other.values_;
+    name_ = other.name_;
+    desc_ = other.desc_;
 }
 
-
-
-//! Destructor
 PDF::~PDF()
 {
 }
 
-
-//! Normal output
-void PDF::print(ostream& aStreamRef) const 
+void
+PDF::print(std::ostream& stream) const
 {
-    std::string error_string;
-    error_string = "I/O Error: Can't dump PDF results";
+    std::string errorString;
+    errorString = "I/O Error: Can't dump PDF results";
 
-    pd_printBanner(aStreamRef,
-		   (std::string) (pd_prefix + " Evaluation: PDF"),
-		   error_string);
-    if (!aStreamRef)
+    printBanner(stream,
+                (std::string) (prefix_ + " Evaluation: PDF"),
+                errorString);
+
+    if (!stream)
     {
-  	throw(wns::Exception(error_string));
+        throw(wns::Exception(errorString));
     }
-    std::string prefix(pd_prefix + " ");
+
+    std::string prefix = (prefix_ + " ");
 
     std::string separator;
-    uint32_t i = 0, num_trials = 0;
-    double x = 0.0, f = 0.0, g = 0.0, p = 0.0;
+
+    uint32_t i = 0;
+
+    uint32_t numTrials = 0;
+
+    double x = 0.0;
+    double f = 0.0;
+    double g = 0.0;
+    double p = 0.0;
 
     separator = prefix + "-------------------------------------";
     separator += "----------------------";
 
+    stream << std::resetiosflags(std::ios::fixed)
+           << std::resetiosflags(std::ios::scientific)
+           << std::resetiosflags(std::ios::right)
+           << std::setiosflags(std::ios::left)
+           << std::setiosflags(std::ios::dec)
+           << std::setprecision(7)
+           << std::setw(6)
+
+           << separator << std::endl << prefix
+           << "PDF statistics " << std::endl << prefix
+           << " Left border of x-axis: "
+           << minXValue_
+           << std::endl << prefix
+           << " Right border of x-axis: "
+           << maxXValue_
+           << std::endl << prefix
+           << " Resolution of x-axis: "
+           << resolution_
+           << std::endl
+           << separator
+           << std::endl;
+
+    stream << prefix
+           << "PDF data " << std::endl << prefix
+           << " Underflows: "
+           << underFlows_ << std::endl;
+
+    stream << prefix
+           << " Underflows in percent: "
+           << ((numTrials_ > 0) ? (double)(underFlows_) /
+               (double)numTrials_ : 0.0)
+           << std::endl;
+
+    stream << prefix
+           << " Overflows: "
+           << (overFlows_) << std::endl;
+
+    stream << prefix
+           << " Overflows in percent: "
+           << ((numTrials_ > 0) ?
+               (double)(overFlows_) /
+               (double)numTrials_ : 0.0) << std::endl;
+
+    stream << separator
+           << std::endl << prefix
+           << "Percentiles" << std::endl;
+
+    stream << prefix; this->printPercentile( 1, stream);
+    stream << prefix; this->printPercentile( 5, stream);
+    stream << prefix; this->printPercentile(50, stream);
+    stream << prefix; this->printPercentile(95, stream);
+    stream << prefix; this->printPercentile(99, stream);
+
+    stream << separator
+           << std::endl << prefix << std::endl << prefix
+           << "x_n                  F(x_n)           G(x_n)     P(x_n-1 < X    n"
+           << std::endl << prefix
+           << "                   =P(X<=x_n)       =P(X>x_n)   AND X <= x_n)"
+           << std::endl << prefix << std::endl
+           << (format_ == fixed ? setiosflags(std::ios::fixed) :
+               setiosflags(std::ios::scientific));
 
 
-    aStreamRef << resetiosflags(ios::fixed)
-	       << resetiosflags(ios::scientific)
-	       << resetiosflags(ios::right)
-	       << setiosflags(ios::left)
-	       << setiosflags(ios::dec)
-	       << setprecision(7)
-	       << setw(6)
-
-	       << separator << endl << prefix
-	       << "PDF statistics " << endl << prefix
-	       << " Left border of x-axis: "
-	       << p_minXValue
-	       << endl << prefix
-	       << " Right border of x-axis: "
-	       << p_maxXValue
-	       << endl << prefix
-	       << " Resolution of x-axis: "
-	       << p_resolution
-	       << endl
-	       << separator
-	       << endl;
-
-    aStreamRef << prefix
-	       << "PDF data " << endl << prefix
-	       << " Underflows: "
-               << p_underFlows << endl;
-
-    aStreamRef << prefix
-	       << " Underflows in percent: "
-	       << ((pd_numTrials > 0) ? (double)(p_underFlows) /
-		   (double)pd_numTrials : 0.0)
-	       << endl;
-
-    aStreamRef << prefix
-	       << " Overflows: "
-               << (p_overFlows) << endl;
-
-    aStreamRef << prefix
-	       << " Overflows in percent: "
-	       << ((pd_numTrials > 0) ?
-		   (double)(p_overFlows) /
-		   (double)pd_numTrials : 0.0) << endl;
-
-    aStreamRef << separator
-			   << endl << prefix
-			   << "Percentiles" << endl;
-
-	aStreamRef << prefix; this->p_printPercentile( 1, aStreamRef);
-	aStreamRef << prefix; this->p_printPercentile( 5, aStreamRef);
-	aStreamRef << prefix; this->p_printPercentile(50, aStreamRef);
-	aStreamRef << prefix; this->p_printPercentile(95, aStreamRef);
-	aStreamRef << prefix; this->p_printPercentile(99, aStreamRef);
-
-    aStreamRef << separator
-	       << endl << prefix << endl << prefix
-		   << "x_n                  F(x_n)           G(x_n)     P(x_n-1 < X    n"
-		   << endl << prefix
-		   << "                   =P(X<=x_n)       =P(X>x_n)   AND X <= x_n)"
-	       << endl << prefix << endl
-	       << (pd_format == fixed ? setiosflags(ios::fixed) :
-		   setiosflags(ios::scientific));
-
-
-    if (!aStreamRef)
+    if (!stream)
     {
-	throw(wns::Exception(error_string));
+        throw(wns::Exception(errorString));
     }
 
-	// Handle the normal intervals
-    for (i = 0, num_trials = p_underFlows;
-		 i <= p_resolution; ++i)
+    // Handle the normal intervals
+    for (i = 0, numTrials = underFlows_;
+         i <= resolution_; ++i)
     {
-		// Normal interval
-	    x = p_getAbscissa(i);
-	    num_trials += p_values.at(i);
+        // Normal interval
+        x = getAbscissa(i);
+        numTrials += values_.at(i);
 
-	    if (pd_numTrials != 0)
-	    {
-			f = double(num_trials) / double(pd_numTrials);
-			assert(0.0 <= f && f <= 1.0);
-			g = 1.0 - f;
-			p = double(p_values.at(i)) / double(pd_numTrials);
-	    }
-	    else
-	    {
-			f = g = p = 0.0;
-	    }
+        if (numTrials_ != 0)
+        {
+            f = double(numTrials) / double(numTrials_);
+            assert(0.0 <= f && f <= 1.0);
+            g = 1.0 - f;
+            p = double(values_.at(i)) / double(numTrials_);
+        }
+        else
+        {
+            f = g = p = 0.0;
+        }
 
-		aStreamRef << resetiosflags(ios::right)
-				   << setiosflags(ios::left)
-				   << setw(15)
-				   << x
-				   << resetiosflags(ios::left)
-				   << setiosflags(ios::right)
-				   << setw(14)
-				   << f
-				   << "  "
-				   << setw(14)
-				   << g
-				   << "  "
-				   << setw(14)
-				   << p
-				   << "  "
-				   << setw(4)
-				   << i
-				   << endl;
-		if (!aStreamRef)
-		{
-			throw(wns::Exception(error_string));
-		}
+        stream << resetiosflags(std::ios::right)
+               << setiosflags(std::ios::left)
+               << std::setw(15)
+               << x
+               << resetiosflags(std::ios::left)
+               << setiosflags(std::ios::right)
+               << std::setw(14)
+               << f
+               << "  "
+               << std::setw(14)
+               << g
+               << "  "
+               << std::setw(14)
+               << p
+               << "  "
+               << std::setw(4)
+               << i
+               << std::endl;
+        if (!stream)
+        {
+            throw(wns::Exception(errorString));
+        }
     }
 
-    aStreamRef << separator;
+    stream << separator;
 
-    if (!aStreamRef)
+    if (!stream)
     {
-	throw(wns::Exception(error_string));
+        throw(wns::Exception(errorString));
     }
 }
 
-
-//! Input a value to the statistical evaluation
-void PDF::put(double aValue) 
+void
+PDF::put(double value)
 {
-    StatEval::put(aValue);
+    StatEval::put(value);
 
     // Underflow?
-    if (aValue < p_minXValue)
+    if (value < minXValue_)
     {
-		++p_underFlows;
+        ++underFlows_;
     }
     // Overflow?
-    else if (aValue > p_maxXValue)
+    else if (value > maxXValue_)
     {
-		++p_overFlows;
+        ++overFlows_;
     }
-	else
-	{
-		p_values.at(this->p_getIndex(aValue))++;
-	}
+    else
+    {
+        values_.at(this->getIndex(value))++;
+    }
 }
 
 
 uint32_t
-PDF::p_getIndex(double aValue) const 
+PDF::getIndex(double value) const
 {
-    assert((aValue >= p_minXValue && aValue <= p_maxXValue) && "Huge, Fat Error!");
+    assert((value >= minXValue_ && value <= maxXValue_) && "Huge, Fat Error!");
 
-	if (this->p_scaleType == PDF::linear)
-	{
-		return uint32_t(
-			ceil((aValue - p_minXValue) * double(p_resolution) /
-								(p_maxXValue - p_minXValue)));
-	}
-	else if (this->p_scaleType == PDF::logarithmical)
-	{
-		double logXMin = log10(p_minXValue);
-		double logXMax = log10(p_maxXValue);
-		double logValue = log10(aValue);
-		double logXStep = (logXMax - logXMin)/double(p_resolution);
-
-		return  uint32_t( ceil ((logValue - logXMin)/logXStep) );
-	}
-
-	throw wns::Exception("Unknown scaleType in PDF!");
-	return 0;
-}
-
-//! Reset evaluation algorithm to its initial state
-void PDF::reset() 
-{
-    StatEval::reset();
-    p_values = std::vector<int>(p_resolution + 1);
-}
-
-double PDF::p_getAbscissa(uint32_t anIndex) const 
-{
-	if (this->p_scaleType == PDF::linear)
-	{
-		return p_minXValue
-			+ (p_maxXValue - p_minXValue) * double(anIndex) / double(p_resolution);
-	}
-	else if (this->p_scaleType == PDF::logarithmical)
-	{
-		double logXMin = log10(p_minXValue);
-		double logXMax = log10(p_maxXValue);
-		double logXStep = (logXMax - logXMin)/double(p_resolution);
-		return double(pow(10, logXMin + double(anIndex) * logXStep));
-	}
-	else
-	{
-		throw wns::Exception("Unknown scaleType in PDF!");
-	}
-}
-
-double
-PDF::p_getPercentile(int p) const
-{
-	assert(p>0 && "Percentile has to be greater than 0!");
-
-	if (pd_numTrials == 0)
-		return 0.0;
-
-	double P = double(p)/100.0;
-
-	if ( P<= double(p_underFlows)/double(pd_numTrials) )
-		throw PercentileUnderFlow();
-
-	if ( P > 1.0 - double(p_overFlows)/double(pd_numTrials) )
-		throw PercentileOverFlow();
-
-	double x = 0.0;
-	double F = 0.0;
-	double dummy1 = 0.0;
-	double dummy2 = 0.0;
-	double tmpF = 0.0;
-	double tmpX = 0.0;
-
-	this->getResult(0, x, F, dummy1, dummy2);
-
-	if (F >= P)
-		throw PercentileUnderFlow();
-
-    for (unsigned int ii = 1; ii <= p_resolution; ++ii)
+    if (this->scaleType_ == PDF::linear)
     {
-		this->getResult(ii, tmpX, tmpF, dummy1, dummy2);
+        return uint32_t(
+            ceil((value - minXValue_) * double(resolution_) /
+                 (maxXValue_ - minXValue_)));
+    }
+    else if (this->scaleType_ == PDF::logarithmical)
+    {
+        double logXMin = log10(minXValue_);
+        double logXMax = log10(maxXValue_);
+        double logValue = log10(value);
+        double logXStep = (logXMax - logXMin)/double(resolution_);
 
-		if (F<P && tmpF >= P)
-		{
-			if (tmpF == 1.0)
-				tmpX = pd_maxValue;
-
-			return x + (tmpX-x) / (tmpF-F) * (P-F);
-		}
-
-		F = tmpF;
-		x = tmpX;
+        return  uint32_t( ceil ((logValue - logXMin)/logXStep) );
     }
 
-	throw wns::Exception("This point should never be reached");
+    throw wns::Exception("Unknown scaleType in PDF!");
+    return 0;
 }
 
 void
-PDF::p_printPercentile(int p, std::ostream& aStreamRef) const 
+PDF::reset()
 {
-	stringstream ss;
+    StatEval::reset();
+    values_ = std::vector<int>(resolution_ + 1);
+}
 
-	ss << " P"
-	   << setiosflags(ios::right) << setfill('0') << setw(2)
-	   << p << ": ";
+double
+PDF::getAbscissa(uint32_t index) const
+{
+    if (this->scaleType_ == PDF::linear)
+    {
+        return minXValue_
+            + (maxXValue_ - minXValue_) * double(index) / double(resolution_);
+    }
+    else if (this->scaleType_ == PDF::logarithmical)
+    {
+        double logXMin = log10(minXValue_);
+        double logXMax = log10(maxXValue_);
+        double logXStep = (logXMax - logXMin)/double(resolution_);
+        return double(pow(10, logXMin + double(index) * logXStep));
+    }
+    else
+    {
+        throw wns::Exception("Unknown scaleType in PDF!");
+    }
+}
 
-	try
-	{
-		ss << setiosflags(ios::dec) << setprecision(7) << setw(6)
-		   << setiosflags(ios::fixed) << this->p_getPercentile(p);
-	}
-	catch (PercentileUnderFlow)
-	{
-		ss << "NaN";
-	}
-	catch (PercentileOverFlow)
-	{
-		ss << "NaN";
-	}
-	aStreamRef << ss.str() << endl;
+double
+PDF::getPercentile(int p) const
+{
+    assert(p>0 && "Percentile has to be greater than 0!");
+
+    if (numTrials_ == 0)
+        return 0.0;
+
+    double P = double(p)/100.0;
+
+    if ( P<= double(underFlows_)/double(numTrials_) )
+        throw PercentileUnderFlow();
+
+    if ( P > 1.0 - double(overFlows_)/double(numTrials_) )
+        throw PercentileOverFlow();
+
+    double x = 0.0;
+    double F = 0.0;
+    double dummy1 = 0.0;
+    double dummy2 = 0.0;
+    double tmpF = 0.0;
+    double tmpX = 0.0;
+
+    this->getResult(0, x, F, dummy1, dummy2);
+
+    if (F >= P)
+        throw PercentileUnderFlow();
+
+    for (unsigned int ii = 1; ii <= resolution_; ++ii)
+    {
+        this->getResult(ii, tmpX, tmpF, dummy1, dummy2);
+
+        if (F<P && tmpF >= P)
+        {
+            if (tmpF == 1.0)
+                tmpX = maxValue_;
+
+            return x + (tmpX-x) / (tmpF-F) * (P-F);
+        }
+
+        F = tmpF;
+        x = tmpX;
+    }
+
+    throw wns::Exception("This point should never be reached");
+}
+
+void
+PDF::printPercentile(int p, std::ostream& stream) const
+{
+    std::stringstream ss;
+
+    ss << " P"
+       << std::setiosflags(std::ios::right) << std::setfill('0') << std::setw(2)
+       << p << ": ";
+
+    try
+    {
+        ss << std::setiosflags(std::ios::dec) << std::setprecision(7) << std::setw(6)
+           << std::setiosflags(std::ios::fixed) << this->getPercentile(p);
+    }
+    catch (PercentileUnderFlow)
+    {
+        ss << "NaN";
+    }
+    catch (PercentileOverFlow)
+    {
+        ss << "NaN";
+    }
+    stream << ss.str() << std::endl;
 }
 
 
-//! Return statistical information of the given interval
-void PDF::getResult(uint32_t anIndex, double& anAbscissa,
-		    double& anF, double& aG,
-		    double& aP) const 
+void
+PDF::getResult(uint32_t index,
+               double& abscissa,
+               double& F,
+               double& G,
+               double& P) const
 {
     uint32_t i;
-    uint32_t num_trials = p_underFlows;
+    uint32_t numTrials = underFlows_;
 
-    assert(p_resolution);
+    assert(resolution_);
 
-    if (pd_numTrials == 0)
+    if (numTrials_ == 0)
     {
-		anAbscissa = 0.0;
-		anF = 0.0;
-		aG = 0.0;
-		aP = 0.0;
-		return;
+        abscissa = 0.0;
+        F = 0.0;
+        G = 0.0;
+        P = 0.0;
+        return;
     }
 
-    for (i = 0; i <= anIndex; i++)
+    for (i = 0; i <= index; i++)
     {
-		num_trials += p_values.at(i);
+        numTrials += values_.at(i);
     }
-	anAbscissa = p_getAbscissa(anIndex);
-    anF = double(num_trials) / double(pd_numTrials);
-    assert(0.0 <= anF && anF <= 1.0);
-    aG = 1.0 - anF;
-    aP = double(p_values.at(anIndex)) / double(pd_numTrials);
+    abscissa = getAbscissa(index);
+    F = double(numTrials) / double(numTrials_);
+    assert(0.0 <= F && F <= 1.0);
+    G = 1.0 - F;
+    P = double(values_.at(index)) / double(numTrials_);
 }
 
-
-
-/*
-Local Variables:
-mode: c++
-folded-file: t
-End:
-*/
 

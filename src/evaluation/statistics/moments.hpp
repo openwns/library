@@ -25,88 +25,116 @@
  *
  ******************************************************************************/
 
-#ifndef _MOMENTS_HPP
-#define _MOMENTS_HPP
+#ifndef WNS_EVALUATION_STATISTICS_MOMENTS_HPP
+#define WNS_EVALUATION_STATISTICS_MOMENTS_HPP
 
 #include <WNS/evaluation/statistics/stateval.hpp>
 
-/*
- * The class Moments
- */
-/*! \brief Class \bMoments: Simple stat. evaluation: mean, variance,
-  skewness etc. */
-class Moments : public StatEval
-{
-  public:
+namespace wns { namespace evaluation { namespace statistics {
 
-    //#  Constructors and Destructors
+            /**
+             * @brief Class Moments: Simple stat. evaluation: mean, variance,
+             * skewness etc.
+             */
+            class Moments: public StatEval
+            {
+            public:
 
-    // Default constructor
-    Moments();
+                Moments();
 
-    Moments(std::string aName,
-			std::string aDescription,
-			formatType  aFormat);
+                Moments(std::string name,
+                        std::string description,
+                        formatType  format);
 
-	Moments(const wns::pyconfig::View& config);
+                Moments(const wns::pyconfig::View& config);
 
-    // Destructor
-    virtual ~Moments();
+                virtual ~Moments();
 
-    // Print output
-    virtual void print(std::ostream& aStreamRef = std::cout) const;
+                virtual void
+                print(std::ostream& stream = std::cout) const;
 
-    //#  Public members
+                /**
+                 * @brief Input of value xI, weighted with wI
+                 */
+                virtual void
+                put(double xI, double wI);
 
-    // Input of value xI, weighted with wI
-    virtual void put(double xI, double wI)             ;
+                /**
+                 * @brief Input of value xI
+                 */
+                virtual void
+                put(double xI);
 
-    // Input of value xI
-    virtual void put(double xI)                          ;
+                /**
+                 * @brief Return mean value
+				 *
+				 *	      __ n              1   __ n
+				 * E{x} = \        x * p  = _ * \        x
+				 *        /_ i = 1      i   n   /_ i = 1
+				 *
+                 */
+                virtual double
+                mean() const;
 
-    // Return mean value
-    virtual double   mean()                        const ;
+                /**
+                 * @brief Return variance
+				 *
+				 *  2      2     2      1   __ n      2    2
+				 * c  = E{x } - E {x} = - * \        x  - E {x}
+				 *                      n   /_ i = 1
+                 */
+                virtual double
+                variance() const;
 
-    // Return variance
-    virtual double   variance()                    const ;
+                /**
+                 * @brief Return size of 95%-confidence interval of mean
+                 */
+                virtual double
+                getConfidenceInterval95Mean() const;
 
-    // Return size of 95%-confidence interval of mean
-    virtual double   getConfidenceInterval95Mean() const ;
+                /**
+                 * @brief Return size of 99%-confidence interval of mean
+                 */
+                virtual double
+                getConfidenceInterval99Mean() const;
 
-    // Return size of 99%-confidence interval of mean
-    virtual double   getConfidenceInterval99Mean() const ;
-
-    // Return moment m2
-    virtual double   M2()                          const ;
-
-    // Return moment m3
-    virtual double   M3()                          const ;
-
-    // Reset evaluation
-    virtual void       reset()                             ;
-
-  protected:
-
-    //! sum of weights
-    double            pd_wSum;
-
-  private:
-
-    double
-    getConfidenceIntervalMean(double x) const;
-
-};
+                /**
+                 * @brief Return moment m2
+                 */
+                virtual double
+                M2() const;
 
 
-#endif  // _MOMENTS_HPP
+                /**
+                 * @brief Return moment m3
+                 */
+                virtual double
+                M3() const;
 
+                /**
+                 * @brief Reset evaluation
+                 */
+                virtual void
+                reset();
 
-/*
-Local Variables:
-mode: c++
-folded-file: t
-End:
-*/
+            protected:
+
+                /**
+                 * @brief Sum of weights
+                 */
+                double wSum_;
+
+            private:
+
+                double
+                getConfidenceIntervalMean(double x) const;
+            };
+
+} // statistics
+} // evaluation
+} // wns
+
+#endif  // WNS_EVALUATION_STATISTICS_MOMENTS_HPP
 
 
 

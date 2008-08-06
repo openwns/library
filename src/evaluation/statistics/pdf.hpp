@@ -25,123 +25,162 @@
  *
  ******************************************************************************/
 
-#ifndef _PDF_HPP
-#define _PDF_HPP
+#ifndef WNS_EVALUATION_STATISTICS_PDF_HPP
+#define WNS_EVALUATION_STATISTICS_PDF_HPP
 
-
-#include "stateval.hpp"
+#include <WNS/evaluation/statistics/stateval.hpp>
 
 #include <vector>
 
+namespace wns { namespace evaluation { namespace statistics {
+            /**
+             * @brief Class PDF: Probability Distribution Function. This class
+             * can be used to output the distribution function, the complementary
+             * distribution function, and the probability function of a given
+             * random x-sequence. The user only has to define the left and right
+             * border of the x-axis, the given x-values are expected to lie in, and
+             * the resolution of this range on the x-axis, i.e. the number of
+             * intervals. This algorithm does not consider correlation at all and,
+             * thus, cannot be used for controlling the length of a simulation
+             * run. This algorithm is especially useful, when you have to examine a
+             * fixed set of values or when you want to gain a first notion of the
+             * behaviour of a correlated sequence of values.
+             */
+            class PDF:
+        public StatEval
+            {
+            public:
 
-/*
- * The class PDF
- */
-/*!\brief Class \bPDF: Probability Distribution Function. This class
-  can be used to output the distribution function, the complementary
-  distribution function, and the probability function of a given
-  random x-sequence. The user only has to define the left and right
-  border of the x-axis, the given x-values are expected to lie in, and
-  the resolution of this range on the x-axis, i.e. the number of
-  intervals. This algorithm does not consider correlation at all and,
-  thus, cannot be used for controlling the length of a simulation
-  run. This algorithm is especially useful, when you have to examine a
-  fixed set of values or when you want to gain a first notion of the
-  behaviour of a correlated sequence of values. */
-class PDF : public StatEval
-{
-  public:
+                /**
+                 * @brief scale type of the x-axis
+                 */
+                enum scaleType
+                {
+                    logarithmical,
+                    linear
+                };
 
-    //! scale type of the x-axis
-    enum scaleType
-    {
-	logarithmical, linear
-    };
+                PDF(double minXValue,
+                    double maxXValue,
+                    uint32_t resolution,
+                    scaleType scaleType,
+                    formatType format,
+                    std::string name,
+                    std::string description);
 
-    //# Constructors and destructor
-	// Default constructor
-    PDF(double    aMinXValue,
-		double    aMaxXValue,
-		uint32_t      aResolution,
-		scaleType   aScaleType,
-	    formatType  aFormat,
-		const char* aName,
-		const char* aDescription) ;
+                PDF(const wns::pyconfig::View& config);
 
-	PDF(const wns::pyconfig::View& config);
+                PDF(const PDF& other);
 
-	// Copy constructor
-    PDF(const PDF& aPDFRef)                                   ;
+                virtual ~PDF();
 
-	// Destructor
-    virtual ~PDF();
+                /**
+                 * @brief Normal output
+                 */
+                virtual void
+                print(std::ostream& stream = std::cout) const;
 
-    // Normal output
-    virtual void     print(std::ostream& aStreamRef = std::cout) const ;
+                /**
+                 * @brief Input a value to the statistical evaluation
+                 */
+                virtual void
+                put(double value);
 
-    // Input a value to the statistical evaluation
-    virtual void      put(double aValue) ;
+                /**
+                 * @brief Reset evaluation algorithm to its initial state
+                 */
+                virtual void
+                reset();
 
-    // Reset evaluation algorithm to its initial state
-    virtual void      reset()              ;
+            private:
 
-private:
+                /**
+                 * @brief Return statistical information of the given interval
+                 */
+                void
+                getResult(uint32_t index,
+                          double& abscissa,
+                          double& f,
+                          double& G,
+                          double& P) const;
 
-    //! Return statistical information of the given interval
-    void getResult(uint32_t anIndex, double& anAbscissa,
-                   double& anF, double& aG, double& aP) const ;
+                /**
+                 * @brief Calculate the index in the array for the given Value
+                 */
+                uint32_t
+                getIndex(double value) const;
 
-	//! Calculate the index in the array for the given Value
-	uint32_t       p_getIndex(double aValue) const ;
+                /**
+                 * @brief Calculate the abscissa value for the given index
+                 */
+                double
+                getAbscissa(uint32_t index) const;
 
-	//! Calculate the abscissa value for the given index
-	double     p_getAbscissa(uint32_t anIndex) const ;
+                class PercentileError : public std::exception
+                {};
 
-	//! Exception classes for percentile calculation
-	class PercentileError : public std::exception
-	{};
+                class PercentileUnderFlow : public PercentileError
+                {};
 
-	class PercentileUnderFlow : public PercentileError
-	{};
+                class PercentileOverFlow : public PercentileError
+                {};
 
-	class PercentileOverFlow : public PercentileError
-	{};
+                /**
+                 * @breif Get the (approximated) p-th percentile, throws a
+                 * PercentileError if not possible
+                 */
+                double
+                getPercentile(int p) const;
 
-	//! Get the (approximated) p-th percentile, throws a PercentileError if not possible
-	double p_getPercentile(int p) const;
+                /**
+                 * @brief Print String representation of p-th percentile into stream
+                 */
+                void printPercentile(int p,
+                                     std::ostream& stream = std::cout) const;
 
-	//! Print String representation of p-th percentile into stream
-	void p_printPercentile(int p, std::ostream& aStreamRef = std::cout) const ;
+                /**
+                 * @brief Left border of the x-axis
+                 */
+                double minXValue_;
 
-    //! Left border of the x-axis
-    double                p_minXValue;
-    //! Right border of the x-axis
-    double                p_maxXValue;
-    //! Resolution of the x-axis
-    uint32_t                  p_resolution;
+                /**
+                 * @brief Right border of the x-axis
+                 */
+                double maxXValue_;
 
-	//! scale of the x-axis
-	scaleType               p_scaleType;
+                /**
+                 * @brief Resolution of the x-axis
+                 */
+                uint32_t resolution_;
 
-    //! Array containing occurrences of all values
-    std::vector<int>        p_values;
+                /**
+                 * @breif Scale of the x-axis
+                 */
+                scaleType scaleType_;
 
-	int p_underFlows;
-	int p_overFlows;
+                /**
+                 * @brief Array containing occurrences of all values
+                 */
+                std::vector<int> values_;
 
-    //! probe name
-    std::string                  p_name;
+                int underFlows_;
 
-    //! probe description
-    std::string                  p_desc;
+                int overFlows_;
 
-};
+                /**
+                 * @brief Probe name
+                 */
+                std::string name_;
 
-#endif  // _PDF_HPP
+                /**
+                 * @breif Probe description
+                 */
+                std::string desc;
+            };
 
-/*
-Local Variables:
-mode: c++
-folded-file: t
-End:
-*/
+        } // statistics
+    } // evaluation
+} // wns
+
+#endif  // WNS_EVALUATION_STATISTICS_PDF_HPP
+

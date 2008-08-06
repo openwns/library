@@ -166,6 +166,10 @@ srcFiles['PROBEBUS-TESTS'] = [
     'src/probe/bus/detail/tests/SorterTest.cpp',
 ]
 
+srcFiles['EVALUATION-TESTS'] = [
+    'src/evaluation/statistics/tests/StatEvalTest.cpp'
+]
+
 srcFiles['EVENTS-TESTS'] = [
     'src/events/tests/MemberFunctionTest.cpp',
     'src/events/tests/DelayedMemberFunctionTest.cpp',

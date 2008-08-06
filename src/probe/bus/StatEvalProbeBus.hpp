@@ -29,7 +29,7 @@
 #define WNS_PROBE_BUS_STATEVALPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
-#include <WNS/probe/stateval/StatEval.hpp>
+#include <WNS/evaluation/statistics/stateval.hpp>
 #include <WNS/pyconfig/View.hpp>
 
 class StatEval;
@@ -75,7 +75,7 @@ namespace wns { namespace probe { namespace bus {
 
         bool firstWrite;
 
-        wns::probe::stateval::Interface* statEval;
+        wns::evaluation::statistics::StatEvalInterface* statEval;
     };
 } // bus
 } // probe

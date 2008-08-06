@@ -25,239 +25,304 @@
  *
  ******************************************************************************/
 
-#ifndef _STATEVAL_HPP
-#define _STATEVAL_HPP
+#ifndef WNS_EVALUATION_STATISTICS_STATEVAL_HPP
+#define WNS_EVALUATION_STATISTICS_STATEVAL_HPP
 
-
-//! Dependencies
 #include <WNS/PyConfigViewCreator.hpp>
 
-template <typename T>
-T getMaxError();
+namespace wns { namespace evaluation { namespace statistics {
+            template <typename T>
+            T getMaxError();
 
-template <>
-inline
-double getMaxError<double>()
-{
-	return 0.000000001;
-}
+            template <>
+            inline
+            double getMaxError<double>()
+            {
+                return 0.000000001;
+            }
 
-class StatEvalInterface
-{
-public:
-	virtual
-	~StatEvalInterface(){}
+            class StatEvalInterface
+            {
+            public:
+                virtual
+                ~StatEvalInterface(){}
 
-	virtual void
-	put(double) = 0;
+                virtual void
+                put(double) = 0;
 
-	virtual void
-	reset() = 0;
+                virtual void
+                reset() = 0;
 
-	virtual const std::string&
-	getName() const = 0;
+                virtual const std::string&
+                getName() const = 0;
 
-	virtual void
-	print(std::ostream&) const = 0;
+                virtual void
+                print(std::ostream&) const = 0;
 
-        /**
-         * @todo dbn: This was introduced to handle LogEval in some way. LogEvals flush
-         * their contents completely to disk and thus cannot be const. We should think
-         * of a generic way to handle both possibilities behind a common interface.
-         */
-        virtual void
-        printLog(std::ostream&) = 0;
-};
+                /**
+                 * @todo dbn: This was introduced to handle LogEval in some way. LogEvals flush
+                 * their contents completely to disk and thus cannot be const. We should think
+                 * of a generic way to handle both possibilities behind a common interface.
+                 */
+                virtual void
+                printLog(std::ostream&) = 0;
+            };
 
-/*
- * The class StatEval
- */
-/*! \brief Class \bStatEval: Base class for statistical evaluation */
-class StatEval :
-	public StatEvalInterface
-{
-  public:
-    //! Phase of evaluation
-    enum phaseType
-    {
-	initialize, iterate, finish
-    };
-
-    //! Type of evaluation
-    enum functionType
-    {
-	df, cdf, pf
-    };
+            /**
+             * @brief Class StatEval: Base class for statistical evaluation
+             */
+            class StatEval : public StatEvalInterface
+            {
+            public:
+                /**
+                 * @brief Type of evaluation
+                 */
+                enum functionType
+                {
+                    df,
+                    cdf,
+                    pf
+                };
 
 
-    //! How to format the output of numbers
-    enum formatType
-    {
-	fixed, scientific
-    };
+                /**
+                 * @brief How to format the output of numbers
+                 */
+                enum formatType
+                {
+                    fixed,
+                    scientific
+                };
 
 
-    //#  Constructors and destructor
+                StatEval(formatType  format,
+                         std::string name,
+                         std::string desc);
 
-    // Constructors
-        // Default constructor
-    StatEval(bool anActiveFlag,
-             phaseType   aStartingPhase,
-			 formatType  aFormat,
-			 std::string aName,
-			 std::string aDesc);
+                StatEval(const wns::pyconfig::View& config);
 
-	StatEval(const wns::pyconfig::View& config);
+                virtual ~StatEval();
 
-        //! Default copy constructor is correct
+                /**
+                 * @brief Print output
+                 */
+                virtual
+                void print(std::ostream& stream) const;
 
+                virtual void
+                printLog(std::ostream& stream);
 
-    // Destructor
-    virtual ~StatEval();
+                /**
+                 * @brief Type of statistical evaluation
+                 */
+                enum statEvalType
+                {
+                    all = 0,
+                    lref, lreg, plref, plreg,
+                    moments, pmoments,
+                    batchMns, pbatchMns,
+                    histogrm, phistogrm,
+                    dlref, dlreg, dlrep, pdlref, pdlreg, pdlrep,
+                    dlref_nonequi, dlreg_nonequi, dlrep_nonequi,
+                    pdlref_nonequi, pdlreg_nonequi, pdlrep_nonequi,
+                    pdf, ppdf,
+                    logeval, plogeval,
+                    probetext, pprobetext, unknown
+                };
 
-    // Print output
-    virtual void print(std::ostream& aStreamRef) const;
+                /**
+                 * @brief put a value to evaluation
+                 */
+                virtual void
+                put(double xI);
 
-    virtual void printLog(std::ostream& aStreamRef);
+                /**
+                 * @brief Return mean value
+                 */
+                virtual double
+                mean() const;
 
-    //#  Public members
+                /**
+                 * @brief Return variance
+                 */
+                virtual double
+                variance() const;
 
-    //! Default assign operator is correct
+                /**
+                 * @brief Relative variance
+                 */
+                virtual double
+                relativeVariance() const;
 
-    //! Type of statistical evaluation
-    enum statEvalType
-    {
-	all = 0, lref, lreg, plref, plreg, moments, pmoments, batchMns,
-	pbatchMns, histogrm, phistogrm, dlref, dlreg, dlrep,
-	pdlref, pdlreg, pdlrep, dlref_nonequi, dlreg_nonequi, dlrep_nonequi,
-	pdlref_nonequi, pdlreg_nonequi, pdlrep_nonequi, pdf, ppdf, logeval,
-	plogeval, probetext, pprobetext, unknown
-    };
+                /**
+                 * @brief Return coefficient of variation
+                 */
+                virtual double
+                coeffOfVariation() const;
 
-    //! put a value to evaluation
-    virtual void       put(double xI)               ;
+                /**
+                 * @brief Return moment m2
+                 */
+                virtual double
+                M2() const;
 
-    // Return mean value
-    virtual double   mean()                   const  ;
+                /**
+                 * @brief Return moment m3
+                 */
+                virtual double
+                M3() const;
 
-    // Return variance
-    virtual double   variance()               const  ;
+                /**
+                 * @brief Return z3
+                 */
+                virtual double
+                Z3() const;
 
-    // Return relative variance
-    virtual double   relativeVariance()       const  ;
+                /**
+                 * @brief Return skewness
+                 */
+                virtual double
+                skewness() const;
 
-    // Return coefficient of variation
-    virtual double   coeffOfVariation()       const  ;
+                /**
+                 * @brief Return standard deviation
+                 */
+                virtual double
+                deviation() const;
 
-    // Return moment m2
-    virtual double   M2()                     const  ;
+                /**
+                 * @brief Return relative standard deviation
+                 */
+                virtual double
+                relativeDeviation() const;
 
-    // Return moment m3
-    virtual double   M3()                     const  ;
+                /**
+                 * @brief Return number of trials
+                 */
+                virtual uint32_t
+                trials() const;
 
-    // Return z3
-    virtual double   Z3()                     const  ;
+                /**
+                 * @brief minimal value of trials
+                 */
+                virtual double
+                min() const;
 
-    // Return skewness
-    virtual double   skewness()               const  ;
+                /**
+                 * @brief maximal value of trials
+                 */
+                virtual double
+                max() const;
 
-    // Return standard deviation
-    virtual double   deviation()              const  ;
+                /**
+                 * @brief Reset evaluation
+                 */
+                virtual void
+                reset();
 
-    // Return relative standard deviation
-    virtual double   relativeDeviation()      const  ;
+                /**
+                 * @brief Get name of
+                 */
+                virtual const
+                std::string& getName() const;
 
-    // Return number of trials
-    virtual uint32_t     trials()                 const  ;
+                /**
+                 * @brief Get description
+                 */
+                virtual const std::string&
+                getDesc() const;
 
-    // minimal value of trials
-    virtual double   min()                    const  ;
+                /**
+                 * @brief Set the output format: fixed or scientific.
+                 */
+                virtual void
+                setFormat(formatType format);
 
-    // maximal value of trials
-    virtual double   max()                    const  ;
+                /**
+                 * @brief Get the output format: fixed or scientific.
+                 */
+                virtual formatType
+                getFormat() const;
 
-    // Reset evaluation
-    virtual void       reset()                         ;
-
-    // end of evaluation reached ?
-    virtual bool       end()                    const  ;
-
-    // Return state of evaluation
-    virtual phaseType  status()                 const  ;
-
-    // Get name of
-	virtual const std::string& getName()               const  ;
-
-    // Get description
-    virtual const std::string& getDesc()               const  ;
-
-    /* This probe is an active one, i.e. PDataBase::end() should take
-       the result of this->end() into account? */
-    //# Set/get active flag
-    void               setActive(bool aFlag)           ;
-    bool               getActive()              const  ;
-
-    // Set the output format: fixed or scientific.
-    virtual void       setFormat(formatType aFormat)   ;
-    // Get the output format: fixed or scientific.
-    virtual formatType getFormat()              const  ;
-
-    // map string to statEvalType
-    static statEvalType mapToStatEvalType(
-        std::string aType);
-
-
-    // map string to statEvalType
-    static std::string       mapEvalTypeToString(
-        statEvalType);
-
-  protected:
-    // print the banner containing common statistics
-    void   pd_printBanner(std::ostream& aStreamRef,
-                          std::string aProbeTypeDesc,
-                          std::string anErrorString) const ;
-
-    /*! flag showing that this object is active, which means that the
-      end() method influences the end of the evaluation.*/
-    bool                 pd_active;
-
-    //! minimum value of all collected trials
-    double             pd_minValue;
-    //! maximum value of all collected trials
-    double             pd_maxValue;
-    //! number of collected trials
-    uint32_t               pd_numTrials;
-    //! sum of collected values
-    double             pd_sum;
-    //! square sum of collected values
-    double             pd_squareSum;
-    //! cube sum of collected values
-    double             pd_cubeSum;
-    /*! Current status of evaluation algorithm: initialize,
-      iterate, or finish. */
-    StatEval::phaseType  pd_phase;
-    //! format of numbers (fixed, scientific)
-    StatEval::formatType pd_format;
-    //! probe name
-    std::string          pd_name;
-    //! probe description
-    std::string          pd_desc;
-	//! comment prefix to be used in output files
-	std::string          pd_prefix;
-};
-
-
-typedef wns::PyConfigViewCreator<StatEvalInterface, StatEvalInterface> Creator;
-typedef wns::StaticFactory<Creator> Factory;
-
-
-#endif  // _STATEVAL_HPP
+                /**
+                 * @brief map string to statEvalType
+                 */
+                static statEvalType
+                mapToStatEvalType(std::string type);
 
 
-/*
-Local Variables:
-mode: c++
-folded-file: t
-End:
-*/
+                /**
+                 * @brief map string to statEvalType
+                 */
+                static std::string
+                mapEvalTypeToString(statEvalType);
 
+            protected:
+                /**
+                 * @ brief Print the banner containing common statistics
+                 */
+                void
+                printBanner(std::ostream& stream    ,
+                            std::string probeTypeDesc,
+                            std::string errorString) const;
+
+                /**
+                 * @brief Minimum value of all collected trials
+                 */
+                double minValue_;
+
+                /**
+                 * @brief Maximum value of all collected trials
+                 */
+                double maxValue_;
+
+                /**
+                 * @brief number of collected trials
+                 */
+                uint32_t numTrials_;
+
+                /**
+                 * @brief Sum of collected values
+                 */
+                double sum_;
+
+                /**
+                 * @brief Square sum of collected values
+                 */
+                double squareSum_;
+
+                /**
+                 * @brief Cube sum of collected values
+                 */
+                double cubeSum_;
+
+                /**
+                 * @brief Format of numbers (fixed, scientific)
+                 */
+                StatEval::formatType format_;
+
+                /**
+                 * @brief Name
+                 */
+                std::string name_;
+
+                /**
+                 * @brief Description
+                 */
+                std::string desc_;
+
+                /**
+                 * @brief Comment prefix to be used in output files
+                 */
+                std::string prefix_;
+            };
+
+
+            typedef wns::PyConfigViewCreator<StatEvalInterface, StatEvalInterface> Creator;
+            typedef wns::StaticFactory<Creator> Factory;
+
+        } // statistics
+    } //evaluation
+} // wns
+
+#endif  // WNS_EVALUATION_STATISTICS_STATEVAL_HPP
