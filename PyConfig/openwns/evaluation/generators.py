@@ -118,7 +118,7 @@ class ProbeBusCreator(ITreeNodeGenerator):
         yield tree.TreeNode(wrappers.ProbeBusWrapper(c, ''))
 
 class Separate(ITreeNodeGenerator):
-
+    """ Sort by context and take contextProvider output as names"""
     def __init__(self, by, forAll, format):
         self.by = by
         self.forAll = forAll
@@ -148,6 +148,16 @@ class Instantiate(ITreeNodeGenerator):
             clone.setFilename(pathname)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(clone, ''))
+
+class SettlingTimeGuard(ITreeNodeGenerator):
+    """ Accept measurements based on the context"""
+    def __init__(self, settlingTime):
+        self.settlingTime = settlingTime
+
+    def __call__(self, pathname):
+            yield tree.TreeNode(wrappers.ProbeBusWrapper(
+                    openwns.probebus.SettlingTimeGuardProbeBus(self.settlingTime),
+                    ''))
 
 class PDF(ITreeNodeGenerator):
 
