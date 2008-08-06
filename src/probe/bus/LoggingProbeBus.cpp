@@ -53,13 +53,12 @@ LoggingProbeBus::accepts(const wns::simulator::Time&, const IContext&)
 }
 
 void
-LoggingProbeBus::onMeasurement(const wns::simulator::Time& timestamp,
+LoggingProbeBus::onMeasurement(const wns::simulator::Time&,
                                const double& aValue,
                                const IContext& reg)
 {
     MESSAGE_BEGIN(NORMAL, logger_, m, "");
-    m << "("
-      << std::resetiosflags(std::ios::fixed)
+    m << std::resetiosflags(std::ios::fixed)
       << std::resetiosflags(std::ios::scientific)
       << std::resetiosflags(std::ios::right)
       << std::setiosflags(std::ios::right)
@@ -67,10 +66,8 @@ LoggingProbeBus::onMeasurement(const wns::simulator::Time& timestamp,
       << std::setiosflags(std::ios::dec)
       << std::setprecision(7)
       << std::setw(11)
-      << timestamp
-      << ") "
-      << aValue << " [ "
-      << reg << " ]";
+	  << aValue << " "
+      << reg;
     MESSAGE_END();
 }
 
