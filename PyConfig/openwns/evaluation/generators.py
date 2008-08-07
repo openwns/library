@@ -226,7 +226,7 @@ class Logger(ITreeNodeGenerator):
         pass
 
     def __call__(self, pathname):
-        yield tree.TreeNode(wrappers.ProbeBusWrapper(openwns.probebus.LoggingProbeBus(), ""))
+        yield tree.TreeNode(wrappers.ProbeBusWrapper(openwns.probebus.LoggingProbeBus(probeName=pathname), ""))
 
 class Table(ITreeNodeGenerator):
 

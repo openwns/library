@@ -97,7 +97,7 @@ class LoggingProbeBus(ProbeBus):
         nameInFactory = "LoggingProbeBus"
 
         def __init__(self, probeName='', parentLogger=None):
-                ProbeBus.__init__(self,"")
+                ProbeBus.__init__(self)
 		if len(probeName) > 0:
 			probeName = '.' + probeName
                 self.logger = openwns.logger.Logger("WNS", "LoggingProbeBus"+probeName, True, parentLogger)
