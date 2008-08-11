@@ -38,7 +38,16 @@ class TreeNodeProbeBusRegistry(object):
         self.probeBusRegistry = probeBusRegistry
         self.treeNodes = {}
 
+    def getMeasurementSource(self, probeBusID):
+        # Just forward to openwns.probebus.ProbeBusRegistry
+        return self.probeBusRegistry.getMeasurementSource(probeBusID)
+
+    def removeMeasurementSource(self, probeBusId):
+        # Just forward to openwns.probebus.ProbeBusRegistry
+        return self.probeBusRegistry.removeMeasurementSource(probeBusID)
+
     def getMeasurementSources(self):
+        # Just forward to openwns.probebus.ProbeBusRegistry
         return self.probeBusRegistry.getMeasurementSources()
 
     def removeMeasurementSourceNode(self, measurementSource):
