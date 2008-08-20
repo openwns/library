@@ -26,7 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/container/DynamicMatrix.hpp>
-#include <WNS/CppUnit.hpp>
+#include <WNS/TestFixture.hpp>
 #include <WNS/simulator/ISimulator.hpp>
 
 namespace wns { namespace container { namespace tests {

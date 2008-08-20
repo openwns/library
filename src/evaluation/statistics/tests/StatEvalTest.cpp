@@ -28,7 +28,7 @@
 #include <WNS/evaluation/statistics/stateval.hpp>
 #include <WNS/pyconfig/Parser.hpp>
 #include <WNS/testing/TestTool.hpp>
-#include <WNS/CppUnit.hpp>
+#include <WNS/TestFixture.hpp>
 #include <WNS/simulator/ISimulator.hpp>
 #include <WNS/events/scheduler/Interface.hpp>
 #include <WNS/events/NoOp.hpp>

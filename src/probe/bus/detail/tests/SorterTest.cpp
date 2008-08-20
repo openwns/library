@@ -29,7 +29,7 @@
 
 #include <WNS/pyconfig/Parser.hpp>
 
-#include <WNS/CppUnit.hpp>
+#include <WNS/TestFixture.hpp>
 #include <sstream>
 
 namespace wns { namespace probe { namespace bus { namespace detail { namespace tests {
@@ -75,8 +75,8 @@ SorterTest::constructor()
 {
     wns::pyconfig::View config =
         wns::pyconfig::Parser::fromString(
-			"import wns.ProbeBus\n"
-			"s = wns.ProbeBus.TabPar('x',1,7,3)\n"
+			"import openwns.probebus\n"
+			"s = openwns.probebus.TabPar('x',1,7,3)\n"
 			);
 
     Sorter a(config.get("s"));

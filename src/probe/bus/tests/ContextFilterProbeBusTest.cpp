@@ -27,10 +27,9 @@
 
 #include <WNS/probe/bus/ContextFilterProbeBus.hpp>
 #include <WNS/probe/bus/tests/ProbeBusStub.hpp>
+#include <WNS/TestFixture.hpp>
 
 #include <WNS/pyconfig/Parser.hpp>
-
-#include <WNS/CppUnit.hpp>
 #include <sstream>
 
 namespace wns { namespace probe { namespace bus { namespace tests {

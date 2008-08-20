@@ -30,7 +30,7 @@
 
 #include <WNS/pyconfig/Parser.hpp>
 
-#include <WNS/CppUnit.hpp>
+#include <WNS/TestFixture.hpp>
 #include <sstream>
 
 namespace wns { namespace probe { namespace bus { namespace tests {
@@ -76,11 +76,11 @@ TableProbeBusTest::test()
 {
     wns::pyconfig::View config =
         wns::pyconfig::Parser::fromString(
-			"import wns.ProbeBus\n"
-			"xPar = wns.ProbeBus.TabPar('x',1,4,3)\n"
-			"yPar = wns.ProbeBus.TabPar('y',3,6,3)\n"
-			"zPar = wns.ProbeBus.TabPar('z',16,18,2)\n"
-			"a = wns.ProbeBus.TableProbeBus([zPar,yPar,xPar],'testTable', ['mean','trials'], ['HumanReadable','PythonReadable','MatlabReadable'])\n"
+			"import openwns.probebus\n"
+			"xPar = openwns.probebus.TabPar('x',1,4,3)\n"
+			"yPar = openwns.probebus.TabPar('y',3,6,3)\n"
+			"zPar = openwns.probebus.TabPar('z',16,18,2)\n"
+			"a = openwns.probebus.TableProbeBus([zPar,yPar,xPar],'testTable', ['mean','trials'], ['HumanReadable','PythonReadable','MatlabReadable'])\n"
 			);
 
     theTableProbeBus = new TableProbeBus(config.get("a"));
@@ -134,9 +134,9 @@ TableProbeBusTest::onedimensional()
 {
     wns::pyconfig::View config =
         wns::pyconfig::Parser::fromString(
-			"import wns.ProbeBus\n"
-			"xPar = wns.ProbeBus.TabPar('x',1,4,3)\n"
-			"a = wns.ProbeBus.TableProbeBus([xPar],'oldTable', ['mean','trials'], ['HumanReadable','PythonReadable','MatlabReadable'])\n"
+			"import openwns.probebus\n"
+			"xPar = openwns.probebus.TabPar('x',1,4,3)\n"
+			"a = openwns.probebus.TableProbeBus([xPar],'oldTable', ['mean','trials'], ['HumanReadable','PythonReadable','MatlabReadable'])\n"
 			);
 
     theTableProbeBus = new TableProbeBus(config.get("a"));
