@@ -139,6 +139,7 @@ srcFiles['CONTAINER-TESTS'] = [
     'src/container/tests/FastListTest.cpp',
     'src/container/tests/UntypedRegistryTest.cpp',
     'src/container/tests/RegistryTest.cpp',
+    'src/container/tests/DynamicMatrixTest.cpp',
 ]
 
 srcFiles['PYCONFIG-TESTS'] = [
