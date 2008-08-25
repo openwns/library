@@ -35,7 +35,7 @@ The contents of the TreeNode must implement the openwns.evaluation.IObservable i
 which describes how the contents are connected.
 
 """
- 
+
 import openwns.interface
 import openwns.probebus
 import tree
@@ -200,12 +200,13 @@ class TextTrace(ITreeNodeGenerator):
 
 class TimeSeries(ITreeNodeGenerator):
 
-    def __init__(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
 
     def __call__(self, pathname):
-        pb = openwns.probebus.LogEvalProbeBus(outputFilename = pathname + "_Log.log.dat", format="fixed", timePrecision = 7, valuePrecision = 7)
-
+        #pb = openwns.probebus.LogEvalProbeBus(outputFilename = pathname + "_Log.log.dat", *self.args, **self.kwargs) # old name
+        pb = openwns.probebus.LogEvalProbeBus(outputFilename = pathname + "_Log.dat", *self.args, **self.kwargs)
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
 class Moments(ITreeNodeGenerator):
@@ -215,9 +216,7 @@ class Moments(ITreeNodeGenerator):
 
     def __call__(self, pathname):
         momentseval = statistics.MomentsEval()
-        
-        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Log.dat', momentseval)
-
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Mom.dat', momentseval)
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
 class Logger(ITreeNodeGenerator):
@@ -232,7 +231,7 @@ class Table(ITreeNodeGenerator):
 
     def __init__(self, **kwargs):
         assert kwargs.has_key("values"), "You must sepecify at least one value"
-        assert kwargs.has_key("formats"), "Yout must specify at least one format"
+        assert kwargs.has_key("formats"), "You must specify at least one format"
 
         self.values = kwargs.pop("values")
         self.formats = kwargs.pop("formats")
