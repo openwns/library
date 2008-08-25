@@ -205,7 +205,6 @@ class TimeSeries(ITreeNodeGenerator):
         self.kwargs = kwargs
 
     def __call__(self, pathname):
-        #pb = openwns.probebus.LogEvalProbeBus(outputFilename = pathname + "_Log.log.dat", *self.args, **self.kwargs) # old name
         pb = openwns.probebus.LogEvalProbeBus(outputFilename = pathname + "_Log.dat", *self.args, **self.kwargs)
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
