@@ -215,7 +215,9 @@ class Moments(ITreeNodeGenerator):
 
     def __call__(self, pathname):
         momentseval = statistics.MomentsEval()
-        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Mom.dat', momentseval)
+
+        # Note that the suffix "_Moments.dat" is expected by PyWNS to identify the output
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Moments.dat', momentseval)
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
 class Logger(ITreeNodeGenerator):
