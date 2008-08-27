@@ -216,7 +216,7 @@ class Moments(ITreeNodeGenerator):
     def __call__(self, pathname):
         momentseval = statistics.MomentsEval()
         
-        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Moments.dat', momentseval)
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Log.dat', momentseval)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
