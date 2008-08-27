@@ -32,6 +32,13 @@
 
 namespace wns { namespace probe { namespace bus {
 
+    /**
+     * @brief How to format the output of numbers
+     */
+    enum formatType
+    {
+		formatFixed, formatScientific
+    };
 
     /**
      * @brief Writes time series of measurements received on a ProbeBus
@@ -46,21 +53,10 @@ namespace wns { namespace probe { namespace bus {
             wns::simulator::Time time;
         };
 
-		/**
-		 * @brief How to format the output of numbers
-		 */
-		enum formatType
-		{
-			formatFixed, formatScientific
-		};
-
     public:
         LogEvalProbeBus(const wns::pyconfig::View&);
-
+        
         virtual ~LogEvalProbeBus();
-
-		const std::string& getName() const;
-		const std::string& getDesc() const;
 
         virtual bool
         accepts(const wns::simulator::Time&, const IContext&);
@@ -94,26 +90,12 @@ namespace wns { namespace probe { namespace bus {
          */
         bool firstWrite;
 
+
         int timePrecision;
+
         int valuePrecision;
 
         formatType format;
-
-		/**
-		 * @brief Name
-		 */
-		std::string name;
-
-		/**
-		 * @brief Description
-		 */
-		std::string desc;
-
-		/**
-		 * @brief Comment prefix to be used in output files
-		 */
-		std::string prefix;
-
     };
 
 } // bus

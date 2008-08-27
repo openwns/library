@@ -124,3 +124,7 @@ def printSortingTree(treenode, formatter=str, indent=0):
     for child in treenode.children():
         printSortingTree(child, formatter, indent + 2)
 
+
+
+
+    

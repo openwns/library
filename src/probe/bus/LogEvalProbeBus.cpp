@@ -41,13 +41,9 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 LogEvalProbeBus::LogEvalProbeBus(const wns::pyconfig::View& pyco):
     filename(pyco.get<std::string>("outputFilename")),
     firstWrite(true),
-    timePrecision(pyco.get<int>("timePrecision")),
-    valuePrecision(pyco.get<int>("valuePrecision")),
-    format(formatFixed),
-    //format((config.get<std::string>("format")=="scientific") ? LogEvalProbeBus::scientific : LogEvalProbeBus::fixed),
-	name(pyco.get<std::string>("name")),
-	desc(pyco.get<std::string>("description")),
-	prefix("#")
+    timePrecision(7),
+    valuePrecision(6),
+    format(formatFixed)
 {
     wns::pyconfig::View pycoRoot = wns::simulator::getConfiguration();
     outputPath = pycoRoot.get<std::string>("outputDir");
@@ -55,18 +51,6 @@ LogEvalProbeBus::LogEvalProbeBus(const wns::pyconfig::View& pyco):
 
 LogEvalProbeBus::~LogEvalProbeBus()
 {
-}
-
-const std::string&
-LogEvalProbeBus::getName() const
-{
-    return name;
-}
-
-const std::string&
-LogEvalProbeBus::getDesc() const
-{
-    return desc;
 }
 
 bool
@@ -94,26 +78,7 @@ LogEvalProbeBus::output()
     std::ofstream out((outputPath + "/" + filename).c_str(),
                       (firstWrite ? std::ios::out : (std::ios::out |  std::ios::app)));
 
-    if (firstWrite) {
-		firstWrite = false;
-		out<<prefix<<"  PROBE RESULTS (THIS IS A MAGIC LINE)" << std::endl;
-		out<<prefix<<" ---------------------------------------------------------------------------" << std::endl;
-		out<<prefix<<" Evaluation: LogEval" << std::endl;
-		out<<prefix<<" ---------------------------------------------------------------------------" << std::endl;
-		out<<prefix<<"  Name: " << getName() << std::endl;
-		out<<prefix<<"  Description: " << getDesc() << std::endl;
-		out<<prefix<<" ---------------------------------------------------------------------------" << std::endl;
-		// the next items cannot be known here in the header,
-		// but the fields are required in WNSUnit.py
-		// Maybe we can overwrite the 10 digits later (with file seek)?
-		out<<prefix<<"  Trials:   0000000000" << std::endl;
-		out<<prefix<<"  Mean:     0000000000" << std::endl;
-		out<<prefix<<"  Variance: 0000000000" << std::endl;
-		out<<prefix<<"  Minimum:  0000000000" << std::endl;
-		out<<prefix<<"  Maximum:  0000000000" << std::endl;
-//		out<<prefix<<"" << std::endl;
-		out<<prefix<<" ---------------------------------------------------------------------------" << std::endl;
-	}
+    if (firstWrite) firstWrite = false;
 
     out << (format == formatFixed ? std::setiosflags(std::ios::fixed) : std::setiosflags(std::ios::scientific))
         << std::resetiosflags(std::ios::right)

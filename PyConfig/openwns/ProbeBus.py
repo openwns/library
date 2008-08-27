@@ -134,27 +134,21 @@ class LogEvalProbeBus(ProbeBus):
         """ The LogEval ProbeBus always accepts and logs the values into a file.
         """
         nameInFactory = "LogEvalProbeBus"
-	outputFilename = None
-	format = None
-	timePrecision = None
-	valuePrecision = None
-        name = None
-        description = None
 
-        def __init__(self, outputFilename, format="fixed", timePrecision=7, valuePrecision=7, name="", description=""):
+	outputFilename = None
+
+	format = None
+
+	timePrecision = None
+
+	valuePrecision = None
+
+        def __init__(self, outputFilename, format, timePrecision, valuePrecision):
 		ProbeBus.__init__(self)
                 self.outputFilename = outputFilename
                 self.format = format
                 self.timePrecision = timePrecision
                 self.valuePrecision = valuePrecision
-                if (name == ""):
-                    self.name = outputFilename.split("_Log.dat")[0]
-                else:
-                    self.name = name
-                if (description == ""):
-                    self.description = self.name
-                else:
-                    self.description = description
 
 class ContextFilterProbeBus(ProbeBus):
         nameInFactory = "ContextFilterProbeBus"
