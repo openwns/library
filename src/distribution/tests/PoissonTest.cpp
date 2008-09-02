@@ -25,54 +25,67 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#include <WNS/distribution/tests/PoissonTest.hpp>
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/pyconfig/Parser.hpp>
+#include <WNS/Average.hpp>
+#include <WNS/distribution/tests/VarEstimator.hpp>
 
-using namespace wns::node::component::tests;
+using namespace wns::distribution::test;
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+CPPUNIT_TEST_SUITE_REGISTRATION( PoissonTest );
 
-void FQSNTest::setUp()
+
+void
+PoissonTest::setUp()
 {
-}
+} // setUp
 
-void FQSNTest::tearDown()
+
+void
+PoissonTest::tearDown()
 {
-}
+} // tearDown
 
 
-void FQSNTest::construct()
+void
+PoissonTest::testIt()
 {
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+    wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
+            "import wns.Distribution\n"
+            "dist = wns.Distribution.Poisson(10.0)\n"
+            );
+    Poisson dis(config.get("dist"));
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+    Average<double> average;
+    for(int32_t ii = 0; ii < 100000; ++ii) {
+        average.put(dis());
+    }
+ 
+    WNS_ASSERT_MAX_REL_ERROR(dis.getMean(), average.get(), 0.01);
+} // testIt
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
+void
+PoissonTest::testVar()
 {
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+    Poisson dis = Poisson(10.0);
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+    VarEstimator var;
+    for(int32_t ii = 0; ii < 100000; ++ii) {
+        var.put(dis());
+    }
+ 
+    WNS_ASSERT_MAX_REL_ERROR(10.0, var.get(), 0.01);
+} // testIt
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/

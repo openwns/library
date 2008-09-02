@@ -70,7 +70,7 @@ void NodeTest::getName()
 {
 	Node node(
 		registry,
-		pyconfig::helper::createViewFromDropInConfig("wns.Node",
+		pyconfig::helper::createViewFromDropInConfig("openwns.node",
 							     "NodeDropIn"));
 	CPPUNIT_ASSERT(node.getName() == "The Node");
 }
@@ -81,7 +81,7 @@ void NodeTest::noDuplicateNodeIDs()
 	// C++ should detect malformed configurations with duplicate
 	// IDs
 	std::string config =
-		"from wns.Node import Node, TCPDropIn, IPDropIn\n"
+		"from openwns.node import Node, TCPDropIn, IPDropIn\n"
 		"node1 = Node('AP1')\n"
 		"node2 = Node('AP2')\n"
 		"#Be a bad boy\n"
@@ -105,7 +105,7 @@ void NodeTest::noDuplicateNodeIDs()
 void NodeTest::addAndGetService()
 {
 	std::string config =
-		"from wns.Node import Node, TCPDropIn, IPDropIn\n"
+		"from openwns.node import Node, TCPDropIn, IPDropIn\n"
 		"node = Node('AP1')\n"
 		"dummy = Node('dummy')\n"
 		"tcp = TCPDropIn(dummy)\n";
@@ -144,7 +144,7 @@ void NodeTest::addAndGetService()
 void NodeTest::addAndGetTwoServices()
 {
 	std::string config =
-		"from wns.Node import Node, TCPDropIn, IPDropIn\n"
+		"from openwns.node import Node, TCPDropIn, IPDropIn\n"
 		"node = Node('AP1')\n"
 		"dummy = Node('dummy')\n"
 		"tcp = TCPDropIn(dummy)\n"
@@ -179,7 +179,7 @@ void NodeTest::addAndGetTwoServices()
 void NodeTest::nodeWithComponents()
 {
 	std::string nodeConfig =
-		"from wns.Node import Node\n"
+		"from openwns.node import Node\n"
 		"class ComponentA:\n"
 		"    nameInComponentFactory='wns.node.tests.ComponentA'\n"
 		"    name = 'componentA'\n"

@@ -25,54 +25,28 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef _TTOS_HPP
+#define _TTOS_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <string>
+#include <sstream>
 
-using namespace wns::node::component::tests;
-
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
-
-void FQSNTest::setUp()
+namespace wns
 {
+    /** @brief Convert values to string.
+     *
+     *  @param value This will be converted to a string.
+     *
+     *  @c Ttos converts a given value of any type to a string, if
+     *  it can be added to a stringstream using "<<".
+     */
+    template<typename T>
+    std::string Ttos(T value)
+    {
+	std::ostringstream temp;
+	temp << value;
+	return temp.str();
+    }
 }
 
-void FQSNTest::tearDown()
-{
-}
-
-
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+#endif // _TTOS_HPP

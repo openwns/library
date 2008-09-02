@@ -25,54 +25,52 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#include <WNS/tests/AverageTest.hpp>
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+using namespace wns::tests;
 
-using namespace wns::node::component::tests;
+CPPUNIT_TEST_SUITE_REGISTRATION( AverageTest );
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+void AverageTest::setUp()
+{
+	average.reset();
+}
 
-void FQSNTest::setUp()
+void AverageTest::tearDown()
 {
 }
 
-void FQSNTest::tearDown()
+void AverageTest::testPutAndGet()
 {
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 0, average.get(), 0.0001 );
+	average.put(4);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 4, average.get(), 0.0001 );
+	average.put(6);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 5, average.get(), 0.0001 );
+	average.put(6);
+	average.put(6);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 5.5, average.get(), 0.0001 );
 }
 
-
-void FQSNTest::construct()
+void AverageTest::testReset()
 {
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
+	average.reset();
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 0, average.get(), 0.0001 );
+	average.put(5.5);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 5.5, average.get(), 0.0001 );
+	average.reset();
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 0, average.get(), 0.0001 );
+	average.put(7.5);
+	CPPUNIT_ASSERT_DOUBLES_EQUAL( 7.5, average.get(), 0.0001 );
 }
 
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/

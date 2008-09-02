@@ -39,7 +39,8 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 
 NodeSimulationModel::NodeSimulationModel(const wns::pyconfig::View& config) :
     registry_(),
-    logger_(config.get("logger"))
+    logger_(config.get("logger")),
+    config_(config)
 {
 }
 
@@ -72,10 +73,10 @@ void
 NodeSimulationModel::doStartup()
 {
     // Construct Nodes
-    for (int ii = 0; ii < wns::simulator::getConfiguration().len("nodes"); ++ii)
+    for (int ii = 0; ii < config_.len("nodes"); ++ii)
     {
         wns::pyconfig::View nodeView =
-            wns::simulator::getConfiguration().get<wns::pyconfig::View>("nodes",ii);
+            config_.get<wns::pyconfig::View>("nodes",ii);
 
         wns::node::Node* currentNode = new wns::node::Node(&registry_, nodeView);
         currentNode->startup();

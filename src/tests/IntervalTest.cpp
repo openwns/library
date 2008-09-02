@@ -25,54 +25,9 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#include <WNS/tests/IntervalTest.hpp>
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+using namespace wns;
 
-using namespace wns::node::component::tests;
+CPPUNIT_TEST_SUITE_REGISTRATION( IntervalTest );
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
-
-void FQSNTest::setUp()
-{
-}
-
-void FQSNTest::tearDown()
-{
-}
-
-
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}

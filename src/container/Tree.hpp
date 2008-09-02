@@ -25,54 +25,72 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef WNS_CONTAINER_TREE_HPP
+#define WNS_CONTAINER_TREE_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+namespace wns { namespace container {
 
-using namespace wns::node::component::tests;
+	namespace tree {
+		/**
+		 * @brief This cleanup policy does nothing
+		 */
+		class NoneOnErase
+		{
+		public:
+			template <typename ANY>
+			void
+			cleanup(ANY&) const
+			{
+			}
+		};
+	}
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+    template<typename ValueType, typename CleanupStrategy = tree::NoneOnErase>
+    class Tree
+    {
+    public:
+	typedef ValueType Value;
+	typedef std::size_t Size;
 
-void FQSNTest::setUp()
-{
-}
+	virtual ~Tree()
+	{
+		CleanupStrategy cleaner;
+		cleaner.cleanup( value );
+	}
 
-void FQSNTest::tearDown()
-{
-}
+	virtual void setValue(const Value& value)
+	{
+	    this->value = value;
+	}
+
+	virtual const Value& getValue() const
+	{
+	    return value;
+	}
+
+	virtual Size getNoOfSubtrees() const = 0;
+
+	virtual void createSubTree(const Size& no, const Value& value) = 0;
+	virtual void linkSubTree(const Size& no, Tree* subTree) = 0;
+
+	virtual bool hasSubTree(const Size& no) = 0;
+	virtual Tree* getSubTree(const Size& no) = 0;
+ 	virtual const Tree *const getSubTree(const Size& no) const = 0;
+
+    protected:
+
+	Tree(const Value& value)
+	    : father(NULL), value(value)
+	{}
 
 
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+	Tree* father;
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+    private:
+	Value value;
+    };
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
+} // container
+} // wns
 
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+#endif // NOT defined WNS_CONTAINER_TREE_HPP

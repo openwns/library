@@ -25,54 +25,64 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef WNS_DISTRIBUTION_NEGEXP_HPP
+#define WNS_DISTRIBUTION_NEGEXP_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/distribution/Distribution.hpp>
+#include <WNS/rng/RNGen.hpp>
 
-using namespace wns::node::component::tests;
+namespace wns { namespace distribution {
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+    typedef wns::rng::VariateGenerator< boost::exponential_distribution<> > NegExpDist;
 
-void FQSNTest::setUp()
-{
-}
+	/**
+	 * @brief Generate random numbers accoriding to negative exponential
+	 * distribution.
+	 */
+	class NegExp :
+		public  ClassicDistribution
+	{
+	public:
+        explicit
+        NegExp(const double mean, 
+            wns::rng::RNGen* rng = wns::simulator::getRNG());
 
-void FQSNTest::tearDown()
-{
-}
+        explicit
+        NegExp(const pyconfig::View& config);
 
+        explicit
+        NegExp(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+		virtual
+		~NegExp();
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+		virtual double
+		operator()();
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
+		virtual double
+		getMean() const;
 
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
+		virtual std::string
+		paramString() const;
 
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+	private:
+		double mean_;
+		NegExpDist dis_;
+	};
+} // distribution
+} // wns
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+#endif // NOT defined WNS_DISTRIBUTION_NEGEXP_HPP
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/
 
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}

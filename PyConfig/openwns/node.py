@@ -29,11 +29,12 @@ from logger import Logger
 import openwns.probebus
 
 class NodeSimulationModel(object):
-    __slots__ = ['nameInFactory', 'logger']
+    __slots__ = ['nameInFactory', 'logger', 'nodes']
 
     def __init__(self):
         self.nameInFactory = 'wns.Node.NodeSimulationModel'
         self.logger = Logger("WNS", "NodeSimulationModel", True)
+        self.nodes = []
 
 class Node(object):
     """ A Node is a list of Components

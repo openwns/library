@@ -25,54 +25,47 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef WNS_DISTRIBUTION_TESTS_CDFTABLETEST_HPP
+#define WNS_DISTRIBUTION_TESTS_CDFTABLETEST_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/distribution/CDFTable.hpp>
 
-using namespace wns::node::component::tests;
-
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
-
-void FQSNTest::setUp()
-{
-}
-
-void FQSNTest::tearDown()
-{
-}
+#include <WNS/TestFixture.hpp>
 
 
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+namespace wns { namespace distribution { namespace test {
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+	class CDFTableTest :
+		public CppUnit::TestFixture
+	{
+		CPPUNIT_TEST_SUITE( CDFTableTest );
+        CPPUNIT_TEST( testIt );
+        CPPUNIT_TEST( testVar );
+        CPPUNIT_TEST( testPyConfig );
+		CPPUNIT_TEST_SUITE_END();
+	public:
+		void setUp();
+		void tearDown();
+        void testIt();
+        void testVar();
+        void testPyConfig();
+	private:
+	};
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
+} // tests
+} // distribution
+} // wns
 
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
+#endif // NOT defined WNS_DISTRIBUTION_TEST_PSDT_HPP
 
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/

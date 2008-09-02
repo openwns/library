@@ -25,40 +25,66 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_NODE_NODESIMULATIONMODEL_HPP
-#define WNS_NODE_NODESIMULATIONMODEL_HPP
+#ifndef WNS_DISTRIBUTION_POISSON_HPP
+#define WNS_DISTRIBUTION_POISSON_HPP
 
-#include <WNS/simulator/ISimulationModel.hpp>
-#include <WNS/node/Registry.hpp>
-#include <WNS/logger/Logger.hpp>
-#include <WNS/pyconfig/View.hpp>
+#include <WNS/distribution/Distribution.hpp>
+#include <WNS/distribution/Uniform.hpp>
 
-namespace wns { namespace node {
-
-    class NodeSimulationModel :
-        public wns::simulator::ISimulationModel
-    {
-    public:
+namespace wns { namespace distribution {
+	/**
+	 * @brief Poisson distributed random numbers.
+	 *
+ 	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+	 *
+	 * Provided number of arrivals within a given time interval t with
+	 * (NegExp) arrival rate lambda. Here: lambda * t = mean
+	 */
+  	class Poisson :
+  		public ClassicDistribution
+  	{
+  	public:
         explicit
-        NodeSimulationModel(const wns::pyconfig::View& config);
+        Poisson(double mean, 
+            wns::rng::RNGen* rng = wns::simulator::getRNG());
 
-        virtual
-        ~NodeSimulationModel();
+        explicit
+        Poisson(const pyconfig::View& config);
 
-    protected:
-        virtual void
-        doStartup();
+        explicit
+        Poisson(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-        virtual void
-        doShutdown();
+		virtual
+		~Poisson();
 
-		wns::node::Registry registry_;
+		virtual double
+		operator()();
 
-        wns::logger::Logger logger_;
+		virtual double
+		getMean() const;
 
-        wns::pyconfig::View config_;
-    };
-}
-}
+		virtual std::string
+		paramString() const;
 
-#endif // NOT defined WNS_NODE_NODESIMULATIONMODEL_HPP
+	private:
+        double mean_;
+		StandardUniform dis_;
+	}; // Poission
+
+} // distribution
+} // wns
+
+#endif // NOT defined WNS_DISTRIBUTION_POISSON_HPP
+
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/
+

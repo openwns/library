@@ -25,54 +25,52 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#include <WNS/distribution/tests/VarEstimator.hpp>
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+using namespace wns::distribution::test;
 
-using namespace wns::node::component::tests;
+VarEstimator::VarEstimator()
+{
+    reset();
+}
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
-
-void FQSNTest::setUp()
+VarEstimator::~VarEstimator()
 {
 }
 
-void FQSNTest::tearDown()
+void
+VarEstimator::reset()
 {
+    mean_.reset();
+    sampleCount_ = 0;
+    squareSum_ = 0.0;
+}
+
+void
+VarEstimator::put(double value)
+{
+    mean_.put(value);
+    sampleCount_++;
+    squareSum_ += (value * value);
+}
+
+double
+VarEstimator::get()
+{
+    double temp1 = (1.0 / (sampleCount_ - 1.0)) * squareSum_;
+    double temp2 = (sampleCount_ / (sampleCount_ - 1.0)) * (mean_.get() * mean_.get());  
+    return temp1 - temp2;
 }
 
 
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/

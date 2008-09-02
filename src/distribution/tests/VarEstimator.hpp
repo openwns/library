@@ -25,54 +25,45 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef WNS_DISTRIBUTION_TEST_VARESTIMATOR_HPP
+#define WNS_DISTRIBUTION_TEST_VARESTIMATOR_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/Average.hpp>
 
-using namespace wns::node::component::tests;
+namespace wns { namespace distribution { namespace test {
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+    class VarEstimator
+    {
+        public:
+            VarEstimator();
+            ~VarEstimator();
+        
+            double
+            get();
+        
+            void
+            put(double value);
+        
+            void
+            reset();
 
-void FQSNTest::setUp()
-{
-}
+        private:
+            Average<double> mean_;
+            int sampleCount_;
+            double squareSum_;
+	};
+}}}
 
-void FQSNTest::tearDown()
-{
-}
+#endif // NOT defined WNS_DISTRIBUTION_TEST_VARESTIMATOR_HPP
 
-
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/

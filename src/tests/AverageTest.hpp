@@ -25,54 +25,39 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef WNS_TESTS_AVERAGE_HPP
+#define WNS_TESTS_AVERAGE_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/Average.hpp>
+#include <WNS/TestFixture.hpp>
 
-using namespace wns::node::component::tests;
+#ifndef classAverageTest
+#define classAverageTest
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+namespace wns { namespace tests {
+	class AverageTest : public wns::TestFixture  {
+		CPPUNIT_TEST_SUITE( AverageTest );
+		CPPUNIT_TEST( testPutAndGet );
+		CPPUNIT_TEST( testReset );
+		CPPUNIT_TEST_SUITE_END();
+	public:
+		void setUp();
+		void tearDown();
+		void testPutAndGet();
+		void testReset();
+	private:
+		Average<double> average;
+	};
+}}
+#endif // WNS_TESTS_AVERAGE_HPP
 
-void FQSNTest::setUp()
-{
-}
-
-void FQSNTest::tearDown()
-{
-}
-
-
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/

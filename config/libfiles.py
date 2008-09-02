@@ -53,6 +53,7 @@ srcFiles['EVENTS'] = [
     'src/events/scheduler/INotification.cpp',
     'src/events/scheduler/Monitor.cpp',
     'src/events/scheduler/RealTime.cpp',
+    'src/events/CanTimeout.cpp',
 ]
 
 srcFiles['EVALUATION'] = [
@@ -83,6 +84,7 @@ srcFiles['PROBEBUS'] = [
     'src/probe/bus/Context.cpp',
     'src/probe/bus/ContextFilterProbeBus.cpp',
     'src/probe/bus/ContextProvider.cpp',
+    'src/probe/bus/ContextCollector.cpp',
     'src/probe/bus/LoggingProbeBus.cpp',
     'src/probe/bus/LogEvalProbeBus.cpp',
     'src/probe/bus/PassThroughProbeBus.cpp',
@@ -122,6 +124,23 @@ srcFiles['SERVICE'] = [
     'src/service/tl/PortPool.cpp',
 ]
 
+srcFiles['DISTRIBUTION'] = [
+    'src/distribution/Fixed.cpp',
+    'src/distribution/NegExp.cpp',
+    'src/distribution/Norm.cpp',
+    'src/distribution/Uniform.cpp',
+    'src/distribution/DiscreteUniform.cpp',
+    'src/distribution/Pareto.cpp',
+    'src/distribution/Binomial.cpp',
+    'src/distribution/Geometric.cpp',
+    'src/distribution/Erlang.cpp',
+    'src/distribution/Poisson.cpp',
+    'src/distribution/CDFTable.cpp',
+    'src/distribution/TimeDependent.cpp',
+    'src/distribution/Operation.cpp',
+    'src/distribution/Rice.cpp',
+]
+
 srcFiles['QUEUINGSYSTEM'] = [
     'src/queuingsystem/Job.cpp',
     'src/queuingsystem/MM1Step1.cpp',
@@ -145,6 +164,8 @@ srcFiles['BASE-TESTS'] = [
     'src/tests/BacktraceTest.cpp',
     'src/tests/ObserverTest.cpp',
     'src/tests/ObjectTest.cpp',
+    'src/tests/IntervalTest.cpp',
+    'src/tests/EnumeratorTest.cpp',
 
     'src/module/tests/ModuleTest.cpp',
     'src/module/tests/MultiTypeFactoryTest.cpp',
@@ -160,6 +181,7 @@ srcFiles['CONTAINER-TESTS'] = [
     'src/container/tests/RegistryTest.cpp',
     'src/container/tests/DynamicMatrixTest.cpp',
     'src/container/tests/PoolTest.cpp',
+    'src/container/tests/RangeMapTest.cpp',
 ]
 
 srcFiles['PYCONFIG-TESTS'] = [
@@ -204,6 +226,7 @@ srcFiles['EVENTS-TESTS'] = [
     'src/events/scheduler/tests/MapPerformanceTest.cpp',
     'src/events/scheduler/tests/BestPracticesTest.cpp',
     'src/events/scheduler/tests/RealTimeTest.cpp',
+    'src/events/tests/CanTimeoutTest.cpp',
     ]
     
 srcFiles['OSI-TESTS'] = [
@@ -228,6 +251,24 @@ srcFiles['NODE-TESTS'] = [
 
 srcFiles['SERVICE-TESTS'] = [
     'src/service/tl/tests/PortPoolTest.cpp',
+]
+
+srcFiles['DISTRIBUTION-TESTS'] = [
+    'src/distribution/tests/FixedTest.cpp',
+    'src/distribution/tests/VarEstimator.cpp',
+    'src/distribution/tests/NegExpTest.cpp',
+    'src/distribution/tests/ErlangTest.cpp',
+    'src/distribution/tests/NormTest.cpp',
+    'src/distribution/tests/UniformTest.cpp',
+    'src/distribution/tests/DiscreteUniformTest.cpp',
+    'src/distribution/tests/PoissonTest.cpp',
+    'src/distribution/tests/GeometricTest.cpp',
+    'src/distribution/tests/ParetoTest.cpp',
+    'src/distribution/tests/BinomialTest.cpp',
+    'src/distribution/tests/CDFTableTest.cpp',
+    'src/distribution/tests/RiceTest.cpp',
+    'src/distribution/tests/TimeDependentTest.cpp',
+    'src/distribution/tests/OperationTest.cpp',
 ]
 
 Return('srcFiles')

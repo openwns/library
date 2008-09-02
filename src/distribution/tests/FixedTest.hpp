@@ -25,54 +25,40 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef WNS_DISTRIBUTION_TEST_FIXED_HPP
+#define WNS_DISTRIBUTION_TEST_FIXED_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/distribution/Fixed.hpp>
 
-using namespace wns::node::component::tests;
+#include <WNS/TestFixture.hpp>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+namespace wns { namespace distribution { namespace fixedtest {
 
-void FQSNTest::setUp()
-{
-}
+	class FixedTest :
+		public CppUnit::TestFixture
+	{
+		CPPUNIT_TEST_SUITE( FixedTest );
+		CPPUNIT_TEST( testIt );
+		CPPUNIT_TEST_SUITE_END();
+	public:
+		void setUp();
+		void tearDown();
 
-void FQSNTest::tearDown()
-{
-}
+		void testIt();
+	private:
+	};
+}}}
 
+#endif // NOT defined WNS_DISTRIBUTION_TEST_FIXED_HPP
 
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/

@@ -25,54 +25,43 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#ifndef WNS_DISTRIBUTION_RNGCONFIGCREATOR_HPP
+#define WNS_DISTRIBUTION_RNGCONFIGCREATOR_HPP
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/StaticFactory.hpp>
+#include <WNS/pyconfig/View.hpp>
+#include <WNS/rng/RNGen.hpp>
 
-using namespace wns::node::component::tests;
+namespace wns { namespace distribution {
+    /**
+	 * @brief Creator implementation to be used with StaticFactory.
+	 *
+	 * Useful for constructors with a specific RNG and pyconfig::View parameter.
+	 *
+	 */
+	template <typename T, typename KIND = T>
+	struct RNGConfigCreator :
+		public RNGConfigCreator<KIND, KIND>
+	{
+		virtual KIND* create(wns::rng::RNGen* rng, const wns::pyconfig::View& config)
+		{
+			return new T(rng, config);
+		}
+	};
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+	template <typename KIND>
+	struct RNGConfigCreator<KIND, KIND> //:
+	// public wns::Creator<KIND, KIND>
+	{
+	public:
+		virtual KIND* create(wns::rng::RNGen*, const wns::pyconfig::View&) = 0;
 
-void FQSNTest::setUp()
-{
-}
+		virtual ~RNGConfigCreator()
+		{}
+	};
 
-void FQSNTest::tearDown()
-{
-}
+}}
 
 
-void FQSNTest::construct()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+#endif // NOT defined WNS_DISTRIBUTION_RNGCONFIGCREATOR_HPP
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
-
-void FQSNTest::stream()
-{
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
-
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
-
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
-
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}

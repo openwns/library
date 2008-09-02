@@ -25,54 +25,70 @@
  *
  ******************************************************************************/
 
-#include <WNS/node/component/tests/FQSNTest.hpp>
-#include <WNS/node/component/tests/TCP.hpp>
-#include <WNS/node/component/FQSN.hpp>
+#include <WNS/distribution/tests/GeometricTest.hpp>
 
-#include <WNS/pyconfig/helper/Functions.hpp>
+#include <WNS/pyconfig/Parser.hpp>
+#include <WNS/Average.hpp>
+#include <WNS/distribution/tests/VarEstimator.hpp>
 
-using namespace wns::node::component::tests;
+using namespace wns::distribution::test;
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FQSNTest );
+CPPUNIT_TEST_SUITE_REGISTRATION( GeometricTest );
 
-void FQSNTest::setUp()
+
+void
+GeometricTest::setUp()
 {
-}
+} // setUp
 
-void FQSNTest::tearDown()
+
+void
+GeometricTest::tearDown()
 {
-}
+} // tearDown
 
 
-void FQSNTest::construct()
+void
+GeometricTest::testIt()
 {
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+    wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
+            "import wns.Distribution\n"
+            "dist = wns.Distribution.Geometric(7.0)\n"
+            );
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+    Geometric dis(config.get("dist"));
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
+    Average<double> average;
+    for(int i = 0; i < 1000000; ++i)
+        average.put(dis());
 
-	CPPUNIT_ASSERT(fqsn.getNodeName() == "dummyNode");
-	CPPUNIT_ASSERT(fqsn.getServiceName() == "dummyService");
-}
+    WNS_ASSERT_MAX_REL_ERROR(dis.getMean(), average.get(), 0.01);
+} // testIt
 
-void FQSNTest::stream()
+void
+GeometricTest::testVar()
 {
-	std::string config =
-		"from openwns.node import FQSN\n"
-		"class DummyNode:\n"
-		"    name = 'dummyNode'\n"
-		"fqsn = FQSN(DummyNode(), 'dummyService')\n";
+    pyconfig::Parser config;
+    config.loadString(
+        "mean = 5.0\n");
 
-	wns::pyconfig::View pyco = pyconfig::helper::createViewFromString(config);
+    Geometric dis = Geometric(5.0);
 
-	FQSN fqsn = FQSN(pyco.get<wns::pyconfig::View>("fqsn"));
+    VarEstimator var;
+    for(int i = 0; i < 1000000; ++i)
+       var.put(dis());
 
-	std::stringstream ss;
-	ss << fqsn;
-	CPPUNIT_ASSERT(ss.str() == "dummyNode.dummyService");
-}
+    WNS_ASSERT_MAX_REL_ERROR(5.0 + 5.0 * 5.0, var.get(), 0.01);
+} // testIt
+
+/*
+  Local Variables:
+  mode: c++
+  fill-column: 80
+  c-basic-offset: 8
+  c-comment-only-line-offset: 0
+  c-tab-always-indent: t
+  indent-tabs-mode: t
+  tab-width: 8
+  End:
+*/
