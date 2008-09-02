@@ -160,6 +160,21 @@ class ContextFilterProbeBus(ProbeBus):
                 self.idName = _idName
                 self.idValues = _idValues
 
+class ConstantContextProvider(object):
+
+        __plugin__ = "wns.ProbeBus.ConstantContextProvider"
+        """ Name in the static factory """
+
+        key = None
+        """ The name of the context """
+
+        value = None
+        """ A constant integer value """
+
+        def __init__(self, key, value):
+                super(ConstantContextProvider, self).__init__()
+                self.key = key
+                self.value = value
 
 class StatEvalProbeBus(ProbeBus):
 

@@ -10,6 +10,7 @@ srcFiles['BASE'] = [
     'src/PythonicOutput.cpp',
     'src/Backtrace.cpp',
     'src/demangle.cpp',
+    'src/Object.cpp',
 
     # module
     'src/module/Base.cpp',
@@ -81,6 +82,7 @@ srcFiles['LOGGER'] = [
 srcFiles['PROBEBUS'] = [
     'src/probe/bus/Context.cpp',
     'src/probe/bus/ContextFilterProbeBus.cpp',
+    'src/probe/bus/ContextProvider.cpp',
     'src/probe/bus/LoggingProbeBus.cpp',
     'src/probe/bus/LogEvalProbeBus.cpp',
     'src/probe/bus/PassThroughProbeBus.cpp',
@@ -103,6 +105,22 @@ srcFiles['TESTING'] = [
     'src/testing/DetailedListener.cpp',
     'src/testing/TestTool.cpp',
     ]
+    
+srcFiles['OSI'] = [
+    'src/osi/PDU.cpp',
+    'src/osi/PCI.cpp',
+]
+
+srcFiles['NODE'] = [
+    'src/node/Node.cpp',
+    'src/node/NodeSimulationModel.cpp',
+    'src/node/component/Component.cpp',
+    'src/node/component/FQSN.cpp',
+]   
+
+srcFiles['SERVICE'] = [
+    'src/service/tl/PortPool.cpp',
+]
 
 srcFiles['QUEUINGSYSTEM'] = [
     'src/queuingsystem/Job.cpp',
@@ -126,6 +144,7 @@ srcFiles['BASE-TESTS'] = [
     'src/tests/StopWatchTest.cpp',
     'src/tests/BacktraceTest.cpp',
     'src/tests/ObserverTest.cpp',
+    'src/tests/ObjectTest.cpp',
 
     'src/module/tests/ModuleTest.cpp',
     'src/module/tests/MultiTypeFactoryTest.cpp',
@@ -140,6 +159,7 @@ srcFiles['CONTAINER-TESTS'] = [
     'src/container/tests/UntypedRegistryTest.cpp',
     'src/container/tests/RegistryTest.cpp',
     'src/container/tests/DynamicMatrixTest.cpp',
+    'src/container/tests/PoolTest.cpp',
 ]
 
 srcFiles['PYCONFIG-TESTS'] = [
@@ -158,6 +178,8 @@ srcFiles['LOGGER-TESTS'] = [
 srcFiles['PROBEBUS-TESTS'] = [
     'src/probe/bus/tests/ContextTest.cpp',
     'src/probe/bus/tests/ContextFilterProbeBusTest.cpp',
+    'src/probe/bus/tests/ContextProviderTest.cpp',
+    'src/probe/bus/tests/ContextProviderCollectionTest.cpp',
     'src/probe/bus/tests/PassThroughProbeBusTest.cpp',
     'src/probe/bus/tests/ProbeBusRegistryTest.cpp',
     'src/probe/bus/tests/ProbeBusStub.cpp',
@@ -183,5 +205,29 @@ srcFiles['EVENTS-TESTS'] = [
     'src/events/scheduler/tests/BestPracticesTest.cpp',
     'src/events/scheduler/tests/RealTimeTest.cpp',
     ]
+    
+srcFiles['OSI-TESTS'] = [
+    'src/osi/tests/PCITest.cpp',
+    'src/osi/tests/PDUTest.cpp',
+]
+
+srcFiles['SERVICE-TESTS'] = [
+    'src/service/nl/tests/Address.cpp',
+]
+
+srcFiles['NODE-TESTS'] = [
+    'src/node/tests/NodeTest.cpp',
+    'src/node/tests/NodeHeaderReaderTest.cpp',
+    'src/node/tests/Stub.cpp',   
+    'src/node/component/tests/ComponentStub.cpp',
+    'src/node/component/tests/ComponentTest.cpp',
+    'src/node/component/tests/IP.cpp',
+    'src/node/component/tests/TCP.cpp',
+    'src/node/component/tests/FQSNTest.cpp',
+]
+
+srcFiles['SERVICE-TESTS'] = [
+    'src/service/tl/tests/PortPoolTest.cpp',
+]
 
 Return('srcFiles')
