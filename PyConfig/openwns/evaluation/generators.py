@@ -220,11 +220,15 @@ class TimeSeries(ITreeNodeGenerator):
 
 class Moments(ITreeNodeGenerator):
 
-    def __init__(self):
-        pass
+    def __init__(self, format = "fixed", name = "no name available", 
+        description = "no description available"):
+        self.format = format
+        self.name = name
+        self.description = description
 
     def __call__(self, pathname):
-        momentseval = statistics.MomentsEval()
+        momentseval = statistics.MomentsEval(format = self.format, name = self.name, description = 
+            self.description)
         
         pb = openwns.probebus.StatEvalProbeBus(pathname + '_Moments.dat', momentseval)
 
