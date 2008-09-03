@@ -200,11 +200,21 @@ class TextTrace(ITreeNodeGenerator):
 
 class TimeSeries(ITreeNodeGenerator):
 
-    def __init__(self):
-        pass
+    def __init__(self, format = "fixed", timePrecision = 7, 
+        valuePrecision = 7, name = "no name available", 
+        description = "no description available"):
+      
+        self.format = format
+        self.timePrecision = timePrecision
+        self.valuePrecision = valuePrecision
+        self.name = name
+        self.description = description
 
     def __call__(self, pathname):
-        pb = openwns.probebus.LogEvalProbeBus(outputFilename = pathname + "_Log.log.dat", format="fixed", timePrecision = 7, valuePrecision = 7)
+        pb = openwns.probebus.TimeSeriesProbeBus(
+            pathname + "_TimeSeries.dat", self.format, 
+            self.timePrecision, self.valuePrecision, 
+            self.name, self.description)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
@@ -216,7 +226,7 @@ class Moments(ITreeNodeGenerator):
     def __call__(self, pathname):
         momentseval = statistics.MomentsEval()
         
-        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Log.dat', momentseval)
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_Moments.dat', momentseval)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
@@ -232,7 +242,7 @@ class Table(ITreeNodeGenerator):
 
     def __init__(self, **kwargs):
         assert kwargs.has_key("values"), "You must sepecify at least one value"
-        assert kwargs.has_key("formats"), "Yout must specify at least one format"
+        assert kwargs.has_key("formats"), "You must specify at least one format"
 
         self.values = kwargs.pop("values")
         self.formats = kwargs.pop("formats")

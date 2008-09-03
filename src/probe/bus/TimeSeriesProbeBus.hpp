@@ -25,8 +25,8 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_LOGEVAL_HPP
-#define WNS_PROBE_BUS_LOGEVAL_HPP
+#ifndef WNS_PROBE_BUS_TIMESERIESEVAL_HPP
+#define WNS_PROBE_BUS_TIMESERIESEVAL_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
 
@@ -43,7 +43,7 @@ namespace wns { namespace probe { namespace bus {
     /**
      * @brief Writes time series of measurements received on a ProbeBus
      */
-    class LogEvalProbeBus:
+    class TimeSeriesProbeBus:
         public ProbeBus
     {
 
@@ -54,9 +54,9 @@ namespace wns { namespace probe { namespace bus {
         };
 
     public:
-        LogEvalProbeBus(const wns::pyconfig::View&);
+        TimeSeriesProbeBus(const wns::pyconfig::View&);
         
-        virtual ~LogEvalProbeBus();
+        virtual ~TimeSeriesProbeBus();
 
         virtual bool
         accepts(const wns::simulator::Time&, const IContext&);
@@ -96,10 +96,26 @@ namespace wns { namespace probe { namespace bus {
         int valuePrecision;
 
         formatType format;
+
+        /**
+         * @brief Name
+         */
+        std::string name;
+
+        /**
+         * @brief Description
+         */
+        std::string desc;
+
+        /**
+         * @brief Comment prefix to be used in output files
+         */
+        std::string prefix;
+
     };
 
 } // bus
 } // probe
 } // wns
 
-#endif // WNS_PROBE_BUS_LOGEVAL_HPP
+#endif // WNS_PROBE_BUS_TIMESERIESEVAL_HPP

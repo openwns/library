@@ -82,7 +82,7 @@ srcFiles['PROBEBUS'] = [
     'src/probe/bus/Context.cpp',
     'src/probe/bus/ContextFilterProbeBus.cpp',
     'src/probe/bus/LoggingProbeBus.cpp',
-    'src/probe/bus/LogEvalProbeBus.cpp',
+    'src/probe/bus/TimeSeriesProbeBus.cpp',
     'src/probe/bus/PassThroughProbeBus.cpp',
     'src/probe/bus/ProbeBus.cpp',
     'src/probe/bus/ProbeBusRegistry.cpp',
