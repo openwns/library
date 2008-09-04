@@ -25,9 +25,9 @@
  *
  ******************************************************************************/
 
-#include <Python.h>
+#include <WNS/Python.hpp>
 
-#include "ViewTest.hpp"
+#include <WNS/pyconfig/tests/ViewTest.hpp>
 #include <WNS/Exception.hpp>
 
 #include <vector>

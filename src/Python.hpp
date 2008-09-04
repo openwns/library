@@ -28,7 +28,7 @@
 #ifndef WNS_PYTHON_HPP
 #define WNS_PYTHON_HPP
 
-#include <Python.h>
+#include <python/Python.h>
 
 /**
  * This file handles compatiblity issues between different Python

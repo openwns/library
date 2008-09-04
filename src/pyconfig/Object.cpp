@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <Python.h>
+#include <WNS/Python.hpp>
 #include <WNS/pyconfig/Object.hpp>
 #include <sstream>
 #include <stddef.h>
