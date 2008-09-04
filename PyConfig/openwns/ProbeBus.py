@@ -130,25 +130,26 @@ class TimeWindowProbeBus(ProbeBus):
                 self.start = start
                 self.end = end
 
-class LogEvalProbeBus(ProbeBus):
+class TimeSeriesProbeBus(ProbeBus):
         """ The LogEval ProbeBus always accepts and logs the values into a file.
         """
-        nameInFactory = "LogEvalProbeBus"
+        nameInFactory = "TimeSeriesProbeBus"
 
-	outputFilename = None
+        outputFilename = None
+        format = None
+        timePrecision = None
+        valuePrecision = None
+        name = None
+        description = None
 
-	format = None
-
-	timePrecision = None
-
-	valuePrecision = None
-
-        def __init__(self, outputFilename, format, timePrecision, valuePrecision):
-		ProbeBus.__init__(self)
-                self.outputFilename = outputFilename
-                self.format = format
-                self.timePrecision = timePrecision
-                self.valuePrecision = valuePrecision
+        def __init__(self, outputFilename, format, timePrecision, valuePrecision, name, desc):
+            ProbeBus.__init__(self)
+            self.outputFilename = outputFilename
+            self.format = format
+            self.timePrecision = timePrecision
+            self.valuePrecision = valuePrecision
+            self.name = name
+            self.description = desc
 
 class ContextFilterProbeBus(ProbeBus):
         nameInFactory = "ContextFilterProbeBus"
