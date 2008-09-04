@@ -52,7 +52,7 @@ OperationTest::testFixedAdd()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"from wns.Distribution import *\n"
+		"from openwns.distribution import *\n"
 		"foo = Fixed(20) + Fixed(22)\n"
 		);
 
@@ -73,7 +73,7 @@ OperationTest::testAdd()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"from wns.Distribution import *\n"
+		"from openwns.distribution import *\n"
 		"foo = NegExp(20) + Uniform(44)\n"
 		);
 
@@ -99,7 +99,7 @@ OperationTest::testFixedMul()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"from wns.Distribution import *\n"
+		"from openwns.distribution import *\n"
 		"foo = Fixed(20) * Fixed(22)\n"
 		);
 
@@ -120,7 +120,7 @@ OperationTest::testMul()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"from wns.Distribution import *\n"
+		"from openwns.distribution import *\n"
 		"foo = NegExp(20) * Uniform(44)\n"
 		);
 
@@ -146,7 +146,7 @@ OperationTest::testFixedSub()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"from wns.Distribution import *\n"
+		"from openwns.distribution import *\n"
 		"foo = Fixed(84) - Fixed(42)\n"
 		);
 
@@ -167,7 +167,7 @@ OperationTest::testFixedDiv()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"from wns.Distribution import *\n"
+		"from openwns.distribution import *\n"
 		"foo = Fixed(84) / Fixed(2)\n"
 		);
 
@@ -188,7 +188,7 @@ OperationTest::testConstant()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"from wns.Distribution import *\n"
+		"from openwns.distribution import *\n"
 		"add = Fixed(40) + 2\n"
 		"mul = Fixed(21) * 2\n"
 		"sub = Fixed(44) - 2\n"
@@ -216,7 +216,7 @@ OperationTest::testAbove()
 {
 	pyconfig::Parser all;
 	all.loadString(
-		"from wns.Distribution import Uniform\n"
+		"from openwns.distribution import Uniform\n"
 		"it = Uniform().above(0.5)\n"
 		);
 	pyconfig::View config(all, "it");
@@ -238,7 +238,7 @@ OperationTest::testBelow()
 {
 	pyconfig::Parser all;
 	all.loadString(
-		"from wns.Distribution import Uniform\n"
+		"from openwns.distribution import Uniform\n"
 		"it = Uniform().below(0.5)\n"
 		);
 	pyconfig::View config(all, "it");

@@ -54,8 +54,8 @@ void
 UniformTest::testIt()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.Uniform(40.0, 44.0)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.Uniform(40.0, 44.0)\n"
             );
     Uniform dis(config.get("dist"));
 
@@ -70,8 +70,8 @@ void
 UniformTest::testStandardUniform()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.StandardUniform()\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.StandardUniform()\n"
             );
 
     StandardUniform dis(config.get("dist"));

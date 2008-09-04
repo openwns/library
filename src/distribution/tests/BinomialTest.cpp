@@ -69,8 +69,8 @@ namespace wns { namespace distribution { namespace test {
     BinomialTest::testMean()
     {
         wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.Binomial(20, 0.4)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.Binomial(20, 0.4)\n"
             );
 
         Binomial dis = Binomial(config.get("dist"));

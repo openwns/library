@@ -52,8 +52,8 @@ void
 NegExpTest::testIt()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.NegExp(42.0)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.NegExp(42.0)\n"
             );
     NegExp dis(config.get("dist"));
 

@@ -52,8 +52,8 @@ void
 ErlangTest::testIt()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.Erlang(42.0, 4)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.Erlang(42.0, 4)\n"
             );
 
     Erlang dis(config.get("dist"));

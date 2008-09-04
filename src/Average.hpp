@@ -70,17 +70,6 @@ namespace wns {
 
 	protected:
 		/**
-		 * @brief Check if the object is in a sane state
-		 */
-		bool integrityCheck() const
-		{
-			if(samples<0) {
-				return false;
-			};
-			return true;
-		}
-
-		/**
 		 * @brief Stores the average
 		 */
 		double mean;

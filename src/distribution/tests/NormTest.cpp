@@ -52,8 +52,8 @@ void
 NormTest::testIt()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.Normal(42.0, 1.0)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.Normal(42.0, 1.0)\n"
             );
     Norm dis(config.get("dist"));
 

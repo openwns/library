@@ -57,8 +57,8 @@ void
 ParetoTest::testIt()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.Pareto(3.0, 10.0)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.Pareto(3.0, 10.0)\n"
             );
     Pareto dis(config.get("dist"));
 

@@ -31,11 +31,8 @@
 #include <WNS/Average.hpp>
 #include <WNS/TestFixture.hpp>
 
-#ifndef classAverageTest
-#define classAverageTest
-
 namespace wns { namespace tests {
-	class AverageTest : public wns::TestFixture  {
+	class AverageTest : public CppUnit::TestFixture  {
 		CPPUNIT_TEST_SUITE( AverageTest );
 		CPPUNIT_TEST( testPutAndGet );
 		CPPUNIT_TEST( testReset );

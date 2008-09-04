@@ -52,8 +52,8 @@ void
 DiscreteUniformTest::testIt()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.DiscreteUniform(50, 100)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.DiscreteUniform(50, 100)\n"
             );
 
     wns::distribution::DiscreteUniform dis(config.get("dist"));

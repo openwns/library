@@ -52,8 +52,8 @@ void
 PoissonTest::testIt()
 {
     wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-            "import wns.Distribution\n"
-            "dist = wns.Distribution.Poisson(10.0)\n"
+            "import openwns.distribution\n"
+            "dist = openwns.distribution.Poisson(10.0)\n"
             );
     Poisson dis(config.get("dist"));
 

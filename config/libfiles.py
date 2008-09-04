@@ -151,6 +151,7 @@ srcFiles['QUEUINGSYSTEM'] = [
     ]
 
 srcFiles['BASE-TESTS'] = [
+    'src/tests/AverageTest.cpp',
     'src/tests/AssureTest.cpp',
     'src/tests/ChamaeleonTest.cpp',
     'src/tests/ExceptionTest.cpp',

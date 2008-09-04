@@ -113,16 +113,16 @@ CDFTableTest::testPyConfig()
 {
 	pyconfig::Parser config;
 	config.loadString(
-		"import wns.distribution.CDFTables\n"
-		"packetSize = wns.distribution.CDFTables.IPPacketSizeDataTraffic()\n"
+		"import openwns.distribution\n"
+		"dis = openwns.distribution.ExampleCDFTable()\n"
 	);
 
-	wns::pyconfig::View packetConfig(config, "packetSize");
+	wns::pyconfig::View disConfig(config, "dis");
 
 	CDFTable* dis =
 		dynamic_cast<CDFTable*>(
-		wns::distribution::DistributionFactory::creator(packetConfig.get<std::string>("__plugin__"))
-		->create(packetConfig));
+		wns::distribution::DistributionFactory::creator(disConfig.get<std::string>("__plugin__"))
+		->create(disConfig));
 
 	Average<double> average;
 	for(int i = 0; i < 100000; ++i) {
@@ -130,12 +130,7 @@ CDFTableTest::testPyConfig()
 	}
 
 	double calculatedAverage = dis->getMean();
-	// Bytes: - Expected: 257.104 - Actual  : 256.494
-	// Bits:  - Expected: 2056.84 - Actual  : 2051.95
-	/**
-	 * @todo (msg) Can we get closer than 1%?
-	 * @todo (rs) Sometimes "randomness" even exceeds any given bound.
-	 */
+
 	WNS_ASSERT_MAX_REL_ERROR(calculatedAverage, average.get(), 0.01);
 
 	delete dis;

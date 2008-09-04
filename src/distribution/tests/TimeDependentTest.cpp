@@ -67,9 +67,9 @@ namespace wns { namespace distribution { namespace tests {
 	TimeDependentTest::testOneEventAtNULL()
 	{
 		wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-			"import wns.Distribution\n"
-			"dist = wns.Distribution.TimeDependent()\n"
-			"dist.eventList.append(wns.Distribution.Event(0.0, wns.Distribution.Fixed(47)))\n"
+			"import openwns.distribution\n"
+			"dist = openwns.distribution.TimeDependent()\n"
+			"dist.eventList.append(openwns.distribution.Event(0.0, openwns.distribution.Fixed(47)))\n"
 			);
 		TimeDependent t(config.get("dist"));
 		WNS_ASSERT_MAX_REL_ERROR(47.0, t(), 1E-6);
@@ -80,12 +80,12 @@ namespace wns { namespace distribution { namespace tests {
 	{
 		wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
 			// begin example "TimeDependent::config.example" unquote
-			"import wns.Distribution\n"
-			"dist = wns.Distribution.TimeDependent()\n"
-			"dist.eventList.append(wns.Distribution.Event(0.0, wns.Distribution.Fixed(47)))\n"
-			"dist.eventList.append(wns.Distribution.Event(2.0, wns.Distribution.Fixed(11)))\n"
-			"dist.eventList.append(wns.Distribution.Event(5.0, wns.Distribution.Fixed(8)))\n"
-			"dist.eventList.append(wns.Distribution.Event(11.0, wns.Distribution.Fixed(15)))\n"
+			"import openwns.distribution\n"
+			"dist = openwns.distribution.TimeDependent()\n"
+			"dist.eventList.append(openwns.distribution.Event(0.0, openwns.distribution.Fixed(47)))\n"
+			"dist.eventList.append(openwns.distribution.Event(2.0, openwns.distribution.Fixed(11)))\n"
+			"dist.eventList.append(openwns.distribution.Event(5.0, openwns.distribution.Fixed(8)))\n"
+			"dist.eventList.append(openwns.distribution.Event(11.0, openwns.distribution.Fixed(15)))\n"
 			// end example
 			);
 
@@ -111,11 +111,11 @@ namespace wns { namespace distribution { namespace tests {
 	TimeDependentTest::testMultipleEvents()
 	{
 		wns::pyconfig::View config = wns::pyconfig::Parser::fromString(
-			"import wns.Distribution\n"
-			"dist = wns.Distribution.TimeDependent()\n"
-			"dist.eventList.append(wns.Distribution.Event(2.0, wns.Distribution.Fixed(11)))\n"
-			"dist.eventList.append(wns.Distribution.Event(5.0, wns.Distribution.Fixed(8)))\n"
-			"dist.eventList.append(wns.Distribution.Event(11.0, wns.Distribution.Fixed(15)))\n"
+			"import openwns.distribution\n"
+			"dist = openwns.distribution.TimeDependent()\n"
+			"dist.eventList.append(openwns.distribution.Event(2.0, openwns.distribution.Fixed(11)))\n"
+			"dist.eventList.append(openwns.distribution.Event(5.0, openwns.distribution.Fixed(8)))\n"
+			"dist.eventList.append(openwns.distribution.Event(11.0, openwns.distribution.Fixed(15)))\n"
 			);
 
 		TimeDependent t(config.get("dist"));
