@@ -1,14 +1,12 @@
 import os
-import fnmatch
-import glob
-Import('env installDir includeDir')
-libs,headers,pyconfigs = SConscript('config/libfiles.py')
+Import('env')
+srcFiles,headers,pyconfigs = SConscript('config/libfiles.py')
 
-for lib,files in libs.items():
-	lib = env.SharedLibrary('wns-' + lib.lower(), files)
-	env.Install(installDir, lib )
+if len(srcFiles) != 0:
+    lib = env.SharedLibrary('wns', srcFiles)
+    env.Install(os.path.join(env.installDir, 'lib'), lib )
 
 for config in pyconfigs:
-	env.InstallAs(os.path.join(installDir, 'PyConfig', config),
-		      os.path.join('PyConfig',config))
+    env.InstallAs(os.path.join(env.installDir, 'lib', 'PyConfig', config),
+                  os.path.join('PyConfig',config))
 
