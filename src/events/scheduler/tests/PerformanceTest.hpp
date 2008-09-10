@@ -41,81 +41,113 @@
 
 namespace wns { namespace events { namespace scheduler { namespace tests {
 
-	class PerformanceTest :
-		public wns::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( PerformanceTest );
-		CPPUNIT_TEST( testNow );
-		CPPUNIT_TEST( testNowWithObserver );
-		CPPUNIT_TEST( testRandom );
-		CPPUNIT_TEST( testIncreasingTime );
-		CPPUNIT_TEST( testQueuingDuringRun );
-		CPPUNIT_TEST( testQueueAndDelete );
-		CPPUNIT_TEST_SUITE_END_ABSTRACT();
+    class PerformanceTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( PerformanceTest );
+        CPPUNIT_TEST( testJistStyle );
+        CPPUNIT_TEST( testNow );
+        CPPUNIT_TEST( testNowWithObserver );
+        CPPUNIT_TEST( testRandom );
+        CPPUNIT_TEST( testIncreasingTime );
+        CPPUNIT_TEST( testQueuingDuringRun );
+        CPPUNIT_TEST( testQueueAndDelete );
+        CPPUNIT_TEST_SUITE_END_ABSTRACT();
 
-		class SelfQueuing
-		{
-		public:
-			SelfQueuing(wns::events::scheduler::Interface* _scheduler) :
-				count(1000),
-				scheduler(_scheduler)
-			{
-			}
+        class SelfQueuing
+        {
+        public:
+            SelfQueuing(wns::events::scheduler::Interface* _scheduler) :
+                count(1000),
+                scheduler(_scheduler)
+            {
+            }
 
-			virtual
-			void operator()()
-			{
-				--count;
-				if (count > 0)
-				{
-					// reque myself with 2s delay
-					this->scheduler->scheduleDelay(*this, 2);
-				}
-			}
+            virtual
+            void operator()()
+            {
+                --count;
+                if (count > 0)
+                {
+                    // reque myself with 2s delay
+                    this->scheduler->scheduleDelay(*this, 2);
+                }
+            }
 
-			virtual
-			~SelfQueuing()
-			{}
-		private:
-			int count;
-			wns::events::scheduler::Interface* scheduler;
-		};
+            virtual
+            ~SelfQueuing()
+            {}
+        private:
+            int count;
+            wns::events::scheduler::Interface* scheduler;
+        };
 
-		class SchedulerObserver :
-			public Observer<INotification>,
-			public wns::events::scheduler::IgnoreAllNotifications
-		{
-		public:
-			SchedulerObserver();
-		private:
 
-			virtual void
-			doOnProcessOneEvent();
+        class JistStyle
+        {
+        public:
+            JistStyle(wns::events::scheduler::Interface* _scheduler) :
+                count(5E6),
+                scheduler(_scheduler)
+            {
+            }
 
-			int counter;
-			bool flag;
-		};
+            void operator()()
+            {
+                if (--count > 0)
+                {
+                    // reque myself with 1s delay
+                    this->scheduler->scheduleDelay(*this, 1);
+                }
+            }
 
-	public:
-		void prepare();
-		void cleanup();
+            ~JistStyle()
+            {}
+        private:
+            int count;
+            wns::events::scheduler::Interface* scheduler;
+        };
 
-		void testNow();
-		void testNowWithObserver();
-		void testRandom();
-		void testIncreasingTime();
-		void testQueuingDuringRun();
-		void testQueueAndDelete();
+        class SchedulerObserver :
+            public Observer<INotification>,
+            public wns::events::scheduler::IgnoreAllNotifications
+        {
+        public:
+            SchedulerObserver();
+        private:
 
-	private:
-		virtual	Interface*
-		newTestee() = 0;
+            virtual void
+            doOnProcessOneEvent();
 
-		virtual void
-		deleteTestee(Interface* scheduler) = 0;
+            int counter;
+            bool flag;
+        };
 
-		Interface* scheduler;
-	};
+    public:
+        PerformanceTest();
+
+        void prepare();
+        void cleanup();
+
+        void testNow();
+        void testNowWithObserver();
+        void testRandom();
+        void testIncreasingTime();
+        void testQueuingDuringRun();
+        void testQueueAndDelete();
+        void testJistStyle();
+
+    private:
+        virtual Interface*
+        newTestee() = 0;
+
+        virtual void
+        deleteTestee(Interface* scheduler) = 0;
+
+        Interface* scheduler;
+        int numberOfEvents;
+
+    };
 
 } // tests
 } // scheduler
@@ -123,15 +155,3 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
 } // wns
 
 #endif // NOT defined WNS_EVENTS_SCHEDULER_TESTS_PERFORMANCETEST_HPP
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
