@@ -70,14 +70,4 @@ namespace wns { namespace testing {
 
 #endif // NOT defined WNS_TESTING_TESTTOOL_HPP
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 4
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 4
-  End:
-*/
+

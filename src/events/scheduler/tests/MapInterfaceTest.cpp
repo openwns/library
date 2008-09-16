@@ -57,15 +57,5 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
 } // events
 } // wns
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+
 

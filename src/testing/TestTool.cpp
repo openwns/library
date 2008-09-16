@@ -151,14 +151,4 @@ wns::testing::matchInString(const std::string content, std::vector<std::string> 
 
 
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 4
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 4
-  End:
-*/
+

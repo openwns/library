@@ -73,13 +73,4 @@ namespace wns { namespace logger {
 } // wns
 #endif // NOT defined WNS_LOGGER_FORMATSTRATEGY_HPP
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+
