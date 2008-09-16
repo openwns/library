@@ -163,14 +163,4 @@ Parser::fromString(const std::string& s)
 	return helper::createViewFromString(s);
 } // fromString
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+

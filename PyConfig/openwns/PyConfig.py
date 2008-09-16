@@ -45,6 +45,11 @@ class Frozen(OnlyImmutableAttributes):
     def __setattr__(self, name, value):
         raise Frozen.Error(self, name)
 
+class Sealed(OnlyImmutableAttributes):
+    def __setattr__(self, attr, value):
+        getattr(self, attr) # raises an exception in case attr is not known
+	object.__setattr__(self, attr, value)
+
 def Plugin(name):
     class Strategy(Frozen):
         __plugin__ = name

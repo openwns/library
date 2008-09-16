@@ -28,6 +28,7 @@
 #include <WNS/simulator/UnitTests.hpp>
 #include <WNS/rng/RNGen.hpp>
 #include <WNS/events/scheduler/Interface.hpp>
+#include <WNS/probe/bus/ProbeBusRegistry.hpp>
 #include <ios>
 
 using namespace wns::simulator;
@@ -53,6 +54,7 @@ UnitTests::doReset()
     // seek to the beginning of the stream
     initialRNGState_.seekg (0, std::ios::beg);
     initialRNGState_ >> *getRNG();
+    getProbeBusRegistry()->reset();
     (*getResetSignal())();
 }
 

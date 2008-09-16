@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,44 +25,36 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
-#define WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+#ifndef WNS_PROBE_BUS_DETAIL_SORTER_HPP
+#define WNS_PROBE_BUS_DETAIL_SORTER_HPP
 
-#include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/pyconfig/View.hpp>
 
-namespace wns { namespace probe { namespace bus {
+namespace wns { namespace probe { namespace bus { namespace detail {
 
-    /**
-     * @brief Only accepts if simulation time is larger than the settling time
-     *
-     * @author Ralf Pabst <pab@comnets.rwth-aachen.de>
-     * @ingroup probebusses
-     */
-    class SettlingTimeGuard :
-        public wns::probe::bus::ProbeBus
-    {
-    public:
+	typedef uint32_t IDType;
 
-        SettlingTimeGuard(const wns::pyconfig::View&);
+	/** @brief Helper class for equidistant sorting */
+	class Sorter
+	{
+		std::string idName_;
+		IDType min_;
+		IDType max_;
+		int resolution_;
+		IDType stepsize_;
 
-        virtual ~SettlingTimeGuard();
+		int calcIndex(IDType id) const;
+	public:
+		Sorter(const wns::pyconfig::View& pyco);
+		Sorter(std::string _idName, IDType _min, IDType _max, int _resolution);
 
-        virtual void
-        onMeasurement(const wns::simulator::Time&,
-                      const double&,
-                      const IContext&);
+		int getIndex(IDType id) const;
+		bool checkIndex(IDType id) const;
+		std::string getInterval(int index) const;
+		IDType getMin(int index) const;
+		int getResolution() const;
+		std::string getIdName() const;
+	};
 
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
-
-        virtual void
-        output();
-
-    private:
-        wns::simulator::Time settlingTime_;
-    };
-} // bus
-} // probe
-} // wns
-
-#endif // WNS_PROBE_BUS_SETTLINGTIMEGUARD_HPP
+}}}}
+#endif // not defined WNS_PROBE_BUS_DETAIL_SORTER_HPP

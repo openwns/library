@@ -81,7 +81,7 @@ class OpenWNS(object):
     This class is the root of the configuration.
     """
 
-    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel"]
+    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel", "outputDir"]
 
     modules = Modules()
 
@@ -92,6 +92,7 @@ class OpenWNS(object):
         self.maxSimTime = 0.0
         self.eventSchedulerMonitor = openwns.eventscheduler.Monitor()
         self.simulationModel = None
+        self.outputDir = "output"
 
         openwns.pyconfig.attrsetter(self, kw)
 
@@ -155,5 +156,5 @@ class Environment(object):
         self.eventScheduler = openwns.eventscheduler.Map()
         self.masterLogger = openwns.logger.Master()
         self.rng = openwns.rng.RNG(useRandomSeed = False)
-        self.probeBusRegistry = openwns.probebus.ProbeBusRegistry(openwns.probebus.SettlingTimeGuard())
+        self.probeBusRegistry = openwns.probebus.ProbeBusRegistry()
         openwns.pyconfig.attrsetter(self, kw)

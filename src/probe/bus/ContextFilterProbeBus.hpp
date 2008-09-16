@@ -12,7 +12,7 @@
  * _____________________________________________________________________________
  *
  * openWNS is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License version 2 as published by the 
+ * terms of the GNU Lesser General Public License version 2 as published by the
  * Free Software Foundation;
  *
  * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,42 +25,46 @@
  *
  ******************************************************************************/
 
-#include <WNS/simulator/ISimulator.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
+#ifndef WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP
+#define WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP
 
-#include <WNS/probe/bus/SettlingTimeGuard.hpp>
+#include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/pyconfig/View.hpp>
 
-using namespace wns::probe::bus;
+#include <set>
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    SettlingTimeGuard,
-    wns::probe::bus::ProbeBus,
-    "SettlingTimeGuard",
-    wns::PyConfigViewCreator);
+namespace wns { namespace probe { namespace bus {
 
-SettlingTimeGuard::SettlingTimeGuard(const wns::pyconfig::View&):
-    settlingTime_(wns::simulator::getConfiguration().get<double>("PDataBase.settlingTime"))
-{
-}
+    /**
+     * @brief Filter Measurements by checking id/value pair
+     *
+     * @ingroup probebusses
+     */
+    class ContextFilterProbeBus:
+        public wns::probe::bus::ProbeBus
+    {
+    public:
+        ContextFilterProbeBus(const wns::pyconfig::View& pyco);
 
-SettlingTimeGuard::~SettlingTimeGuard()
-{
-}
+        virtual ~ContextFilterProbeBus();
 
-bool
-SettlingTimeGuard::accepts(const wns::simulator::Time&, const IContext&)
-{
-    return wns::simulator::getEventScheduler()->getTime() >= settlingTime_;
-}
+        virtual void
+        onMeasurement(const wns::simulator::Time&,
+                      const double&,
+                      const IContext&);
 
-void
-SettlingTimeGuard::onMeasurement(const wns::simulator::Time&,
-                                 const double&,
-                                 const IContext&)
-{
-}
+        virtual bool
+        accepts(const wns::simulator::Time&, const IContext&);
 
-void
-SettlingTimeGuard::output()
-{
-}
+        virtual void
+        output();
+
+    private:
+        std::string idName;
+        std::set<int> values;
+    };
+} // bus
+} // probe
+} // wns
+
+#endif //WNS_PROBE_BUS_CONTEXTFILTERPROBEBUS_HPP

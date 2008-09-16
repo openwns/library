@@ -124,14 +124,4 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
 
 #endif // NOT defined WNS_EVENTS_SCHEDULER_TESTS_PERFORMANCETEST_HPP
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+

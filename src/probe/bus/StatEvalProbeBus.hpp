@@ -25,62 +25,59 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PROBE_BUS_LOGEVAL_HPP
-#define WNS_PROBE_BUS_LOGEVAL_HPP
+#ifndef WNS_PROBE_BUS_STATEVALPROBEBUS_HPP
+#define WNS_PROBE_BUS_STATEVALPROBEBUS_HPP
 
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/evaluation/statistics/stateval.hpp>
+#include <WNS/pyconfig/View.hpp>
+
+class StatEval;
 
 namespace wns { namespace probe { namespace bus {
 
-    //! How to format the output of numbers
-    enum formatType
-    {
-		formatFixed, formatScientific
-    };
-
     /**
-     * @brief backend for the LogEval ProbeBus
+     * @brief Wrap StatEval Objects and attach them to a ProbeBus.
+     *
+     * The StatEvalProbeBus accepts values for a single ProbeID.
+     * Measurements that are received for the ProbID are put to the StatEval
+     * object. output triggers writing of the probe.
+     *
+     * @author Daniel Bültmann <dbn@comnets.rwth-aachen.de>
+     * @ingroup probebusses
      */
-    class LogEval:
-		public ProbeBus
+    class StatEvalProbeBus :
+        public wns::probe::bus::ProbeBus
     {
-
-		struct LogEntry
-		{
-			double value;
-			wns::simulator::Time time;
-		};
-
     public:
-		LogEval(const wns::pyconfig::View&);
+        StatEvalProbeBus(const wns::pyconfig::View&);
 
-		virtual ~LogEval();
-
-        virtual bool
-        accepts(const wns::simulator::Time&, const IContext&);
+        virtual ~StatEvalProbeBus();
 
         virtual void
         onMeasurement(const wns::simulator::Time&,
                       const double&,
                       const IContext&);
 
+        virtual bool
+        accepts(const wns::simulator::Time&, const IContext&);
+
         virtual void
         output();
 
-	private:
-		/**
-		 *@brief Container for the logged entries */
-		std::list<LogEntry>     logQueue;
-        std::string outputPath;
-        std::string filename;
-		bool firstWrite;
-		int timePrecision;
-		int valuePrecision;
-		formatType format;
-	};
+    private:
 
+        std::string outputPath;
+
+        std::string filename;
+
+        bool appendFlag;
+
+        bool firstWrite;
+
+        wns::evaluation::statistics::StatEvalInterface* statEval;
+    };
 } // bus
 } // probe
 } // wns
-
-#endif // WNS_PROBE_BUS_LOGEVAL_HPP
+#endif // WNS_PROBE_BUS_STATEVALPROBEBUS_HPP
