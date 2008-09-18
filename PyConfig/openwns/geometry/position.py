@@ -25,10 +25,62 @@
 #
 ###############################################################################
 
+import math
+
 class Position:
+    """ This represents a geometric position in space (3D). Unit is meters [m] """
     __slots__ = ["x", "y", "z"]
 
     def __init__(self, x=0, y=0,z=0):
         self.x = x
         self.y = y
         self.z = z
+
+    def toString(self):
+        return ('%d %d %d' % (self.x, self.y, self.z))
+
+class Vector:
+    """ This represents a geometric shift in space (3D). Unit is meters [m] """
+    __slots__ = ["x", "y", "z"]
+
+    def __init__(self, x=0, y=0,z=0):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def toString(self):
+        return ('%d %d %d' % (self.x, self.y, self.z))
+
+class BoundingBox:
+    """ Box with x,y,z dimension """
+    __slots__ = ["xmin","xmax", "ymin","ymax", "zmin","zmax"]
+
+    def __init__(self):
+        self.xmin = 1e9
+        self.ymin = 1e9
+        self.zmin = 1e9
+        self.xmax = -1e9
+        self.ymax = -1e9
+        self.zmax = -1e9
+
+    def extendToIncludePosition(self,point):
+        if (point.x<self.xmin):
+            self.xmin=point.x
+        if (point.y<self.ymin):
+            self.ymin=point.y
+        if (point.z<self.zmin):
+            self.zmin=point.z
+        if (point.x>self.xmax):
+            self.xmax=point.x
+        if (point.y>self.ymax):
+            self.ymax=point.y
+        if (point.z>self.zmax):
+            self.zmax=point.z
+
+    def roundToNextNiceNumber(self):
+        self.xmin=math.floor(self.xmin)
+        self.ymin=math.floor(self.ymin)
+        self.zmin=math.floor(self.zmin)
+        self.xmax=math.ceil(self.xmax)
+        self.ymax=math.ceil(self.ymax)
+        self.zmax=math.ceil(self.zmax)
