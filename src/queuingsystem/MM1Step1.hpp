@@ -157,7 +157,7 @@ namespace wns { namespace queuingsystem {
  *   -# @subpage wns.queuingsystem.mm1step1
  *   -# @subpage wns.queuingsystem.mm1step2
  *   -# @subpage wns.queuingsystem.mm1step3
- *   -# @subpage wns.queuingsystem.mm1step4 Shows how to embed your evaluation within your configuration.
+ *   -# @subpage wns.queuingsystem.mm1step4
  *   -# @subpage wns.queuingsystem.mm1step5
  *
  * @section mm1queueingsystem The M/M/1 Queuing System
