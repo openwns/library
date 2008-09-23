@@ -29,19 +29,26 @@
 #define WNS_DISTRIBUTION_OPERATION_HPP
 
 #include <WNS/distribution/Distribution.hpp>
+#include <WNS/pyconfig/View.hpp>
 
 namespace wns { namespace distribution { namespace operation {
 
 	class Binary :
-		public ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         Binary(const pyconfig::View& config);
         Binary(wns::rng::RNGen* rng, const pyconfig::View& config);
  
 	protected:
-		ClassicDistribution* first;
-		ClassicDistribution* second;
+		Distribution* first_;
+		Distribution* second_;
+        wns::pyconfig::View config_;
+    
+    private:
+        void
+        init();
 
 	}; // Binary
 
@@ -141,8 +148,13 @@ namespace wns { namespace distribution { namespace operation {
         DistributionAndFloat(wns::rng::RNGen* rng, const pyconfig::View& config);
 
 	protected:
-		Distribution* subject;
-		double arg;
+		Distribution* subject_;
+		double arg_;
+        wns::pyconfig::View config_;
+
+    private:
+        void
+        init();
 
 	}; // DistributionAndFloat
 

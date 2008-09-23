@@ -69,42 +69,28 @@ TimeDependent::DistributionEvent::operator()()
 
 TimeDependent::TimeDependent(const wns::pyconfig::View& view) :
     Distribution(),
-    rngHasChanged(false),
     distribution_(NULL),
-    events_()
+    events_(),
+    config_(view)
 {
-    for(int ii = 0; ii < view.len("eventList"); ++ii)
-    {
-        wns::pyconfig::View eventView = view.get("eventList", ii);
-        DistributionEvent de (this, eventView.get("distribution"));
-        wns::simulator::Time activationTime =
-            eventView.get<wns::simulator::Time>("activationTime");
-        assure(this->events_.find(activationTime) == this->events_.end(),
-               "Event for this time is already scheduled. Not possible.");
-        this->events_.insert(std::make_pair(activationTime, de));
-    }
-
-    // if the first Event is scheduled for 0.0, install distribution right
-    // away
-    if(this->events_.begin()->first == 0.0)
-    {
-        DistributionEvent ev = this->events_.begin()->second;
-        this->events_.erase(this->events_.begin());
-        (ev)();
-    } else {
-        this->queueNextDistribution();
-    }
+    init();
 }
 
 TimeDependent::TimeDependent(wns::rng::RNGen* rng, const wns::pyconfig::View& view) :
     Distribution(rng),
-    rngHasChanged(false),
     distribution_(NULL),
-    events_()
+    events_(),
+    config_(view)
 {
-    for(int ii = 0; ii < view.len("eventList"); ++ii)
+    init();
+}
+
+void
+TimeDependent::init()
+{
+    for(int ii = 0; ii < config_.len("eventList"); ++ii)
     {
-        wns::pyconfig::View eventView = view.get("eventList", ii);
+        wns::pyconfig::View eventView = config_.get("eventList", ii);
         DistributionEvent de (this, eventView.get("distribution"));
         wns::simulator::Time activationTime =
             eventView.get<wns::simulator::Time>("activationTime");

@@ -36,23 +36,12 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Erlang,
-    ClassicDistribution,
-    "Erlang",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Erlang,
     Distribution,
     "Erlang",
     wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Erlang,
-    ClassicDistribution,
-    "Erlang",
-    wns::distribution::RNGConfigCreator);
-
 
 Erlang::Erlang(const double rate, const int shape, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     rate_(rate),
     shape_(shape),
     dis_(getRNG())
@@ -60,7 +49,7 @@ Erlang::Erlang(const double rate, const int shape, wns::rng::RNGen* rng) :
 }
 
 Erlang::Erlang(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     rate_(config.get<double>("rate")),
     shape_(config.get<int>("shape")),
     dis_(getRNG())
@@ -68,7 +57,7 @@ Erlang::Erlang(const pyconfig::View& config) :
 }
 
 Erlang::Erlang(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     rate_(config.get<double>("rate")),
     shape_(config.get<int>("shape")),
     dis_(getRNG())

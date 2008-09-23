@@ -37,7 +37,8 @@ namespace wns { namespace distribution {
     typedef wns::rng::VariateGenerator< boost::uniform_smallint<> > DiscreteUniformDist;
 
 	class DiscreteUniform :
-		public ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         explicit

@@ -38,36 +38,26 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Geometric,
-    ClassicDistribution,
-    "Geometric",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Geometric,
     Distribution,
-    "Geometric",
-    wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Geometric,
-    ClassicDistribution,
     "Geometric",
     wns::distribution::RNGConfigCreator);
 
 Geometric::Geometric(double mean, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     mean_(mean), 
     dis_(getRNG())
 {
 }
 
 Geometric::Geometric(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     mean_(config.get<double>("mean")), 
     dis_(getRNG())
 {
 }
 
 Geometric::Geometric(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     mean_(config.get<double>("mean")), 
     dis_(getRNG())
 {

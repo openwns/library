@@ -36,34 +36,24 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Fixed,
-    ClassicDistribution,
-    "Fixed",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Fixed,
     Distribution,
-    "Fixed",
-    wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Fixed,
-    ClassicDistribution,
     "Fixed",
     wns::distribution::RNGConfigCreator);
 
 Fixed::Fixed(const pyconfig::View& config) :
-        ClassicDistribution(),
+        Distribution(),
         value(config.get<double>("value"))
 {
 }
 
 Fixed::Fixed(wns::rng::RNGen* rng, const pyconfig::View& config) :
-        ClassicDistribution(rng),
+        Distribution(rng),
         value(config.get<double>("value"))
 {
 }
 
 Fixed::Fixed(double value) :
-        ClassicDistribution(),
+        Distribution(),
         value(value)
 {
 }

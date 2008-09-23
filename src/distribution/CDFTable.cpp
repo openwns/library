@@ -33,15 +33,12 @@
 using namespace wns::distribution;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(CDFTable, Distribution, "CDFTable", wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(CDFTable, ClassicDistribution, "CDFTable", wns::PyConfigViewCreator);
-
 STATIC_FACTORY_REGISTER_WITH_CREATOR(CDFTable, Distribution, "CDFTable", wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(CDFTable, ClassicDistribution, "CDFTable", wns::distribution::RNGConfigCreator);
 
 typedef wns::Interval<double> CDFRange;
 
 CDFTable::CDFTable(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     dis_(getRNG()),
     mean_(0.0)
 {
@@ -63,7 +60,7 @@ CDFTable::CDFTable(const pyconfig::View& config) :
 }
 
 CDFTable::CDFTable(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     dis_(getRNG()),
     mean_(0.0)
 {

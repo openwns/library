@@ -39,22 +39,12 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Pareto,
-    ClassicDistribution,
-    "Pareto",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Pareto,
     Distribution,
-    "Pareto",
-    wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Pareto,
-    ClassicDistribution,
     "Pareto",
     wns::distribution::RNGConfigCreator);
 
 Pareto::Pareto(double shapeA, double scaleB, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     shapeParamA_(shapeA),
     scaleParamB_(scaleB),
     dis_(getRNG())
@@ -64,7 +54,7 @@ Pareto::Pareto(double shapeA, double scaleB, wns::rng::RNGen* rng) :
 }
 
 Pareto::Pareto(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     shapeParamA_(config.get<double>("shapeA")),
     scaleParamB_(config.get<double>("scaleB")),
     dis_(getRNG())
@@ -74,7 +64,7 @@ Pareto::Pareto(const pyconfig::View& config) :
 }
 
 Pareto::Pareto(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     shapeParamA_(config.get<double>("shapeA")),
     scaleParamB_(config.get<double>("scaleB")),
     dis_(getRNG())

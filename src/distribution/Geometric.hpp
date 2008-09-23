@@ -42,7 +42,8 @@ namespace wns { namespace distribution {
 	 * The success rate for a single experiment is p = 1 / (mean + 1)
 	 */
 	class Geometric :
-		public ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         explicit

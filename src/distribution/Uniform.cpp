@@ -36,20 +36,9 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Uniform,
-    ClassicDistribution,
-    "Uniform",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Uniform,
     Distribution,
     "Uniform",
     wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Uniform,
-    ClassicDistribution,
-    "Uniform",
-    wns::distribution::RNGConfigCreator);
-
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     StandardUniform,
     Distribution,
@@ -57,22 +46,12 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     StandardUniform,
-    ClassicDistribution,
-    "StandardUniform",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    StandardUniform,
     Distribution,
-    "StandardUniform",
-    wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    StandardUniform,
-    ClassicDistribution,
     "StandardUniform",
     wns::distribution::RNGConfigCreator);
 
 Uniform::Uniform(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     low_(config.get<double>("low")),
     high_(config.get<double>("high")),
     dis_(getRNG(), UniformDist::distribution_type(low_, high_))
@@ -80,7 +59,7 @@ Uniform::Uniform(const pyconfig::View& config) :
 }
 
 Uniform::Uniform(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     low_(config.get<double>("low")),
     high_(config.get<double>("high")),
     dis_(getRNG(), UniformDist::distribution_type(low_, high_))
@@ -88,10 +67,10 @@ Uniform::Uniform(wns::rng::RNGen* rng, const pyconfig::View& config) :
 }
 
 Uniform::Uniform(double _low, double _high, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
-	low_(_low),
-	high_(_high),
-	dis_(getRNG(), UniformDist::distribution_type(low_, high_))
+    Distribution(rng),
+    low_(_low),
+    high_(_high),
+    dis_(getRNG(), UniformDist::distribution_type(low_, high_))
 {
 }
 

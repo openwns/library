@@ -35,23 +35,12 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Binomial,
-    ClassicDistribution,
-    "Binomial",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Binomial,
     Distribution,
     "Binomial",
     wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Binomial,
-    ClassicDistribution,
-    "Binomial",
-    wns::distribution::RNGConfigCreator);
-
 
 Binomial::Binomial(int numTrials , double probability, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     numberOfTrials_(numTrials),
     probability_(probability),
     dis_(getRNG())
@@ -59,7 +48,7 @@ Binomial::Binomial(int numTrials , double probability, wns::rng::RNGen* rng) :
 }
 
 Binomial::Binomial(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     numberOfTrials_(config.get<int>("numberOfTrials")),
     probability_(config.get<double>("probability")),
     dis_(getRNG())
@@ -67,7 +56,7 @@ Binomial::Binomial(const pyconfig::View& config) :
 }
 
 Binomial::Binomial(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     numberOfTrials_(config.get<int>("numberOfTrials")),
     probability_(config.get<double>("probability")),
     dis_(getRNG())

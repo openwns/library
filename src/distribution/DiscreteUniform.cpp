@@ -36,22 +36,12 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     DiscreteUniform,
-    ClassicDistribution,
-    "DiscreteUniform",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    DiscreteUniform,
     Distribution,
-    "DiscreteUniform",
-    wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    DiscreteUniform,
-    ClassicDistribution,
     "DiscreteUniform",
     wns::distribution::RNGConfigCreator);
 
 DiscreteUniform::DiscreteUniform(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     low_(config.get<int>("low")),
     high_(config.get<int>("high")),
     dis_(getRNG(), DiscreteUniformDist::distribution_type(low_, high_))
@@ -59,7 +49,7 @@ DiscreteUniform::DiscreteUniform(const pyconfig::View& config) :
 }
 
 DiscreteUniform::DiscreteUniform(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     low_(config.get<int>("low")),
     high_(config.get<int>("high")),
     dis_(getRNG(), DiscreteUniformDist::distribution_type(low_, high_))
@@ -67,7 +57,7 @@ DiscreteUniform::DiscreteUniform(wns::rng::RNGen* rng, const pyconfig::View& con
 }
 
 DiscreteUniform::DiscreteUniform(int _low, int _high, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
+    Distribution(rng),
 	low_(_low),
 	high_(_high),
 	dis_(getRNG(), DiscreteUniformDist::distribution_type(low_, high_))

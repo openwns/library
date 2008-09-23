@@ -32,7 +32,8 @@
 
 namespace wns { namespace distribution {
 	class Fixed :
-  		public ClassicDistribution
+        public Distribution,
+        public IHasMean
   	{
   	public:
         explicit

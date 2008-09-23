@@ -44,78 +44,87 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(DIV, Distribution, "DIV", wns::distribution
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Above, Distribution, "ABOVE", wns::distribution::RNGConfigCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Below, Distribution, "BELOW", wns::distribution::RNGConfigCreator);
 
-// these Distributions/Operations support statistical properties:
-STATIC_FACTORY_REGISTER_WITH_CREATOR(ADD, ClassicDistribution, "ADD", wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(MUL, ClassicDistribution, "MUL", wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(SUB ,ClassicDistribution, "SUB", wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(DIV, ClassicDistribution, "DIV", wns::PyConfigViewCreator);
-
-STATIC_FACTORY_REGISTER_WITH_CREATOR(ADD, ClassicDistribution, "ADD", wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(MUL, ClassicDistribution, "MUL", wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(SUB ,ClassicDistribution, "SUB", wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(DIV, ClassicDistribution, "DIV", wns::distribution::RNGConfigCreator);
-
 Binary::Binary(const pyconfig::View& config):
-    ClassicDistribution()
+    Distribution(),
+    config_(config)
 {
-    pyconfig::View firstConfig(config, "first");
-    std::string firstName = firstConfig.get<std::string>("__plugin__");
-    first = ClassicRNGDistributionFactory::creator(firstName)->create(getRNG(), firstConfig);
-
-    pyconfig::View secondConfig(config, "second");
-    std::string secondName = secondConfig.get<std::string>("__plugin__");
-    second = ClassicRNGDistributionFactory::creator(secondName)->create(getRNG(), secondConfig);
+    init();
 } // Binary
 
 Binary::Binary(wns::rng::RNGen* rng, const pyconfig::View& config):
-    ClassicDistribution(rng)
+    Distribution(rng),
+    config_(config)
 {
-    pyconfig::View firstConfig(config, "first");
-    std::string firstName = firstConfig.get<std::string>("__plugin__");
-    first = ClassicRNGDistributionFactory::creator(firstName)->create(getRNG(), firstConfig);
-
-    pyconfig::View secondConfig(config, "second");
-    std::string secondName = secondConfig.get<std::string>("__plugin__");
-    second = ClassicRNGDistributionFactory::creator(secondName)->create(getRNG(), secondConfig);
+    init();
 } // Binary
+
+void
+Binary::init()
+{
+    pyconfig::View firstConfig(config_, "first");
+    std::string firstName = firstConfig.get<std::string>("__plugin__");
+    first_ = RNGDistributionFactory::creator(firstName)->create(getRNG(), firstConfig);
+
+    pyconfig::View secondConfig(config_, "second");
+    std::string secondName = secondConfig.get<std::string>("__plugin__");
+    second_ = RNGDistributionFactory::creator(secondName)->create(getRNG(), secondConfig);
+}
 
 double
 ADD::operator()()
 {
-	return (*first)() + (*second)();
+	return (*first_)() + (*second_)();
 } // get
 
 double
 ADD::getMean() const
 {
-	return first->getMean() + second->getMean();
+    IHasMean* disOne;
+    IHasMean* disTwo;
+    
+    disOne = dynamic_cast<IHasMean*>(first_);
+    assure(disOne, "First distribution does not implement getMean()");
+    
+    disTwo = dynamic_cast<IHasMean*>(second_);
+    assure(disTwo, "First distribution does not implement getMean()");
+
+	return disOne->getMean() + disTwo->getMean();
 } // get
 
 std::string
 ADD::paramString() const
 {
 	std::ostringstream tmp;
-	tmp << "(" << *first << "+" << *second << ")";
+	tmp << "(" << *first_ << "+" << *second_ << ")";
 	return tmp.str();
 }
 
 double
 MUL::operator()()
 {
-	return (*first)() * (*second)();
+	return (*first_)() * (*second_)();
 } // get
 
 double
 MUL::getMean() const
 {
-	return first->getMean() * second->getMean();
+    IHasMean* disOne;
+    IHasMean* disTwo;
+    
+    disOne = dynamic_cast<IHasMean*>(first_);
+    assure(disOne, "First distribution does not implement getMean()");
+    
+    disTwo = dynamic_cast<IHasMean*>(second_);
+    assure(disTwo, "First distribution does not implement getMean()");
+
+	return disOne->getMean() * disTwo->getMean();
 } // get
 
 std::string
 MUL::paramString() const
 {
 	std::ostringstream tmp;
-	tmp << "(" << *first << "*" << *second << ")";
+	tmp << "(" << *first_ << "*" << *second_ << ")";
 	return tmp.str();
 }
 
@@ -123,64 +132,86 @@ MUL::paramString() const
 double
 SUB::operator()()
 {
-	return (*first)() - (*second)();
+	return (*first_)() - (*second_)();
 } // get
 
 double
 SUB::getMean() const
 {
-	return first->getMean() - second->getMean();
+    IHasMean* disOne;
+    IHasMean* disTwo;
+    
+    disOne = dynamic_cast<IHasMean*>(first_);
+    assure(disOne, "First distribution does not implement getMean()");
+    
+    disTwo = dynamic_cast<IHasMean*>(second_);
+    assure(disTwo, "First distribution does not implement getMean()");
+
+	return disOne->getMean() - disTwo->getMean();
 } // get
 
 std::string
 SUB::paramString() const
 {
 	std::ostringstream tmp;
-	tmp << "(" << *first << "-" << *second << ")";
+	tmp << "(" << *first_ << "-" << *second_ << ")";
 	return tmp.str();
 }
 
 double
 DIV::operator()()
 {
-	return (*first)() / (*second)();
+	return (*first_)() / (*second_)();
 } // get
 
 double
 DIV::getMean() const
 {
-	assure(second->getMean() != 0.0, "Distributions::DIV: divide by zero");
-	return first->getMean() / second->getMean();
+    IHasMean* disOne;
+    IHasMean* disTwo;
+    
+    disOne = dynamic_cast<IHasMean*>(first_);
+    assure(disOne, "First distribution does not implement getMean()");
+    
+    disTwo = dynamic_cast<IHasMean*>(second_);
+    assure(disTwo, "First distribution does not implement getMean()");
+
+	assure(disTwo->getMean() != 0.0, "Distributions::DIV: divide by zero");
+	return disOne->getMean() / disTwo->getMean();
 } // get
 
 std::string
 DIV::paramString() const
 {
 	std::ostringstream tmp;
-	tmp << "(" << *first << "/" << *second << ")";
+	tmp << "(" << *first_ << "/" << *second_ << ")";
 	return tmp.str();
 }
 
 
 DistributionAndFloat::DistributionAndFloat(const pyconfig::View& config) :
-    Distribution()
+    Distribution(),
+    config_(config)
 {
-    pyconfig::View subjectConfig(config, "subject");
-    std::string subjectName = subjectConfig.get<std::string>("__plugin__");
-    subject = RNGDistributionFactory::creator(subjectName)->create(getRNG(), subjectConfig);
-
-    arg = config.get<double>("arg");
+    init();
 } 
 
 DistributionAndFloat::DistributionAndFloat(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    Distribution(rng)
+    Distribution(rng),
+    config_(config)
 {
-    pyconfig::View subjectConfig(config, "subject");
-    std::string subjectName = subjectConfig.get<std::string>("__plugin__");
-    subject = RNGDistributionFactory::creator(subjectName)->create(getRNG(), subjectConfig);
-
-    arg = config.get<double>("arg");
+    init();
 } 
+
+void
+DistributionAndFloat::init()
+{
+    pyconfig::View subjectConfig(config_, "subject");
+    std::string subjectName = subjectConfig.get<std::string>("__plugin__");
+    subject_ = RNGDistributionFactory::creator(subjectName)->create(getRNG(), subjectConfig);
+
+    arg_ = config_.get<double>("arg");
+}
 
 double
 Above::operator()()
@@ -188,8 +219,8 @@ Above::operator()()
 	double result;
 
 	do {
-		result = (*subject)();
-	} while(result <= arg);
+		result = (*subject_)();
+	} while(result <= arg_);
 
 	return result;
 } // get
@@ -198,7 +229,7 @@ std::string
 Above::paramString() const
 {
 	std::ostringstream tmp;
-	tmp << "Above(" << *subject << "," << arg << ")";
+	tmp << "Above(" << *subject_ << "," << arg_ << ")";
 	return tmp.str();
 }
 
@@ -208,24 +239,17 @@ Below::operator()()
 	double result;
 
 	do {
-		result = (*subject)();
-	} while(result >= arg);
+		result = (*subject_)();
+	} while(result >= arg_);
 
 	return result;
 } // get
-
-// double
-// Below::getMean() const
-// {
-// 	assure(0, "getMean() is not available for operation Below");
-// 	return 0.0;
-// } // getMean
 
 std::string
 Below::paramString() const
 {
 	std::ostringstream tmp;
-	tmp << "Below(" << *subject << "," << arg << ")";
+	tmp << "Below(" << *subject_ << "," << arg_ << ")";
 	return tmp.str();
 }
 

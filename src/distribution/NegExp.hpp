@@ -40,7 +40,8 @@ namespace wns { namespace distribution {
 	 * distribution.
 	 */
 	class NegExp :
-		public  ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         explicit

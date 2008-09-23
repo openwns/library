@@ -156,22 +156,20 @@ namespace wns { namespace distribution {
         void
         removeDistribution();
 
-        /**
-         * @brief set to true when setRNG was called to assure all created
-         * generators use the right basic RNG
-         */
-        bool rngHasChanged;
-
-
 		/**
 		 * @brief Current distribution
 		 */
 		Distribution* distribution_;
 
+        void
+        init();
+
 		/**
 		 * @brief Stores events with new distributions
 		 */
 		EventContainer events_;
+
+        wns::pyconfig::View config_;
 
 	}; // TimeDependent
 

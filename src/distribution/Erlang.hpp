@@ -37,7 +37,8 @@ namespace wns { namespace distribution {
  	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
 	 */
 	class Erlang :
-		public ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         explicit

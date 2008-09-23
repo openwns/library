@@ -49,7 +49,8 @@ namespace wns { namespace distribution {
 	 */
 
 	class CDFTable :
-		public ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         explicit

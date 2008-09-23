@@ -38,22 +38,12 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Norm,
-    ClassicDistribution,
-    "Norm",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Norm,
     Distribution,
-    "Norm",
-    wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Norm,
-    ClassicDistribution,
     "Norm",
     wns::distribution::RNGConfigCreator);
 
 Norm::Norm(double mean, double variance, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     mean_(mean),
     variance_(variance),
     dis_(getRNG(), NormalDist::distribution_type(mean_, sqrt(variance_)))
@@ -61,7 +51,7 @@ Norm::Norm(double mean, double variance, wns::rng::RNGen* rng) :
 }
 
 Norm::Norm(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     mean_(config.get<double>("mean")),
     variance_(config.get<double>("variance")),
     dis_(getRNG(), NormalDist::distribution_type(mean_, sqrt(variance_)))
@@ -69,7 +59,7 @@ Norm::Norm(const pyconfig::View& config) :
 }
 
 Norm::Norm(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     mean_(config.get<double>("mean")),
     variance_(config.get<double>("variance")),
     dis_(getRNG(), NormalDist::distribution_type(mean_, sqrt(variance_)))

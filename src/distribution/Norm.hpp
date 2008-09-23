@@ -37,7 +37,8 @@ namespace wns { namespace distribution {
     typedef wns::rng::VariateGenerator< boost::normal_distribution<> > NormalDist;
 
 	class Norm :
-		public ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         explicit

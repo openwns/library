@@ -46,7 +46,8 @@ namespace wns { namespace distribution {
 	 * @see http://en.wikipedia.org/wiki/Pareto_distribution
     **/
 	class Pareto :
-		public ClassicDistribution
+        public Distribution,
+        public IHasMean
 	{
 	public:
         explicit

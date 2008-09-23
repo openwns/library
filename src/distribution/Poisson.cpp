@@ -38,37 +38,26 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     Poisson,
-    ClassicDistribution,
-    "Poisson",
-    wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Poisson,
     Distribution,
     "Poisson",
     wns::distribution::RNGConfigCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    Poisson,
-    ClassicDistribution,
-    "Poisson",
-    wns::distribution::RNGConfigCreator);
-
 
 Poisson::Poisson(double mean, wns::rng::RNGen* rng) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     mean_(mean),
     dis_(getRNG())
 {
 }
 
 Poisson::Poisson(const pyconfig::View& config) :
-    ClassicDistribution(),
+    Distribution(),
     mean_(config.get<double>("mean")),
     dis_(getRNG())
 {
 }
 
 Poisson::Poisson(wns::rng::RNGen* rng, const pyconfig::View& config) :
-    ClassicDistribution(rng),
+    Distribution(rng),
     mean_(config.get<double>("mean")),
     dis_(getRNG())
 {

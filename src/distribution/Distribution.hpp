@@ -75,6 +75,8 @@ namespace wns { namespace distribution {
 			return os;
 		};
 
+	protected:
+
         wns::rng::RNGen*
         getRNG()
         {
@@ -105,36 +107,16 @@ namespace wns { namespace distribution {
 	 *
 	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
 	 */
-	class ClassicDistribution :
-		public Distribution
+	class IHasMean
 	{
 	public:
-        ClassicDistribution() :
-            Distribution()
-            {};
-
-        ClassicDistribution(wns::rng::RNGen* rng) :
-            Distribution(rng)
-            {};
-    
-		virtual
-		~ClassicDistribution()
-		{}
 
  		/**
  		 * @brief Mean value of the distribution
  		 */
  		virtual double
  		getMean() const = 0;
-
 	};
-
-    typedef PyConfigViewCreator<ClassicDistribution> ClassicDistributionCreator;
-    typedef StaticFactory<ClassicDistributionCreator> ClassicDistributionFactory;
-
-    typedef RNGConfigCreator<ClassicDistribution> ClassicRNGDistributionCreator;
-    typedef StaticFactory<ClassicRNGDistributionCreator> ClassicRNGDistributionFactory;
-
 } // distribution
 } // wns
 

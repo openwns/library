@@ -41,7 +41,8 @@ namespace wns { namespace distribution {
 	 * (NegExp) arrival rate lambda. Here: lambda * t = mean
 	 */
   	class Poisson :
-  		public ClassicDistribution
+        public Distribution,
+        public IHasMean
   	{
   	public:
         explicit

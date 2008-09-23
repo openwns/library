@@ -59,12 +59,14 @@ OperationTest::testFixedAdd()
 	pyconfig::View disConfig(config, "foo");
 	std::string name = disConfig.get<std::string>("__plugin__");
 
-	wns::distribution::ClassicDistribution* dis =
-		wns::distribution::ClassicDistributionFactory::creator(name)
+	wns::distribution::Distribution* dis =
+		wns::distribution::DistributionFactory::creator(name)
 		->create(disConfig);
 
+    double mean = dynamic_cast<IHasMean*>(dis)->getMean();
+
 	CPPUNIT_ASSERT_DOUBLES_EQUAL(42.0, (*dis)(), 0.0001);
- 	CPPUNIT_ASSERT_DOUBLES_EQUAL(42.0, dis->getMean(), 0.0001);
+ 	CPPUNIT_ASSERT_DOUBLES_EQUAL(42.0, mean, 0.0001);
 } // testFixedAdd
 
 
@@ -80,16 +82,18 @@ OperationTest::testAdd()
 	pyconfig::View disConfig(config, "foo");
 	std::string name = disConfig.get<std::string>("__plugin__");
 
-	wns::distribution::ClassicDistribution* dis =
-		wns::distribution::ClassicDistributionFactory::creator(name)
+	wns::distribution::Distribution* dis =
+		wns::distribution::DistributionFactory::creator(name)
 		->create(disConfig);
 
 	Average<double> average;
 	for(int i = 0; i < 100000; ++i)
 		average.put((*dis)());
 
+    double mean = dynamic_cast<IHasMean*>(dis)->getMean();
+
 	WNS_ASSERT_MAX_REL_ERROR(42.0, average.get(), 0.01);
- 	WNS_ASSERT_MAX_REL_ERROR(42.0, dis->getMean(), 0.01);
+ 	WNS_ASSERT_MAX_REL_ERROR(42.0, mean, 0.01);
 	delete dis;
 } // testAdd
 
@@ -106,12 +110,14 @@ OperationTest::testFixedMul()
 	pyconfig::View disConfig(config, "foo");
 	std::string name = disConfig.get<std::string>("__plugin__");
 
-	wns::distribution::ClassicDistribution* dis =
-		wns::distribution::ClassicDistributionFactory::creator(name)
+	wns::distribution::Distribution* dis =
+		wns::distribution::DistributionFactory::creator(name)
 		->create(disConfig);
 
+    double mean = dynamic_cast<IHasMean*>(dis)->getMean();
+
 	WNS_ASSERT_MAX_REL_ERROR(20.0 * 22.0, (*dis)(), 0.01);
- 	WNS_ASSERT_MAX_REL_ERROR(20.0 * 22.0, dis->getMean(), 0.01);
+ 	WNS_ASSERT_MAX_REL_ERROR(20.0 * 22.0, mean, 0.01);
 } // testFixedMul
 
 
@@ -127,16 +133,18 @@ OperationTest::testMul()
 	pyconfig::View disConfig(config, "foo");
 	std::string name = disConfig.get<std::string>("__plugin__");
 
-	wns::distribution::ClassicDistribution* dis =
-		wns::distribution::ClassicDistributionFactory::creator(name)
+	wns::distribution::Distribution* dis =
+		wns::distribution::DistributionFactory::creator(name)
 		->create(disConfig);
 
 	Average<double> average;
 	for(int i = 0; i < 100000; ++i)
 		average.put((*dis)());
 
+    double mean = dynamic_cast<IHasMean*>(dis)->getMean();
+
 	WNS_ASSERT_MAX_REL_ERROR(20.0 * 22.0, average.get(), 0.01);
- 	WNS_ASSERT_MAX_REL_ERROR(20.0 * 22.0, dis->getMean(), 0.01);
+ 	WNS_ASSERT_MAX_REL_ERROR(20.0 * 22.0, mean, 0.01);
 	delete dis;
 } // testMul
 
@@ -153,12 +161,14 @@ OperationTest::testFixedSub()
 	pyconfig::View disConfig(config, "foo");
 	std::string name = disConfig.get<std::string>("__plugin__");
 
-	wns::distribution::ClassicDistribution* dis =
-		wns::distribution::ClassicDistributionFactory::creator(name)
+	wns::distribution::Distribution* dis =
+		wns::distribution::DistributionFactory::creator(name)
 		->create(disConfig);
 
+    double mean = dynamic_cast<IHasMean*>(dis)->getMean();
+
 	WNS_ASSERT_MAX_REL_ERROR(42.0, (*dis)(), 0.01);
- 	WNS_ASSERT_MAX_REL_ERROR(42.0, dis->getMean(), 0.01);
+ 	WNS_ASSERT_MAX_REL_ERROR(42.0, mean, 0.01);
 } // testFixedSub
 
 
@@ -174,12 +184,14 @@ OperationTest::testFixedDiv()
 	pyconfig::View disConfig(config, "foo");
 	std::string name = disConfig.get<std::string>("__plugin__");
 
-	wns::distribution::ClassicDistribution* dis =
-		wns::distribution::ClassicDistributionFactory::creator(name)
+	wns::distribution::Distribution* dis =
+		wns::distribution::DistributionFactory::creator(name)
 		->create(disConfig);
 
+    double mean = dynamic_cast<IHasMean*>(dis)->getMean();
+
 	WNS_ASSERT_MAX_REL_ERROR(42.0, (*dis)(), 0.01);
- 	WNS_ASSERT_MAX_REL_ERROR(42.0, dis->getMean(), 0.01);
+ 	WNS_ASSERT_MAX_REL_ERROR(42.0, mean, 0.01);
 } // testFixedDiv
 
 
@@ -202,12 +214,14 @@ OperationTest::testConstant()
 		pyconfig::View disConfig(config, viewName);
 		std::string name = disConfig.get<std::string>("__plugin__");
 
-		wns::distribution::ClassicDistribution* dis =
-			wns::distribution::ClassicDistributionFactory::creator(name)
+		wns::distribution::Distribution* dis =
+			wns::distribution::DistributionFactory::creator(name)
 			->create(disConfig);
 
+        double mean = dynamic_cast<IHasMean*>(dis)->getMean();
+
 		WNS_ASSERT_MAX_REL_ERROR(42.0, (*dis)(), 0.01);
- 		WNS_ASSERT_MAX_REL_ERROR(42.0, dis->getMean(), 0.01);
+ 		WNS_ASSERT_MAX_REL_ERROR(42.0, mean, 0.01);
 	}
 } // testConstant
 
