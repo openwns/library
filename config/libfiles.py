@@ -1,3 +1,4 @@
+libname = 'wns'
 srcFiles = [
     'src/Assure.cpp',
     'src/Exception.cpp',
@@ -290,5 +291,5 @@ pyconfig = [
 'openwns/evaluation/tree.py',
 'openwns/evaluation/wrappers.py'
 ]
-
-Return('srcFiles hppFiles pyconfig')
+libraries = []
+Return('libname srcFiles hppFiles pyconfig libraries')

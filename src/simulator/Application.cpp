@@ -637,41 +637,5 @@ Application::loadModules()
 			}
 		}
 
-// 		try
-// 		{
-// 			checkModuleDependencies(moduleVersions);
-// 		}
-// 		catch(const ModuleDependencyMismatchException& exception)
-// 		{
-// 			if(!testing_)
-// 			{
-// 				// throw on, not handled
-// 				throw;
-// 			}
-// 			else
-// 			{
-// 				// Just print a warning
-// 				std::cerr << "WARNING: module dependencies in testing mode ignored!\n"
-// 					  << exception;
-// 			}
-// 		}
 	}
 }
-
-// void
-// Application::checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions)
-// {
-// 	std::list<wns::module::VersionInformation>::iterator itrMV;
-// 	std::list<wns::module::VersionInformation>::iterator itrMVEnd = moduleVersions.end();
-
-// 	for (itrMV = moduleVersions.begin(); itrMV!=itrMVEnd; ++itrMV)
-// 	{
-// 		if (!(*itrMV).getDependencies().dependenciesMetBy(moduleVersions.begin(),
-// 								  moduleVersions.end()))
-// 		{
-// 			ModuleDependencyMismatchException exception;
-// 			exception << (*itrMV).getNiceString();
-// 			throw exception;
-// 		}
-// 	}
-// }

@@ -196,10 +196,6 @@ namespace wns {  namespace simulator {
 		void
 		loadModules();
 
-	    //void
-	    //checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions);
-
-
         /**
          * @brief The status code of openWNS
          *
