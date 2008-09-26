@@ -27,41 +27,109 @@
 
 import math
 
-class Position:
-    """ This represents a geometric position in space (3D). Unit is meters [m] """
-    __slots__ = ["x", "y", "z"]
-
-    def __init__(self, x=0, y=0,z=0):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def toString(self):
-        return ('%d %d %d' % (self.x, self.y, self.z))
-
 class Vector:
     """ This represents a geometric shift in space (3D). Unit is meters [m] """
     __slots__ = ["x", "y", "z"]
 
-    def __init__(self, x=0, y=0,z=0):
+    def __init__(self, x=0.0, y=0.0, z=0.0):
         self.x = x
         self.y = y
         self.z = z
 
+    def toString(self,precision=0):
+        format = '%%.%df %%.%df %%.%df'%(precision,precision,precision)
+        return (format % (self.x, self.y, self.z))
+    def __str__(self):
+        return self.toString()
+
+    def positionDifference(pos1,pos2):
+        """ Difference of two position points
+            vector = Vector.positionDifference(position-center)
+        """
+        return Vector(pos1.x-pos2.x,pos1.y-pos2.y,pos1.z-pos2.z)
+
+    def __mul__(self, other):
+        """ vector2 = vector1 * 10.0 """
+        return Vector(self.x*other,self.y*other,self.z*other)
+    def __div__(self, other):
+        """ vector2 = vector1 / 10.0 """
+        other = float(other)
+        return Vector(self.x/other,self.y/other,self.z/other)
+    def __eq__(self, other):
+        """ vector2 == vector1 ? """
+        return self.x==other.x and self.y==other.y and self.z==other.z
+
+    def angle2D(self):
+        a = math.atan2(self.y, self.x) # in [-pi..pi]
+        return a
+    def length(self):
+        return math.sqrt(self.x*self.x+self.y*self.y+self.z*self.z)
+    def length2D(self):
+        return math.sqrt(self.x*self.x+self.y*self.y)
+
+class Position:
+    """ This represents a geometric position in space (3D). Unit is meters [m] """
+    __slots__ = ["x", "y", "z"]
+    label = None
+
+    def __init__(self, x=0.0, y=0.0, z=0.0, label=None):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.label = label
+
+    def toString(self,precision=0):
+        format = '%%.%df %%.%df %%.%df'%(precision,precision,precision)
+        return (format % (self.x, self.y, self.z))
+    def __str__(self):
+        return self.toString()
+
+    def toLabeledString(self):
+        return ('%s(%d,%d,%d)' % (self.label, self.x, self.y, self.z))
+
+    def getLabel(self):
+        return label
+
+    def setLabel(self,label):
+        self.label = label
+
+    def __sub__(self,other):
+        return Vector(self.x-other.x,self.y-other.y,self.z-other.z)
+    def __eq__(self, other):
+        """ vector2 == vector1 ? """
+        return self.x==other.x and self.y==other.y and self.z==other.z
+
+class Line:
+    """ This represents a line between two endpoints (2D). Unit is meters [m] """
+    __slots__ = ["x1", "y1", "x2", "y2"]
+
+    def __init__(self, x1=0, y1=0, x2=0, y2=0):
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+
+    def getPos1(self):
+        return Position(self.x1,self.y1,0)
+    def getPos2(self):
+        return Position(self.x2,self.y2,0)
+
     def toString(self):
         return ('%d %d %d' % (self.x, self.y, self.z))
+    def __str__(self):
+        return self.toString()
 
 class BoundingBox:
     """ Box with x,y,z dimension """
     __slots__ = ["xmin","xmax", "ymin","ymax", "zmin","zmax"]
 
-    def __init__(self):
-        self.xmin = 1e9
-        self.ymin = 1e9
-        self.zmin = 1e9
-        self.xmax = -1e9
-        self.ymax = -1e9
-        self.zmax = -1e9
+    def __init__(self, xmin = 1e9, xmax = -1e9, ymin = 1e9, ymax = -1e9, zmin = 1e9, zmax = -1e9):
+        self.xmin = xmin
+        self.ymin = ymin
+        self.zmin = zmin
+        self.xmax = xmax
+        self.ymax = ymax
+        self.zmax = zmax
 
     def extendToIncludePosition(self,point):
         if (point.x<self.xmin):
@@ -77,10 +145,15 @@ class BoundingBox:
         if (point.z>self.zmax):
             self.zmax=point.z
 
-    def roundToNextNiceNumber(self):
-        self.xmin=math.floor(self.xmin)
-        self.ymin=math.floor(self.ymin)
-        self.zmin=math.floor(self.zmin)
-        self.xmax=math.ceil(self.xmax)
-        self.ymax=math.ceil(self.ymax)
-        self.zmax=math.ceil(self.zmax)
+    def extendToIncludeLine(self,line):
+        self.extendToIncludePosition(line.getPos1())
+        self.extendToIncludePosition(line.getPos2())
+
+    def roundToNextNiceNumber(self,factor=1.0):
+        """ factor can be 1,10,100 e.g. to round to next decade """
+        self.xmin=math.floor(self.xmin/factor)*factor
+        self.ymin=math.floor(self.ymin/factor)*factor
+        self.zmin=math.floor(self.zmin/factor)*factor
+        self.xmax=math.ceil(self.xmax/factor)*factor
+        self.ymax=math.ceil(self.ymax/factor)*factor
+        self.zmax=math.ceil(self.zmax/factor)*factor
