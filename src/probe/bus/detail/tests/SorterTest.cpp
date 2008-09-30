@@ -125,7 +125,7 @@ SorterTest::lookup()
 {
     Sorter b("x",1,7,3);
 
-#ifndef WNS_NDEBUG
+#if !defined(WNS_NDEBUG) && !defined(WNS_ASSERT)
 	CPPUNIT_ASSERT_THROW( b.getIndex(0), wns::Assure::Exception );
 	CPPUNIT_ASSERT_THROW( b.getIndex(8), wns::Assure::Exception );
 #endif
