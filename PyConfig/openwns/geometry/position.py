@@ -57,6 +57,8 @@ class Vector:
         return Vector(self.x/other,self.y/other,self.z/other)
     def __eq__(self, other):
         """ vector2 == vector1 ? """
+        if not other.__dict__.has_key('x'): # be sure other is also a Vector
+            return False
         return self.x==other.x and self.y==other.y and self.z==other.z
 
     def angle2D(self):
@@ -66,6 +68,14 @@ class Vector:
         return math.sqrt(self.x*self.x+self.y*self.y+self.z*self.z)
     def length2D(self):
         return math.sqrt(self.x*self.x+self.y*self.y)
+    def turn2D(self,angle): # 0 <= angle <= 2.0*math.pi
+        """ turn right by given angle. Return result """
+        angle = angle - self.angle2D()
+        length = self.length()
+        return Vector(length*math.cos(angle),length*math.sin(angle),self.z)
+    def toPosition(self):
+        return Position(self.x,self.y,self.z)
+
 
 class Position:
     """ This represents a geometric position in space (3D). Unit is meters [m] """
@@ -93,11 +103,18 @@ class Position:
     def setLabel(self,label):
         self.label = label
 
+    def __add__(self,other):
+        return Position(self.x+other.x,self.y+other.y,self.z+other.z,self.label)
     def __sub__(self,other):
         return Vector(self.x-other.x,self.y-other.y,self.z-other.z)
     def __eq__(self, other):
         """ vector2 == vector1 ? """
+        if not other.__dict__.has_key('x'): # be sure other is also a Position
+            return False
         return self.x==other.x and self.y==other.y and self.z==other.z
+
+def PositionFromVector(vector):
+    return Position(vector.x,vector.y,vector.z)
 
 class Line:
     """ This represents a line between two endpoints (2D). Unit is meters [m] """
@@ -115,7 +132,7 @@ class Line:
         return Position(self.x2,self.y2,0)
 
     def toString(self):
-        return ('%d %d %d' % (self.x, self.y, self.z))
+        return ('(%d,%d)->(%d,%d)' % (self.x1, self.y1, self.x2, self.y2))
     def __str__(self):
         return self.toString()
 
