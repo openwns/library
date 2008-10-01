@@ -104,9 +104,3 @@
    @todo Finalize documentation ... :)
 */
 
-
-/*
-  Local Variables:
-  mode: c++
-  End:
-*/

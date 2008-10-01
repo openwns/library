@@ -128,10 +128,7 @@ Simulator::configureRNG(
 {
     assure(rng_.get() == NULL, "RNG already set / configured");
 	rng_.reset(new wns::rng::RNGen());
-    if (rngConfiguration.get<bool>("useRandomSeed"))
-    {
-        rng_->seed(rngConfiguration.get<uint32_t>("seed"));
-    }
+    rng_->seed(rngConfiguration.get<uint32_t>("seed"));
 }
 
 void
