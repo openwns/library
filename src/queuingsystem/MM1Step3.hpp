@@ -100,11 +100,11 @@ namespace wns { namespace queuingsystem {
 /**
  * @page wns.queuingsystem.mm1step3 Taking Measurements
  *
- * @section contents Contents
+ * @section wns.queuingsystem.mm1step3.contents Contents
  *   -# @ref probebus
  *   -# @ref probebusconf
  *
- * @section probebus Collecting Measurements
+ * @section wns.queuingsystem.mm1step3.probebus Collecting Measurements
  *   - Introduce the Probebus basics
  *   - Explain the plain ProbeBus interface (forwardMeasurement)
  *   - Show how to use the StaticFactory::creator to allow selection
@@ -115,7 +115,7 @@ namespace wns { namespace queuingsystem {
  * @include "wns.queuingsystem.mm1step3.hpp.example"
  * @include "wns.queuingsystem.mm1step3.doStartup.example"
  *
- * @section probebusconf Configuration
+ * @section wns.queuingsystem.mm1step3.probebusconf Configuration
  *
  *   - Show how to do the configuration
  *   - "NameInFactory" explain the interconnection between Python/C++
