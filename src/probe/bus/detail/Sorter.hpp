@@ -32,7 +32,7 @@
 
 namespace wns { namespace probe { namespace bus { namespace detail {
 
-	typedef int IDType;
+	typedef unsigned int IDType;
 
 	/** @brief Helper class for equidistant sorting */
 	class Sorter

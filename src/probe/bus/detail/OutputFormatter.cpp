@@ -203,53 +203,53 @@ PythonReadable::doPrint(std::ostream& strm,
 
 void
 MatlabReadable::print(std::ostream& strm,
-					  std::string valueType) const
+                      std::string valueType) const
 {
-	strm << "\n";
-	size_t ii = 0;
-	for (; ii<sorters().size(); ++ii)
-	{
-		strm << getPrefix() << ii+1 << ". Column: " << sorters().at(ii).getIdName() << "\n";
-	}
-	strm << getPrefix() << ii+1 << ". Column: value\n\n";
-	OutputFormatter::print(strm, valueType);
+    strm << "\n";
+    size_t ii = 0;
+    for (; ii<sorters().size(); ++ii)
+    {
+        strm << getPrefix() << ii+1 << ". Column: " << sorters().at(ii).getIdName() << "\n";
+    }
+    strm << getPrefix() << ii+1 << ". Column: value\n\n";
+    OutputFormatter::print(strm, valueType);
 }
 
 
 void
 MatlabReadable::doPrint(std::ostream& strm,
-						std::list<int> fixedIndices,
-						int dim,
-						std::string valueType) const
+                        std::list<int> fixedIndices,
+                        int dim,
+                        std::string valueType) const
 {
-	size_t level = fixedIndices.size();
-	assure(dim + level == sorters().size(), "dim/level mismatch");
+    size_t level = fixedIndices.size();
+    assure(dim + level == sorters().size(), "dim/level mismatch");
 
-	if (dim == 0)
-	{
-		// Print this entry with all its indices
-		int counter = 0;
-		std::list<int>::const_iterator index = fixedIndices.begin();
-		std::list<int>::const_iterator end   = fixedIndices.end();
-		for (; index != end; ++index)
-		{
-			strm << sorters().at(counter).getMin(*index) << "\t";
-			++counter;
-		}
-		strm << data.getByIndex(fixedIndices).get(valueType) << "\n";
-		return;
-	}
-	else
-	{
-		// Add last index
-		fixedIndices.push_back(0);
-		for (int ii = 0; ii< sorters().at(level).getResolution(); ++ii)
-		{
-			fixedIndices.back() = ii;
-			doPrint(strm, fixedIndices, dim-1, valueType);
-		}
-		return;
-	}
+    if (dim == 0)
+    {
+        // Print this entry with all its indices
+        int counter = 0;
+        std::list<int>::const_iterator index = fixedIndices.begin();
+        std::list<int>::const_iterator end   = fixedIndices.end();
+        for (; index != end; ++index)
+        {
+            strm << sorters().at(counter).getMin(*index) << "\t";
+            ++counter;
+        }
+        strm << data.getByIndex(fixedIndices).get(valueType) << "\n";
+        return;
+    }
+    else
+    {
+        // Add last index
+        fixedIndices.push_back(0);
+        for (int ii = 0; ii< sorters().at(level).getResolution(); ++ii)
+        {
+            fixedIndices.back() = ii;
+            doPrint(strm, fixedIndices, dim-1, valueType);
+        }
+        return;
+    }
 }
 
 void
