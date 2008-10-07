@@ -40,40 +40,40 @@ Storage::~Storage()
 void
 Storage::put(double value)
 {
-	se.put(value);
+    se.put(value);
 }
 
 double
 Storage::get(const std::string& valueType) const
 {
-	if (valueType == "mean")
-		return se.mean();
-	else if (valueType == "variance")
-		return se.variance();
-	else if (valueType == "relativeVariance")
-		return se.relativeVariance();
-	else if (valueType == "coeffOfVariation")
-		return se.coeffOfVariation();
-	else if (valueType == "M2")
-		return se.M2();
-	else if (valueType == "M3")
-		return se.M3();
-	else if (valueType == "Z3")
-		return se.Z3();
-	else if (valueType == "skewness")
-		return se.skewness();
-	else if (valueType == "deviation")
-		return se.deviation();
-	else if (valueType == "relativeDeviation")
-		return se.relativeDeviation();
-	else if (valueType == "trials")
-		return se.trials();
-	else if (valueType == "min")
-		return se.min();
-	else if (valueType == "max")
-		return se.max();
-	else
-		assure(false, "Table requested unknown statistics: " << valueType);
+    if (valueType == "mean")
+        return se.mean();
+    else if (valueType == "variance")
+        return se.variance();
+    else if (valueType == "relativeVariance")
+        return se.relativeVariance();
+    else if (valueType == "coeffOfVariation")
+        return se.coeffOfVariation();
+    else if (valueType == "M2")
+        return se.M2();
+    else if (valueType == "M3")
+        return se.M3();
+    else if (valueType == "Z3")
+        return se.Z3();
+    else if (valueType == "skewness")
+        return se.skewness();
+    else if (valueType == "deviation")
+        return se.deviation();
+    else if (valueType == "relativeDeviation")
+        return se.relativeDeviation();
+    else if (valueType == "trials")
+        return se.trials();
+    else if (valueType == "min")
+        return se.min();
+    else if (valueType == "max")
+        return se.max();
+    else
+        assure(false, "Table requested unknown statistics: " << valueType);
 
-	return 0;
+    return 0;
 }

@@ -47,37 +47,37 @@ namespace wns { namespace probe { namespace bus {
 
         virtual ~TableProbeBus();
 
-		//@{
-		/** @name Implementation of wns::probe::bus::ProbeBus Interface */
+        //@{
+        /** @name Implementation of wns::probe::bus::ProbeBus Interface */
         virtual void
         onMeasurement(const wns::simulator::Time&,
-					  const double& aValue,
-					  const IContext& reg);
+                      const double& aValue,
+                      const IContext& reg);
 
         virtual bool
         accepts(const wns::simulator::Time&,
-				const IContext& reg);
+                const IContext& reg);
 
         virtual void
         output();
-		//@}
+        //@}
 
     private:
-		/** @brief array of Sorters, one for each dimension of the Table*/
-		std::vector<detail::Sorter> sorters;
-		/** @brief array of strings, describing what to evaluate, e.g. "mean",
+        /** @brief array of Sorters, one for each dimension of the Table*/
+        std::vector<detail::Sorter> sorters;
+        /** @brief array of strings, describing what to evaluate, e.g. "mean",
 		 * "variance", "trials", etc. */
-		std::vector<std::string> evals;
-		/** @brief array of strings identifying the desired output formats */
-		std::vector<std::string> formats;
+        std::vector<std::string> evals;
+        /** @brief array of strings identifying the desired output formats */
+        std::vector<std::string> formats;
 
-		/** @brief path for the output files */
+        /** @brief path for the output files */
         std::string outputPath;
-		/** @brief basename to construct the output file names */
+        /** @brief basename to construct the output file names */
         std::string outfileBase;
 
-		/** @brief The datastructure in which the actual evaluation is stored. */
-		detail::StatEvalTable* t;
+        /** @brief The datastructure in which the actual evaluation is stored. */
+        detail::StatEvalTable* t;
     };
 } // bus
 } // probe
