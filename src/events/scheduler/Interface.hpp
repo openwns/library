@@ -289,9 +289,9 @@ namespace wns { namespace events { namespace scheduler {
 } // wns
 
 /**
- * @page schedulerBestPractices Scheduler Best Practices
+ * @page schedulerBestPractices The Event Scheduler
  *
- * With the openWNS scheduler you can schedule anything that is callable
+ * With the openWNS event scheduler you can schedule anything that is callable
  * in your simulation. A callable can be a function pointer, a function object
  * or anything else that implements the call operator, requires no arguments and
  * has a return value of void. This page shows you how to use boost::bind to
@@ -327,21 +327,21 @@ namespace wns { namespace events { namespace scheduler {
  * benefit for us. We will see later that by using boost::bind we get a
  * consistent syntax for all Callables which greatly improves readability.
  *
- * @section schedulingMemberFunctions Scheduling member functions
+ * @section schedulingMemberFunctions Scheduling Member Functions
  * So let us have a look at member functions now. Suppose you have the following
  * class:
  * @include wns.events.scheduler.bestpractices.classWithCallabck.example
  * The behaviour of ClassWithCallback::callback is pretty much the same as the
  * freeFunction of our last example, but now the scope is not global but limited
  * to the scope of the class instance.
- * @section schedulingMemberFunctionsByPointer Pointer Semantics
+ * @section schedulingMemberFunctionsByPointer Scheduling Member Functions by Pointer
  * When we pass an instance of some type to a boost::bind expression it is copied.
  * This is fine and yields the expected results if we work with pointers, but it
  * does not necessarily yield the expected results if you pass your arguments
  * by value (see next section). To schedule a member function of an object where
  * you have a pointer to can be done like this:
  * @include wns.events.scheduler.bestpractices.boostBindMemberFunction.example
- * @section schedulingMemberFunctionsByValue Value Semantics
+ * @section schedulingMemberFunctionsByValue Scheduling Member Functions by Value
  * The code below illustrates the usage of boost::bind if you have references to
  * your callback objects. To avoid copying of your callback object when you pass
  * it as an argument to boost::bind, just wrap in an boost::ref or boost::cref
@@ -358,6 +358,7 @@ namespace wns { namespace events { namespace scheduler {
  * a nullary function object that you can the pass the the scheduler. The follwing
  * example illustrates this:
  * @include wns.events.scheduler.bestpractices.boostBindMemberFunctionParam.example
+ * This concludes the scheduler best practices lesson.
  */
 
 #endif // NOT defined WNS_EVENTS_SCHEDULER_INTERFACE_HPP
