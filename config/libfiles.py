@@ -209,6 +209,7 @@ srcFiles['PROBEBUS-TESTS'] = [
     'src/probe/bus/tests/PythonProbeBusTest.cpp',
     'src/probe/bus/tests/TimeWindowProbeBusTest.cpp',
     'src/probe/bus/tests/TableProbeBusTest.cpp',
+    'src/probe/bus/tests/DevelopersGuideTest.cpp',
     'src/probe/bus/detail/tests/SorterTest.cpp',
 ]
 
