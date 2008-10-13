@@ -194,7 +194,7 @@ namespace wns { namespace events { namespace scheduler {
         stopAt(const wns::simulator::Time& time);
 
         /**
-         * @brief Returns number of evnts currently in the queue
+         * @brief Returns number of events currently in the queue
          */
         size_t
         size() const;
@@ -359,6 +359,15 @@ namespace wns { namespace events { namespace scheduler {
  * example illustrates this:
  * @include wns.events.scheduler.bestpractices.boostBindMemberFunctionParam.example
  * This concludes the scheduler best practices lesson.
+ *
+ * @section wns_events_scheduler_interface_cancel_events Cancelling Events
+ *
+ * Whenever you schedule an event by using either the @c schedule or @c scheduleDelay
+ * method of the eventschdeduler these methods return an instance of @c IEventPtr . This
+ * is a handle for your scheduled event and can be used to remove it from the scheduler
+ * queue again. This is demonstrated in the next example.
+ * 
+ * @include wns.events.scheduler.bestpractices.unittest.cancel.example
  */
 
 #endif // NOT defined WNS_EVENTS_SCHEDULER_INTERFACE_HPP

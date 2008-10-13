@@ -25,6 +25,12 @@
  *
  ******************************************************************************/
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// The stopwatch test is part of the openWNS developers handobook. The documentation
+// references line numbers there. If you change this file pleas make sure to
+// update the documentation chapter on CPP Unit tests.
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// begin example "wns.tests.StopWatchTest.example"
 #include <WNS/TestFixture.hpp>
 #include <WNS/StopWatch.hpp>
 
@@ -84,3 +90,5 @@ namespace wns { namespace tests {
 
 } // namespace tests
 } // namespace wns
+
+//end example

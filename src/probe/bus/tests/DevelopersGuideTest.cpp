@@ -32,6 +32,8 @@
 #include <WNS/SmartPtr.hpp>
 #include <WNS/distribution/Uniform.hpp>
 #include <WNS/simulator/ISimulator.hpp>
+#include <WNS/probe/bus/tests/ProbeBusStub.hpp>
+#include <WNS/TestFixture.hpp>
 
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
@@ -49,6 +51,10 @@ public:
         multimedia,
         bestEffort
     } priority;
+
+    Job();
+
+    Job(const Job&);
 
     Priority priority_;
 
@@ -77,6 +83,23 @@ private:
 };
 // end example
 
+    class DevelopersGuideTest : public wns::TestFixture  {
+        CPPUNIT_TEST_SUITE( DevelopersGuideTest );
+        CPPUNIT_TEST( testNoSink );
+        CPPUNIT_TEST( testSink );
+        CPPUNIT_TEST_SUITE_END();
+
+    public:
+        void prepare();
+        void cleanup();
+
+        void testNoSink();
+        void testSink();
+
+    private:
+        ProbeBus* thePassThroughProbeBus_;
+    };
+
 } // DeveloeprsGuideTest
 } // tests
 } // probe
@@ -84,6 +107,20 @@ private:
 } // wns
 
 using namespace wns::probe::bus::tests::developersGuideTest;
+
+CPPUNIT_TEST_SUITE_REGISTRATION( DevelopersGuideTest );
+
+Job::Job():
+    priority_(Job::bestEffort),
+    startedAt_(0.0)
+{
+}
+
+Job::Job(const Job& other)
+{
+    priority_ = other.priority_;
+    startedAt_ = other.startedAt_;
+}
 
 // begin example "wns.probe.bus.tests.DevelopersGuideTest.constructor.example"
 Processor::Processor():
@@ -142,3 +179,69 @@ Processor::onJobEnded(Job job)
                                   context);
 }
 // end example
+
+void
+DevelopersGuideTest::prepare()
+{
+
+}
+
+void
+DevelopersGuideTest::cleanup()
+{
+
+}
+
+void
+DevelopersGuideTest::testNoSink()
+{
+    Processor p;
+
+    Job j;
+
+    p.startJob(j);
+
+    wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
+
+    scheduler->processOneEvent();
+
+    CPPUNIT_ASSERT(scheduler->getTime() < 1.0);
+}
+
+void
+DevelopersGuideTest::testSink()
+{
+    Processor p;
+
+    Job j;
+
+    j.priority = Job::bestEffort;
+
+    ProbeBusStub* pbStubReceives = new ProbeBusStub();
+    pbStubReceives->setFilter("priority", Job::bestEffort);
+
+    ProbeBusStub* pbStubDoesNotReceive = new ProbeBusStub();
+    pbStubDoesNotReceive->setFilter("priority", Job::control);
+
+    wns::probe::bus::ProbeBusRegistry* pbr = wns::simulator::getProbeBusRegistry();
+
+    pbStubReceives->startObserving(pbr->getMeasurementSource("processor.processingDelay"));
+
+    pbStubDoesNotReceive->startObserving(pbr->getMeasurementSource("processor.processingDelay"));
+
+    p.startJob(j);
+
+    wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
+
+    scheduler->processOneEvent();
+
+    CPPUNIT_ASSERT(scheduler->getTime() < 1.0);
+
+    CPPUNIT_ASSERT(pbStubReceives->receivedCounter == 1);
+
+    CPPUNIT_ASSERT(pbStubDoesNotReceive->receivedCounter == 0);
+
+    delete pbStubReceives;
+
+    delete pbStubDoesNotReceive;
+}

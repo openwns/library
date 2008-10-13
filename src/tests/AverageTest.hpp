@@ -28,6 +28,7 @@
 #ifndef WNS_TESTS_AVERAGE_HPP
 #define WNS_TESTS_AVERAGE_HPP
 
+// begin example "wns.avaragetest.header.example"
 #include <WNS/Average.hpp>
 #include <WNS/TestFixture.hpp>
 
@@ -46,6 +47,7 @@ namespace wns { namespace tests {
 		Average<double> average;
 	};
 }}
+// end example
 #endif // WNS_TESTS_AVERAGE_HPP
 
 /*
