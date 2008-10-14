@@ -37,6 +37,7 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
+#include <WNS/distribution/Distribution.hpp>
 
 #include <boost/bind.hpp>
 
@@ -47,7 +48,6 @@ namespace wns { namespace queuingsystem {
         public IOutputStreamable,
         public wns::simulator::ISimulationModel
     {
-        typedef wns::rng::VariateGenerator< boost::exponential_distribution<> > Exponential;
     public:
         explicit
         SimpleMM1Step2(const wns::pyconfig::View& configuration);
@@ -74,9 +74,9 @@ namespace wns { namespace queuingsystem {
         virtual std::string
         doToString() const;
 
-        Exponential jobInterarrivalTime_;
+        wns::distribution::Distribution* jobInterarrivalTime_;
 
-        Exponential jobProcessingTime_;
+        wns::distribution::Distribution* jobProcessingTime_;
 
         std::list<Job> queue_;
 

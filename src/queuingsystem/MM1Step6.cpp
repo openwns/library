@@ -38,19 +38,21 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 
 SimpleMM1Step6::SimpleMM1Step6(const wns::pyconfig::View& config) :
-    jobInterarrivalTime_(wns::simulator::getRNG(),
-                         Exponential::distribution_type(
-                             1.0/config.get<wns::simulator::Time>("meanJobInterArrivalTime"))),
-    jobProcessingTime_(wns::simulator::getRNG(),
-                       Exponential::distribution_type(
-                           1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),
-    priorityDistribution_(wns::simulator::getRNG(),
-                          Uniform::distribution_type(Job::lowPriority, Job::highPriority)),
+    priorityDistribution_(Job::lowPriority, Job::highPriority),
     config_(config),
     logger_(config.get("logger")),
     probeBus_(NULL),
     idle(true)
 {
+    wns::pyconfig::View disConfig = config.get("jobInterArrivalTimeDistribution");
+    std::string disName = disConfig.get<std::string>("__plugin__");
+    jobInterarrivalTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
+
+    disConfig = config.get("jobProcessingTimeDistribution");
+    disName = disConfig.get<std::string>("__plugin__");
+    jobProcessingTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
 }
 
 // begin example "wns.queuingsystem.mm1step6.doStartup.example" 
@@ -95,7 +97,7 @@ SimpleMM1Step6::generateNewJob()
     }
 
 
-    wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
+    wns::simulator::Time delayToNextJob = (*jobInterarrivalTime_)();
 
     MESSAGE_SINGLE(NORMAL, logger_, "Generated new job, next job in " << delayToNextJob << "s\n" << *this);
 
@@ -151,7 +153,7 @@ SimpleMM1Step6::processNextJob()
 {
     currentJob_ = getNextJob();
 
-    wns::simulator::Time processingTime = jobProcessingTime_();
+    wns::simulator::Time processingTime = (*jobProcessingTime_)();
 
     wns::simulator::getEventScheduler()->scheduleDelay(
         boost::bind(&SimpleMM1Step6::onJobProcessed, this),

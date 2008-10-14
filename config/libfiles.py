@@ -57,6 +57,8 @@ srcFiles['EVENTS'] = [
     'src/events/scheduler/Monitor.cpp',
     'src/events/scheduler/RealTime.cpp',
     'src/events/CanTimeout.cpp',
+    'src/events/PeriodicTimeout.cpp',
+    'src/events/PeriodicRealTimeout.cpp',
 ]
 
 srcFiles['EVALUATION'] = [
@@ -231,6 +233,8 @@ srcFiles['EVENTS-TESTS'] = [
     'src/events/scheduler/tests/BestPracticesTest.cpp',
     'src/events/scheduler/tests/RealTimeTest.cpp',
     'src/events/tests/CanTimeoutTest.cpp',
+    'src/events/tests/PeriodicTimeoutTest.cpp',
+    'src/events/tests/PeriodicRealTimeoutTest.cpp',
     ]
     
 srcFiles['OSI-TESTS'] = [
