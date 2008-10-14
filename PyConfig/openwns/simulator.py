@@ -30,6 +30,11 @@ import openwns.logger
 import openwns.rng
 import openwns.pyconfig
 import openwns.probebus
+import openwns.pyconfig
+
+class OutputStrategy(object):
+    DELETE = openwns.pyconfig.Plugin('Delete')
+    MOVE = openwns.pyconfig.Plugin('Move')
 
 class Modules(object):
     def __len__(self):
@@ -81,7 +86,9 @@ class OpenWNS(object):
     This class is the root of the configuration.
     """
 
-    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor", "simulationModel", "outputDir"]
+    __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor",
+    "simulationModel", "outputDir", "statusWriteInterval", "probesWriteInterval", "statusFileName",
+    "outputStrategy", "memConsumptionProbeBusName"]
 
     modules = Modules()
 
@@ -93,6 +100,12 @@ class OpenWNS(object):
         self.eventSchedulerMonitor = openwns.eventscheduler.Monitor()
         self.simulationModel = None
         self.outputDir = "output"
+        self.statusWriteInterval = 10 # in seconds
+        self.probesWriteInterval = 10 * 60 # in seconds
+        self.statusFileName = "WNSStatus.dat"
+        self.outputStrategy = OutputStrategy.MOVE
+        # make available for easy access in wns-core
+        self.memConsumptionProbeBusName = "wns.Memory"
 
         openwns.pyconfig.attrsetter(self, kw)
 

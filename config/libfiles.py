@@ -35,6 +35,9 @@ srcFiles['SIMULATOR'] = [
     'src/simulator/Simulator.cpp',
     'src/simulator/UnitTests.cpp',
     'src/simulator/ISimulationModel.cpp',
+    'src/simulator/StatusReport.cpp',
+    'src/simulator/ProbeWriter.cpp',
+    'src/simulator/OutputPreparation.cpp',
 ]
 
 srcFiles['PYCONFIG'] = [
