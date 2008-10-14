@@ -30,7 +30,7 @@
 
 #include <WNS/events/PeriodicTimeout.hpp>
 
-#include <WNS/CppUnit.hpp>
+#include <WNS/TestFixture.hpp>
 
 
 namespace wns { namespace events { namespace tests {

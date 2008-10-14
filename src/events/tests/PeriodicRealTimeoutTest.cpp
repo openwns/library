@@ -29,9 +29,7 @@
 #include <WNS/events/scheduler/Interface.hpp>
 #include <WNS/events/PeriodicRealTimeout.hpp>
 
-#include <cppunit/extensions/HelperMacros.h>
-
-#include <stdexcept>
+#include <WNS/TestFixture.hpp>
 
 
 namespace wns { namespace events { namespace tests {
