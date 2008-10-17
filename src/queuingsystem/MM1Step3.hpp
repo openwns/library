@@ -37,6 +37,7 @@
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/distribution/Distribution.hpp>
 
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
@@ -75,9 +76,9 @@ namespace wns { namespace queuingsystem {
         doToString() const;
 
 // begin example "wns.queuingsystem.mm1step3.hpp.example"
-        Exponential jobInterarrivalTime_;
+        wns::distribution::Distribution* jobInterarrivalTime_;
 
-        Exponential jobProcessingTime_;
+        wns::distribution::Distribution* jobProcessingTime_;
 
         std::list<Job> queue_;
 

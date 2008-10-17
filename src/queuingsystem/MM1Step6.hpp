@@ -37,6 +37,8 @@
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/distribution/Distribution.hpp>
+#include <WNS/distribution/DiscreteUniform.hpp>
 
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
@@ -86,11 +88,11 @@ namespace wns { namespace queuingsystem {
         Job::Priority
         drawJobPriority();
 
-        Exponential jobInterarrivalTime_;
+        wns::distribution::Distribution* jobInterarrivalTime_;
 
-        Exponential jobProcessingTime_;
+        wns::distribution::Distribution* jobProcessingTime_;
 
-        Uniform priorityDistribution_;
+        wns::distribution::DiscreteUniform priorityDistribution_;
 
         std::list<Job> lowPriorityQueue_;
 
