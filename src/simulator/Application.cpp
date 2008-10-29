@@ -710,14 +710,7 @@ void Application::writeFingerprint()
     if(!fingerprint.good())
         throw wns::Exception("Couldn't create fingerprint file.");
 
-    fingerprint << wns::module::CurrentVersion.getString() << std::endl;
-
-    for(std::list<module::Base*>::iterator it = loadedModules_.begin();
-        it != loadedModules_.end();
-        ++it) {
-        fingerprint << (*it)->getVersionInformation().getString() << std::endl;
-    }
-
+    fingerprint << "Version information not supported any more" << std::endl;
     fingerprint.close();
 }
 

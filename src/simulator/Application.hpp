@@ -192,14 +192,12 @@ namespace wns {  namespace simulator {
         disableX87ExtendedFloatingPointPrecision();
 
 
-		/**
-		 * @brief Retrieve an instance of Module from each library
-		 */
-		void
-		loadModules();
+        /**
+         * @brief Retrieve an instance of Module from each library
+         */
+        void
+        loadModules();
 
-// 		void
-// 		checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions);
 
         /**
          * @brief Write a fingerprint file to the output directory
