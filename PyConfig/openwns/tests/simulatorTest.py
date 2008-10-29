@@ -1,3 +1,4 @@
+# begin example "wns.simulatorTest.unittest.example"
 import unittest
 import openwns.simulator
 
@@ -49,3 +50,4 @@ class ModulesTests(unittest.TestCase):
     #        self.testee.baz = ModuleMock("moduleC")
     #        self.testee.zab = ModuleMock("moduleC")
     #    self.assertRaises(Exception, provokeException)
+# end example

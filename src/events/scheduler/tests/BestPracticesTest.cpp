@@ -95,6 +95,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
          CPPUNIT_TEST( boostBindMemberFunctionPtr );
          CPPUNIT_TEST( boostBindMemberFunctionRef );
          CPPUNIT_TEST( boostBindMemberFunctionWithParameter );
+         CPPUNIT_TEST( eventCancellation );
+         CPPUNIT_TEST( writingUnitTestsControlOfTime );
          CPPUNIT_TEST_SUITE_END();
      public:
          void prepare();
@@ -104,6 +106,9 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
          void boostBindMemberFunctionPtr();
          void boostBindMemberFunctionRef();
          void boostBindMemberFunctionWithParameter();
+         void eventCancellation();
+         void writingUnitTestsControlOfTime();
+         
      };
 
      CPPUNIT_TEST_SUITE_REGISTRATION( BestPracticesTest );
@@ -291,3 +296,47 @@ BestPracticesTest::boostBindMemberFunctionWithParameter()
     delete classWithCallbackPtr;
 }
 
+void
+BestPracticesTest::eventCancellation()
+{
+    wns::events::scheduler::Interface* scheduler = NULL;
+
+    scheduler = wns::simulator::getEventScheduler();
+
+    wns::events::scheduler::Callable c = &freeFunction;
+    
+    scheduler->scheduleDelay(c, 10.0);
+
+    // begin example "wns.events.scheduler.bestpractices.unittest.cancel.example"
+
+    wns::events::scheduler::Callable timeout = &freeFunction;
+
+    // Remember a handle of your event
+    IEventPtr timeoutHandle = scheduler->scheduleDelay(timeout, 15.0);
+    
+    // Use the handle to cancel an event that was already scheduled
+    scheduler->cancelEvent(timeoutHandle);
+    // end example
+
+    scheduler->processOneEvent();
+
+    CPPUNIT_ASSERT_EQUAL(10.0, scheduler->getTime());
+}
+
+void
+BestPracticesTest::writingUnitTestsControlOfTime()
+{
+    // begin example "wns.events.scheduler.bestpractices.unittest.reset.example"
+    wns::simulator::getEventScheduler()->reset();
+    // end example
+
+    // begin example "wns.events.scheduler.bestpractices.unittest.process.example"
+    wns::simulator::getEventScheduler()->processOneEvent();
+    // end example
+
+    // begin example "wns.events.scheduler.bestpractices.unittest.gettime.example"
+    wns::simulator::Time now;
+
+    now = wns::simulator::getEventScheduler()->getTime();
+    // end example
+}

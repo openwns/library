@@ -25,38 +25,21 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_TESTS_AVERAGE_HPP
-#define WNS_TESTS_AVERAGE_HPP
+#include <WNS/simulator/ProbeWriter.hpp>
+#include <WNS/probe/bus/ProbeBusRegistry.hpp>
+#include <WNS/simulator/Simulator.hpp>
 
-// begin example "wns.avaragetest.header.example"
-#include <WNS/Average.hpp>
-#include <WNS/TestFixture.hpp>
+#include <iostream>
 
-namespace wns { namespace tests {
-	class AverageTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( AverageTest );
-		CPPUNIT_TEST( testPutAndGet );
-		CPPUNIT_TEST( testReset );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
-		void testPutAndGet();
-		void testReset();
-	private:
-		Average<double> average;
-	};
-}}
-// end example
-#endif // WNS_TESTS_AVERAGE_HPP
+using namespace wns::simulator;
+void
+ProbeWriter::periodically()
+{
+    try {
+        wns::simulator::getProbeBusRegistry()->forwardOutput();
+    }
+    catch(...) {
+        std::cerr << "ProbeWriter: couldn't write probes (PDataBase).\n";
+    }
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+} // periodically

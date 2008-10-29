@@ -25,38 +25,57 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_TESTS_AVERAGE_HPP
-#define WNS_TESTS_AVERAGE_HPP
+#ifndef WNS_EVNTS_TESTS_PERIODICTIMEOUTTEST_HPP
+#define WNS_EVNTS_TESTS_PERIODICTIMEOUTTEST_HPP
 
-// begin example "wns.avaragetest.header.example"
-#include <WNS/Average.hpp>
+#include <WNS/events/PeriodicTimeout.hpp>
+
 #include <WNS/TestFixture.hpp>
 
-namespace wns { namespace tests {
-	class AverageTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( AverageTest );
-		CPPUNIT_TEST( testPutAndGet );
-		CPPUNIT_TEST( testReset );
+
+namespace wns { namespace events { namespace tests {
+
+	class PeriodicTimeoutTest :
+		public wns::TestFixture
+	{
+		CPPUNIT_TEST_SUITE( PeriodicTimeoutTest );
+		CPPUNIT_TEST( create );
+		CPPUNIT_TEST( configureTimeout );
+		CPPUNIT_TEST( testPeriod );
+		CPPUNIT_TEST( testDelay );
+		CPPUNIT_TEST( testCopyConstructor );
 		CPPUNIT_TEST_SUITE_END();
 	public:
-		void setUp();
-		void tearDown();
-		void testPutAndGet();
-		void testReset();
-	private:
-		Average<double> average;
-	};
-}}
-// end example
-#endif // WNS_TESTS_AVERAGE_HPP
+		void prepare();
+		void cleanup();
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+ 		void create();
+		void configureTimeout();
+ 		void testPeriod();
+ 		void testDelay();
+		void testCopyConstructor();
+	private:
+
+		class derivedPeriodicTimeout :
+			public PeriodicTimeout
+		{
+		      public:
+			derivedPeriodicTimeout()
+				:PeriodicTimeout(),
+				 test_counter(0)
+				{};
+
+			void periodically()
+				{
+					test_counter++;
+				};
+			int test_counter;
+		};
+
+	};
+} // tests
+} // events
+} // wns
+#endif //NOT defined WNS_EVNTS_TESTS_PERIODICTIMEOUTTEST_HPP
+
+

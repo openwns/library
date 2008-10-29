@@ -25,38 +25,20 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_TESTS_AVERAGE_HPP
-#define WNS_TESTS_AVERAGE_HPP
+#ifndef _PROBEWRITER_HPP
+#define _PROBEWRITER_HPP
 
-// begin example "wns.avaragetest.header.example"
-#include <WNS/Average.hpp>
-#include <WNS/TestFixture.hpp>
+#include <WNS/events/PeriodicRealTimeout.hpp>
 
-namespace wns { namespace tests {
-	class AverageTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( AverageTest );
-		CPPUNIT_TEST( testPutAndGet );
-		CPPUNIT_TEST( testReset );
-		CPPUNIT_TEST_SUITE_END();
+namespace wns { namespace simulator {
+
+	class ProbeWriter
+		: public wns::events::PeriodicRealTimeout
+	{
 	public:
-		void setUp();
-		void tearDown();
-		void testPutAndGet();
-		void testReset();
-	private:
-		Average<double> average;
+		void periodically();
 	};
-}}
-// end example
-#endif // WNS_TESTS_AVERAGE_HPP
+} // simulator
+} // wns
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+#endif // _PROBEWRITER_HPP
