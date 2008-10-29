@@ -62,6 +62,17 @@ namespace wns { namespace service { namespace tl {
 		virtual ~FlowID()
 		{}
 
+		virtual void
+		swapSrcDest()
+			{
+				wns::service::nl::Address tmpSrcAddress = srcAddress;
+				wns::service::tl::Port tmpSrcPort = srcPort;
+				srcAddress = dstAddress;
+				srcPort = dstPort;
+				dstAddress = tmpSrcAddress;
+				dstPort = tmpSrcPort;
+			}
+
 		virtual bool
 		operator ==(const FlowID& other) const
 		{
