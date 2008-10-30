@@ -437,6 +437,7 @@ pyconfig = [
 'openwns/rng.py',
 'openwns/tests/simulatorTest.py',
 'openwns/tests/__init__.py',
+'openwns/tests/nodeTest.py',
 'openwns/module.py',
 'openwns/logger.py',
 'openwns/probebus.py',
