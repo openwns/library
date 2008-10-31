@@ -33,8 +33,10 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/events/scheduler/Monitor.hpp>
 #include <WNS/simulator/ISimulationModel.hpp>
-#include <WNS/module/VersionInformation.hpp>
+//#include <WNS/module/VersionInformation.hpp>
 #include <WNS/probe/bus/ProbeBusRegistry.hpp>
+#include <WNS/simulator/StatusReport.hpp>
+#include <WNS/simulator/ProbeWriter.hpp>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -190,14 +192,25 @@ namespace wns {  namespace simulator {
         disableX87ExtendedFloatingPointPrecision();
 
 
-		/**
-		 * @brief Retrieve an instance of Module from each library
-		 */
-		void
-		loadModules();
+        /**
+         * @brief Retrieve an instance of Module from each library
+         */
+        void
+        loadModules();
 
-		void
-		checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions);
+
+        /**
+         * @brief Write a fingerprint file to the output directory
+         *
+         */
+        void
+        writeFingerprint();
+
+        /**
+         * @brief Stop Probes
+         */
+        void
+        stopProbes();
 
 
         /**
@@ -314,6 +327,10 @@ namespace wns {  namespace simulator {
          * @brief Anchor for all probe busses
          */
         std::auto_ptr<wns::probe::bus::ProbeBusRegistry> probeBusRegistry;
+
+        StatusReport statusReport;
+
+        ProbeWriter probeWriter;
     };
 
 } // simulator

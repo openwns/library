@@ -40,7 +40,7 @@
 namespace wns {
 	/**
 	 * @page StaticFactoryPage StaticFactory
-	 *
+	 * \tableOfContents
 	 * @section staticfactoryusing Use StaticFactory
 	 *
 	 * A StaticFactory provides an easy to use interface for plugin handling.

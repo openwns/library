@@ -36,7 +36,7 @@ using namespace wns::module;
 
 Base::Base(const pyconfig::View& pyco) :
 	convertMap(),
-	version(Release(), DepList(), DateTime(), "", ""),
+	//version(Release(), DepList(), DateTime(), "", ""),
 	global(false),
 	logger(pyco.get<pyconfig::View>("logger"))
 {
@@ -55,11 +55,11 @@ Base::~Base()
 	}
 }
 
-wns::module::VersionInformation
-Base::getVersionInformation() const
-{
-	return version;
-}
+// wns::module::VersionInformation
+// Base::getVersionInformation() const
+// {
+// 	return version;
+// }
 
 bool
 Base::existsService(const std::string& s)

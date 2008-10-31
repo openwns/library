@@ -37,6 +37,8 @@
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
 #include <WNS/probe/bus/ProbeBus.hpp>
+#include <WNS/distribution/Distribution.hpp>
+#include <WNS/distribution/DiscreteUniform.hpp>
 
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
@@ -86,11 +88,11 @@ namespace wns { namespace queuingsystem {
         Job::Priority
         drawJobPriority();
 
-        Exponential jobInterarrivalTime_;
+        wns::distribution::Distribution* jobInterarrivalTime_;
 
-        Exponential jobProcessingTime_;
+        wns::distribution::Distribution* jobProcessingTime_;
 
-        Uniform priorityDistribution_;
+        wns::distribution::DiscreteUniform priorityDistribution_;
 
         std::list<Job> lowPriorityQueue_;
 
@@ -114,18 +116,18 @@ namespace wns { namespace queuingsystem {
 /**
  * @page wns.queuingsystem.mm1step6 Queuingsystem Tutorial Step 6
  *
- * @section contents Contents
+ * @section wns.queuingsystem.mm1step6.contents Contents
  *   -# @ref probebusregistry
  *   -# @ref probebustrees
  *
- * @section probebusregistry Seperating Measurement sources and sinks
+ * @section wns.queuingsystem.mm1step6.probebusregistry Seperating Measurement sources and sinks
  *   - Motivate the need of the ProbeBusRegistry by showing scalabilty
  *   problems with the former approach
  *   - Explain the usage of the ProbeBusRegistry both in C++ and Python
  *
  * @include "wns.queuingsystem.mm1step6.doStartup.example"
  *
- * @section probebustrees ProbeBus Trees
+ * @section wns.queuingsystem.mm1step6.probebustrees ProbeBus Trees
  *
  *   - Towards sorting. Show how to add several ProbeBusses to the same
  *   ProbeBusId

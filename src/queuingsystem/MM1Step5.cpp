@@ -38,16 +38,19 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 
 SimpleMM1Step5::SimpleMM1Step5(const wns::pyconfig::View& config) :
-    jobInterarrivalTime_(wns::simulator::getRNG(),
-                         Exponential::distribution_type(
-                             1.0/config.get<wns::simulator::Time>("meanJobInterArrivalTime"))),
-    jobProcessingTime_(wns::simulator::getRNG(),
-                       Exponential::distribution_type(
-                           1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),
     config_(config),
     logger_(config.get("logger")),
     probeBus_(NULL)
 {
+    wns::pyconfig::View disConfig = config.get("jobInterArrivalTimeDistribution");
+    std::string disName = disConfig.get<std::string>("__plugin__");
+    jobInterarrivalTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
+
+    disConfig = config.get("jobProcessingTimeDistribution");
+    disName = disConfig.get<std::string>("__plugin__");
+    jobProcessingTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
 }
 
 // begin example "wns.queuingsystem.mm1step5.doStartup.example" 
@@ -84,7 +87,7 @@ SimpleMM1Step5::generateNewJob()
 
     queue_.push_back(job);
 
-    wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
+    wns::simulator::Time delayToNextJob = (*jobInterarrivalTime_)();
 
     MESSAGE_SINGLE(NORMAL, logger_, "Generated new job, next job in " << delayToNextJob << "s\n" << *this);
 
@@ -139,7 +142,7 @@ SimpleMM1Step5::onJobProcessed()
 void
 SimpleMM1Step5::processNextJob()
 {
-    wns::simulator::Time processingTime = jobProcessingTime_();
+    wns::simulator::Time processingTime = (*jobProcessingTime_)();
 
     wns::simulator::getEventScheduler()->scheduleDelay(
         boost::bind(&SimpleMM1Step5::onJobProcessed, this),

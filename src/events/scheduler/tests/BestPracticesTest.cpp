@@ -39,7 +39,9 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
      {
          wns::logger::Logger log("tests", "SchedulerBestPractices");
 
-         MESSAGE_SINGLE(NORMAL, log, "freeFunction is called. Setting globalVariable to 101");
+         MESSAGE_BEGIN(NORMAL, log, m, "freeFunction is called.");
+         m << "Setting globalVariable to 101";
+         MESSAGE_END();
 
          globalVariable = 101;
      }
@@ -63,7 +65,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
          callback()
              {
                  MESSAGE_BEGIN(NORMAL, logger_, m, "");
-                 m << "ClassWithCallback::callback is called. Setting globalVariable to 101";
+                 m << "ClassWithCallback::callback is called."
+                   << "Setting globalVariable to 101";
                  MESSAGE_END();
                  this->memberVariable_ = 101;
              }
@@ -92,6 +95,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
          CPPUNIT_TEST( boostBindMemberFunctionPtr );
          CPPUNIT_TEST( boostBindMemberFunctionRef );
          CPPUNIT_TEST( boostBindMemberFunctionWithParameter );
+         CPPUNIT_TEST( eventCancellation );
+         CPPUNIT_TEST( writingUnitTestsControlOfTime );
          CPPUNIT_TEST_SUITE_END();
      public:
          void prepare();
@@ -101,6 +106,9 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
          void boostBindMemberFunctionPtr();
          void boostBindMemberFunctionRef();
          void boostBindMemberFunctionWithParameter();
+         void eventCancellation();
+         void writingUnitTestsControlOfTime();
+         
      };
 
      CPPUNIT_TEST_SUITE_REGISTRATION( BestPracticesTest );
@@ -129,7 +137,9 @@ BestPracticesTest::bindFreeFunction()
 
     // begin example "wns.events.scheduler.bestpractices.bindFreeFunction.example"
 
-    wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
+    wns::events::scheduler::Interface* scheduler = NULL;
+
+    scheduler = wns::simulator::getEventScheduler();
 
     wns::events::scheduler::Callable c = &freeFunction;
 
@@ -155,7 +165,9 @@ BestPracticesTest::boostBindFreeFunction()
 
     // begin example "wns.events.scheduler.bestpractices.boostBindFreeFunction.example"
 
-    wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
+    wns::events::scheduler::Interface* scheduler = NULL;
+
+    scheduler = wns::simulator::getEventScheduler();
 
     wns::events::scheduler::Callable c = boost::bind(&freeFunction);
 
@@ -179,7 +191,9 @@ BestPracticesTest::boostBindMemberFunctionPtr()
 {
     // begin example "wns.events.scheduler.bestpractices.boostBindMemberFunction.example"
 
-    wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
+    wns::events::scheduler::Interface* scheduler = NULL;
+
+    scheduler = wns::simulator::getEventScheduler();
 
     // Create a Smart Pointer to a new ClassWithCallback instance
     ClassWithCallback* classWithCallbackPtr = new ClassWithCallback();
@@ -210,7 +224,9 @@ BestPracticesTest::boostBindMemberFunctionRef()
 {
     // begin example "wns.events.scheduler.bestpractices.boostBindMemberFunctionRef.example"
 
-    wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
+    wns::events::scheduler::Interface* scheduler = NULL;
+
+    scheduler = wns::simulator::getEventScheduler();
 
     ClassWithCallback classWithCallbackInstance;
 
@@ -237,7 +253,9 @@ void
 BestPracticesTest::boostBindMemberFunctionWithParameter()
 {
     // begin example "wns.events.scheduler.bestpractices.boostBindMemberFunctionParam.example"
-    wns::events::scheduler::Interface* scheduler = wns::simulator::getEventScheduler();
+    wns::events::scheduler::Interface* scheduler = NULL;
+
+    scheduler = wns::simulator::getEventScheduler();
 
     ClassWithCallback* classWithCallbackPtr = new ClassWithCallback();
 
@@ -278,3 +296,47 @@ BestPracticesTest::boostBindMemberFunctionWithParameter()
     delete classWithCallbackPtr;
 }
 
+void
+BestPracticesTest::eventCancellation()
+{
+    wns::events::scheduler::Interface* scheduler = NULL;
+
+    scheduler = wns::simulator::getEventScheduler();
+
+    wns::events::scheduler::Callable c = &freeFunction;
+    
+    scheduler->scheduleDelay(c, 10.0);
+
+    // begin example "wns.events.scheduler.bestpractices.unittest.cancel.example"
+
+    wns::events::scheduler::Callable timeout = &freeFunction;
+
+    // Remember a handle of your event
+    IEventPtr timeoutHandle = scheduler->scheduleDelay(timeout, 15.0);
+    
+    // Use the handle to cancel an event that was already scheduled
+    scheduler->cancelEvent(timeoutHandle);
+    // end example
+
+    scheduler->processOneEvent();
+
+    CPPUNIT_ASSERT_EQUAL(10.0, scheduler->getTime());
+}
+
+void
+BestPracticesTest::writingUnitTestsControlOfTime()
+{
+    // begin example "wns.events.scheduler.bestpractices.unittest.reset.example"
+    wns::simulator::getEventScheduler()->reset();
+    // end example
+
+    // begin example "wns.events.scheduler.bestpractices.unittest.process.example"
+    wns::simulator::getEventScheduler()->processOneEvent();
+    // end example
+
+    // begin example "wns.events.scheduler.bestpractices.unittest.gettime.example"
+    wns::simulator::Time now;
+
+    now = wns::simulator::getEventScheduler()->getTime();
+    // end example
+}

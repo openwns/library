@@ -28,7 +28,7 @@
 #ifndef WNS_MODULE_BASE_HPP
 #define WNS_MODULE_BASE_HPP
 
-#include <WNS/module/VersionInformation.hpp>
+
 #include <WNS/module/MultiTypeFactory.hpp>
 #include <WNS/StaticFactory.hpp>
 #include <WNS/pyconfig/View.hpp>
@@ -71,8 +71,8 @@ namespace wns { namespace module {
 		/**
 		 * @brief get version information
 		 */
-		VersionInformation
-		getVersionInformation() const;
+		//VersionInformation
+		//getVersionInformation() const;
 
 		/**
 		 * @brief Ask if a service is registered
@@ -148,7 +148,7 @@ namespace wns { namespace module {
 		/**
 		 * @brief Version information
 		 */
-		VersionInformation version;
+		//VersionInformation version;
 
 		/**
 		 * @brief Specifies if the module should be loaded globally
