@@ -31,30 +31,5 @@
  * @section embeddingEvaluation How to embed evaluation in your configuration
  *
  *
- * @code
- * class StatisticsProbeBus(openwns.probebus.ProbeBus):
- *
- *   nameInFactory = "PythonProbeBus"
- *
- *   def __init__(self, outputFilename):
- *       openwns.probebus.ProbeBus.__init__(self)
- *       self.reportErrors = True
- *       self.outputFilename = outputFilename
- *       self.sum = 0.0
- *       self.trials = 0
- *
- *   def accepts(self, time, context):
- *       return True
- *
- *   def onMeasurement(self, time, measurement, context):
- *       self.sum += measurement
- *       self.trials += 1
- *
- *   def output(self):
- *       f = open(self.outputFilename, "w")
- *       f.write("Number of trials: %s\n" % str(self.trials))
- *       f.write("Mean value : %s\n" % str(self.sum/self.trials))
- *       f.close()
- * @endcode
  */
 
