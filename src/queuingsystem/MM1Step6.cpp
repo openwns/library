@@ -62,7 +62,6 @@ SimpleMM1Step6::SimpleMM1Step6(const wns::pyconfig::View& config) :
     cpc_->addProvider(JobContextProvider());
 }
 
-// begin example "wns.queuingsystem.mm1step6.doStartup.example" 
 void
 SimpleMM1Step6::doStartup()
 {
@@ -70,7 +69,6 @@ SimpleMM1Step6::doStartup()
 
     generateNewJob();
 }
-// end example
 
 void
 SimpleMM1Step6::doShutdown()
