@@ -39,115 +39,115 @@
 
 namespace wns { namespace probe { namespace bus { namespace detail {
 
-		/** @brief Wrapper for default construction of a StatEval Object */
-		class Storage
-		{
+        /** @brief Wrapper for default construction of a StatEval Object */
+        class Storage
+        {
                     wns::evaluation::statistics::StatEval se;
-		public:
-			Storage();
+        public:
+            Storage();
 
-			~Storage();
+            ~Storage();
 
-			void
-			put(double);
+            void
+            put(double);
 
-			double
-			get(const std::string& valueType) const;
-		};
+            double
+            get(const std::string& valueType) const;
+        };
 
-		class OutputFormatter;
+        class OutputFormatter;
 
-		/** @brief Table functionality wrapper class around DynamicMatrix */
-		template <typename T>
-		class Table
-		{
-			friend class OutputFormatter;
+        /** @brief Table functionality wrapper class around DynamicMatrix */
+        template <typename T>
+        class Table
+        {
+            friend class OutputFormatter;
 
-		protected:
-			typedef T ValueType;
+        protected:
+            typedef T ValueType;
 
-			class OutOfRange :
-				public wns::Exception
-			{};
+            class OutOfRange :
+                public wns::Exception
+            {};
 
-			std::vector<detail::Sorter> sorters;
-			wns::container::DynamicMatrix<ValueType>* root;
+            std::vector<detail::Sorter> sorters;
+            wns::container::DynamicMatrix<ValueType>* root;
 
-		public:
-			Table(std::vector<detail::Sorter> config) :
-				sorters(config),
-				root(NULL)
-				{
-					std::list<int> dimensions;
-					for (size_t ii = 0; ii<sorters.size(); ++ii)
-					{
-						dimensions.push_back(sorters.at(ii).getResolution());
-					}
-					root = new wns::container::DynamicMatrix<ValueType>(dimensions);
-				}
+        public:
+            Table(std::vector<detail::Sorter> config) :
+                sorters(config),
+                root(NULL)
+                {
+                    std::list<int> dimensions;
+                    for (size_t ii = 0; ii<sorters.size(); ++ii)
+                    {
+                        dimensions.push_back(sorters.at(ii).getResolution());
+                    }
+                    root = new wns::container::DynamicMatrix<ValueType>(dimensions);
+                }
 
-			~Table()
-				{
-					delete root;
-				}
+            ~Table()
+                {
+                    delete root;
+                }
 
-			T&
-			get(const std::list<IDType>& ids)
-				{
-					return root->getValue( this->getCoords(ids) );
-				}
+            T&
+            get(const std::list<IDType>& ids)
+                {
+                    return root->getValue( this->getCoords(ids) );
+                }
 
-			const T&
-			get(const std::list<IDType>& ids) const
-				{
-					return root->getValue( this->getCoords(ids) );
-				}
+            const T&
+            get(const std::list<IDType>& ids) const
+                {
+                    return root->getValue( this->getCoords(ids) );
+                }
 
-			const T&
-			getByIndex(const std::list<int>& indices) const
-				{
-					return root->getValue(indices);
-				}
+            const T&
+            getByIndex(const std::list<int>& indices) const
+                {
+                    return root->getValue(indices);
+                }
 
-			void
-			set(const std::list<IDType>& ids, ValueType value)
-				{
-					return root->setValue( this->getCoords(ids),value );
-				}
+            void
+            set(const std::list<IDType>& ids, ValueType value)
+                {
+                    return root->setValue( this->getCoords(ids),value );
+                }
 
-		private:
-			std::list<int>
-			getCoords(const std::list<IDType>& ids) const
-				{
-					assure(ids.size() == sorters.size(), "ID/Sorter Mismatch");
-					std::list<IDType>::const_iterator iter = ids.begin();
-					std::list<IDType>::const_iterator end  = ids.end();
+        private:
+            std::list<int>
+            getCoords(const std::list<IDType>& ids) const
+                {
+                    assure(ids.size() == sorters.size(), "ID/Sorter Mismatch");
+                    std::list<IDType>::const_iterator iter = ids.begin();
+                    std::list<IDType>::const_iterator end  = ids.end();
 
-					std::vector<detail::Sorter>::const_iterator siter = sorters.begin();
-					std::vector<detail::Sorter>::const_iterator send  = sorters.end();
+                    std::vector<detail::Sorter>::const_iterator siter = sorters.begin();
+                    std::vector<detail::Sorter>::const_iterator send  = sorters.end();
 
-					std::list<int> coords;
+                    std::list<int> coords;
 
-					while(iter != end && siter != send)
-					{
-						const Sorter& sorter = *siter;
-						if (sorter.checkIndex(*iter) == true)
-						{
-							coords.push_back(sorter.getIndex(*iter));
-						}
-						else
-						{
-							OutOfRange up;
-							throw(up);
-						}
-						++iter;
-						++siter;
-					}
-					return coords;
-				}
-		};
+                    while(iter != end && siter != send)
+                    {
+                        const Sorter& sorter = *siter;
+                        if (sorter.checkIndex(*iter) == true)
+                        {
+                            coords.push_back(sorter.getIndex(*iter));
+                        }
+                        else
+                        {
+                            OutOfRange up;
+                            throw(up);
+                        }
+                        ++iter;
+                        ++siter;
+                    }
+                    return coords;
+                }
+        };
 
- 		typedef Table<Storage> StatEvalTable;
+        typedef Table<Storage> StatEvalTable;
 }}}}
 
 #endif // not defined WNS_PROBE_BUS_DETAIL_STATEVALTABLE_HPP

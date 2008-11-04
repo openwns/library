@@ -37,6 +37,7 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
+#include <WNS/distribution/Distribution.hpp>
 
 #include <boost/bind.hpp>
 
@@ -47,7 +48,6 @@ namespace wns { namespace queuingsystem {
         public IOutputStreamable,
         public wns::simulator::ISimulationModel
     {
-        typedef wns::rng::VariateGenerator< boost::exponential_distribution<> > Exponential;
     public:
         explicit
         SimpleMM1Step2(const wns::pyconfig::View& configuration);
@@ -74,9 +74,9 @@ namespace wns { namespace queuingsystem {
         virtual std::string
         doToString() const;
 
-        Exponential jobInterarrivalTime_;
+        wns::distribution::Distribution* jobInterarrivalTime_;
 
-        Exponential jobProcessingTime_;
+        wns::distribution::Distribution* jobProcessingTime_;
 
         std::list<Job> queue_;
 
@@ -91,11 +91,11 @@ namespace wns { namespace queuingsystem {
 /**
  * @page wns.queuingsystem.mm1step2 Calculating sojurn time
  *
- * @section contents Contents
+ * @section wns.queuingsystem.mm1step2.contents Contents
  *   -# @ref queue
  *   -# @ref statefuljobs
  *
- * @section queue Implementing the Queue
+ * @section wns.queuingsystem.mm1step2.queue Implementing the Queue
  * A Queue can be filled with jobs. For the time beeing it is only important
  * that a job can be created, stored in a queue, and processed, which means that
  * it leaves the queuing system. The Job class is used in order to create new
@@ -117,7 +117,7 @@ namespace wns { namespace queuingsystem {
  * @include "wns.queuingsystem.Job.hpp.example"
  * @include "wns.queuingsystem.mm1step2.generateNewJob.example"
  *
- * @section statefuljobs Stateful Jobs
+ * @section wns.queuingsystem.mm1step2.statefuljobs Stateful Jobs
  *
  * Now we want to create some statistic for our queuing system, e.g. we want
  * to compute the sojourn time of a job. Therefore the job has to remember its

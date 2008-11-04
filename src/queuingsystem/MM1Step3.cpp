@@ -36,16 +36,23 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 
 SimpleMM1Step3::SimpleMM1Step3(const wns::pyconfig::View& config) :
-    jobInterarrivalTime_(wns::simulator::getRNG(),
-                         Exponential::distribution_type(
-                             1.0/config.get<wns::simulator::Time>("meanJobInterArrivalTime"))),
-    jobProcessingTime_(wns::simulator::getRNG(),
-                       Exponential::distribution_type(
-                           1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),
     config_(config),
     logger_(config.get("logger")),
-    probeBus_()
+    // For now we use an expty Context Collector Collection
+    cpc_(),
+    // The name of the measurement source. Must match the one configured
+    // in the global Probe Bus Registry
+    sojournTime_(cpc_, "SojournTime")
 {
+    wns::pyconfig::View disConfig = config.get("jobInterArrivalTimeDistribution");
+    std::string disName = disConfig.get<std::string>("__plugin__");
+    jobInterarrivalTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
+
+    disConfig = config.get("jobProcessingTimeDistribution");
+    disName = disConfig.get<std::string>("__plugin__");
+    jobProcessingTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
 }
 
 // begin example "wns.queuingsystem.mm1step3.doStartup.example"
@@ -54,28 +61,6 @@ SimpleMM1Step3::doStartup()
 {
     MESSAGE_SINGLE(NORMAL, logger_, "MM1Step3 started, generating first job\n" << *this);
 
-    // We create an instance of a ProbeBus object here. Which implementation is
-    // is used may be specified at configuration time. We do not know and do not
-    // want to know the specific type here.
-
-    // Get the ProbeBus configuration
-    wns::pyconfig::View probeBusConfig = config_.get("probeBus");
-    // This determines which type of instance will be created by the
-    // StaticFactory
-    std::string nameInFactory = probeBusConfig.get<std::string>("nameInFactory");
-
-    // Get the corresponding Creator, which knows how to create objects of
-    // the type referenced by nameInFactory
-    wns::probe::bus::ProbeBusCreator* c =
-        wns::probe::bus::ProbeBusFactory::creator(nameInFactory);
-
-    // Create the corresponding ProbeBus and leave memory management to the
-    // boost::shared_ptr.
-    probeBus_ = boost::shared_ptr<wns::probe::bus::ProbeBus>(c->create(probeBusConfig));
-
-    // We need that probe bus!!
-    assure(probeBus_ != NULL, "ProbeBus could not be created");
-
     generateNewJob();
 }
 // end example
@@ -83,8 +68,6 @@ SimpleMM1Step3::doStartup()
 void
 SimpleMM1Step3::doShutdown()
 {
-    assure(probeBus_ != NULL, "No ProbeBus");
-    probeBus_->forwardOutput();
 }
 
 void
@@ -95,7 +78,7 @@ SimpleMM1Step3::generateNewJob()
 
     queue_.push_back(job);
 
-    wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
+    wns::simulator::Time delayToNextJob = (*jobInterarrivalTime_)();
 
     MESSAGE_SINGLE(NORMAL, logger_, "Generated new job, next job in " << delayToNextJob << "s\n" << *this);
 
@@ -131,14 +114,8 @@ SimpleMM1Step3::onJobProcessed()
     m << sojournTime;
     MESSAGE_END();
 
-    // Send the measurement to the probeBus
-    // We will soon learn what the context of a measurement is. For
-    // now, we just create an empty Context object
-    wns::probe::bus::Context emptyContext;
-
-    // Forward the measurement onto the probeBus_
-    assure(probeBus_ != NULL, "No ProbeBus");
-    probeBus_->forwardMeasurement(now, sojournTime, emptyContext);
+    // Forward the measurement to the Probe Bus
+    sojournTime_.put(sojournTime);
 
     // if there are still jobs, serve them
     if (!queue_.empty())
@@ -150,7 +127,7 @@ SimpleMM1Step3::onJobProcessed()
 void
 SimpleMM1Step3::processNextJob()
 {
-    wns::simulator::Time processingTime = jobProcessingTime_();
+    wns::simulator::Time processingTime = (*jobProcessingTime_)();
 
     wns::simulator::getEventScheduler()->scheduleDelay(
         boost::bind(&SimpleMM1Step3::onJobProcessed, this),

@@ -25,38 +25,59 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_TESTS_AVERAGE_HPP
-#define WNS_TESTS_AVERAGE_HPP
+#ifndef WNS_STATUSREPORT_HPP
+#define WNS_STATUSREPORT_HPP
 
-// begin example "wns.avaragetest.header.example"
-#include <WNS/Average.hpp>
-#include <WNS/TestFixture.hpp>
+#include <WNS/events/PeriodicRealTimeout.hpp>
+#include <WNS/pyconfig/View.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
 
-namespace wns { namespace tests {
-	class AverageTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( AverageTest );
-		CPPUNIT_TEST( testPutAndGet );
-		CPPUNIT_TEST( testReset );
-		CPPUNIT_TEST_SUITE_END();
+#include <ctime>
+#include <string>
+
+namespace wns { namespace simulator {
+
+	class StatusReport :
+		public wns::events::PeriodicRealTimeout
+	{
 	public:
-		void setUp();
-		void tearDown();
-		void testPutAndGet();
-		void testReset();
-	private:
-		Average<double> average;
-	};
-}}
-// end example
-#endif // WNS_TESTS_AVERAGE_HPP
+		class WriteError :
+			public wns::Exception
+		{
+		public:
+			WriteError(const std::string& fileName) :
+				wns::Exception("Couldn't write to file: " + fileName)
+			{
+			}
+		};
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+		StatusReport();
+
+		void
+		start(const pyconfig::View& _pyConfigView);
+
+		void
+		stop();
+
+		void
+		periodically();
+
+		void
+		writeStatus(bool anEndOfSimFlag, std::string otherFileName = "");
+
+	private:
+		double maxSimTime;
+		time_t startTime;
+		std::string outputDir;
+		std::string statusFileName;
+		std::string progressFileName;
+
+        wns::probe::bus::ContextCollectorPtr memoryConsumption;
+
+        void
+        probe();
+	};
+} // simulator
+} // wns
+
+#endif // WNS_STATUSREPORT_HPP

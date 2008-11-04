@@ -25,38 +25,49 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_TESTS_AVERAGE_HPP
-#define WNS_TESTS_AVERAGE_HPP
+#ifndef WNSCORE_OUTPUTPREPARATION_HPP
+#define WNSCORE_OUTPUTPREPARATION_HPP
 
-// begin example "wns.avaragetest.header.example"
-#include <WNS/Average.hpp>
-#include <WNS/TestFixture.hpp>
+#include <WNS/StaticFactory.hpp>
 
-namespace wns { namespace tests {
-	class AverageTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( AverageTest );
-		CPPUNIT_TEST( testPutAndGet );
-		CPPUNIT_TEST( testReset );
-		CPPUNIT_TEST_SUITE_END();
+#include <string>
+
+namespace wns { namespace simulator {
+
+	class OutputPreparationStrategy
+	{
 	public:
-		void setUp();
-		void tearDown();
-		void testPutAndGet();
-		void testReset();
-	private:
-		Average<double> average;
-	};
-}}
-// end example
-#endif // WNS_TESTS_AVERAGE_HPP
+		virtual
+		~OutputPreparationStrategy()
+		{}
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+		virtual void
+		prepare(const std::string& path) = 0;
+	};
+
+	typedef wns::Creator<OutputPreparationStrategy> OutputPreparationStrategyCreator;
+	typedef wns::StaticFactory<OutputPreparationStrategyCreator> OutputPreparationStrategyFactory;
+
+	class Move :
+		public OutputPreparationStrategy
+	{
+	public:
+		virtual void
+		prepare(const std::string& path);
+	};
+
+	class Delete :
+		public OutputPreparationStrategy
+	{
+	public:
+		virtual void
+		prepare(const std::string& path);
+	};
+
+} // simulator
+} // wns
+
+#endif // NOT defined WNSCORE_OUTPUTPREPARATION_HPP
+
+
+

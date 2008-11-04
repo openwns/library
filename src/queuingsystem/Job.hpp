@@ -30,13 +30,17 @@
 #define WNS_QUEUINGSYSTEM_JOB_HPP
 
 #include <WNS/simulator/Time.hpp>
+#include <WNS/osi/PDU.hpp>
+#include <WNS/osi/PCI.hpp>
+#include <WNS/SmartPtr.hpp>
 
 namespace wns { namespace queuingsystem {
 
 	// Jobs are the tasks that a queuingsystem has to process. In this model a
 	// job can belong to two different job classes, jobs with low or high
 	// priority. A job knows its priority and the moment of its birth.
-    class Job
+    class Job :
+        public wns::osi::PDU
     {
     public:
 
@@ -63,6 +67,7 @@ namespace wns { namespace queuingsystem {
         // The assigned priority of the job
         Priority priority_;
     };
+    typedef wns::SmartPtr<Job> JobPtr;
 } // queuingsystem
 } // wns
 

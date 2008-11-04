@@ -33,192 +33,192 @@
 
 namespace wns { namespace probe { namespace bus { namespace detail {
 
-	/**
+    /**
 	 * @brief Creator implementation to be used with StaticFactory.
 	 */
-	template <typename T, typename KIND = T>
-	struct StatEvalTableCreator :
-		public StatEvalTableCreator<KIND, KIND>
-	{
-		virtual KIND*
-		create(const StatEvalTable& data)
-		{
-			return new T(data);
-		}
+    template <typename T, typename KIND = T>
+    struct StatEvalTableCreator :
+        public StatEvalTableCreator<KIND, KIND>
+    {
+        virtual KIND*
+        create(const StatEvalTable& data)
+            {
+                return new T(data);
+            }
 
-		virtual ~StatEvalTableCreator()
-		{};
-	};
+        virtual ~StatEvalTableCreator()
+            {};
+    };
 
-	template <typename KIND>
-	struct StatEvalTableCreator<KIND, KIND>
-	{
-	public:
-		virtual KIND*
-		create(const StatEvalTable& data) = 0;
+    template <typename KIND>
+    struct StatEvalTableCreator<KIND, KIND>
+    {
+    public:
+        virtual KIND*
+        create(const StatEvalTable& data) = 0;
 
-		virtual ~StatEvalTableCreator()
-		{};
-	};
+        virtual ~StatEvalTableCreator()
+            {};
+    };
 
-	/**
+    /**
 	 * @brief abstract Base class for all output formatters
 	 *
 	 * through an appropriate implementation of the abstract method "print" you
 	 * can define how the output of a StatEvalTable shall look like.
 	 */
-	class OutputFormatter
-	{
-		/**
-		 * @brief Implement this do control the formatting.
+    class OutputFormatter
+    {
+        /**
+		 * @brief Implement this to control the formatting.
 		 *
 		 * This method is meant to recursively walk over the tree structure of the DynamicMatrix
 		 */
-		virtual
-		void doPrint(std::ostream& strm,
-					 std::list<int> fixedIndices,
-					 int dim,
-					 std::string valueType) const = 0;
-	protected:
-		/** @brief Reference to the table containing the data */
-		const StatEvalTable& data;
+        virtual
+        void doPrint(std::ostream& strm,
+                     std::list<int> fixedIndices,
+                     int dim,
+                     std::string valueType) const = 0;
+    protected:
+        /** @brief Reference to the table containing the data */
+        const StatEvalTable& data;
 
-		/**
+        /**
 		 * @brief provides deriving classes access to the sorter objects of the
 		 * StatEvalTable, which is needed for walking the tree and for formatting
 		 */
-		const std::vector<Sorter>&
-		sorters() const
-		{
-				return data.sorters;
-		}
-	public:
-		/**
+        const std::vector<Sorter>&
+        sorters() const
+            {
+                return data.sorters;
+            }
+    public:
+        /**
 		 * @brief Constructor, has to be initialized with the data the
 		 * Formatter should work upon
 		 */
-		OutputFormatter(const StatEvalTable& table) :
-			data(table)
-			{}
+        OutputFormatter(const StatEvalTable& table) :
+            data(table)
+            {}
 
-		virtual
-		~OutputFormatter(){}
+        virtual
+        ~OutputFormatter(){}
 
-		/**
+        /**
 		 * @brief invokes printing the formatted output into the given stream object
 		 */
-		virtual void
-		print(std::ostream& strm, std::string valueType) const;
+        virtual void
+        print(std::ostream& strm, std::string valueType) const;
 
-		/**
+        /**
 		 * @brief returns the comment prefix, empty by default
 		 */
-		virtual std::string
-		getPrefix() const { return ""; }
+        virtual std::string
+        getPrefix() const { return ""; }
 
-		/**
+        /**
 		 * @brief returns the filename suffix, empty by default
 		 */
-		virtual std::string
-		getFilenameSuffix() const { return ""; }
-	};
+        virtual std::string
+        getFilenameSuffix() const { return ""; }
+    };
 
-	/** @brief Formatter Implementation that produces human-readable tabular output */
-	class HumanReadable :
-		public OutputFormatter
-	{
-		virtual
-		void doPrint(std::ostream& strm,
-					 std::list<int> fixedIndices,
-					 int dim,
-					 std::string valueType) const;
+    /** @brief Formatter Implementation that produces human-readable tabular output */
+    class HumanReadable :
+        public OutputFormatter
+    {
+        virtual
+        void doPrint(std::ostream& strm,
+                     std::list<int> fixedIndices,
+                     int dim,
+                     std::string valueType) const;
 
-	public:
-		HumanReadable(const StatEvalTable& table) :
-			OutputFormatter(table)
-			{}
+    public:
+        HumanReadable(const StatEvalTable& table) :
+            OutputFormatter(table)
+            {}
 
-		virtual
-		~HumanReadable(){}
-	};
+        virtual
+        ~HumanReadable(){}
+    };
 
-	/** @brief Formatter Implementation that produces Python-parseable output */
-	class PythonReadable :
-		public OutputFormatter
-	{
-		virtual
-		void doPrint(std::ostream& strm,
-					 std::list<int> fixedIndices,
-					 int dim,
-					 std::string valueType) const;
+    /** @brief Formatter Implementation that produces Python-parseable output */
+    class PythonReadable :
+        public OutputFormatter
+    {
+        virtual
+        void doPrint(std::ostream& strm,
+                     std::list<int> fixedIndices,
+                     int dim,
+                     std::string valueType) const;
 
-	public:
-		PythonReadable(const StatEvalTable& table) :
-			OutputFormatter(table)
-			{}
+    public:
+        PythonReadable(const StatEvalTable& table) :
+            OutputFormatter(table)
+            {}
 
-		virtual
-		~PythonReadable(){}
+        virtual
+        ~PythonReadable(){}
 
-		virtual void
-		print(std::ostream& strm, std::string valueType) const;
+        virtual void
+        print(std::ostream& strm, std::string valueType) const;
 
-		virtual std::string
-		getPrefix() const { return "# "; };
+        virtual std::string
+        getPrefix() const { return "# "; };
 
-		virtual std::string
-		getFilenameSuffix() const { return ".py"; }
-	};
+        virtual std::string
+        getFilenameSuffix() const { return ".py"; }
+    };
 
-	/** @brief Formatter Implementation that produces Matlab-parseable output */
-	class MatlabReadable :
-		public OutputFormatter
-	{
-		virtual
-		void doPrint(std::ostream& strm,
-					 std::list<int> fixedIndices,
-					 int dim,
-					 std::string valueType) const;
+    /** @brief Formatter Implementation that produces Matlab-parseable output */
+    class MatlabReadable :
+        public OutputFormatter
+    {
+        virtual
+        void doPrint(std::ostream& strm,
+                     std::list<int> fixedIndices,
+                     int dim,
+                     std::string valueType) const;
 
-	public:
-		MatlabReadable(const StatEvalTable& table) :
-			OutputFormatter(table)
-			{}
+    public:
+        MatlabReadable(const StatEvalTable& table) :
+            OutputFormatter(table)
+            {}
 
-		virtual
-		~MatlabReadable(){}
+        virtual
+        ~MatlabReadable(){}
 
-		virtual void
-		print(std::ostream& strm, std::string valueType) const;
+        virtual void
+        print(std::ostream& strm, std::string valueType) const;
 
-		virtual std::string
-		getPrefix() const { return "% "; };
+        virtual std::string
+        getPrefix() const { return "% "; };
 
-		virtual std::string
-		getFilenameSuffix() const { return ".m"; }
-	};
+        virtual std::string
+        getFilenameSuffix() const { return ".m"; }
+    };
 
-	/** @brief Formatter Implementation that produces Matlab-parseable output */
-	class MatlabReadableSparse :
-		public MatlabReadable
-	{
-		virtual
-		void doPrint(std::ostream& strm,
-					 std::list<int> fixedIndices,
-					 int dim,
-					 std::string valueType) const;
+    /** @brief Formatter Implementation that produces Matlab-parseable output */
+    class MatlabReadableSparse :
+        public MatlabReadable
+    {
+        virtual
+        void doPrint(std::ostream& strm,
+                     std::list<int> fixedIndices,
+                     int dim,
+                     std::string valueType) const;
 
-	public:
-		MatlabReadableSparse(const StatEvalTable& table) :
-			MatlabReadable(table)
-			{}
+    public:
+        MatlabReadableSparse(const StatEvalTable& table) :
+            MatlabReadable(table)
+            {}
 
-		virtual
-		~MatlabReadableSparse(){}
-	};
+        virtual
+        ~MatlabReadableSparse(){}
+    };
 
-	typedef StatEvalTableCreator<OutputFormatter, OutputFormatter> FormatterCreator;
-	typedef StaticFactory<FormatterCreator> FormatterFactory;
+    typedef StatEvalTableCreator<OutputFormatter, OutputFormatter> FormatterCreator;
+    typedef StaticFactory<FormatterCreator> FormatterFactory;
 
 }}}}
 

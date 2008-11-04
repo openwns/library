@@ -30,9 +30,12 @@
 #include <WNS/simulator/ISimulator.hpp>
 #include <WNS/events/scheduler/Interface.hpp>
 
+#include <WNS/osi/PCI.hpp>
+
 using namespace wns::queuingsystem;
 
-Job::Job(Priority priority)
+Job::Job(Priority priority) :
+    wns::osi::PDU(new wns::osi::PCI)
 {
     timeCreated_ = wns::simulator::getEventScheduler()->getTime();
     priority_ = priority;

@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <Python.h>
+#include <WNS/Python.hpp>
 #include <WNS/probe/bus/PythonProbeBus.hpp>
 
 #include <sstream>

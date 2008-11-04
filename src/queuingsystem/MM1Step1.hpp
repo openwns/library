@@ -35,6 +35,7 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
+#include <WNS/distribution/Distribution.hpp>
 
 #include <boost/bind.hpp>
 
@@ -61,11 +62,6 @@ namespace wns { namespace queuingsystem {
         public IOutputStreamable,
         public wns::simulator::ISimulationModel
     {
-        // Both inter arrival time and processing duration will be
-        // exponentially distributed.
-		// This defines the type of the required random number generator:
-        typedef wns::rng::VariateGenerator< boost::exponential_distribution<> > Exponential;
-		// ^ there are two objects of this type declared as member in the private section
     public:
         // All simulation models must be constructible from a
         // wns::pyconfig::View.
@@ -116,16 +112,15 @@ namespace wns { namespace queuingsystem {
         void
         processNextJob();
 
-        // A random number generator object that creates exponentially
-        // distributed random numbers.
+        // A random number generator object pointer. 
 		/**
 		 * @brief You can also document member variables like this
 		 */
-        Exponential jobInterarrivalTime_;
+        wns::distribution::Distribution* jobInterarrivalTime_;
 
         // A random number generator object that creates exponentially
         // distributed random numbers.
-        Exponential jobProcessingTime_;
+        wns::distribution::Distribution* jobProcessingTime_;
 
         // Counter for the number of jobs in our system
         int jobsInSystem_;

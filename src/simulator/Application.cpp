@@ -36,9 +36,10 @@
 #include <WNS/events/scheduler/Interface.hpp>
 #include <WNS/simulator/Simulator.hpp>
 #include <WNS/simulator/UnitTests.hpp>
+#include <WNS/simulator/OutputPreparation.hpp>
 #include <WNS/events/MemberFunction.hpp>
 
-#include <WNS/module/CurrentVersion.hpp>
+//#include <WNS/module/CurrentVersion.hpp>
 #include <WNS/module/Base.hpp>
 
 #include <WNS/simulator/AbortHandler.hpp>
@@ -91,7 +92,9 @@ Application::Application() :
 	listLoadedModules_(false),
 	loadedModules_(),
 	lazyBinding_(false),
-	absolutePath_(false)
+	absolutePath_(false),
+    statusReport(),
+    probeWriter()
 {
     options_.add_options()
 
@@ -283,11 +286,34 @@ Application::doInit()
 	}
 
 	loadModules();
+
+    // prepare probes output directory according to the configured strategy
+
+    pyconfig::View outputStrategyView = wnsView.getView("outputStrategy");
+
+    std::auto_ptr<OutputPreparationStrategy> outputPreparationStrategy(
+        OutputPreparationStrategyFactory::creator(
+            outputStrategyView.get<std::string>("__plugin__"))->create());
+
+    outputPreparationStrategy->prepare(wnsView.get<std::string>("outputDir"));
+
+    // if we're not in testing mode, we need some special preparation ...
+    if (!testing_)
+    {
+        writeFingerprint();
+        MESSAGE_SINGLE(NORMAL, logger_, "Start StatusReport");
+        this->statusReport.start(configuration_.getView("WNS"));
+        this->statusReport.writeStatus(false);
+
+    }
+
 }
 
 void
 Application::doRun()
 {
+
+
 	// StartUp:
 	std::list<module::Base*>::iterator itr;
 	std::list<module::Base*>::iterator itrEnd = loadedModules_.end();
@@ -364,6 +390,15 @@ Application::doRun()
 			SIGXCPU,
 			wns::simulator::CPUTimeExhaustedHandler(wns::simulator::getEventScheduler(), SIGXCPU));
 
+        double period =
+            this->getWNSView().get<double>("probesWriteInterval");
+
+        if(period != 0.0)
+        {
+            MESSAGE_SINGLE(NORMAL, logger_, "Starting periodic writing of probes every " << period << "s");
+            this->probeWriter.startPeriodicTimeout(period, period);
+        }
+
         // create and configure simulation model
         if (!getWNSView().isNone("simulationModel"))
         {
@@ -391,22 +426,23 @@ Application::doRun()
         {
 	    wns::simulator::getEventScheduler()->stopAt(maxSimTime);
         }
+    
+        this->statusReport.writeStatus(false, "WNSStatusBeforeEventSchedulerStart.dat");
 
-
-	MESSAGE_SINGLE(NORMAL, logger_, "Start Scheduler");
+	    MESSAGE_SINGLE(NORMAL, logger_, "Start Scheduler");
 #ifdef CALLGRIND
-	// If we run in flavour callgrind we are only interested in collecting
-	// profiling traces of the main event loop. So we start instrumentalization
-	// here. Startup and shutdown are of no interest to us.
-	CALLGRIND_START_INSTRUMENTATION;
+// If we run in flavour callgrind we are only interested in collecting
+// profiling traces of the main event loop. So we start instrumentalization
+// here. Startup and shutdown are of no interest to us.
+CALLGRIND_START_INSTRUMENTATION;
 #endif
 
-	wns::simulator::getEventScheduler()->start();
+    	wns::simulator::getEventScheduler()->start();
 
 
 #ifdef CALLGRIND
-	// Stop tracing profiling information
-	CALLGRIND_STOP_INSTRUMENTATION;
+// Stop tracing profiling information
+CALLGRIND_STOP_INSTRUMENTATION;
 #endif
 
         // shutdown the simulation if it has been created before
@@ -426,6 +462,11 @@ Application::doRun()
 void
 Application::doShutdown()
 {
+    if (!testing_)
+    {
+        stopProbes();
+    }
+
     // delete ProbeBusRegisty (auto_ptr)
     probeBusRegistry.reset();
 
@@ -538,15 +579,15 @@ Application::disableX87ExtendedFloatingPointPrecision()
 void
 Application::loadModules()
 {
-	std::list<wns::module::VersionInformation> moduleVersions;
+	//std::list<wns::module::VersionInformation> moduleVersions;
 
 	if(verbose_)
 	{
-		std::cout << wns::module::CurrentVersion.getNiceString() << std::endl;
+		//std::cout << wns::module::CurrentVersion.getNiceString() << std::endl;
 		std::cout << "Loading..." << std::endl;
 	}
 
-	moduleVersions.push_back(wns::module::CurrentVersion);
+	//moduleVersions.push_back(wns::module::CurrentVersion);
 
 	if (!moduleViews_.empty())
 	{
@@ -605,11 +646,11 @@ Application::loadModules()
 			wns::module::Creator* moduleCreator = wns::module::Factory::creator(moduleName);
 			wns::module::Base* m = moduleCreator->create(*itr);
 			loadedModules_.push_back(m);
-			wns::module::VersionInformation v = m->getVersionInformation();
-			moduleVersions.push_back(v);
+			//wns::module::VersionInformation v = m->getVersionInformation();
+			//moduleVersions.push_back(v);
 			if(verbose_)
 			{
-				std::cout << v.getNiceString() << std::endl;
+				//std::cout << v.getNiceString() << std::endl;
 				std::cout << std::endl;
 			}
 			moduleViewsTmp.erase(itr);
@@ -637,41 +678,39 @@ Application::loadModules()
 			}
 		}
 
-		try
-		{
-			checkModuleDependencies(moduleVersions);
-		}
-		catch(const ModuleDependencyMismatchException& exception)
-		{
-			if(!testing_)
-			{
-				// throw on, not handled
-				throw;
-			}
-			else
-			{
-				// Just print a warning
-				std::cerr << "WARNING: module dependencies in testing mode ignored!\n"
-					  << exception;
-			}
-		}
 	}
 }
 
 void
-Application::checkModuleDependencies(std::list<wns::module::VersionInformation> moduleVersions)
+Application::stopProbes()
 {
-	std::list<wns::module::VersionInformation>::iterator itrMV;
-	std::list<wns::module::VersionInformation>::iterator itrMVEnd = moduleVersions.end();
+    probeWriter.cancelPeriodicRealTimeout();
 
-	for (itrMV = moduleVersions.begin(); itrMV!=itrMVEnd; ++itrMV)
-	{
-		if (!(*itrMV).getDependencies().dependenciesMetBy(moduleVersions.begin(),
-								  moduleVersions.end()))
-		{
-			ModuleDependencyMismatchException exception;
-			exception << (*itrMV).getNiceString();
-			throw exception;
-		}
-	}
+    MESSAGE_BEGIN(NORMAL, logger_, m, "Writing Probes");
+    MESSAGE_END();
+
+        try {
+                statusReport.writeStatus(true);
+        }
+        catch(...) {
+                std::cerr << "couldn't write status file.\n";
+        }
+    statusReport.stop();
+
+    // Trigger output for ProbeBusses
+    wns::simulator::getProbeBusRegistry()->forwardOutput();
 }
+
+
+
+void Application::writeFingerprint()
+{
+    std::string fingerprintName = getWNSView().get<std::string>("outputDir") + "/WNSFingerprint.dat";
+    std::ofstream fingerprint(fingerprintName.c_str());
+    if(!fingerprint.good())
+        throw wns::Exception("Couldn't create fingerprint file.");
+
+    fingerprint << "Version information not supported any more" << std::endl;
+    fingerprint.close();
+}
+

@@ -25,36 +25,30 @@
  *
  ******************************************************************************/
 
-/**
- * @page wns.queuingsystem.mm1step4 Obtaining Results
- * @ref group_wns_queuingsystem_tutorial
- * @section embeddingEvaluation How to embed evaluation in your configuration
- *
- *
- * @code
- * class StatisticsProbeBus(openwns.probebus.ProbeBus):
- *
- *   nameInFactory = "PythonProbeBus"
- *
- *   def __init__(self, outputFilename):
- *       openwns.probebus.ProbeBus.__init__(self)
- *       self.reportErrors = True
- *       self.outputFilename = outputFilename
- *       self.sum = 0.0
- *       self.trials = 0
- *
- *   def accepts(self, time, context):
- *       return True
- *
- *   def onMeasurement(self, time, measurement, context):
- *       self.sum += measurement
- *       self.trials += 1
- *
- *   def output(self):
- *       f = open(self.outputFilename, "w")
- *       f.write("Number of trials: %s\n" % str(self.trials))
- *       f.write("Mean value : %s\n" % str(self.sum/self.trials))
- *       f.close()
- * @endcode
- */
+#ifndef WNS_QUEUINGSYSTEM_JOBCONTEXT_PROVIDER_HPP
+#define WNS_QUEUINGSYSTEM_JOBCONTEXT_PROVIDER_HPP
 
+#include <WNS/queuingsystem/Job.hpp>
+#include <WNS/probe/bus/CompoundContextProvider.hpp>
+
+namespace wns { namespace queuingsystem {
+
+    // This Context Provider is called when a Context Collector
+    // calls put() with a value AND a Job as arguments.
+    // The Job Context Provider will extract the priority
+    // from the Job and save the Context under the key 'priority'.
+	class JobContextProvider :
+        public wns::probe::bus::PDUContextProvider<Job>
+    {
+    public:
+
+        JobContextProvider(){};
+        
+    private:
+        void
+        doVisit(wns::probe::bus::IContext& c, const JobPtr& job) const;
+    };
+} // queuingsystem
+} // wns
+
+#endif // WNS_QUEUINGSYSTEM_JOBCONTEXT_PROVIDER_HPP

@@ -26,8 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/queuingsystem/MM1Step5.hpp>
-
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
+#include <WNS/probe/bus/ContextProvider.hpp>
 
 using namespace wns::queuingsystem;
 
@@ -38,32 +37,38 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     wns::PyConfigViewCreator);
 
 SimpleMM1Step5::SimpleMM1Step5(const wns::pyconfig::View& config) :
-    jobInterarrivalTime_(wns::simulator::getRNG(),
-                         Exponential::distribution_type(
-                             1.0/config.get<wns::simulator::Time>("meanJobInterArrivalTime"))),
-    jobProcessingTime_(wns::simulator::getRNG(),
-                       Exponential::distribution_type(
-                           1.0/config.get<wns::simulator::Time>("meanJobProcessingTime"))),
+    priorityDistribution_(Job::lowPriority, Job::highPriority),
     config_(config),
     logger_(config.get("logger")),
-    probeBus_(NULL)
+    idle(true),
+    // Below we will put one Context Provider in the collection
+    cpc_(new wns::probe::bus::ContextProviderCollection()),
+    // The name of the measurement source. Must match the one configured
+    // in the global Probe Bus Registry
+    sojournTime_(cpc_, "SojournTime")
 {
+    wns::pyconfig::View disConfig = config.get("jobInterArrivalTimeDistribution");
+    std::string disName = disConfig.get<std::string>("__plugin__");
+    jobInterarrivalTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
+
+    disConfig = config.get("jobProcessingTimeDistribution");
+    disName = disConfig.get<std::string>("__plugin__");
+    jobProcessingTime_ = 
+        wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
+
+    // Callback Context Provider will call the given function to fill
+    // in Context information
+    cpc_->addProvider(wns::probe::bus::contextprovider::Callback(
+            "priority",
+            boost::bind(&SimpleMM1Step5::getCurrentJobPriority, this)));
 }
 
-// begin example "wns.queuingsystem.mm1step5.doStartup.example" 
+// begin example "wns.queuingsystem.mm1step6.doStartup.example" 
 void
 SimpleMM1Step5::doStartup()
 {
-    MESSAGE_SINGLE(NORMAL, logger_, "MM1Step5 started, generating first job\n" << *this);
-
-    std::string probeBusName = config_.get<std::string>("probeBusName");
-
-    wns::probe::bus::ProbeBusRegistry* reg = wns::simulator::getProbeBusRegistry();
-
-    probeBus_ = reg->getMeasurementSource(probeBusName);
-
-    // We need that probe bus!!
-    assure(probeBus_ != NULL, "ProbeBus could not be created");
+    MESSAGE_SINGLE(NORMAL, logger_, "MM1Step6 started, generating first job\n" << *this);
 
     generateNewJob();
 }
@@ -72,25 +77,31 @@ SimpleMM1Step5::doStartup()
 void
 SimpleMM1Step5::doShutdown()
 {
-    assure(probeBus_ != NULL, "No ProbeBus");
-    probeBus_->forwardOutput();
+    assure(cpc_, "No Context Provider Collection");
+    delete cpc_;
 }
 
 void
 SimpleMM1Step5::generateNewJob()
 {
     // Create a new job
-    Job job = Job();
+    Job job = Job(drawJobPriority());
 
-    queue_.push_back(job);
+    if (job.getPriority() == Job::lowPriority)
+    {
+        lowPriorityQueue_.push_back(job);
+    }
+    else
+    {
+        highPriorityQueue_.push_back(job);
+    }
 
-    wns::simulator::Time delayToNextJob = jobInterarrivalTime_();
+
+    wns::simulator::Time delayToNextJob = (*jobInterarrivalTime_)();
 
     MESSAGE_SINGLE(NORMAL, logger_, "Generated new job, next job in " << delayToNextJob << "s\n" << *this);
 
-    // The job is the only job in the system. There is no job that is currently
-    // being served -> the server is free and can process the next job
-    if (queue_.size() == 1)
+    if (idle)
     {
         processNextJob();
     }
@@ -98,21 +109,16 @@ SimpleMM1Step5::generateNewJob()
     wns::simulator::getEventScheduler()->scheduleDelay(
         boost::bind(&SimpleMM1Step5::generateNewJob, this),
         delayToNextJob);
-
 }
 
 void
 SimpleMM1Step5::onJobProcessed()
 {
-    Job finished = queue_.front();
-
-    queue_.pop_front();
-
     // Calculate the Jobs sojourn time
     wns::simulator::Time  now;
     wns::simulator::Time  sojournTime;
     now = wns::simulator::getEventScheduler()->getTime();
-    sojournTime = now - finished.getCreationTime();
+    sojournTime = now - currentJob_.getCreationTime();
 
     // Give some debug output
     MESSAGE_SINGLE(NORMAL, logger_, "Finished a job\n" << *this);
@@ -120,37 +126,91 @@ SimpleMM1Step5::onJobProcessed()
     m << sojournTime;
     MESSAGE_END();
 
-    // Send the measurement to the probeBus
-    // We will soon learn what the context of a measurement is. For
-    // now, we just create an empty Context object
-    wns::probe::bus::Context emptyContext;
-
-    // Forward the measurement onto the probeBus_
-    assure(probeBus_ != NULL, "No ProbeBus");
-    probeBus_->forwardMeasurement(now, sojournTime, emptyContext);
+    // Probe the value. The Context Provider will automatically
+    // attach information about the priority of the job.
+    sojournTime_.put(sojournTime);
 
     // if there are still jobs, serve them
-    if (!queue_.empty())
+    if ( getNumberOfJobs() > 0 )
     {
         processNextJob();
+    }
+    else
+    {
+        idle = true;
     }
 }
 
 void
 SimpleMM1Step5::processNextJob()
 {
-    wns::simulator::Time processingTime = jobProcessingTime_();
+    currentJob_ = getNextJob();
+
+    wns::simulator::Time processingTime = (*jobProcessingTime_)();
 
     wns::simulator::getEventScheduler()->scheduleDelay(
         boost::bind(&SimpleMM1Step5::onJobProcessed, this),
         processingTime);
+
+    idle = false;
+
     MESSAGE_SINGLE(NORMAL, logger_, "Processing next job, processing time: " << processingTime << "s\n" << *this);
+}
+
+int
+SimpleMM1Step5::getNumberOfJobs() const
+{
+    return lowPriorityQueue_.size() + highPriorityQueue_.size();
+}
+
+Job
+SimpleMM1Step5::getNextJob()
+{
+    Job nextJob;
+
+    if (highPriorityQueue_.size() > 0)
+    {
+        nextJob = highPriorityQueue_.front();
+
+        highPriorityQueue_.pop_front();
+    }
+    else if(lowPriorityQueue_.size() > 0)
+    {
+        nextJob = lowPriorityQueue_.front();
+
+        lowPriorityQueue_.pop_front();
+    }
+    else
+    {
+        throw wns::Exception("getNextJob called but now Job queued. You must check for available jobs before calling getNextJob!");
+    }
+
+    return nextJob;
 }
 
 std::string
 SimpleMM1Step5::doToString() const
 {
     std::stringstream ss;
-    ss << "Jobs in system: " << queue_.size();
+    ss << "Jobs in system: " << getNumberOfJobs();
     return ss.str();
+}
+
+Job::Priority
+SimpleMM1Step5::drawJobPriority()
+{
+    if (priorityDistribution_() == static_cast<int>(Job::lowPriority))
+    {
+        return Job::lowPriority;
+    }
+    else
+    {
+        return Job::highPriority;
+    }
+}
+
+int
+SimpleMM1Step5::getCurrentJobPriority() const
+{
+    return currentJob_.getPriority();
 }

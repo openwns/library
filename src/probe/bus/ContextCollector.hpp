@@ -86,10 +86,10 @@ namespace wns { namespace probe { namespace bus {
 }}}
 
 /**
- * @page wns.probe.bus.probing openWNS Probing Subsystem
+ * @page wns_probe_bus_probing openWNS Probing Subsystem
  *
  * @section subpages Subpages
- * @subpage wns.probe.bus.contextcollector
+ * @subpage wns_probe_bus_contextcollector
  *
  * @section intro Introduction
  *
@@ -140,7 +140,7 @@ namespace wns { namespace probe { namespace bus {
  * ContextCollectors @endlink forward their measurements and context into
  * the same @link wns::probe::bus::ProbeBus ProbeBus@endlink.
  *
- * See @ref wns.probe.bus.contextcollector for more information on the
+ * See @ref wns_probe_bus_contextcollector for more information on the
  * @link wns::probe::bus::ContextCollector ContextCollector@endlink
  *
  * @section processing Processing of Measurements
@@ -167,9 +167,9 @@ namespace wns { namespace probe { namespace bus {
  * generic @link wns::probe::bus::IContext context@endlink information concept
  * allow for the quick prototyping of tailor-made solutions.
  * @section contextcollector Measurement Publication by using the ContextCollector
- * @copydoc wns.probe.bus.contextcollector
+ * @copydoc wns_probe_bus_contextcollector
  *
- * @page wns.probe.bus.contextcollector Measurement Publication by using the ContextCollector
+ * @page wns_probe_bus_contextcollector Measurement Publication by using the ContextCollector
  *
  * The ContextCollector serves the task of gathering context information. To do
  * so, it creates an empty Context object and asks the ContextProviderCollection

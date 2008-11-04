@@ -36,10 +36,12 @@
 #include <WNS/logger/Logger.hpp>
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
-#include <WNS/probe/bus/ProbeBus.hpp>
+
+#include <WNS/probe/bus/ContextCollector.hpp>
+#include <WNS/probe/bus/ContextProviderCollection.hpp>
+#include <WNS/distribution/Distribution.hpp>
 
 #include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
 
 namespace wns { namespace queuingsystem {
 
@@ -75,9 +77,9 @@ namespace wns { namespace queuingsystem {
         doToString() const;
 
 // begin example "wns.queuingsystem.mm1step3.hpp.example"
-        Exponential jobInterarrivalTime_;
+        wns::distribution::Distribution* jobInterarrivalTime_;
 
-        Exponential jobProcessingTime_;
+        wns::distribution::Distribution* jobProcessingTime_;
 
         std::list<Job> queue_;
 
@@ -85,10 +87,11 @@ namespace wns { namespace queuingsystem {
 
         wns::logger::Logger logger_;
 
-        // We use a shared_ptr to hold our probeBus.
-        // The shared_ptr will take care of proper removal of the probeBus
-        // when our M/M/1 model is destroyed
-        boost::shared_ptr<wns::probe::bus::ProbeBus> probeBus_;
+        // Used to obtain additional information for probed values
+        wns::probe::bus::ContextProviderCollection cpc_;
+
+        // Used to probe the sojourn time
+        wns::probe::bus::ContextCollector sojournTime_;
 // end example
     };
 }
@@ -96,27 +99,3 @@ namespace wns { namespace queuingsystem {
 
 #endif // NOT defined WNS_QUEUINGSYSTEM_MM1STEP3_HPP
 
-
-/**
- * @page wns.queuingsystem.mm1step3 Taking Measurements
- *
- * @section contents Contents
- *   -# @ref probebus
- *   -# @ref probebusconf
- *
- * @section probebus Collecting Measurements
- *   - Introduce the Probebus basics
- *   - Explain the plain ProbeBus interface (forwardMeasurement)
- *   - Show how to use the StaticFactory::creator to allow selection
- *   of the specific ProbeBus at configuration time
- *   - Why doStartup and not Constructor?
- *
- * Modifications to the mm1 header
- * @include "wns.queuingsystem.mm1step3.hpp.example"
- * @include "wns.queuingsystem.mm1step3.doStartup.example"
- *
- * @section probebusconf Configuration
- *
- *   - Show how to do the configuration
- *   - "NameInFactory" explain the interconnection between Python/C++
- */

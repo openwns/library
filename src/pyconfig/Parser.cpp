@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <Python.h>
+#include <WNS/Python.hpp>
 
 #include <WNS/pyconfig/Parser.hpp>
 #include <WNS/pyconfig/helper/Functions.hpp>
