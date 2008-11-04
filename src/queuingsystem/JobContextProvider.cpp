@@ -25,32 +25,12 @@
  *
  ******************************************************************************/
 
-//begin example "wns.queuingsystem.Job.cpp.example"
-#include <WNS/queuingsystem/Job.hpp>
-#include <WNS/simulator/ISimulator.hpp>
-#include <WNS/events/scheduler/Interface.hpp>
-
-#include <WNS/osi/PCI.hpp>
+#include <WNS/queuingsystem/JobContextProvider.hpp>
 
 using namespace wns::queuingsystem;
 
-Job::Job(Priority priority) :
-    wns::osi::PDU(new wns::osi::PCI)
+void
+JobContextProvider::doVisit(wns::probe::bus::IContext& c, const JobPtr& job) const
 {
-    timeCreated_ = wns::simulator::getEventScheduler()->getTime();
-    priority_ = priority;
+    c.insertInt("priority", job->getPriority());
 }
-
-wns::simulator::Time
-Job::getCreationTime() const
-{
-    return timeCreated_;
-}
-
-Job::Priority
-Job::getPriority() const
-{
-    return priority_;
-}
-
-// end example

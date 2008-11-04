@@ -113,6 +113,7 @@ srcFiles = [
     'src/distribution/Rice.cpp',
 
     'src/queuingsystem/Job.cpp',
+    'src/queuingsystem/JobContextProvider.cpp',
     'src/queuingsystem/MM1Step1.cpp',
     'src/queuingsystem/MM1Step2.cpp',
     'src/queuingsystem/MM1Step3.cpp',
@@ -258,6 +259,7 @@ hppFiles = [
 'src/distribution/tests/UniformTest.hpp',
 'src/distribution/tests/VarEstimator.hpp',
 'src/queuingsystem/Job.hpp',
+'src/queuingsystem/JobContextProvider.hpp',
 'src/queuingsystem/MM1Step1.hpp',
 'src/queuingsystem/MM1Step6.hpp',
 'src/queuingsystem/MM1Step3.hpp',

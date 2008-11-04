@@ -30,17 +30,18 @@
 
 #include <WNS/queuingsystem/Job.hpp>
 
-#include <WNS/rng/RNGen.hpp>
 #include <WNS/simulator/ISimulator.hpp>
 #include <WNS/simulator/ISimulationModel.hpp>
 #include <WNS/logger/Logger.hpp>
 #include <WNS/IOutputStreamable.hpp>
 #include <WNS/pyconfig/View.hpp>
-#include <WNS/probe/bus/ProbeBus.hpp>
 #include <WNS/distribution/Distribution.hpp>
+#include <WNS/distribution/DiscreteUniform.hpp>
+
+#include <WNS/probe/bus/ContextCollector.hpp>
+#include <WNS/probe/bus/ContextProviderCollection.hpp>
 
 #include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
 
 namespace wns { namespace queuingsystem {
 
@@ -48,7 +49,6 @@ namespace wns { namespace queuingsystem {
         public IOutputStreamable,
         public wns::simulator::ISimulationModel
     {
-        typedef wns::rng::VariateGenerator< boost::exponential_distribution<> > Exponential;
     public:
         explicit
         SimpleMM1Step5(const wns::pyconfig::View& configuration);
@@ -72,43 +72,47 @@ namespace wns { namespace queuingsystem {
         void
         processNextJob();
 
+        int
+        getNumberOfJobs() const;
+
+        Job
+        getNextJob();
+
         virtual std::string
         doToString() const;
+
+        Job::Priority
+        drawJobPriority();
+
+        int
+        getCurrentJobPriority() const;
 
         wns::distribution::Distribution* jobInterarrivalTime_;
 
         wns::distribution::Distribution* jobProcessingTime_;
 
-        std::list<Job> queue_;
+        wns::distribution::DiscreteUniform priorityDistribution_;
+
+        std::list<Job> lowPriorityQueue_;
+
+        std::list<Job> highPriorityQueue_;
+
+        Job currentJob_;
 
         wns::pyconfig::View config_;
 
         wns::logger::Logger logger_;
 
-        wns::probe::bus::ProbeBus* probeBus_;
+        bool idle;
+
+        // Used to obtain additional information for probed values
+        wns::probe::bus::ContextProviderCollection* cpc_;
+
+        // Used to probe the sojourn time
+        wns::probe::bus::ContextCollector sojournTime_;
     };
 }
 }
 
 #endif // NOT defined WNS_QUEUINGSYSTEM_MM1STEP5_HPP
 
-/**
- * @page wns.queuingsystem.mm1step5 The Probe Bus Registry
- *
- * @section wns.queuingsystem.mm1step5.contents Contents
- *   -# @ref probebusregistry
- *   -# @ref probebustrees
- *
- * @section wns.queuingsystem.mm1step5.probebusregistry Seperating Measurement sources and sinks
- *   - Motivate the need of the ProbeBusRegistry by showing scalabilty
- *   problems with the former approach
- *   - Explain the usage of the ProbeBusRegistry both in C++ and Python
- *
- * @include "wns.queuingsystem.mm1step5.doStartup.example"
- *
- * @section wns.queuingsystem.mm1step5.probebustrees ProbeBus Trees
- *
- *   - Towards sorting. Show how to add several ProbeBusses to the same
- *   ProbeBusId
- *   - Give an outlook on the usage of Context Information for sorting
- */

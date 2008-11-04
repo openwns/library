@@ -25,11 +25,30 @@
  *
  ******************************************************************************/
 
-/**
- * @page wns.queuingsystem.mm1step4 Obtaining Results
- * @ref group_wns_queuingsystem_tutorial
- * @section embeddingEvaluation How to embed evaluation in your configuration
- *
- *
- */
+#ifndef WNS_QUEUINGSYSTEM_JOBCONTEXT_PROVIDER_HPP
+#define WNS_QUEUINGSYSTEM_JOBCONTEXT_PROVIDER_HPP
 
+#include <WNS/queuingsystem/Job.hpp>
+#include <WNS/probe/bus/CompoundContextProvider.hpp>
+
+namespace wns { namespace queuingsystem {
+
+    // This Context Provider is called when a Context Collector
+    // calls put() with a value AND a Job as arguments.
+    // The Job Context Provider will extract the priority
+    // from the Job and save the Context under the key 'priority'.
+	class JobContextProvider :
+        public wns::probe::bus::PDUContextProvider<Job>
+    {
+    public:
+
+        JobContextProvider(){};
+        
+    private:
+        void
+        doVisit(wns::probe::bus::IContext& c, const JobPtr& job) const;
+    };
+} // queuingsystem
+} // wns
+
+#endif // WNS_QUEUINGSYSTEM_JOBCONTEXT_PROVIDER_HPP
