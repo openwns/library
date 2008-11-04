@@ -64,15 +64,13 @@ SimpleMM1Step5::SimpleMM1Step5(const wns::pyconfig::View& config) :
             boost::bind(&SimpleMM1Step5::getCurrentJobPriority, this)));
 }
 
-// begin example "wns.queuingsystem.mm1step6.doStartup.example" 
 void
 SimpleMM1Step5::doStartup()
 {
-    MESSAGE_SINGLE(NORMAL, logger_, "MM1Step6 started, generating first job\n" << *this);
+    MESSAGE_SINGLE(NORMAL, logger_, "MM1Step5 started, generating first job\n" << *this);
 
     generateNewJob();
 }
-// end example
 
 void
 SimpleMM1Step5::doShutdown()
