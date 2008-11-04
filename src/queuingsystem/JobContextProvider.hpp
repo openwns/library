@@ -29,7 +29,7 @@
 #define WNS_QUEUINGSYSTEM_JOBCONTEXT_PROVIDER_HPP
 
 #include <WNS/queuingsystem/Job.hpp>
-#include <WNS/probe/bus/CompoundContextProvider.hpp>
+#include <WNS/probe/bus/ContextProvider.hpp>
 
 namespace wns { namespace queuingsystem {
 
