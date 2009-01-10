@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,48 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef _CANDI_HPP
+#define _CANDI_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
-
-    class MapPerformanceTest :
-        public PerformanceTest
+#include <WNS/PowerRatio.hpp>
+#include <cmath>
+namespace wns
+{
+    /**
+     *  @brief class to encapsulate carrier and interference power levels separately
+	 *  for SDMA purposes intra-cell interference can be given separately
+     */
+    class CandI
     {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+    public:
+		// Default constructor
+		CandI() :
+			C(wns::Power::from_mW(0.0)),
+			I(wns::Power::from_mW(0.0))
+			{
+				sdma.iIntra = wns::Power::from_mW(0.0);
+			}
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+		CandI(wns::Power carrier, wns::Power interference) :
+			C(carrier),
+			I(interference)
+			{
+				sdma.iIntra = wns::Power::from_mW(0.0);
+			}
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+		bool operator <(const CandI& candi) const {
+			return ( (C/I) < (candi.C / candi.I) );
+		}
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+ 		// Default destructor
+ 		~CandI(){}
+		wns::Power C;
+		wns::Power I;
 
-} // tests
-} // scheduler
-} // events
-} // wns
-
+		struct {
+			// estimated intra-cell interference
+			wns::Power iIntra;
+		} sdma;
+	};
+}
+#endif // _CANDI_HPP

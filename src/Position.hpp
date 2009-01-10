@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,18 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#ifndef WNS_POSITION_HPP
+#define WNS_POSITION_HPP
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+#include <WNS/geometry/Point.hpp>
+#include <WNS/geometry/Vector.hpp>
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+namespace wns {
+	typedef geometry::Point Position;
+	typedef geometry::Vector PositionOffset;
+}
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+#endif // NOT defined WNS_POSITION_HPP
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
-} // wns
 

@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,30 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef _ISCLASS_HPP
+#define _ISCLASS_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+namespace wns
+{
 
-    class MapPerformanceTest :
-        public PerformanceTest
+    /** @brief Check if object @a o is an instance of class @a C.
+     * 
+     *  @param C Class to check.
+     *  @param o Object to check.
+     *  @return true, if @a o is an instance of class @a C or a subclass,
+     *     false otherwise.
+     *
+     *  @c isClass<aClass>(anObject) will check, if @c anObject
+     *  is an instance of class @c aClass or one of its subclasses
+     *  and return true, if this is the case. @c aClass must be
+     *  polymorphic.
+     */
+    template<class C, class T>
+    inline bool isClass(const T& o)
     {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+	return (dynamic_cast<const C *const>(&o) != 0);
+    }
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+}
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
-
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
-} // wns
-
+#endif // _ISCLASS_HPP

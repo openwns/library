@@ -25,35 +25,65 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_BROKER_HPP
+#define WNS_BROKER_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include <WNS/container/Registry.hpp>
+#include <WNS/pyconfig/View.hpp>
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+namespace wns {
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	/**
+	 * @brief Able to create ELEMENTs from respective pyconfig::View
+	 *
+	 * If an object for a specific View has already been created this object is
+	 * returned (instead of creating a new one).
+	 */
+	template <typename ELEMENT>
+	class Broker
+	{
+		/**
+		 * @brief Store the objects created from pyconfig::View
+		 */
+		typedef container::Registry<pyconfig::View, ELEMENT*, container::registry::DeleteOnErase> Registry;
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+	public:
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+		/**
+		 * @brief Will delete all elements
+		 */
+		~Broker()
+		{
+			r.clear();
+		}
 
-} // tests
-} // scheduler
-} // events
+		/**
+		 * @brief Returns an object configured with pyco.
+		 */
+		ELEMENT*
+		procure(const pyconfig::View& pyco)
+		{
+			if(r.knows(pyco))
+			{
+				return r.find(pyco);
+			}
+			else
+			{
+				ELEMENT* element = new ELEMENT(pyco);
+				r.insert(pyco, element);
+				return element;
+			}
+		}
+
+	private:
+		/**
+		 * @brief ELEMENTs are stored here
+		 */
+		Registry r;
+	};
+
 } // wns
+
+#endif // NOT defined WNS_BROKER_HPP
+
 

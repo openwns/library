@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,71 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_GEOMETRY_AABOUNDINGBOX_HPP
+#define WNS_GEOMETRY_AABOUNDINGBOX_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include <vector>
+#include "Point.hpp"
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+namespace wns { namespace geometry {
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	// Axis aligned bounding box of a 2D object
+	class AABoundingBox
+	{
+		friend class Shape2D;
+		friend class AxisParallelRectangle;
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+	    public:
+		AABoundingBox();
+		AABoundingBox(const Point& a, const Point& b);
+// 		AABoundingBox(const std::vector<Point>& vertices);
+		~AABoundingBox();
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+		bool
+		contains(const Point& other) const;
 
-} // tests
-} // scheduler
-} // events
-} // wns
+		bool
+		contains(const AABoundingBox other) const;
+
+		bool
+		intersects(const AABoundingBox& other) const;
+
+		Point
+		getA() const { return a; }
+
+		Point
+		getB() const { return b; }
+
+		double
+		getMinX() { return a.getX();}
+
+		double
+		getMaxX() { return b.getX();}
+
+		double
+		getMinY() { return a.getY();}
+
+		double
+		getMaxY() { return b.getY();}
+
+		void
+		operator=(const AABoundingBox& other);
+
+		bool
+		operator==(const AABoundingBox& other) const;
+
+		bool
+		operator!=(const AABoundingBox& other) const;
+
+	    private:
+		Point a;
+		Point b;
+
+	};
+
+}//geometry
+}//wns
+
+#endif //WNS_GEOMETRY_AABOUNDINGBOX_HPP
+
 

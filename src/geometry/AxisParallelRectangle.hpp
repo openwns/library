@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,55 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_GEOMETRY_AXISPARALLELRECTANGLE_HPP
+#define WNS_GEOMETRY_AXISPARALLELRECTANGLE_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include "Shape2D.hpp"
+#include "Point.hpp"
+#include "Vector.hpp"
+#include "LineSegment.hpp"
+#include "AABoundingBox.hpp"
 
-    class MapPerformanceTest :
-        public PerformanceTest
+
+namespace wns{	namespace geometry{
+    
+    class AxisParallelRectangle : public Shape2D
     {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+    public:
+	AxisParallelRectangle();
+	AxisParallelRectangle(const Point& a, const Point& b);
+	AxisParallelRectangle(const Point& a, const Vector& db);
+	
+	Point 
+	getA() const { return Point(std::min(a.getX(), b.getX()), 
+				    std::min(a.getY(), b.getY()), 0);
+	}
+	
+	Point 
+	getB() const { return Point(std::max(a.getX(), b.getX()),
+				    std::max(a.getY(), b.getY()), 0);
+	}
+	
+	bool 
+	contains(const wns::geometry::Point& point) const;
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	bool 
+	contains(const AxisParallelRectangle& other) const;
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
+	bool 
+	intersects(const AxisParallelRectangle& other) const;
+
+	bool 
+	intersects(const wns::geometry::LineSegment& line) const;
+	
+	virtual unsigned int 
+	countBorderIntersections(const LineSegment& line) const;
+
+	bool 
+	bordersIntersect(const LineSegment& line) const;
     };
+}//geometry
+}//wns
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
 
-} // tests
-} // scheduler
-} // events
-} // wns
-
+#endif // WNS_GEOMETRY_AXISPARALLELRECTANGLE

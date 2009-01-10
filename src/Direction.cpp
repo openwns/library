@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,42 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#include <WNS/Direction.hpp>
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+using namespace wns;
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+Direction::Direction()
+	: elevation(0),
+	  azimuth(0)
+{}
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+Direction::Direction(double _elevation, double _azimuth)
+	: elevation(_elevation),
+	  azimuth(_azimuth)
+{}
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+double Direction::getElevation() const
+{
+	return elevation;
+}
 
-} // tests
-} // scheduler
-} // events
-} // wns
+double Direction::getAzimuth() const
+{
+	return azimuth;
+}
+
+Direction Direction::calcAngles(const PositionOffset& positionOffset) const
+{
+ 	Direction d(fabs(positionOffset.getElevation() - elevation),
+		    positionOffset.getAzimuth() - azimuth);
+	while(d.azimuth < 0) {
+		d.azimuth += 2*M_PI;
+	}
+	return d;
+}
+
 

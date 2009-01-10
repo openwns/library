@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,38 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_SERVICE_PHY_OFDMA_HANDLER_HPP
+#define WNS_SERVICE_PHY_OFDMA_HANDLER_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include <WNS/service/phy/power/PowerMeasurement.hpp>
+#include <WNS/service/Service.hpp>
+#include <WNS/osi/PDU.hpp>
+#include <WNS/PowerRatio.hpp>
+#include <map>
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+namespace wns { namespace service { namespace phy { namespace ofdma {
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	/**
+	 * @brief OFDMA Phy Notification Handler
+	 * Class from which the subscriber must inherit from. Defines onData().
+	 */
+	class Handler
+	{
+	public:
+		virtual
+		~Handler()
+		{}
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
-
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
+		/** @brief: (new) interface for incoming SDUs (upstack) */
+		virtual void
+		onData(wns::osi::PDUPtr sdu, wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurement) = 0;
+		// using: class PowerMeasurement from WNS/service/phy/power/PowerMeasurement.hpp
+	};
+} // ofdma
+} // phy
+} // service
 } // wns
+#endif // WNS_SERVICE_PHY_OFDMA_HANDLER
+
+
 

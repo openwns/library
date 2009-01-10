@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,39 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_SERVICE_PHY_PHYMODE_SNR2MI_HPP
+#define WNS_SERVICE_PHY_PHYMODE_SNR2MI_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include <WNS/service/phy/phymode/PhyModeInterface.hpp>
+#include <WNS/PythonicOutput.hpp>
+#include <WNS/PowerRatio.hpp>
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+namespace wns { namespace service { namespace phy { namespace phymode {
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	/**
+		@brief Base Class for mapping SINR to MI (yes, there are several ways)
+	*/
+	class SNR2MIInterface :
+		virtual public wns::PythonicOutput
+	{
+	public:
+		virtual ~SNR2MIInterface() {};
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+		/** @brief returns the Mutual Information value per Bit (MIB) */
+	    virtual double convertSNR2MIB(const wns::Ratio& snr, const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+		/** @brief returns the Mutual Information value of a modulation symbol */
+	    virtual double convertSNR2MI(const wns::Ratio& snr, const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
 
-} // tests
-} // scheduler
-} // events
+		static SNR2MIInterface*
+		getSNR2MImapper(const wns::pyconfig::View& config);
+	};
+
+	typedef wns::Creator<SNR2MIInterface> SNR2MICreator;
+
+} // phymode
+} // phy
+} // service
 } // wns
 
+#endif // WNS_SERVICE_PHY_PHYMODE_PHYMODEINTERFACE_HPP

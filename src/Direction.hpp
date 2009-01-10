@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,63 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#ifndef _DIRECTION_HPP
+#define _DIRECTION_HPP
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+#include <WNS/Position.hpp>
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+namespace wns {
+	/**
+	 * @brief Determin the direction from a PositionOffset
+	 * @ingroup MISC
+	 */
+	class Direction
+	{
+	public:
+		/**
+		 * @brief Default Constructor
+		 *
+		 * Azimuth and elevation are set to 0
+		 */
+		Direction();
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+		/**
+		 * @brief Constructor to set Azimuth and elevation
+		 */
+		Direction(double _elevation, double _azimuth);
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+		/**
+		 * @brief Calculate angles theta and phi from PostionOffset
+		 */
+		Direction calcAngles(const PositionOffset& positionOffset) const;
 
-} // tests
-} // scheduler
-} // events
-} // wns
+		/**
+		 * @brief Return elevation
+		 */
+		double getElevation() const;
+
+		/**
+		 * @brief Return azimuth
+		 */
+		double getAzimuth() const;
+
+	private:
+		/**
+		 * @brief The elevation 0..Pi
+		 */
+		double elevation;
+
+		/**
+		 * @brief The azimuth 0..2Pi
+		 */
+		double azimuth;
+	};
+}
+#endif //_DIRECTION_HPP
+
+/**
+ * @file
+ */
+
 

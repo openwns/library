@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,64 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include "Shape2D.hpp"
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+using namespace wns::geometry;
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+Shape2D::Shape2D()
+    :a(),
+     b(),
+     boundingBox()
+{}
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
+Shape2D::Shape2D(const Point& a, const Point& b)
+    :a(zeroZ(a)),
+     b(zeroZ(b)),
+     boundingBox()
+{
+}
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+Shape2D::Shape2D(const Point& a, const Vector& db)
+    :a(zeroZ(a)),
+     b(zeroZ(a + db)),
+     boundingBox()
+{}
 
-} // tests
-} // scheduler
-} // events
-} // wns
+bool Shape2D::intersectsBoundingBoxOf(const Shape2D& other) const
+{
+    return boundingBox.intersects(other.boundingBox);
+}
 
+
+Point 
+Shape2D::zeroZ(const Point& p)
+{
+    Point zZeroP(p);
+    zZeroP.setZ(0);
+    return zZeroP;
+}
+
+
+// Operators
+void 
+Shape2D::operator=(const Shape2D& other)
+{
+	a = other.a;
+	b = other.b;
+	boundingBox = other.boundingBox;
+}
+
+bool 
+Shape2D::operator==(const Shape2D& other) const
+{
+	return
+		a == other.a &&
+		b == other.b;
+}
+
+bool 
+Shape2D::operator!=(const Shape2D& other) const
+{
+	return !(*this == other);
+}

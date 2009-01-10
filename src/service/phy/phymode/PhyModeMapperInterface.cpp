@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,23 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#include <WNS/service/phy/phymode/PhyModeMapperInterface.hpp>
+#include <WNS/StaticFactoryBroker.hpp>
+#include <WNS/Singleton.hpp>
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+using namespace wns::service::phy::phymode;
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+PhyModeMapperInterface*
+PhyModeMapperInterface::getPhyModeMapper(const wns::pyconfig::View& config)
+{
+	// read name and obtain the right object from the broker
+	std::string name = config.get<std::string>("nameInPhyModeMapperFactory");
+	// Define shorthand for the staticfactorybroker typename
+	typedef wns::StaticFactoryBroker<PhyModeMapperInterface, wns::PyConfigViewCreator<PhyModeMapperInterface> > BrokerType;
+	//typedef wns::SingletonHolder<PhyModeMapperBroker> ThePhyModeMapperBroker;
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	// Obtain the broker from its singleton
+	BrokerType* broker = wns::SingletonHolder<BrokerType>::getInstance();
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
-
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
-} // wns
-
+	return broker->procure(name, config);
+}

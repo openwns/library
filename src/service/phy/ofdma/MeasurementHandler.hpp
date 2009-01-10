@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,39 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_SERVICE_PHY_OFDMA_MEASUREMENTHANDLER_HPP
+#define WNS_SERVICE_PHY_OFDMA_MEASUREMENTHANDLER_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include <WNS/service/phy/power/OFDMAMeasurement.hpp>
+#include <WNS/service/Service.hpp>
+#include <WNS/osi/PDU.hpp>
+#include <WNS/PowerRatio.hpp>
+#include <map>
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+namespace wns { namespace service { namespace phy { namespace ofdma {
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	/**
+	 * @brief OFDMA Phy Handler for Measurements of PathLoss,Fading values
+	 * that depend on OFDMA subchannel.
+	 * Class from which the subscriber must inherit from. Defines onMeasurementUpdate().
+	 */
+	class MeasurementHandler
+	{
+	public:
+		virtual
+		~MeasurementHandler()
+		{}
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
-
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
+		/** @brief this function is called in inherited classes
+		 * of those classes which have subscribed to this service */
+		virtual void
+		onMeasurementUpdate(wns::node::Interface* source, wns::service::phy::power::OFDMAMeasurementPtr rxPowerMeasurement) = 0;
+	};
+} // ofdma
+} // phy
+} // service
 } // wns
+#endif // WNS_SERVICE_PHY_OFDMA_HANDLER
+
+
 

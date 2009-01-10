@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,58 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_GEOMETRY_LINESEGMENT_HPP
+#define WNS_GEOMETRY_LINESEGMENT_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include "Shape2D.hpp"
+#include "AABoundingBox.hpp"
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+namespace wns{	namespace geometry{
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+    class LineSegment : public Shape2D    {
+    public:
+	LineSegment();
+	
+	LineSegment(const Point& a, const Point& b);
+	
+	LineSegment(const Point& a, const Vector& db);
+	
+	virtual
+	~LineSegment();
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
+	const Point& 
+	getA() const { return a; }
+	
+	const Point& 
+	getB() const { return b; }
+	
+	bool 
+	contains(const Point& point) const;
+	
+	bool 
+	leftOf(const Point& point) const;
+	
+	bool 
+	rightOf(const Point& point) const;
+	
+	bool
+	touches(const LineSegment& other) const;
+	
+	bool 
+	intersects(const LineSegment& that) const;
+	
+	virtual unsigned int 
+	countBorderIntersections(const LineSegment& line) const;
+
+	double 
+	crossProduct(const Point& x) const;
+	
+	bool 
+	straddles(const LineSegment& other) const;
+	
     };
+}//geometry
+}//wns
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
 
-} // tests
-} // scheduler
-} // events
-} // wns
-
+#endif // WNS_GEOMETRY_LINESEGMENT_HPP

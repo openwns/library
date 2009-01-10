@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -24,36 +24,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+#ifndef WNS_SERVICE_PHY_OFDMA_CARRIERSENSING_HPP
+#define WNS_SERVICE_PHY_OFDMA_CARRIERSENSING_HPP
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#include <WNS/PowerRatio.hpp>
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+namespace wns { namespace service { namespace phy { namespace ofdma {
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+	class CarrierSensing
+	{
+	public:
+		/**
+		 * @brief Destructor
+		 */
+		virtual
+		~CarrierSensing()
+		{}
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+		/**
+		 * @brief called from PHY implementation if Received Signal
+		 *        Strength has changed
+		 */
+		virtual void onRSSChange(wns::Power newRSSIndicator) = 0;
+	};
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
-
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
+} // ofdma
+} // phy
+} // service
 } // wns
+
+#endif // WNS_SERVICE_PHY_OFDMA_CARRIERSENSING_HPP
+
 

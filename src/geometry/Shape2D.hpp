@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,58 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_GEOMETRY_SHAPE2D_HPP
+#define WNS_GEOMETRY_SHAPE2D_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include "Point.hpp"
+#include "AABoundingBox.hpp"
 
-    class MapPerformanceTest :
-        public PerformanceTest
+namespace wns { namespace geometry {
+    
+    class Shape2D
     {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+	
+    public:
+	virtual ~Shape2D(){};
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
+	AABoundingBox getBoundingBox() const
+	{
+	    return boundingBox;
+	}
+	
+	virtual bool 
+	contains(const Point& point)const = 0;
+  
+	bool intersectsBoundingBoxOf(const Shape2D& other) const;
+	
+	void 
+	operator=(const Shape2D& other);
+	
+	bool 
+	operator==(const Shape2D& other) const;
+	
+	bool 
+	operator!=(const Shape2D& other) const;
+	
 
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
+//	virtual unsigned int countBorderIntersections(const LineSegments& line)
+
+    protected:
+	Shape2D();
+	
+	Shape2D(const Point& a, const Point& b);
+	
+	Shape2D(const Point& a, const Vector& v);
+	
+	static Point zeroZ(const Point& p);
+
+	Point a;
+	Point b;
+	AABoundingBox boundingBox;
+
     };
 
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
+} // geometry
 } // wns
 
+#endif // WNS_GEOMETRY_SHAPE2D_HPP

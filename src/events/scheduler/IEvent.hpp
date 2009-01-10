@@ -36,18 +36,18 @@
 
 namespace wns { namespace events { namespace scheduler {
 
-	/**
+    /**
 	 * @brief Base class for all scheduler events.
      * @ingroup group_main_classes
 	 *
 	 * The IEvent is the base class for all event types that are
 	 * used in all WNS scheduler.
 	 */
-	class IEvent :
-		virtual public wns::RefCountable,
+    class IEvent :
+    virtual public wns::RefCountable,
         virtual public wns::PythonicOutput
-	{
-	public:
+    {
+    public:
         /**
          * @brief If an event can be canceled this exception should be thrown by
          * the event scheduler
@@ -68,7 +68,7 @@ namespace wns { namespace events { namespace scheduler {
             CancelException(const std::string& s);
         };
 
-		virtual
+        virtual
         ~IEvent();
 
         virtual wns::simulator::Time
@@ -123,9 +123,9 @@ namespace wns { namespace events { namespace scheduler {
     protected:
         virtual std::string
         doToString() const;
-	};
+    };
 
-	typedef wns::SmartPtr<IEvent> IEventPtr;
+    typedef wns::SmartPtr<IEvent> IEventPtr;
 
 }
 }

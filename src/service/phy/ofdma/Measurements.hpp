@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,35 +25,34 @@
  *
  ******************************************************************************/
 
-#include <WNS/events/scheduler/tests/PerformanceTest.hpp>
-#include <WNS/events/scheduler/Map.hpp>
+#ifndef WNS_SERVICE_PHY_OFDMA_MEASUREMENTS_HPP
+#define WNS_SERVICE_PHY_OFDMA_MEASUREMENTS_HPP
 
-namespace wns { namespace events { namespace scheduler { namespace tests {
+#include <WNS/service/phy/ofdma/Handler.hpp>
+#include <WNS/service/phy/ofdma/MeasurementHandler.hpp>
+#include <WNS/Subject.hpp>
 
-    class MapPerformanceTest :
-        public PerformanceTest
-    {
-        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-        CPPUNIT_TEST_SUITE_END();
+namespace wns { namespace service { namespace phy { namespace ofdma {
 
-    private:
-        virtual Interface*
-        newTestee()
-        {
-            return new Map();
-        } // newTestee
-
-        virtual void
-        deleteTestee(Interface* scheduler)
-        {
-            delete scheduler;
-        } // deleteTestee
-    };
-
-    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
-
-} // tests
-} // scheduler
-} // events
+	/**
+	 * @brief OFDMA Phy Service for Measurements of Power (S,I,N,SINR)
+	 */
+	class Measurements :
+		// [rs] why not derive from virtual public service::Notification<MeasurementHandler> ?
+		// virtual public service::Notification<MeasurementHandler> //
+		// ^ this would define a pure virtual method registerHandler()
+	        virtual public service::Service
+		//virtual public wns::Subject<CarrierSensing> // [rs] do I need Subject?
+	{
+	public:
+		virtual void
+		registerMeasurementHandler(MeasurementHandler* measurementHandler) = 0;
+	};
+} // ofdma
+} // phy
+} // service
 } // wns
+#endif // WNS_SERVICE_PHY_OFDMA_NOTIFICATION_HPP
+
+
 
