@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2004-2007
 # Chair of Communication Networks (ComNets)
-# Kopernikusstr. 16, D-52074 Aachen, Germany
+# Kopernikusstr. 5, D-52074 Aachen, Germany
 # phone: ++49-241-80-27910,
 # fax: ++49-241-80-22242
 # email: info@openwns.org
@@ -25,42 +25,24 @@
 #
 ###############################################################################
 
-# aliases
-import openwns.simulator as simulator
-Simulator = simulator.OpenWNS
-getSimulator = simulator.getSimulator
-setSimulator = simulator.setSimulator
+from openwns.pyconfig import attrsetter
 
+class Group(object):
+    __plugin__ = "wns.Group"
+    name = "Group"
 
+    fun = None
+    """SubFun configuration to be built by this Group"""
 
-def dB(ratio):
-    return str(ratio) + " dB"
-def fromdB(str):
-    i = str.index('dB')
-    return(float(str[0:i-1]))
+    top = None
+    """Top FU in the SubFUN"""
 
-def dBm(power):
-    return str(power) + " dBm"
-def fromdBm(str):
-    i = str.index('dBm')
-    return(float(str[0:i-1]))
+    bottom = None
+    """Bottom FU in the SubFUN"""
 
-def W(power):
-    return str(power) + " W"
-def fromW(str):
-    i = str.index('W')
-    return(float(str[0:i-1]))
+    def __init__(self, fun, top, bottom, **kw):
+        self.fun = fun
+        self.top = top
+        self.bottom = bottom
 
-def mW(power):
-    return str(power) + " mW"
-def frommW(str):
-    i = str.index('mW')
-    return(float(str[0:i-1]))
-
-class Position:
-    __slots__ = ["x", "y", "z"]
-
-    def __init__(self, x=0, y=0,z=0):
-        self.x = x
-        self.y = y
-        self.z = z
+        attrsetter(self, kw)
