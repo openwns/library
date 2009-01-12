@@ -65,4 +65,4 @@ class Concatenation(FUN.FunctionalUnit):
         self.maxEntries = maxEntries
 
         self.logger = logger.Logger(moduleName, logName, True, parentLogger)
-        PyConfig.attrsetter(self, kw)
+        pyconfig.attrsetter(self, kw)

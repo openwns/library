@@ -27,11 +27,20 @@
 
 # aliases
 import openwns.simulator as simulator
+import sys
+import os
+
 Simulator = simulator.OpenWNS
 getSimulator = simulator.getSimulator
 setSimulator = simulator.setSimulator
 
-
+def getPyConfigPath():
+    for path in sys.path:
+        path = os.path.abspath(path)
+        if 'PyConfig' in path and os.path.exists(path):
+            return path
+    # should not be reached if path is available
+    raise("No path in sys.path found which contains 'PyConfig'")
 
 def dB(ratio):
     return str(ratio) + " dB"
