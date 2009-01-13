@@ -35,6 +35,7 @@
 
 #include <functional>
 #include <list>
+#include <algorithm>
 
 namespace wns {
 
@@ -65,7 +66,7 @@ namespace wns {
      */
     template <typename NOTIFICATIONINTERFACE>
     class Subject :
-        virtual public SubjectInterface<ObserverInterface<NOTIFICATIONINTERFACE> >
+        public virtual SubjectInterface<ObserverInterface<NOTIFICATIONINTERFACE> >
     {
     public:
         /**
@@ -80,14 +81,14 @@ namespace wns {
          *
          * The corresponding ObserverInterface that uses the same NotificationInterface.
          */
-        typedef ObserverInterface<NotificationInterface> ObserverInterface;
+        typedef ObserverInterface<NotificationInterface> ObserverType;
 
         /**
          * @brief Our interface.
          *
          * The interface that this Subject implements.
          */
-        typedef SubjectInterface<ObserverInterface> SubjectInterface;
+        typedef SubjectInterface<ObserverType> SubjectType;
 
         /**
          * @brief Default constructor
@@ -102,13 +103,13 @@ namespace wns {
          * @brief copy constructor
          */
         Subject(const Subject& other) :
-            SubjectInterface(other),
+            SubjectInterface< ObserverInterface<NOTIFICATIONINTERFACE> >(other),
             observers(other.observers),
             modificationGuard_(other.modificationGuard_)
         {
             this->forEachObserver(
                 std::bind2nd(
-                    std::mem_fun(&ObserverInterface::addSubject),
+                    std::mem_fun(&ObserverType::addSubject),
                     this));
         }
 
@@ -122,7 +123,7 @@ namespace wns {
             this->forEachObserver(
                 std::bind2nd(
                     std::mem_fun(
-                        &ObserverInterface::removeSubject),
+                        &ObserverType::removeSubject),
                     this));
 
             // copy subjects from other
@@ -131,7 +132,7 @@ namespace wns {
             // observe these subjects
             this->forEachObserver(
                 std::bind2nd(
-                    std::mem_fun(&ObserverInterface::addSubject),
+                    std::mem_fun(&ObserverType::addSubject),
                     this));
 
             return *this;
@@ -149,7 +150,7 @@ namespace wns {
             this->forEachObserver(
                 std::bind2nd(
                     std::mem_fun(
-                        &ObserverInterface::removeSubject),
+                        &ObserverType::removeSubject),
                     this));
         }
 
@@ -238,7 +239,7 @@ namespace wns {
 
     protected:
         /** @brief */
-        typedef std::list<ObserverInterface*> ObserverContainer;
+        typedef std::list<ObserverType*> ObserverContainer;
 
     private:
         /**
@@ -249,7 +250,7 @@ namespace wns {
          * ObserverInterface::removeSubject().
          */
         virtual void
-        addObserver(ObserverInterface* observer)
+        addObserver(ObserverType* observer)
         {
             if (this->modificationGuard_ == true)
             {
@@ -266,7 +267,7 @@ namespace wns {
          * @copydoc SubjectInterface::removeObserver()
          */
         virtual void
-        removeObserver(ObserverInterface* observer)
+        removeObserver(ObserverType* observer)
         {
             if (this->modificationGuard_ == true)
             {

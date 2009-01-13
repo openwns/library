@@ -33,7 +33,7 @@
 #include <WNS/ObserverInterface.hpp>
 
 #include <list>
-
+#include <algorithm>
 namespace wns {
 
     /**
@@ -67,14 +67,14 @@ namespace wns {
          *
          * The interface that this Observer implements.
          */
-        typedef ObserverInterface<NotificationInterface> ObserverInterface;
+        typedef ObserverInterface<NotificationInterface> ObserverType;
 
         /**
          * @brief The SubjectInterface using the same NotificationInterface.
          *
          * The corresponding SubjectInterface that uses the same NotificationInterface.
          */
-        typedef SubjectInterface<ObserverInterface> SubjectInterface;
+        typedef SubjectInterface<ObserverType> SubjectType;
 
         /**
          * @brief Default constructor
@@ -89,12 +89,12 @@ namespace wns {
          */
         Observer(const Observer& other) :
             NotificationInterface(other),
-            ObserverInterface(other),
+            ObserverInterface<NOTIFICATIONINTERFACE>(other),
             subjects(other.subjects)
         {
             this->forEachSubject(
                 std::bind2nd(
-                    std::mem_fun(&SubjectInterface::addObserver),
+                    std::mem_fun(&SubjectType::addObserver),
                     this));
         }
 
@@ -107,7 +107,7 @@ namespace wns {
             // remove own observers
             this->forEachSubject(
                 std::bind2nd(
-                    std::mem_fun(&SubjectInterface::removeObserver),
+                    std::mem_fun(&SubjectType::removeObserver),
                     this));
 
             // copy subjects from other
@@ -116,7 +116,7 @@ namespace wns {
             // observe these subjects
             this->forEachSubject(
                 std::bind2nd(
-                    std::mem_fun(&SubjectInterface::addObserver),
+                    std::mem_fun(&SubjectType::addObserver),
                     this));
 
             return *this;
@@ -133,7 +133,7 @@ namespace wns {
         {
             this->forEachSubject(
                 std::bind2nd(
-                    std::mem_fun(&SubjectInterface::removeObserver),
+                    std::mem_fun(&SubjectType::removeObserver),
                     this));
         }
 
@@ -141,7 +141,7 @@ namespace wns {
          * @brief Nicer to read: oberserver->startObserving(subject);
          */
         void
-        startObserving(SubjectInterface* subject)
+        startObserving(SubjectType* subject)
         {
             subject->addObserver(this);
             this->addSubject(subject);
@@ -151,7 +151,7 @@ namespace wns {
          * @brief Nicer to read: oberserver->stopObserving(subject);
          */
         void
-        stopObserving(SubjectInterface* subject)
+        stopObserving(SubjectType* subject)
         {
             subject->removeObserver(this);
             this->removeSubject(subject);
@@ -165,7 +165,7 @@ namespace wns {
          * receive a detach when this Observer instance is destroyed.
          */
         virtual void
-        addSubject(SubjectInterface* subject)
+        addSubject(SubjectType* subject)
         {
             assureNotNull(subject);
             assure(
@@ -178,7 +178,7 @@ namespace wns {
          * @copydoc ObserverInterface::removeSubject().
          */
         virtual void
-        removeSubject(SubjectInterface* subject)
+        removeSubject(SubjectType* subject)
         {
             assureNotNull(subject);
             assure(
@@ -205,7 +205,7 @@ namespace wns {
             return std::for_each(tmp.begin(), tmp.end(), functor);
         }
 
-        typedef std::list<SubjectInterface*> SubjectContainer;
+        typedef std::list<SubjectType*> SubjectContainer;
 
         /**
          * @brief Collection of registered subjects.
@@ -216,4 +216,4 @@ namespace wns {
     };
 } // wns
 
-#endif // NOT defined WNS_OBSERVER_HPP
+#endif
