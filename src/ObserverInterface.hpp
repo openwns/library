@@ -79,14 +79,14 @@ namespace wns {
          * This provides the NotificationInterface that is used by both this ObserverInterface
          * and @link ObserverInterface::SubjectInterface SubjectInterface@endlink.
          */
-        typedef NOTIFICATIONINTERFACE NotificationInterface;
+        typedef NOTIFICATIONINTERFACE NotificationType;
 
         /**
          * @brief The SubjectInterface corresponding to this ObserverInterface.
          *
          * This always refers to the SubjectInterface that uses the same NotificationInterface.
          */
-        typedef SubjectInterface<ObserverInterface> SubjectInterface;
+        typedef SubjectInterface<ObserverInterface> SubjectType;
 
         virtual
         ~ObserverInterface()
@@ -105,7 +105,7 @@ namespace wns {
          * on destruction.
          */
         virtual void
-        addSubject(SubjectInterface* subject) = 0;
+        addSubject(SubjectType* subject) = 0;
 
         /**
          * @brief Remove a subject we were attached to.
@@ -118,8 +118,8 @@ namespace wns {
          * after the call is finished.
          */
         virtual void
-        removeSubject(SubjectInterface* subject) = 0;
+        removeSubject(SubjectType* subject) = 0;
     };
 }
 
-#endif // NOT defined WNS_OBSERVERINTERFACE_HPP
+#endif

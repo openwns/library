@@ -89,25 +89,23 @@ namespace wns { namespace tests {
 		class FooSubject :
 			public Subject<FooNotificationInterface>
 		{
-			typedef Subject<FooNotificationInterface> Subject;
-			using Subject::ObserverInterface;
+			typedef Subject<FooNotificationInterface> FooNotificationSubject;
+			using Subject<FooNotificationInterface>::ObserverType;
 
-			typedef Collector<ObserverInterface> ObserverCollector;
+			typedef Collector<ObserverType> ObserverCollector;
 		public:
 			FooSubject() :
-				Subject::SubjectInterface(),
-				Subject()
+				Subject<FooNotificationInterface>()
 			{}
 
 			FooSubject(const FooSubject& other) :
-				Subject::SubjectInterface(other),
-				Subject(other)
+				Subject<FooNotificationInterface>(other)
 			{}
 
             bool
             hasObservers() const
             {
-                return Subject::hasObservers();
+                return Subject<FooNotificationInterface>::hasObservers();
             }
 
 
@@ -124,7 +122,7 @@ namespace wns { namespace tests {
 			}
 
 			bool
-			hasFooObserver(const ObserverInterface* observer)
+			hasFooObserver(const ObserverType* observer)
 			{
 				ObserverCollector::Container observers = this->forEachObserver(ObserverCollector()).instances;
 				return std::find(observers.begin(), observers.end(), observer) != observers.end();
@@ -146,10 +144,10 @@ namespace wns { namespace tests {
 		class BarSubject :
 			public Subject<BarNotificationInterface>
 		{
-			typedef Subject<BarNotificationInterface> Subject;
-			using Subject::ObserverInterface;
+			typedef Subject<BarNotificationInterface> BarNotificationSubject;
+			using Subject<BarNotificationInterface>::ObserverType;
 
-			typedef Collector<ObserverInterface> ObserverCollector;
+			typedef Collector<ObserverType> ObserverCollector;
 		public:
 			void
 			barUpdated()
@@ -164,7 +162,7 @@ namespace wns { namespace tests {
 			}
 
 			bool
-			hasBarObserver(const ObserverInterface* observer)
+			hasBarObserver(const ObserverType* observer)
 			{
 				ObserverCollector::Container observers = this->forEachObserver(ObserverCollector()).instances;
 				return std::find(observers.begin(), observers.end(), observer) != observers.end();
@@ -181,10 +179,10 @@ namespace wns { namespace tests {
 		class FooObserver :
 			public Observer<FooNotificationInterface>
 		{
-			typedef Observer<FooNotificationInterface> Observer;
-			using Observer::SubjectInterface;
+			typedef Observer<FooNotificationInterface> FooNotificationObserver;
+			using Observer<FooNotificationInterface>::SubjectType;
 
-			typedef Collector<SubjectInterface> SubjectCollector;
+			typedef Collector<SubjectType> SubjectCollector;
 		public:
 			FooObserver() :
 				fooNotifyCounter(0)
@@ -203,8 +201,8 @@ namespace wns { namespace tests {
 		class FooObserverDetachOnNotify :
 			public Observer<FooNotificationInterface>
 		{
-			typedef Observer<FooNotificationInterface> Observer;
-			using Observer::SubjectInterface;
+			typedef Observer<FooNotificationInterface> FooNotificationObserver;
+			using Observer<FooNotificationInterface>::SubjectType;
 
 		public:
 			FooObserverDetachOnNotify() :
@@ -219,22 +217,22 @@ namespace wns { namespace tests {
 			}
 
 			virtual void
-			setSubject(SubjectInterface* si)
+			setSubject(SubjectType* si)
 			{
 				assure(subject == NULL, "Can't set if not NULL");
 				subject = si;
 			}
 
-			SubjectInterface* subject;
+			SubjectType* subject;
 		};
 
 		class BarObserver :
 			public Observer<BarNotificationInterface>
 		{
-			typedef Observer<BarNotificationInterface> Observer;
-			using Observer::SubjectInterface;
+			typedef Observer<BarNotificationInterface> BarNotificationObserver;
+			using Observer<BarNotificationInterface>::SubjectType;
 
-			typedef Collector<SubjectInterface> SubjectCollector;
+			typedef Collector<SubjectType> SubjectCollector;
 		public:
 			BarObserver() :
 				barNotifyCounter(0)
