@@ -125,6 +125,8 @@ srcFiles = [
     'src/queuingsystem/MM1Step3.cpp',
     'src/queuingsystem/MM1Step5.cpp',
     'src/queuingsystem/MM1Step6.cpp',
+    'src/queuingsystem/GGn.cpp',
+    'src/queuingsystem/Server.cpp',
 
     'src/tests/AverageTest.cpp',
     'src/tests/AssureTest.cpp',
@@ -493,6 +495,8 @@ hppFiles = [
 'src/queuingsystem/MM1Step3.hpp',
 'src/queuingsystem/MM1Step5.hpp',
 'src/queuingsystem/MM1Step2.hpp',
+'src/queuingsystem/GGn.hpp',
+'src/queuingsystem/Server.hpp',
 'src/Assure.hpp',
 'src/LongCreator.hpp',
 'src/rng/RNGen.hpp',
