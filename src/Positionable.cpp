@@ -40,7 +40,7 @@ Positionable::Positionable() :
 }
 
 Positionable::Positionable(const Positionable& other) :
-	Subject::SubjectInterface(other),
+	Subject::SubjectType(other),
 	PositionableInterface(other),
 	Subject(other),
 	position(other.position)

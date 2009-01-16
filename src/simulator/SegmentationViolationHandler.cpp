@@ -29,6 +29,7 @@
 #include <WNS/Backtrace.hpp>
 
 #include <iostream>
+#include <cstdlib>
 
 using namespace wns::simulator;
 
