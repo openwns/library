@@ -51,6 +51,18 @@ Context::~Context()
 }
 
 void
+Context::insert(const std::string& key, int value)
+{
+    insertInt(key, value);
+}
+
+void
+Context::insert(const std::string& key, const std::string& value)
+{
+    insertString(key,value);
+}
+
+void
 Context::insertInt(const std::string& key, int value)
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");

@@ -159,6 +159,7 @@ srcFiles = [
     'src/probe/bus/tests/ContextFilterProbeBusTest.cpp',
     'src/probe/bus/tests/ContextProviderTest.cpp',
     'src/probe/bus/tests/ContextProviderCollectionTest.cpp',
+    'src/probe/bus/tests/ContextCollectorTest.cpp',
     'src/probe/bus/tests/PassThroughProbeBusTest.cpp',
     'src/probe/bus/tests/ProbeBusRegistryTest.cpp',
     'src/probe/bus/tests/ProbeBusStub.cpp',

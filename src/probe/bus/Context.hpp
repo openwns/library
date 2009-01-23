@@ -83,6 +83,12 @@ namespace wns { namespace probe { namespace bus {
         virtual bool
         knows(const std::string& key) const = 0;
 
+        virtual void
+        insert(const std::string& key, int value) = 0;
+
+        virtual void
+        insert(const std::string& key, const std::string&) = 0;
+
         /**
 		 * @brief inserts an integer value under the given key (thereby
 		 * checking that no duplicates exist)
@@ -122,6 +128,12 @@ namespace wns { namespace probe { namespace bus {
 
         virtual bool
         knows(const std::string& key) const;
+
+        virtual void
+        insert(const std::string& key, int value);
+
+        virtual void
+        insert(const std::string& key, const std::string&);
 
         virtual void
         insertInt(const std::string& key, int value);

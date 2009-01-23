@@ -25,65 +25,57 @@
  *
  ******************************************************************************/
 
+#include <WNS/TestFixture.hpp>
+
+#include <WNS/probe/bus/ContextCollector.hpp>
 #include <WNS/probe/bus/tests/ProbeBusStub.hpp>
 
-#include <sstream>
+#include <boost/tuple/tuple.hpp>
+
+namespace wns { namespace probe { namespace bus { namespace tests {
+
+    class ContextCollectorTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( ContextCollectorTest );
+        CPPUNIT_TEST( tupleContext );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void prepare();
+        void cleanup();
+        void tupleContext();
+    };
+
+    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( ContextCollectorTest, wns::testsuite::Default() );
+
+}
+}
+}
+}
 
 using namespace wns::probe::bus::tests;
 
-ProbeBusStub::ProbeBusStub()
-{
-    receivedCounter = 0;
-    providerName = "";
-    filter = 0;
-}
-
-ProbeBusStub::~ProbeBusStub()
+void
+ContextCollectorTest::prepare()
 {
 }
 
 void
-ProbeBusStub::onMeasurement(const wns::simulator::Time& timestamp,
-                            const double& value,
-                            const IContext& c)
+ContextCollectorTest::cleanup()
 {
-    ++receivedCounter;
-    receivedTimestamps.push_back(timestamp);
-    receivedValues.push_back(value);
-
-    std::stringstream s;
-    s << c;
-    lastContext = s.str();
-}
-
-
-void
-ProbeBusStub::output()
-{
-}
-
-bool
-ProbeBusStub::accepts(const wns::simulator::Time& /*timestamp*/,
-                      const IContext& reg)
-{
-    if(providerName == "")
-    {
-        return true;
-    }
-
-    if(reg.getInt(providerName) == filter)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
 }
 
 void
-ProbeBusStub::setFilter(std::string _providerName, int32_t _filter)
+ContextCollectorTest::tupleContext()
 {
-    providerName = _providerName;
-    filter = _filter;
+    ContextCollector cc_("testSource");
+
+    ProbeBusStub pb;
+
+    pb.startObserving(wns::simulator::getProbeBusRegistry()->getMeasurementSource("testSource"));
+
+    cc_.put(1.23, boost::make_tuple("IntContext", 1, "StringContext", "hansi"));
+
+    CPPUNIT_ASSERT(pb.lastContext == "{IntContext : 1,StringContext : 'hansi',}");
 }
+
