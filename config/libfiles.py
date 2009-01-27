@@ -168,6 +168,7 @@ srcFiles = [
     'src/probe/bus/tests/TableProbeBusTest.cpp',
     'src/probe/bus/tests/DevelopersGuideTest.cpp',
     'src/probe/bus/tests/DevelopersGuideTestCollector.cpp',
+    'src/probe/bus/tests/DevelopersGuideTestSimpleCollector.cpp',
     'src/probe/bus/detail/tests/SorterTest.cpp',
 
     'src/evaluation/statistics/tests/StatEvalTest.cpp',
