@@ -357,6 +357,7 @@ hppFiles = [
 'src/service/tl/FlowID.hpp',
 'src/service/tl/PortPool.hpp',
 'src/service/tl/Service.hpp',
+'src/service/qos/QoSClasses.hpp',
 'src/Backtrace.hpp',
 'src/simulator/Bit.hpp',
 'src/simulator/Main.hpp',
@@ -457,6 +458,7 @@ pyconfig = [
 'openwns/evaluation/default.py',
 'openwns/geometry/position.py',
 'openwns/geometry/__init__.py',
+'openwns/qos.py',
 ]
 libraries = []
 Return('libname srcFiles hppFiles pyconfig libraries')

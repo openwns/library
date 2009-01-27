@@ -30,7 +30,7 @@
 
 #include <WNS/service/Service.hpp>
 #include <WNS/service/nl/Address.hpp>
-
+#include <WNS/service/qos/QoSClasses.hpp>
 
 namespace wns { namespace service { namespace tl {
 
@@ -75,6 +75,7 @@ namespace wns { namespace service { namespace tl {
 			Port _port,
 			wns::service::nl::FQDN _source,
 			wns::service::nl::FQDN _peer,
+			wns::service::qos::QoSClass _qosClass,
 			ConnectionHandler* _ch) = 0;
 
 		/**
