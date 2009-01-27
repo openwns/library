@@ -68,14 +68,14 @@ TestFixture::tearDown()
     catch (const wns::Exception& e)
     {
         std::cerr << "\n"
-                  << "A wns::Exception occured during cleanup(): \n"
+                  << "wns::Exception thrown in wns::TestFixture::cleanup(): \n"
                   << e.what() << "\n";
         throw;
     }
     catch (const std::exception& e)
     {
         std::cerr << "\n"
-                  << "An exception occured during cleanup(): \n"
+                  << "std::exception thrown in wns::TestFixture::cleanup(): \n"
                   << e.what() << "\n";
         throw;
     }

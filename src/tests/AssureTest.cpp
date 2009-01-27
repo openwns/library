@@ -36,49 +36,49 @@
 
 namespace wns {
 
-	class AssureTest :
-		public wns::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( AssureTest );
-		CPPUNIT_TEST_EXCEPTION( except, Assure::Exception );
-		CPPUNIT_TEST( exceptionContent );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void prepare()
-		{
-		}
+    class AssureTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( AssureTest );
+        CPPUNIT_TEST( except );
+        CPPUNIT_TEST( exceptionContent );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void prepare()
+        {
+        }
 
-		void cleanup()
-		{
-		}
+        void cleanup()
+        {
+        }
 
-		void
-		except()
-		{
-			assure(false, "This is a test");
-		}
+        void
+        except()
+        {
+            WNS_ASSERT_ASSURE_EXCEPTION(assure(false, "This is a test"));
+        }
 
-		void
-		exceptionContent()
-		{
-			int lineNumber = 0;
+        void
+        exceptionContent()
+        {
+            int lineNumber = 0;
             std::string fileName = __FILE__;
-			try
-			{
-				lineNumber = __LINE__ + 1;
-				assure(false, "This is a test.");
-			}
-			catch (const Exception& e)
-			{
-				std::stringstream expectedMessage;
-				expectedMessage << "In 'void wns::AssureTest::exceptionContent()' ("
+            try
+            {
+                lineNumber = __LINE__ + 1;
+                assure(false, "This is a test.");
+            }
+            catch (const Exception& e)
+            {
+                std::stringstream expectedMessage;
+                expectedMessage << "In 'void wns::AssureTest::exceptionContent()' ("
                                 << fileName << ":" << lineNumber << "):\n"
                                 << "failed assertion (false).\nReason: This is a test.\n";
-				CPPUNIT_ASSERT_MESSAGE( std::string(e.what()) + "vs. expectedMessage:\n" + expectedMessage.str(),
+                CPPUNIT_ASSERT_MESSAGE( std::string(e.what()) + "vs. expectedMessage:\n" + expectedMessage.str(),
                                         std::string(e.what()) == expectedMessage.str());
-			}
-		}
-	};
+            }
+        }
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( AssureTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( AssureTest );
 }

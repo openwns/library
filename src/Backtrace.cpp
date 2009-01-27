@@ -35,6 +35,7 @@
 
 #ifdef __GLIBC__
 #include <execinfo.h>
+#include <cstdlib>
 #endif // __GLIBC__
 
 #include <sstream>

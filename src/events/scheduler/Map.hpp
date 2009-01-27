@@ -173,8 +173,8 @@ namespace wns { namespace events { namespace scheduler {
         virtual size_t
         doSize() const;
 
-		virtual bool
-		doProcessOneEvent();
+        virtual bool
+        doProcessOneEvent();
 
         virtual ICommandPtr
         doQueueCommand(const Callable& callable);
