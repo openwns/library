@@ -27,6 +27,49 @@
 
 # aliases
 import openwns.simulator as simulator
+import sys
+import os
+
 Simulator = simulator.OpenWNS
 getSimulator = simulator.getSimulator
 setSimulator = simulator.setSimulator
+
+def getPyConfigPath():
+    for path in sys.path:
+        path = os.path.abspath(path)
+        if 'PyConfig' in path and os.path.exists(path):
+            return path
+    # should not be reached if path is available
+    raise("No path in sys.path found which contains 'PyConfig'")
+
+def dB(ratio):
+    return str(ratio) + " dB"
+def fromdB(str):
+    i = str.index('dB')
+    return(float(str[0:i-1]))
+
+def dBm(power):
+    return str(power) + " dBm"
+def fromdBm(str):
+    i = str.index('dBm')
+    return(float(str[0:i-1]))
+
+def W(power):
+    return str(power) + " W"
+def fromW(str):
+    i = str.index('W')
+    return(float(str[0:i-1]))
+
+def mW(power):
+    return str(power) + " mW"
+def frommW(str):
+    i = str.index('mW')
+    return(float(str[0:i-1]))
+
+class Position:
+    __slots__ = ["x", "y", "z"]
+
+    def __init__(self, x=0, y=0,z=0):
+        self.x = x
+        self.y = y
+        self.z = z

@@ -202,8 +202,8 @@ namespace wns { namespace container { namespace tests {
             CPPUNIT_ASSERT( r.find<B*>("bar") == bar );
             CPPUNIT_ASSERT( r.find<int>("ernie") == 23 );
             CPPUNIT_ASSERT( r.find<double>("bert") == 42.0 );
-            CPPUNIT_ASSERT( r.find<const char*>("tiffi") == "samson");
-            CPPUNIT_ASSERT( r.find<std::string>("oscar") == "grobi");
+            CPPUNIT_ASSERT( r.find<const char*>("tiffi") == std::string("samson"));
+            CPPUNIT_ASSERT( r.find<std::string>("oscar") == std::string("grobi"));
 
             delete foo;
             delete bar;

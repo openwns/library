@@ -29,6 +29,7 @@
 #include <WNS/container/FastListEnabler.hpp>
 #include <WNS/TestFixture.hpp>
 #include <WNS/SmartPtr.hpp>
+#include <WNS/Assure.hpp>
 
 namespace wns { namespace container { namespace tests {
     /**
@@ -427,7 +428,7 @@ namespace wns { namespace container { namespace tests {
         void
         copySingleFastList()
         {
-            CPPUNIT_ASSERT_THROW(FastList<SFLTest*> sf_copy(sf), wns::Exception);
+            WNS_ASSERT_ASSURE_EXCEPTION(FastList<SFLTest*> sf_copy(sf));
         }
 
         void
@@ -455,7 +456,7 @@ namespace wns { namespace container { namespace tests {
         assignmentSingleFastList()
         {
             FastList<SFLTest*> sf_copy;
-            CPPUNIT_ASSERT_THROW(sf_copy = sf, wns::Exception);
+            WNS_ASSERT_ASSURE_EXCEPTION(sf_copy = sf);
         }
 
 

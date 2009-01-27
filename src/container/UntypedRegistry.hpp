@@ -28,6 +28,7 @@
 #ifndef WNS_CONTAINER_UNTYPEDREGISTRY_HPP
 #define WNS_CONTAINER_UNTYPEDREGISTRY_HPP
 
+#include <memory>
 #include <WNS/container/Registry.hpp>
 #include <WNS/Chamaeleon.hpp>
 

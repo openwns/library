@@ -33,6 +33,7 @@
 #include <map>
 #include <list>
 #include <stdexcept>
+#include <algorithm>
 
 namespace wns { namespace tests {
 

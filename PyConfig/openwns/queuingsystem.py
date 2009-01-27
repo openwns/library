@@ -86,4 +86,13 @@ class SimpleMM1Step6(object):
         self.jobProcessingTimeDistribution = openwns.distribution.NegExp(meanJobProcessingTime)
 
         self.probeBusName = "openwns.queuingsystem.MM1.sojournTime"
+        
+class GGn(object):
+
+    def __init__(self, iatDist, procDist, servers):
+        self.nameInFactory = 'openwns.queuingsystem.ggn'
+        self.iatDist = iatDist
+        self.procDist = procDist
+        self.serverCount = servers
+        self.logger = openwns.logger.Logger("WNS", "GGn", True)
 

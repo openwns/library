@@ -70,7 +70,7 @@ namespace wns {
          * Observer is the only class with access to addObserver() and
          * removeObserver().
          */
-        friend class Observer<typename OBSERVERINTERFACE::NotificationInterface>;
+        friend class Observer<typename OBSERVERINTERFACE::NotificationType>;
     public:
         /**
          * @brief The ObserverInterface corresponding to this
@@ -79,7 +79,7 @@ namespace wns {
          * This always refers to the ObserverInterface that uses the
          * same NotificationInterface.
          */
-        typedef OBSERVERINTERFACE ObserverInterface;
+        typedef OBSERVERINTERFACE ObserverType;
 
         /**
          * @brief The NotificationInterface used by SubjectInterface and
@@ -88,7 +88,7 @@ namespace wns {
          * This provides the NotificationInterface that is used by both
          * this SubjectInterface and OBSERVERINTERFACE.
          */
-        typedef typename ObserverInterface::NotificationInterface NotificationInterface;
+        typedef typename ObserverType::NotificationType NotificationType;
 
         virtual
         ~SubjectInterface()
@@ -108,7 +108,7 @@ namespace wns {
          * NotificationInterface@endlink and OBSERVERINTERFACE.
          */
         virtual void
-        addObserver(ObserverInterface* observer) = 0;
+        addObserver(ObserverType* observer) = 0;
 
         /**
          * @brief Remove an observer from a subject.
@@ -121,9 +121,9 @@ namespace wns {
          * notifications.
          */
         virtual void
-        removeObserver(ObserverInterface* observer) = 0;
+        removeObserver(ObserverType* observer) = 0;
     };
 
 }
 
-#endif // NOT defined WNS_SUBJECTINTERFACE_HPP
+#endif
