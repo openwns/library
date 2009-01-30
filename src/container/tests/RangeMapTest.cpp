@@ -84,12 +84,12 @@ namespace wns { namespace container { namespace tests {
 
     void RangeMapTest::testIntInt()
     {
-	typedef RangeMap<int, int> MyMap;
+	typedef wns::container::RangeMap<int, int> MyMap;
 	MyMap m;
- 	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::Interval::From(0).To(2), 23) );
- 	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::Interval::Between(3).And(5), 42) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::Interval::Between(0).And(0), 0) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::Interval::From(1).To(1), 0) );
+ 	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::From(0).To(2), 23) );
+ 	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(3).And(5), 42) );
+	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::Between(0).And(0), 0) );
+	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::From(1).To(1), 0) );
 	CPPUNIT_ASSERT( m.has(0) );
 	CPPUNIT_ASSERT( !m.has(3) );
 	CPPUNIT_ASSERT( m.get(0) == 23 );
@@ -101,12 +101,12 @@ namespace wns { namespace container { namespace tests {
 
     void RangeMapTest::testFloatFloat()
     {
-	typedef RangeMap<float, float> MyMap;
+	typedef wns::container::RangeMap<float, float> MyMap;
 	MyMap m;
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::Interval::From(0.0).To(0.1), 15) );
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::Interval::Between(0.1).And(0.2), 16) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::Interval::Between(0.0).And(0.0), 0) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::Interval::From(0.0).To(0.2), 0) );
+	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::From(0.0).To(0.1), 15) );
+	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(0.1).And(0.2), 16) );
+	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::Between(0.0).And(0.0), 0) );
+	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::From(0.0).To(0.2), 0) );
 	CPPUNIT_ASSERT( m.get(0.0) == 15 );
 	CPPUNIT_ASSERT( m.get(0.05) == 15 );
 	CPPUNIT_ASSERT( m.get(0.1) == 15 );
@@ -117,12 +117,12 @@ namespace wns { namespace container { namespace tests {
 
     void RangeMapTest::testFloatFunctor()
     {
-	typedef RangeMap<float, TestFunctor*> MyMap;
+	typedef wns::container::RangeMap<float, TestFunctor*> MyMap;
 	MyMap m;
 	Group1* g1 = new Group1();
 	Group2* g2 = new Group2();
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::Interval::Between(0.0).And(16.0), g1) );
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::Interval::Between(16.0).And(43.0), g2) );
+	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(0.0).And(16.0), g1) );
+	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(16.0).And(43.0), g2) );
 	CPPUNIT_ASSERT( (*m.get(6.0))("foo") == "4 8 15 foo" );
 	CPPUNIT_ASSERT( (*m.get(23.0))("bar") == "16 23 42 bar" );
 	CPPUNIT_ASSERT( (*m.get(42.0))("baz") == "16 23 42 baz" );

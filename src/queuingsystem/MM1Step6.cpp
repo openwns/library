@@ -26,8 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/queuingsystem/MM1Step6.hpp>
-
-#include <WNS/probe/bus/ProbeBusRegistry.hpp>
+#include <WNS/queuingsystem/JobContextProvider.hpp>
 
 using namespace wns::queuingsystem;
 
@@ -41,8 +40,12 @@ SimpleMM1Step6::SimpleMM1Step6(const wns::pyconfig::View& config) :
     priorityDistribution_(Job::lowPriority, Job::highPriority),
     config_(config),
     logger_(config.get("logger")),
-    probeBus_(NULL),
-    idle(true)
+    idle(true),
+    // Below we will put one Context Provider in the collection
+    cpc_(new wns::probe::bus::ContextProviderCollection()),
+    // The name of the measurement source. Must match the one configured
+    // in the global Probe Bus Registry
+    sojournTime_(cpc_, "SojournTime")
 {
     wns::pyconfig::View disConfig = config.get("jobInterArrivalTimeDistribution");
     std::string disName = disConfig.get<std::string>("__plugin__");
@@ -53,41 +56,34 @@ SimpleMM1Step6::SimpleMM1Step6(const wns::pyconfig::View& config) :
     disName = disConfig.get<std::string>("__plugin__");
     jobProcessingTime_ = 
         wns::distribution::DistributionFactory::creator(disName)->create(disConfig);
+
+    // PDU Context Provider will receive a Job PDU when probing and read
+    // Context information from it
+    cpc_->addProvider(JobContextProvider());
 }
 
-// begin example "wns.queuingsystem.mm1step6.doStartup.example" 
 void
 SimpleMM1Step6::doStartup()
 {
     MESSAGE_SINGLE(NORMAL, logger_, "MM1Step6 started, generating first job\n" << *this);
 
-    std::string probeBusName = config_.get<std::string>("probeBusName");
-
-    wns::probe::bus::ProbeBusRegistry* reg = wns::simulator::getProbeBusRegistry();
-
-    probeBus_ = reg->getMeasurementSource(probeBusName);
-
-    // We need that probe bus!!
-    assure(probeBus_ != NULL, "ProbeBus could not be created");
-
     generateNewJob();
 }
-// end example
 
 void
 SimpleMM1Step6::doShutdown()
 {
-    assure(probeBus_ != NULL, "No ProbeBus");
-    probeBus_->forwardOutput();
+    assure(cpc_, "No Context Provider Collection");
+    delete cpc_;
 }
 
 void
 SimpleMM1Step6::generateNewJob()
 {
     // Create a new job
-    Job job = Job(drawJobPriority());
+    JobPtr job(new Job(drawJobPriority()));
 
-    if (job.getPriority() == Job::lowPriority)
+    if (job->getPriority() == Job::lowPriority)
     {
         lowPriorityQueue_.push_back(job);
     }
@@ -114,11 +110,12 @@ SimpleMM1Step6::generateNewJob()
 void
 SimpleMM1Step6::onJobProcessed()
 {
+    assure(currentJob_, "onJobProcessed called with no current Job");
     // Calculate the Jobs sojourn time
     wns::simulator::Time  now;
     wns::simulator::Time  sojournTime;
     now = wns::simulator::getEventScheduler()->getTime();
-    sojournTime = now - currentJob_.getCreationTime();
+    sojournTime = now - currentJob_->getCreationTime();
 
     // Give some debug output
     MESSAGE_SINGLE(NORMAL, logger_, "Finished a job\n" << *this);
@@ -126,16 +123,11 @@ SimpleMM1Step6::onJobProcessed()
     m << sojournTime;
     MESSAGE_END();
 
-    // Send the measurement to the probeBus
-    // We will now create a context which carries information on
-    // the jobs priority
-    wns::probe::bus::Context context;
-
-    context.insertInt("priority", currentJob_.getPriority());
-
-    // Forward the measurement onto the probeBus_
-    assure(probeBus_ != NULL, "No ProbeBus");
-    probeBus_->forwardMeasurement(now, sojournTime, context);
+    // Probe the value. The Job Context Provider will automatically
+    // attach information about the priority of the job.
+    // It therefore requieres put() to be called with the Job
+    // as an argument.
+    sojournTime_.put(currentJob_, sojournTime);
 
     // if there are still jobs, serve them
     if ( getNumberOfJobs() > 0 )
@@ -170,10 +162,10 @@ SimpleMM1Step6::getNumberOfJobs() const
     return lowPriorityQueue_.size() + highPriorityQueue_.size();
 }
 
-Job
+JobPtr
 SimpleMM1Step6::getNextJob()
 {
-    Job nextJob;
+    JobPtr nextJob;
 
     if (highPriorityQueue_.size() > 0)
     {
@@ -215,3 +207,4 @@ SimpleMM1Step6::drawJobPriority()
         return Job::highPriority;
     }
 }
+

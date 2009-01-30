@@ -27,6 +27,7 @@
 
 #include <WNS/logger/ConsoleFormat.hpp>
 #include <iomanip>
+#include <cstdlib>
 
 using namespace wns::logger;
 

@@ -30,32 +30,30 @@
 
 namespace wns { namespace events { namespace scheduler { namespace tests {
 
-	class MapPerformanceTest :
-		public PerformanceTest
-	{
-		CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
-		CPPUNIT_TEST_SUITE_END();
+    class MapPerformanceTest :
+        public PerformanceTest
+    {
+        CPPUNIT_TEST_SUB_SUITE( MapPerformanceTest, PerformanceTest );
+        CPPUNIT_TEST_SUITE_END();
 
-	private:
-		virtual Interface*
-		newTestee()
-		{
-			return new Map();
-		} // newTestee
+    private:
+        virtual Interface*
+        newTestee()
+        {
+            return new Map();
+        } // newTestee
 
-		virtual void
-		deleteTestee(Interface* scheduler)
-		{
-			delete scheduler;
-		} // deleteTestee
-	};
+        virtual void
+        deleteTestee(Interface* scheduler)
+        {
+            delete scheduler;
+        } // deleteTestee
+    };
 
-	CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
+    CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( MapPerformanceTest, wns::testsuite::Performance() );
 
 } // tests
 } // scheduler
 } // events
 } // wns
-
-
 

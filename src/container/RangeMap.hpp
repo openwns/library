@@ -72,7 +72,7 @@ namespace wns { namespace container {
 
 	/** @brief Type of the interval used by insert().
 	 */
-	typedef Interval<Index> Interval;
+	typedef Interval<Index> IntervalType;
 
 	/** @brief Type of the values stored.
 	 */
@@ -102,7 +102,7 @@ namespace wns { namespace container {
 	 *
 	 *  @returns Reference to *this.
 	 */
-	RangeMap& insert(const Interval& interval, const ValueType& value)
+	RangeMap& insert(const IntervalType& interval, const ValueType& value)
 	{
 	    IntervalValuePair intervalValue = IntervalValuePair(interval, value);
 	    assure(!interval.isEmpty(), "RangeMap: Can not insert empty intervals!");
@@ -154,7 +154,7 @@ namespace wns { namespace container {
 
     private:
 
-	typedef std::pair<Interval, Value> IntervalValuePair;
+	typedef std::pair<IntervalType, Value> IntervalValuePair;
 	/// @todo (swen) balanced tree
 	typedef BinaryTree<IntervalValuePair, CleanupStrategy > RangeTree;
 

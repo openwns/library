@@ -27,6 +27,8 @@
 
 #include <WNS/probe/bus/tests/ProbeBusStub.hpp>
 
+#include <sstream>
+
 using namespace wns::probe::bus::tests;
 
 ProbeBusStub::ProbeBusStub()
@@ -43,11 +45,15 @@ ProbeBusStub::~ProbeBusStub()
 void
 ProbeBusStub::onMeasurement(const wns::simulator::Time& timestamp,
                             const double& value,
-                            const IContext&)
+                            const IContext& c)
 {
     ++receivedCounter;
     receivedTimestamps.push_back(timestamp);
     receivedValues.push_back(value);
+
+    std::stringstream s;
+    s << c;
+    lastContext = s.str();
 }
 
 

@@ -99,22 +99,3 @@ namespace wns { namespace queuingsystem {
 
 #endif // NOT defined WNS_QUEUINGSYSTEM_MM1STEP3_HPP
 
-
-/**
- * @page wns.queuingsystem.mm1step3 Taking Measurements
- *
- * @section wns.queuingsystem.mm1step3.contents Contents
- *
- * @section wns.queuingsystem.mm1step3.probebus Collecting Measurements
- *   - Introduce the Probebus basics
- *   - Explain the ProbeBus evaluation interface 
- *
- * Modifications to the mm1 header
- * @include "wns.queuingsystem.mm1step3.hpp.example"
- * @include "wns.queuingsystem.mm1step3.doStartup.example"
- *
- * @section wns.queuingsystem.mm1step3.probebusconf Configuration
- *
- *   - Show how to do the configuration
- *   - "NameInFactory" explain the interconnection between Python/C++
- */

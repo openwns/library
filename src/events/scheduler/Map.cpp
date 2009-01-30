@@ -34,10 +34,11 @@ STATIC_FACTORY_REGISTER(
     Interface,
     "wns.events.scheduler.Map");
 
+
 Map::Map() :
     Interface(),
     Subject<INotification>(),
-	simTime_(0.0),
+    simTime_(0.0),
     events_(),
     nowItr_(),
     stop_(false),
@@ -159,28 +160,28 @@ Map::doProcessOneEvent()
     // get next event
     EventPtr nextEvent = nowItr_->second->front();
 
-	wns::simulator::Time newTime = nextEvent->getScheduled();
+    wns::simulator::Time newTime = nextEvent->getScheduled();
 
-	// run until all now events are processed
-	if (simTime_ < newTime)
+    // run until all now events are processed
+    if (simTime_ < newTime)
     {
         if(stop_)
         {
             return false;
         }
         onNewSimTime(newTime);
-	}
+    }
 
-	simTime_ = newTime;
+    simTime_ = newTime;
 
     nextEvent->state_ = Event::Running;
-	(*nextEvent)();
+    (*nextEvent)();
     nextEvent->state_ = Event::Finished;
 
     // remove the event
     nowItr_->second->pop_front();
 
-	return true;
+    return true;
 }
 
 void
@@ -251,19 +252,19 @@ Map::sendAddEventNotification()
 wns::simulator::Time
 Map::doGetTime() const
 {
-	return simTime_;
+    return simTime_;
 }
 
 void
 Map::doStart()
 {
-	while(processOneEvent());
+    while(processOneEvent());
 }
 
 void
 Map::doStop()
 {
-	stop_ = true;
+    stop_ = true;
 }
 
 wns::events::scheduler::ICommandPtr
