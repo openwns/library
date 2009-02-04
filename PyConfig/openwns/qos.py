@@ -5,6 +5,8 @@ from wns.PyConfig import attrsetter
 
 numberOfQoSClasses = 5
 undefinedQosClass = "UNDEFINED"
+realTimeQosClass = "REALTIME"
+guaranteedTpQosClass ="GUARANTEEDTP"
 bestEffortQosClass = "BESTEFFORT"
 priorityBest  = 0
 priorityWorst = 4
