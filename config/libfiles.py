@@ -188,6 +188,7 @@ srcFiles = [
     'src/probe/bus/tests/ContextFilterProbeBusTest.cpp',
     'src/probe/bus/tests/ContextProviderTest.cpp',
     'src/probe/bus/tests/ContextProviderCollectionTest.cpp',
+    'src/probe/bus/tests/ContextCollectorTest.cpp',
     'src/probe/bus/tests/PassThroughProbeBusTest.cpp',
     'src/probe/bus/tests/ProbeBusRegistryTest.cpp',
     'src/probe/bus/tests/ProbeBusStub.cpp',
@@ -196,6 +197,7 @@ srcFiles = [
     'src/probe/bus/tests/TableProbeBusTest.cpp',
     'src/probe/bus/tests/DevelopersGuideTest.cpp',
     'src/probe/bus/tests/DevelopersGuideTestCollector.cpp',
+    'src/probe/bus/tests/DevelopersGuideTestSimpleCollector.cpp',
     'src/probe/bus/detail/tests/SorterTest.cpp',
 
     'src/evaluation/statistics/tests/StatEvalTest.cpp',

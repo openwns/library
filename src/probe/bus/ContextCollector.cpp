@@ -30,11 +30,22 @@
 
 using namespace wns::probe::bus;
 
+ContextCollector::ContextCollector(std::string probeBusId) :
+    contextProviders_(ContextProviderCollection()),
+    probeBus_(wns::simulator::getProbeBusRegistry()->getMeasurementSource(probeBusId))
+{}
+
 ContextCollector::ContextCollector(ContextProviderCollection contextProviders,
 								   std::string probeBusId) :
 	contextProviders_(contextProviders),
 	probeBus_(wns::simulator::getProbeBusRegistry()->getMeasurementSource(probeBusId))
 {}
+
+bool
+ContextCollector::hasObservers() const
+{
+    return probeBus_->hasObservers();
+}
 
 void
 ContextCollector::put(const wns::osi::PDUPtr& compound, double value) const
@@ -75,8 +86,3 @@ ContextCollector::put(double value) const
     probeBus_->forwardMeasurement(t, value, c);
 }
 
-bool
-ContextCollector::hasObservers() const
-{
-    return probeBus_->hasObservers();
-}

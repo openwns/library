@@ -66,7 +66,7 @@ namespace wns
 		virtual public PositionableInterface,
 		public Subject<PositionObserver>
 	{
-		typedef Subject<PositionObserver> Subject;
+		typedef Subject<PositionObserver> SubjectType;
 	public:
 		Positionable();
 

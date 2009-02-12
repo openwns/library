@@ -68,6 +68,8 @@ namespace wns { namespace probe { namespace bus { namespace tests {
 
         int32_t filter;
 
+        std::string lastContext;
+
     };
 } // tests
 } // bus

@@ -39,6 +39,8 @@
 #include <WNS/RefCountable.hpp>
 #include <WNS/SmartPtr.hpp>
 
+#include <boost/tuple/tuple.hpp>
+
 #include <vector>
 
 namespace wns { namespace probe { namespace bus {
@@ -60,7 +62,35 @@ namespace wns { namespace probe { namespace bus {
 		ContextProviderCollection contextProviders_;
         /** @brief The ProbeBus where we publish our measurements */
         wns::probe::bus::ProbeBus* probeBus_;
-	public:
+
+        template <typename Tuple, int keyIndex, int valueIndex>
+        struct detail
+        {
+            static void fillContext(Context& c, const Tuple& tuple)
+                {
+                    std::string k = boost::tuples::get<keyIndex>(tuple);
+
+                    c.insert(k, boost::tuples::get<valueIndex>(tuple));
+
+                    detail<Tuple, keyIndex-2, valueIndex-2>::fillContext(c, tuple);
+                }
+        };
+
+        template <typename Tuple>
+        struct detail<Tuple, 0, 1>
+        {
+            static void fillContext(Context& c, const Tuple& tuple)
+                {
+                    std::string k = boost::tuples::get<0>(tuple);
+
+                    c.insert(k, boost::tuples::get<1>(tuple));
+                }
+        };
+
+    public:
+
+        ContextCollector(std::string probeBusId);
+
         /**
          * @brief Stores a copy of the contextProviders and retrieves
          * a ProbeBus from the ProbeBusRegistry
@@ -71,15 +101,64 @@ namespace wns { namespace probe { namespace bus {
 		~ContextCollector()
 		{};
 
-		void
-		put(double value) const;
-
-		void
-		put(const wns::osi::PDUPtr&, double value) const;
-
         bool
         hasObservers() const;
-	};
+
+        void
+        put(double value) const;
+
+        /**
+         * @brief Add a variable number of context entries in place.
+         *
+         * Example:
+         *
+         * cc_.put(1.234, make_tuple("Key1", 1, "Key2", "stringvalue"));
+         */
+        template<typename Tuple>
+        void
+        put(double value, const Tuple& contextentries) const
+            {
+                // early return if no one is listening
+                if (!probeBus_->hasObservers())
+                {
+                    return;
+                }
+                // Create vanilla Context object
+                Context c;
+
+                contextProviders_.fillContext(c);
+
+                ContextCollector::detail<Tuple, boost::tuples::length<Tuple>::value-2, boost::tuples::length<Tuple>::value-1>::fillContext(c, contextentries);
+
+                // determine simTime
+                wns::simulator::Time t = wns::simulator::getEventScheduler()->getTime();
+                probeBus_->forwardMeasurement(t, value, c);
+            }
+
+        void
+        put(const wns::osi::PDUPtr&, double value) const;
+
+        template<typename Tuple>
+        void
+        put(const wns::osi::PDUPtr& compound, double value, const Tuple& contextentries) const
+            {
+                // early return if no one is listening
+                if (!probeBus_->hasObservers())
+                {
+                    return;
+                }
+                // Create vanilla Context object
+                Context c;
+
+                contextProviders_.fillContext(c, compound);
+
+                ContextCollector::detail<Tuple, boost::tuples::length<Tuple>::value-2, boost::tuples::length<Tuple>::value-1>::fillContext(c, contextentries);
+
+                // determine simTime
+                wns::simulator::Time t = wns::simulator::getEventScheduler()->getTime();
+                probeBus_->forwardMeasurement(t, value, c);
+            }
+    };
 
 	typedef wns::SmartPtr<ContextCollector> ContextCollectorPtr;
 

@@ -31,6 +31,7 @@
 #include <WNS/Assure.hpp>
 
 #include <vector>
+#include <algorithm>
 
 namespace wns {
 
