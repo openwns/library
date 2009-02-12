@@ -213,8 +213,8 @@ class FunctionalUnit(object):
 class Node(FunctionalUnit):
     config = None
 
-    def __init__(self, name, config):
-        super(Node,self).__init__(name)
+    def __init__(self, funame, config, commandname = None):
+        super(Node,self).__init__(funame, commandname)
 	self.config = config
 
 class Connection(object):
