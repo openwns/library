@@ -30,7 +30,19 @@ class Interval:
 	self.lowerBound = lowerBound
 	self.upperBound = upperBound
 	self.intervalType = intervalType
-	
+
+    def __contains__(self, value):
+        if(value < self.lowerBound):
+            return False
+        if(value == self.lowerBound and self.intervalType[0] == '('):
+            return False
+        if(value > self.upperBound):
+            return False
+        if(value == self.upperBound and self.intervalType[1] == ')'):
+            return False
+
+        return True
+
     lowerBound = None
     upperBound = None
     intervalType = None
