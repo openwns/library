@@ -296,7 +296,6 @@ namespace wns { namespace scheduler {
 			timeNeed(0.0)
 			{}
 
-		//wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> phyModePtr;
 		wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
 		wns::service::phy::ofdma::PatternPtr ofdmaPatternPtr;
 		wns::Power txPower;

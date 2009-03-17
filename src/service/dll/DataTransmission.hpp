@@ -55,7 +55,7 @@ namespace wns { namespace service { namespace dll {
 			const Address& macAddress,
 			const wns::osi::PDUPtr& data,
 			protocolNumber protocol,
-			wns::service::dll::FlowID _dllFlowID = 0
+			wns::service::dll::FlowID _dllFlowID = wns::service::dll::NoFlowID
 			)=0;
 
 		virtual wns::service::dll::UnicastAddress

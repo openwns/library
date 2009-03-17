@@ -1,7 +1,34 @@
+###############################################################################
+# This file is part of openWNS (open Wireless Network Simulator)
+# _____________________________________________________________________________
+#
+# Copyright (C) 2004-2007
+# Chair of Communication Networks (ComNets)
+# Kopernikusstr. 5, D-52074 Aachen, Germany
+# phone: ++49-241-80-27910,
+# fax: ++49-241-80-22242
+# email: info@openwns.org
+# www: http://www.openwns.org
+# _____________________________________________________________________________
+#
+# openWNS is free software; you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License version 2 as published by the
+# Free Software Foundation;
+#
+# openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+###############################################################################
+
 # QoS classes
 # corresponds to C++ file QoS/QoSClasses.hpp
-from wns.PyConfig import Sealed
-from wns.PyConfig import attrsetter
+from openwns.PyConfig import Sealed
+from openwns.PyConfig import attrsetter
 
 numberOfQoSClasses = 5
 undefinedQosClass = "UNDEFINED"
@@ -19,7 +46,6 @@ class QoSClass:
     def __init__(self, name, number, **kw):
         self.name   = name
         self.number = number
-        #self.priority = priority # mapping
         attrsetter(self, kw)
 
 class QoSClasses:
