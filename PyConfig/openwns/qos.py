@@ -27,7 +27,6 @@
 
 # QoS classes
 # corresponds to C++ file QoS/QoSClasses.hpp
-from openwns.PyConfig import Sealed
 from openwns.PyConfig import attrsetter
 
 numberOfQoSClasses = 5
