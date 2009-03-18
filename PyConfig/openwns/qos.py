@@ -27,7 +27,7 @@
 
 # QoS classes
 # corresponds to C++ file QoS/QoSClasses.hpp
-from openwns.PyConfig import attrsetter
+from openwns.pyconfig import attrsetter
 
 numberOfQoSClasses = 5
 undefinedQosClass = "UNDEFINED"
