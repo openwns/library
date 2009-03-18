@@ -106,9 +106,9 @@ namespace wns { namespace ldk { namespace sar {
 		} // ~SAR
 
 
- 		//
- 		//  interface
- 		//
+		//
+		//  interface
+		//
 
 		void setSegmentSize(const Bit size)
 		{
@@ -147,7 +147,7 @@ namespace wns { namespace ldk { namespace sar {
 			return segmentSize;
 		} // getSegmentSize
 
- 		virtual void processOutgoing(const CompoundPtr& compound)
+		virtual void processOutgoing(const CompoundPtr& compound)
 		{
 			assure(hasCapacity(), "processOutgoing called although not accepting.");
 
@@ -160,8 +160,8 @@ namespace wns { namespace ldk { namespace sar {
 			CommandPool* commandPool = outgoing->getCommandPool();
 
 			getFUN()->calculateSizes(commandPool,
-									 oldPCISize,
-									 oldSDUSize);
+						 oldPCISize,
+						 oldSDUSize);
 
 			totalSize = oldPCISize + oldSDUSize;
 
@@ -179,7 +179,7 @@ namespace wns { namespace ldk { namespace sar {
 			prepareSegment();
 		} // processOutgoing
 
- 		virtual CompoundPtr getSomethingToSend()
+		virtual CompoundPtr getSomethingToSend()
 		{
 			assure(hasSomethingToSend(), "getSomethingToSend called although there's nothing to send.");
 
@@ -191,12 +191,12 @@ namespace wns { namespace ldk { namespace sar {
 		} // getSomethingToSend
 
 		// partial implementation of delayed
- 		virtual bool hasCapacity() const
+		virtual bool hasCapacity() const
 		{
 			return (outgoing == CompoundPtr() && nextSegment == CompoundPtr());
 		} // hasCapacity
 
- 		virtual const CompoundPtr hasSomethingToSend() const
+		virtual const CompoundPtr hasSomethingToSend() const
 		{
 			trySuspend();
 
@@ -277,8 +277,8 @@ namespace wns { namespace ldk { namespace sar {
 
 			Bit capacity = segmentSize - this->getCommandSize() - ( preserving ? oldPCISize : 0 );
 			MESSAGE_BEGIN(NORMAL, logger, m, "");
-			m << "SAR: capacity = " << capacity;
-			m << "Commandsize = " << this->getCommandSize();
+			m << "SAR: capacity=" << capacity;
+			m << ", Commandsize=" << this->getCommandSize();
 			MESSAGE_END();
 			if( totalSize - nextPos > capacity ) {
 				nextSegment = outgoing->copy();
@@ -302,17 +302,17 @@ namespace wns { namespace ldk { namespace sar {
 				++fragmentNumber;
 				outgoing = CompoundPtr();
 			}
-			
+
 			this->commitSizes(nextSegment->getCommandPool());
 
 			MESSAGE_BEGIN(NORMAL, logger, m, "");
 			m   << "#" << command->magic.fragmentNumber
-			    << ", length: "
+			    << ", length="
 			    << nextSegment->getLengthInBits()
-			    << " last: "
+			    << " last="
 			    << ( command->peer.lastFragment ? "yes" : "no");
 			if (!command->peer.lastFragment)
-				m << " nextPos: " << nextPos;
+				m << " nextPos=" << nextPos;
 			MESSAGE_END();
 		}
 

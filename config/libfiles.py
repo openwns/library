@@ -764,6 +764,7 @@ hppFiles = [
 'src/service/dll/ProtocolNumber.hpp',
 'src/service/dll/FlowEstablishmentAndRelease.hpp',
 'src/service/dll/FlowID.hpp',
+'src/service/dll/StationTypes.hpp',
 'src/service/nl/Address.hpp',
 'src/service/nl/tests/Address.hpp',
 'src/service/nl/Service.hpp',

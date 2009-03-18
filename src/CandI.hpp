@@ -54,12 +54,33 @@ namespace wns
 				sdma.iIntra = wns::Power::from_mW(0.0);
 			}
 
+		wns::Ratio toSINR() const
+		{
+			return wns::Ratio(C/I);
+		}
+
+		/** @brief valid=true if the defaults are overwritten with reasonable values. */
+		bool isValid() const
+		{
+			return (C.get_mW()!=0.0 && I.get_mW()!=0.0);
+		}
+
 		bool operator <(const CandI& candi) const {
 			return ( (C/I) < (candi.C / candi.I) );
 		}
 
- 		// Default destructor
- 		~CandI(){}
+		friend std::ostream& operator <<(std::ostream &str, const CandI& candi)
+		{
+			if (candi.isValid()) {
+			  str << candi.toSINR().get_dB() << " dB";
+			} else {
+			  str << "invalid_CandI";
+			}
+			return str;
+		}
+
+		// Default destructor
+		~CandI(){}
 		wns::Power C;
 		wns::Power I;
 

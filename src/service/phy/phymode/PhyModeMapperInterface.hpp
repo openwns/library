@@ -44,7 +44,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 
 		/** @brief find required (minimum) SINR for a certain PhyMode */
 		virtual wns::Ratio
-		getMinSINRRatio(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
+		getMinSINRRatio(const wns::service::phy::phymode::PhyModeInterfacePtr phyMode) const = 0;
 
 		/** @brief tells if a successful transmission is possible,
 		 i.e. we have more than the minimum required SINR */
@@ -68,11 +68,14 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 
 		/** @brief find required (minimum) SINR [dB] for a certain PhyMode */
 		virtual double
-		getMinSINR(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
+		getMinSINR(const wns::service::phy::phymode::PhyModeInterfacePtr phyMode) const = 0;
 
-		/** @brief find possible SINR range for a certain PhyMode */
+		/** @brief find possible SINR range [dB] for a certain PhyMode */
 		virtual wns::service::phy::phymode::SINRRange
-		getSINRRange(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
+		getSINRRange(const wns::service::phy::phymode::PhyModeInterfacePtr phyMode) const = 0;
+
+		/** @brief below this minimumSINR there is no useful transmission (PER too high) */
+		virtual double getMinimumSINR() const = 0;
 
 		/** @brief get number of available PhyModes */
 		virtual int
@@ -80,7 +83,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 
 		/** @brief list of all available PhyModes */
 		virtual const std::vector< wns::service::phy::phymode::PhyModeInterfacePtr >
-		getListofPhyModePtr() const = 0;
+		getListOfPhyModePtr() const = 0;
 
 		/** @brief to retrieve the Mapping Object from the Broker Singleton */
 		static PhyModeMapperInterface*
@@ -96,9 +99,6 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 //		/** @brief find best PhyModeIndex for a given SINR (faster than above) */
 //		int
 //		getBestPhyModeIndex(double sinr /* dB */) const;
-
-//		/** @brief below this minimumSINR there is no useful transmission (PER too high) */
-//		virtual double getMinimumSINR() const = 0;
 
 //		virtual bool sinrIsAboveLimit(double sinr /* dB */) const = 0;
 

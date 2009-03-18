@@ -43,6 +43,9 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 	public:
 		virtual ~PhyModeInterface() {}
 
+		//wns::SmartPtr<PhyModeInterface>
+		//copy() { return wns::SmartPtr<PhyModeInterface>(clone()); } // copy
+
 		/** @brief true if PhyMode is set (not undefined) */
 		virtual bool isValid() const = 0;
 
@@ -146,6 +149,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 		return *empty;
 	}
 
+	/** @brief Helper method to yield a PhyModeInterfacePtr (SmartPtr) to an empty (Undefined) PhyMode Object */
 	inline PhyModeInterfacePtr
 	emptyPhyModePtr()
 	{
@@ -161,5 +165,10 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 } // phy
 } // service
 } // wns
+
+namespace wns {
+  // for convenience: wns::PhyModePtr
+  typedef wns::service::phy::phymode::PhyModeInterfacePtr PhyModePtr;
+}
 
 #endif // WNS_SERVICE_PHY_PHYMODE_PHYMODEINTERFACE_HPP
