@@ -936,6 +936,12 @@ pyconfig = [
 'openwns/geometry/__init__.py',
 'openwns/tests/AbstractMethodTest.py',
 'openwns/tests/__init__.py',
+'openwns/toolsupport/__init__.py',
+'openwns/toolsupport/pytreevisitors/__init__.py',
+'openwns/toolsupport/pytreevisitors/simulator.py',
+'openwns/toolsupport/pytreevisitors/node.py',
+'openwns/toolsupport/pytreevisitors/probebus.py',
+'openwns/toolsupport/pytreevisitors/FUN.py',
 
 'openwns/markov/mmpp_example.gdf',
 'openwns/markov/markov_onoff1.gdf',

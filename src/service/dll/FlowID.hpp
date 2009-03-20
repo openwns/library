@@ -1,13 +1,28 @@
-/******************************************************************************
- * DLL FlowID used by WinProst                                                *
- * __________________________________________________________________________ *
- *                                                                            *
- * Copyright (C) 2006                                                         *
- * Chair of Communication Networks (ComNets)                                  *
- * Kopernikusstr. 16, D-52074 Aachen, Germany                                 *
- * phone: ++49-241-80-27910 (phone), fax: ++49-241-80-22242                   *
- * email: wns@comnets.rwth-aachen.de                                          *
- * www: http://wns.comnets.rwth-aachen.de                                     *
+/*******************************************************************************
+ * This file is part of openWNS (open Wireless Network Simulator)
+ * _____________________________________________________________________________
+ *
+ * Copyright (C) 2004-2007
+ * Chair of Communication Networks (ComNets)
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
+ * phone: ++49-241-80-27910,
+ * fax: ++49-241-80-22242
+ * email: info@openwns.org
+ * www: http://www.openwns.org
+ * _____________________________________________________________________________
+ *
+ * openWNS is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License version 2 as published by the
+ * Free Software Foundation;
+ *
+ * openWNS is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  ******************************************************************************/
 
 #ifndef WNS_SERVICE_DLL_FLOWID_HPP
@@ -19,22 +34,10 @@
 #include <sstream>
 
 namespace wns { namespace service { namespace dll {
-	typedef int FlowID;
-
+      typedef int FlowID;
+      const int NoFlowID = 0;
 } // dll
 } // service
 } // wns
 
-#endif // NOT defined WNS_SERVICE_TL_FLOWID_HPP
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+#endif // NOT defined WNS_SERVICE_DLL_FLOWID_HPP

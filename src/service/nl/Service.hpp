@@ -30,6 +30,7 @@
 
 #include <WNS/service/Service.hpp>
 #include <WNS/service/nl/Address.hpp>
+#include <WNS/service/dll/FlowID.hpp>
 #include <WNS/osi/PDU.hpp>
 
 namespace wns { namespace service { namespace nl {
@@ -51,7 +52,7 @@ namespace wns { namespace service { namespace nl {
 		 * @param[in] _data Protocol Data Unit that is to be
 		 * transported.
 		 *
-		 * @param[in] _protocol This is the payload's protocol number. 
+		 * @param[in] _protocol This is the payload's protocol number.
 		 * Used for demultiplexing
 		 */
 		virtual void
@@ -60,7 +61,7 @@ namespace wns { namespace service { namespace nl {
 			const wns::service::nl::Address& _peer,
 			const wns::osi::PDUPtr& _data,
 			protocolNumber _protocol,
-			int dllFlowID = 0) = 0;
+			int dllFlowID = wns::service::dll::NoFlowID) = 0;
 	};
 
 	class DNSService :
@@ -75,7 +76,4 @@ namespace wns { namespace service { namespace nl {
 } // service
 } // wns
 
-
 #endif //_WNS_SERVICE_NL_SERVICE_HPP
-
-

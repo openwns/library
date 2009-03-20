@@ -50,14 +50,15 @@ class ITreeNodeGenerator(openwns.interface.Interface):
 
 class Accept(ITreeNodeGenerator):
     """ Accept measurements based on the context"""
-    def __init__(self, by, ifIn):
+    def __init__(self, by, ifIn, suffix = ''):
         self.by = by
         self.ifIn = ifIn
+        self.suffix = suffix
 
     def __call__(self, pathname):
-            yield tree.TreeNode(wrappers.ProbeBusWrapper(
-                    openwns.probebus.ContextFilterProbeBus(self.by, self.ifIn),
-                    ''))
+        yield tree.TreeNode(wrappers.ProbeBusWrapper(
+                openwns.probebus.ContextFilterProbeBus(self.by, self.ifIn),
+                self.suffix))
 
 class Equidistant(ITreeNodeGenerator):
     """ Sort measurement in equidistant bins"""
