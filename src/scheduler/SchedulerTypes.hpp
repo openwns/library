@@ -25,15 +25,21 @@
  *
  ******************************************************************************/
 
-
 #ifndef WNS_SCHEDULER_SCHEDULERTYPES_HPP
 #define WNS_SCHEDULER_SCHEDULERTYPES_HPP
 
+
+#include <WNS/ldk/Command.hpp>
+#include <WNS/ldk/Compound.hpp>
+#include <WNS/ldk/FunctionalUnit.hpp>
+#include <WNS/ldk/Classifier.hpp>
 #include <WNS/node/Node.hpp>
 #include <WNS/PowerRatio.hpp>
 #include <WNS/CandI.hpp>
 
 #include <WNS/service/phy/ofdma/Pattern.hpp>
+#include <WNS/service/phy/phymode/PhyModeInterface.hpp>
+
 
 #include <WNS/Enum.hpp>
 
@@ -47,12 +53,10 @@
 namespace wns { namespace scheduler {
 
 	typedef wns::node::Interface* UserID;
-	
-    /* For now we change this to be long until LDK is published*/
-    //typedef wns::ldk::ClassificationID ConnectionID;
-    
-    typedef long ConnectionID;
+	typedef wns::ldk::ClassificationID ConnectionID;
 	typedef std::vector<ConnectionID> ConnectionVector;
+	typedef std::list<ConnectionID> ConnectionList;
+	typedef std::set<ConnectionID> ConnectionSet;
 
 	typedef int Symbols;
 	typedef int Bits;
@@ -77,6 +81,30 @@ namespace wns { namespace scheduler {
 		s << ")";
 		return s.str();
 	}
+
+	inline std::string
+	printConnectionVector(const wns::scheduler::ConnectionVector& connectionVector) {
+		std::stringstream s;
+		s << "ConnectionVector(";
+		for (ConnectionVector::const_iterator iter = connectionVector.begin();
+		     iter != connectionVector.end(); ++iter)
+		{
+		  s << (*iter) << ",";
+		}
+		s << ")";
+		return s.str();
+	}
+
+    /*
+    template <class ContainerTemplateType>;
+	inline std::string
+	printContainer<ContainerTemplateType>(ContainerTemplateType& container) {
+		std::stringstream s;
+		s << "Container(";
+		s << ")";
+		return s.str();
+	}
+    */
 
 	/** @brief define stream operator for class Group */
 	inline std::ostream&
@@ -257,6 +285,41 @@ namespace wns { namespace scheduler {
 	typedef std::vector<TxPower4PDU> usedTxPowerOnOneChannel;
 	typedef std::vector<usedTxPowerOnOneChannel> usedTxPowerOnAllChannels;
 
+	struct ConnectionsCharacteristics {
+
+		ConnectionsCharacteristics():
+			phyModePtr(),
+			ofdmaPatternPtr(),
+			txPower(),
+			estimatedCandI(),
+			sinr(),
+			timeNeed(0.0)
+			{}
+
+		wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
+		wns::service::phy::ofdma::PatternPtr ofdmaPatternPtr;
+		wns::Power txPower;
+		wns::CandI estimatedCandI;
+		wns::Ratio sinr;
+		simTimeType timeNeed;
+	};
+
+	typedef std::map< ConnectionID, ConnectionsCharacteristics > ConnectionAttributes;
+
+	/** @brief This is used e.g. for building ResourceRequests */
+	struct QueueStatus {
+		QueueStatus()
+		{
+			numOfBits = 0;
+			numOfCompounds = 0;
+		}
+
+		unsigned int numOfBits;
+		unsigned int numOfCompounds;
+	};
+
+	/** @brief Holds QueueStatus for all cids. ResourceRequests contain such a container. */
+	typedef wns::container::Registry<ConnectionID, QueueStatus> QueueStatusContainer;
 
 }} // namespace wns::scheduler
 #endif // WNS_SCHEDULER_SCHEDULERTYPES_HPP

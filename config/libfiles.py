@@ -67,7 +67,6 @@ srcFiles = [
     'src/logger/DelimiterFormat.cpp',
     'src/logger/SQLiteFormat.cpp',
     'src/logger/FormatStrategy.cpp',
-    
     'src/probe/bus/Context.cpp',
     'src/probe/bus/ContextFilterProbeBus.cpp',
     'src/probe/bus/ContextProvider.cpp',
@@ -83,6 +82,7 @@ srcFiles = [
     'src/probe/bus/TableProbeBus.cpp',
     'src/probe/bus/TextProbeBus.cpp',
     'src/probe/bus/TimeWindowProbeBus.cpp',
+
     'src/probe/bus/detail/ObserverPimpl.cpp',
     'src/probe/bus/detail/OutputFormatter.cpp',
     'src/probe/bus/detail/SubjectPimpl.cpp',
@@ -762,6 +762,8 @@ hppFiles = [
 'src/service/dll/DataTransmission.hpp',
 'src/service/dll/Handler.hpp',
 'src/service/dll/ProtocolNumber.hpp',
+'src/service/dll/FlowEstablishmentAndRelease.hpp',
+'src/service/dll/FlowID.hpp',
 'src/service/nl/Address.hpp',
 'src/service/nl/tests/Address.hpp',
 'src/service/nl/Service.hpp',
@@ -788,6 +790,7 @@ hppFiles = [
 'src/service/phy/phymode/PhyModeMapperInterface.hpp',
 'src/service/phy/phymode/SNR2MIInterface.hpp',
 'src/StaticFactoryBroker.hpp',
+'src/service/qos/QoSClasses.hpp',
 'src/Backtrace.hpp',
 'src/simulator/Bit.hpp',
 'src/simulator/Main.hpp',
@@ -941,6 +944,7 @@ pyconfig = [
 
 'openwns/markov/mmpp_example.gdf',
 'openwns/markov/markov_onoff1.gdf',
+'openwns/qos.py',
 ]
 libraries = []
 Return('libname srcFiles hppFiles pyconfig libraries')

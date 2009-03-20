@@ -31,6 +31,7 @@
 #include <WNS/service/Service.hpp>
 #include <WNS/service/dll/Address.hpp>
 #include <WNS/service/dll/ProtocolNumber.hpp>
+#include <WNS/service/dll/FlowID.hpp>
 #include <WNS/osi/PDU.hpp>
 
 namespace wns { namespace service { namespace dll {
@@ -53,7 +54,8 @@ namespace wns { namespace service { namespace dll {
 		sendData(
 			const Address& macAddress,
 			const wns::osi::PDUPtr& data,
-			protocolNumber protocol
+			protocolNumber protocol,
+			wns::service::dll::FlowID _dllFlowID = wns::service::dll::NoFlowID
 			)=0;
 
 		virtual wns::service::dll::UnicastAddress

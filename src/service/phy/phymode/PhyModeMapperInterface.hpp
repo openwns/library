@@ -24,6 +24,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+// #include <WNS/service/phy/phymode/PhyModeMapperInterface.hpp>
 
 #ifndef WNS_SERVICE_PHY_PHYMODE_PHYMODEMAPPERINTERFACE_HPP
 #define WNS_SERVICE_PHY_PHYMODE_PHYMODEMAPPERINTERFACE_HPP
@@ -65,57 +66,56 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 		virtual bool
 		sinrIsAboveLimit(const wns::Ratio& sinr) const = 0;
 
- 		/** @brief get PhyMode at index position [0=start] */
+		/** @brief get PhyMode at index position [0=start] */
 		virtual PhyModeInterfacePtr
- 		getPhyModeForIndex(int index) const = 0;
+		getPhyModeForIndex(int index) const = 0;
 
- 		/** @brief get index position of PhyMode in order of required SINR [0=start] */
+		/** @brief get index position of PhyMode in order of required SINR [0=start] */
 		virtual int
- 		getIndexForPhyMode(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
+		getIndexForPhyMode(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
 
- 		/** @brief best PhyMode of all available (most bits/symbol) */
- 		virtual const wns::service::phy::phymode::PhyModeInterfacePtr
- 		getHighestPhyMode() const = 0;
- 		/** @brief worst PhyMode of all available (least bits/symbol) */
- 		virtual const wns::service::phy::phymode::PhyModeInterfacePtr
- 		getLowestPhyMode() const = 0;
+		/** @brief best PhyMode of all available (most bits/symbol) */
+		virtual const wns::service::phy::phymode::PhyModeInterfacePtr
+		getHighestPhyMode() const = 0;
+		/** @brief worst PhyMode of all available (least bits/symbol) */
+		virtual const wns::service::phy::phymode::PhyModeInterfacePtr
+		getLowestPhyMode() const = 0;
 
- 		/** @brief find required (minimum) SINR [dB] for a certain PhyMode */
- 		virtual double
- 		getMinSINR(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
+		/** @brief find required (minimum) SINR [dB] for a certain PhyMode */
+		virtual double
+		getMinSINR(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
 
- 		/** @brief find possible SINR range for a certain PhyMode */
- 		virtual wns::service::phy::phymode::SINRRange
- 		getSINRRange(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
+		/** @brief find possible SINR range for a certain PhyMode */
+		virtual wns::service::phy::phymode::SINRRange
+		getSINRRange(const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
 
- 		/** @brief get number of available PhyModes */
- 		virtual int
- 		getPhyModeCount() const = 0;
+		/** @brief get number of available PhyModes */
+		virtual int
+		getPhyModeCount() const = 0;
 
- 		/** @brief list of all available PhyModes */
- 		virtual const std::vector< wns::service::phy::phymode::PhyModeInterfacePtr >
- 		getListofPhyModePtr() const = 0;
+		/** @brief list of all available PhyModes */
+		virtual const std::vector< wns::service::phy::phymode::PhyModeInterfacePtr >
+		getListofPhyModePtr() const = 0;
 
 		/** @brief to retrieve the Mapping Object from the Broker Singleton */
 		static PhyModeMapperInterface*
 		getPhyModeMapper(const wns::pyconfig::View& config);
 
- 	private:
-
+	private:
 /** Commented out all the methods below because they are not used anywhere */
 
-// 		/** @brief find best PhyMode for a given SINR */
-// 		virtual const wns::service::phy::phymode::PhyModeInterface&
-// 		getBestPhyMode(double sinr /* dB */) const = 0;
+//		/** @brief find best PhyMode for a given SINR */
+//		virtual const wns::service::phy::phymode::PhyModeInterface&
+//		getBestPhyMode(double sinr /* dB */) const = 0;
 
 //		/** @brief find best PhyModeIndex for a given SINR (faster than above) */
 //		int
 //		getBestPhyModeIndex(double sinr /* dB */) const;
 
-// 		/** @brief below this minimumSINR there is no useful transmission (PER too high) */
-// 		virtual double getMinimumSINR() const = 0;
+//		/** @brief below this minimumSINR there is no useful transmission (PER too high) */
+//		virtual double getMinimumSINR() const = 0;
 
-// 		virtual bool sinrIsAboveLimit(double sinr /* dB */) const = 0;
+//		virtual bool sinrIsAboveLimit(double sinr /* dB */) const = 0;
 
 	};
 
