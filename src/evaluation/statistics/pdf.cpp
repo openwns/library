@@ -258,6 +258,8 @@ PDF::put(double value)
 {
     StatEval::put(value);
 
+    value *= scalingFactor_;
+
     // Underflow?
     if (value < minXValue_)
     {

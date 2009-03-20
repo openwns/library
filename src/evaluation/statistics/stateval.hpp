@@ -258,6 +258,7 @@ namespace wns { namespace evaluation { namespace statistics {
                 mapEvalTypeToString(statEvalType);
 
             protected:
+
                 /**
                  * @ brief Print the banner containing common statistics
                  */
@@ -315,6 +316,11 @@ namespace wns { namespace evaluation { namespace statistics {
                  * @brief Comment prefix to be used in output files
                  */
                 std::string prefix_;
+
+                /**
+                 * @brief Scaling factor for incoming values
+                 */
+                double scalingFactor_;
             };
 
 
