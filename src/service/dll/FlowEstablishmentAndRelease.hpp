@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,67 +25,54 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SERVICE_TL_CONNECTION_HPP
-#define WNS_SERVICE_TL_CONNECTION_HPP
+#ifndef WNS_SERVICE_DLL_FLOWESTABLISHMENTANDRELEASE_HPP
+#define WNS_SERVICE_DLL_FLOWESTABLISHMENTANDRELEASE_HPP
 
-#include <WNS/osi/PDU.hpp>
+#include <WNS/service/Service.hpp>
+#include <WNS/service/nl/Address.hpp>
+#include <WNS/service/tl/FlowID.hpp>
+#include <WNS/service/qos/QoSClasses.hpp>
 
-namespace wns { namespace service { namespace tl {
-
-	class DataHandler;
-
+namespace wns { namespace service { namespace dll {
 
 	/**
-	 * @brief tl Connection interface.
-	 *
-	 * Connection is used to send data and dispatch incoming data to a
-	 * DataHandler.
+	 * @brief tl service specification.
+	 * @ingroup interface
 	 */
-
-	class Connection
+	class FlowEstablishmentAndRelease:
+		virtual public wns::service::Service
 	{
 	public:
-
 		/**
-		 * @brief Destructor.
-		 */
-		virtual
-		~Connection()
-		{}
-
-		/**
-		 * @brief Register DataHandler for incoming data.
+		 * @brief Establish a new flow.
 		 *
-		 * @param[in] _dh DataHandler were incoming data should be
-		 * delivered to.
+		 * @param[in] _sourcePort Own local port.
+		 *
+		 * @param[in] _destPort On which port to connect peer.
+		 *
+		 * @param[in] _peer Own IP address.
+		 *
+		 * @param[in] _peer On which address to contact peer.
 		 */
 		virtual void
-		registerDataHandler(wns::service::tl::DataHandler* _dh) = 0;
+		establishFlow(wns::service::tl::FlowID flowID, wns::service::qos::QoSClass qosClass) = 0;
 
 		/**
-		 * @brief Send Data.
-		 * @param[in] _pdu Payload to be sent.
+		 * @brief Release an existing flow.
+		 *
+		 * @param[in] _sourcePort Own local port.
+		 *
+		 * @param[in] _destPort On which port to connect peer.
+		 *
+		 * @param[in] _peer Own IP address.
+		 *
+		 * @param[in] _peer On which address to contact peer.
 		 */
 		virtual void
-		sendData(const wns::osi::PDUPtr& _pdu) =0;
-
+		releaseFlow(wns::service::tl::FlowID flowID)=0;
 	};
+}
+}
+}
 
-} // tl
-} // service
-} // wns
-
-
-#endif // WNS_SERVICE_UDP_CONNECTION_HPP
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+#endif // WNS_SERVICE_DLL_FLOWESTABLISHMENTANDRELEASE_HPP

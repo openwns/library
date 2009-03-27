@@ -213,8 +213,8 @@ class FunctionalUnit(object):
 class Node(FunctionalUnit):
     config = None
 
-    def __init__(self, name, config):
-        super(Node,self).__init__(name)
+    def __init__(self, funame, config, commandname = None):
+        super(Node,self).__init__(funame, commandname)
 	self.config = config
 
 class Connection(object):
@@ -232,6 +232,7 @@ class CommandProxy(object):
     def __init__(self, parentLogger):
         self.logger = Logger('WNS','CommandProxy',True, parentLogger)
 
+dotFlowSepCounter = 0
 
 class FUN(object):
     commandProxy = None
@@ -270,7 +271,16 @@ class FUN(object):
 
         out.write('digraph lala {')
         out.write('node [shape=record]')
-        for it in self.functionalUnit:
+        out.write(self.dotNodes(self, showParameters, FUcompressLists, FUnoLists))
+        out.write(self.dotConns(self))
+        out.write('}')
+
+    def dotNodes(self, fun, showParameters, FUcompressLists, FUnoLists):
+        if fun is None:
+            return ""
+
+        result = ""
+        for it in fun.functionalUnit:
             class options:
                 ignorePaths = None
             pytree = PyTree(options)
@@ -284,29 +294,101 @@ class FUN(object):
             else:
                 aConfig = it
 
-            parameters = pytree.scan(aConfig)[1:]
+            if aConfig.__class__.__name__ == "FlowSeparator":# and aConfig.notFound.creator.prototypeConfig.fun is not None:
+                global dotFlowSepCounter
+                dotFlowSepCounter += 1
+            
+                result += "subgraph cluster%d {\n" % dotFlowSepCounter
+                result += "color=blue;\n"
+                result += "label = \"%s\";\n" % str(it.functionalUnitName).replace(".","_")
 
-            def cleanup(par):
-                par = par.replace('<', '')
-                par = par.replace('>', '')
-                while 'object at' in par:
-                    m = re.match('(.*) object at 0x[0-9a-f]+(.*)', par)
-                    par = m.group(1) + m.group(2)
-                return par.lstrip('.')
-            parameters = [cleanup(par) for par in parameters]
+                # if we have a subfun
+                if "fun" in dir(aConfig.notFound.creator.prototypeConfig):
+                    sub = aConfig.notFound.creator.prototypeConfig.fun
 
-            if showParameters:
-                label = ('\\N \\n %s|' % (aConfig.__plugin__)
-                         + '\\l'.join(parameters) + '\\l')
+                    result += self.dotNodes(sub, showParameters, FUcompressLists, FUnoLists)
+                    result += self.dotConns(sub)
+
+                else:
+                    # It is a single functional unit
+                    sub = aConfig.notFound.creator.prototypeConfig
+                    
+                    if "functionalUnitName" in dir(aConfig.notFound.creator.prototypeConfig):
+                        s = str(aConfig.notFound.creator.prototypeConfig.functionalUnitName)
+                    else:
+                        s = str(aConfig.notFound.creator.prototypeConfig)
+
+                    result += s.replace(".","_")
+
+                result += "}"
             else:
-                label = ('\\N \\n %s' % (aConfig.__plugin__))
 
-            out.write(
-                '  %s [label="{%s}"];\n' % (it.functionalUnitName, label)
-                )
-        for conn in self.connects:
-            arrow = ['none', 'forward', 'back'][conn.type]
-            out.write(
-                '  %s -> %s [dir=%s];\n' % (conn.src.functionalUnitName, conn.dst.functionalUnitName, arrow)
-                )
-        out.write('}')
+                if showParameters:
+                    parameters = pytree.scan(aConfig)[1:]
+
+                    def cleanup(par):
+                        par = par.replace('<', '')
+                        par = par.replace('>', '')
+                        while 'object at' in par:
+                            m = re.match('(.*) object at 0x[0-9a-f]+(.*)', par)
+                            par = m.group(1) + m.group(2)
+                        return par.lstrip('.')
+                    parameters = [cleanup(par) for par in parameters]
+
+
+                    label = ('\\N \\n %s|' % (aConfig.__plugin__)
+                             + '\\l'.join(parameters) + '\\l')
+                else:
+                    label = ('\\N \\n %s' % (aConfig.__plugin__))
+
+                result += '  %s [label="{%s}"];\n' % (str(it.functionalUnitName).replace(".","_"), label)
+
+        return result
+
+    def dotGetNodeName(self, o, dir="down"):
+        try:
+            # Check if we have a nest flow separator
+            if o.__class__.__name__ == "Node" and o.config.__class__.__name__ == "FlowSeparator":
+                o = o.config
+
+            if o.__class__.__name__ == "FlowSeparator":
+                creatorConfig = o.notFound.creator.prototypeConfig
+                if creatorConfig.__class__.__name__ == "Group":
+                    if dir=="down":
+                        return str(creatorConfig.top)
+                    else:
+                        return str(creatorConfig.bottom)
+                else:
+                    return str(o.notFound.creator.prototypeConfig.functionalUnitName)    
+
+            if o.__class__.__name__ == "Node":
+                r = str(o.functionalUnitName)
+                return r
+    
+            return str(o.functionalUnitName)
+
+        except:
+            pass
+
+        return str(o)
+
+    def dotConns(self, fun):
+        if fun is None:
+            return ""
+
+        result = ""
+
+        for conn in fun.connects:
+            src = self.dotGetNodeName(conn.src, "up")
+            dst = self.dotGetNodeName(conn.dst, "down")
+            
+            if src == "None" : 
+                src = str(src)
+
+            if dst == "None" : 
+                dst = str(dst)
+
+            result += '  %s -> %s [dir=%s];\n' % (src.replace(".","_"),
+                                                  dst.replace(".","_"),
+                                                  'forward')
+        return result

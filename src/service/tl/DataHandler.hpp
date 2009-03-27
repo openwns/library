@@ -16,7 +16,7 @@
 
 namespace wns { namespace service { namespace tl {
 
-        /**
+	/**
 	 * @brief DataHandler interface.
 	 *
 	 * Once a connection is setup the DataHandler is registered with the
@@ -28,8 +28,8 @@ namespace wns { namespace service { namespace tl {
 		/**
 		 * @brief Destructor.
 		 */
- 		virtual
- 		~DataHandler()
+		virtual
+		~DataHandler()
 		{}
 
 		/**

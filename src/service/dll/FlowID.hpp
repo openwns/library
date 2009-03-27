@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 16, D-52074 Aachen, Germany
+ * Kopernikusstr. 5, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -25,67 +25,19 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SERVICE_TL_CONNECTION_HPP
-#define WNS_SERVICE_TL_CONNECTION_HPP
+#ifndef WNS_SERVICE_DLL_FLOWID_HPP
+#define WNS_SERVICE_DLL_FLOWID_HPP
 
-#include <WNS/osi/PDU.hpp>
+#include <WNS/ldk/Key.hpp>
+#include <WNS/SmartPtr.hpp>
 
-namespace wns { namespace service { namespace tl {
+#include <sstream>
 
-	class DataHandler;
-
-
-	/**
-	 * @brief tl Connection interface.
-	 *
-	 * Connection is used to send data and dispatch incoming data to a
-	 * DataHandler.
-	 */
-
-	class Connection
-	{
-	public:
-
-		/**
-		 * @brief Destructor.
-		 */
-		virtual
-		~Connection()
-		{}
-
-		/**
-		 * @brief Register DataHandler for incoming data.
-		 *
-		 * @param[in] _dh DataHandler were incoming data should be
-		 * delivered to.
-		 */
-		virtual void
-		registerDataHandler(wns::service::tl::DataHandler* _dh) = 0;
-
-		/**
-		 * @brief Send Data.
-		 * @param[in] _pdu Payload to be sent.
-		 */
-		virtual void
-		sendData(const wns::osi::PDUPtr& _pdu) =0;
-
-	};
-
-} // tl
+namespace wns { namespace service { namespace dll {
+      typedef int FlowID;
+      const int NoFlowID = 0;
+} // dll
 } // service
 } // wns
 
-
-#endif // WNS_SERVICE_UDP_CONNECTION_HPP
-
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+#endif // NOT defined WNS_SERVICE_DLL_FLOWID_HPP

@@ -25,6 +25,7 @@
  *
  ******************************************************************************/
 
+// #include <WNS/service/phy/phymode/PhyModeInterface.hpp>
 #ifndef WNS_SERVICE_PHY_PHYMODE_PHYMODEINTERFACE_HPP
 #define WNS_SERVICE_PHY_PHYMODE_PHYMODEINTERFACE_HPP
 
@@ -85,7 +86,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 
 		/** @brief calculate capacity[bits] for an arbitrary duration */
 		virtual unsigned int
-        getBitCapacityFractional(wns::simulator::Time duration) const = 0;
+		getBitCapacityFractional(wns::simulator::Time duration) const = 0;
 
 		/** @brief datarate in [bits per second] */
 		/** symbolRate and subCarriersPerSubChannel must be known in advance */
@@ -98,7 +99,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 		/** @brief PER = f(MI,bits), blockLength bits (=payload[net], not CWL[gross])*/
 		virtual double getMI2PER(const double mi, unsigned int bits) const = 0;
 		/** @brief PER = f(SINR,bits), blockLength bits (=payload[net], not CWL[gross]) */
-	    virtual double getSINR2PER(const wns::Ratio& sinr, unsigned int bits) const = 0;
+		virtual double getSINR2PER(const wns::Ratio& sinr, unsigned int bits) const = 0;
 
 		/** @brief access method for the modulation&coding (string) */
 		virtual std::string getString() const = 0;

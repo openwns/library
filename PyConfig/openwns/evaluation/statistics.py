@@ -55,6 +55,8 @@ class StatEval(Sealed):
     format       : For each probe type the number format can be set
                    individually. Use 'fixed' or 'scientific'
     prefix       : Character to be prepended to comment lines in the output file
+
+    scalingFactor: Scales all measurements by this factor
     """
     name = None
 
@@ -72,9 +74,11 @@ class StatEval(Sealed):
 
     appendFlag = None
 
+    scalingFactor = None
+
     nameInFactory = "openwns.evaluation.statistics.StatEval"
 
-    def __init__(self, typename, skipInterval=0, numIntervals=0, format="fixed", prefix = "#", name="no name available", description = "no description available"):
+    def __init__(self, typename, skipInterval=0, numIntervals=0, format="fixed", prefix = "#", name="no name available", description = "no description available", scalingFactor = 1.0):
         self.name = name
         self.description = description
         self.typename=typename
@@ -82,6 +86,7 @@ class StatEval(Sealed):
         self.numIntervals=numIntervals
         self.format = format
         self.prefix = prefix
+        self.scalingFactor = scalingFactor
 
     def getTypeName(self):
         return(self.typename)
