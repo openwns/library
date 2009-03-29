@@ -29,6 +29,8 @@
 #define WNS_LDK_HARQ_SOFTCOMBINING_UNIFORMRANDOMDECODER_HPP
 
 #include <WNS/ldk/harq/softcombining/IDecoder.hpp>
+#include <WNS/pyconfig/View.hpp>
+#include <WNS/ldk/fun/FUN.hpp>
 
 #include <WNS/distribution/Distribution.hpp>
 
@@ -39,16 +41,25 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
      {
      public:
 
-         UniformRandomDecoder();
+         UniformRandomDecoder(wns::ldk::fun::FUN*, const wns::pyconfig::View&);
 
          virtual ~UniformRandomDecoder();
 
          bool
          canDecode(const Container& c);
 
+         void
+         onFUNCreated();
+
      private:
 
-         std::auto_ptr<wns::distribution::Distribution> dis;
+         std::auto_ptr<wns::distribution::Distribution> dis_;
+
+         double initialPER_;
+
+         double rolloffFactor_;
+
+         wns::logger::Logger logger_;
      };
 
 } // softcombining

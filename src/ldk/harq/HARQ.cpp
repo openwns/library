@@ -28,6 +28,8 @@
 #include <WNS/ldk/harq/HARQ.hpp>
 #include <WNS/ldk/harq/softcombining/UniformRandomDecoder.hpp>
 
+#include <WNS/ldk/FUNConfigCreator.hpp>
+
 using namespace wns::ldk::harq;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
@@ -111,22 +113,31 @@ HARQ::HARQSenderProcess::nackReceived()
     MESSAGE_END();
 }
 
-HARQ::HARQReceiverProcess::HARQReceiverProcess(int processID,
-                                               int numRVs,
-                                               HARQ* entity,
-                                               wns::logger::Logger logger):
+HARQ::HARQReceiverProcess::HARQReceiverProcess(wns::pyconfig::View config,
+                                               int processID,
+                                               HARQ* entity):
     processID_(processID),
-    numRVs_(numRVs),
+    numRVs_(config.get<int>("numRVs")),
     entity_(entity),
-    logger_(logger),
-    receptionBuffer_(numRVs),
-    decoder_(new softcombining::UniformRandomDecoder())
+    logger_(config.get("logger")),
+    receptionBuffer_(config.get<int>("numRVs"))
 {
     assure(entity_ != NULL, "No HARQ entity available. This should not have happened");
+
+    decoder_ = wns::SmartPtr<softcombining::IDecoder>(
+        STATIC_FACTORY_NEW_INSTANCE(softcombining::IDecoder,
+                                    FUNConfigCreator, config.get("decoder"),
+                                    entity_->getFUN(), config.get("decoder")));
 
     MESSAGE_BEGIN(NORMAL, logger_, m, "");
     m << "Process " << processID_ << " created";
     MESSAGE_END();
+}
+
+void
+HARQ::HARQReceiverProcess::onFUNCreated()
+{
+    decoder_->onFUNCreated();
 }
 
 void
@@ -135,6 +146,13 @@ HARQ::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
     assure(entity_ != NULL, "No HARQ entity available. This should not have happened");
 
     HARQCommand* command = entity_->getCommand(compound->getCommandPool());
+
+    assure(command->peer.type == HARQCommand::I, "Misrouted ACK/NACK");
+
+    if (command->peer.NDI)
+    {
+        receptionBuffer_.clear();
+    }
 
     receptionBuffer_.appendCompoundForRV(command->peer.rv, compound);
 
@@ -150,6 +168,8 @@ HARQ::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
 
         if(entity_->getDeliverer()->size())
             entity_->getDeliverer()->getAcceptor(compound)->onData(compound);
+
+        receptionBuffer_.clear();
     }
     else
     {
@@ -161,7 +181,7 @@ HARQ::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
 HARQ::HARQ(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
     fu::Plain<HARQ, HARQCommand>(fuNet),
     numSenderProcesses_(config.get<int>("numSenderProcesses")),
-    numReceiverProcesses_(config.get<int>("numReceiverProcesses")),
+    numReceiverProcesses_(config.len("receiverProcesses")),
     numRVs_(config.get<int>("numRVs")),
     logger_(config.get("logger"))
 {
@@ -172,7 +192,8 @@ HARQ::HARQ(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
 
     for (int ii=0; ii < numReceiverProcesses_; ++ii)
     {
-        receiverProcesses_.push_back(HARQ::HARQReceiverProcess(ii, numRVs_, this, logger_));
+        receiverProcesses_.push_back(
+            HARQ::HARQReceiverProcess(config.get("receiverProcesses", ii), ii, this));
     }
 }
 
@@ -183,6 +204,10 @@ HARQ::~HARQ()
 void
 HARQ::onFUNCreated()
 {
+    for (int ii=0; ii < numReceiverProcesses_; ++ii)
+    {
+        receiverProcesses_[ii].onFUNCreated();
+    }
 }  // onFUNCreated
 
 bool

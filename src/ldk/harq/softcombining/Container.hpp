@@ -55,10 +55,10 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
          clear();
 
          int
-         getNumRVs();
+         getNumRVs() const;
 
          CompoundList
-         getCompoundsForRV(int rv);
+         getCompoundsForRV(int rv) const;
 
          void
          appendCompoundForRV(int rv, wns::ldk::CompoundPtr compound);
@@ -66,7 +66,7 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
      private:
 
          void
-         checkIfValidRV(int rv);
+         checkIfValidRV(int rv) const;
 
          CompoundListVector receivedCompounds_;
      };

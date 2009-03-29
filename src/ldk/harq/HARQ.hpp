@@ -128,11 +128,13 @@ namespace wns { namespace ldk { namespace harq {
         class HARQReceiverProcess
         {
         public:
-
-            HARQReceiverProcess(int processID, int numRVs, HARQ* entity, wns::logger::Logger logger);
+            HARQReceiverProcess(wns::pyconfig::View config, int processID, HARQ* entity);
 
             void
             receive(const wns::ldk::CompoundPtr&);
+
+            virtual void
+            onFUNCreated();
 
         private:
             int processID_;

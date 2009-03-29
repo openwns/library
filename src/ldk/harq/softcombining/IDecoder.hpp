@@ -30,6 +30,7 @@
 
 #include <WNS/ldk/harq/softcombining/Container.hpp>
 #include <WNS/RefCountable.hpp>
+#include <WNS/ldk/FUNConfigCreator.hpp>
 
 namespace wns { namespace ldk { namespace harq { namespace softcombining {
 
@@ -40,7 +41,12 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
 
          virtual bool
          canDecode(const Container& c) = 0;
+
+         virtual void
+         onFUNCreated() = 0;
      };
+
+     STATIC_FACTORY_DEFINE(IDecoder, FUNConfigCreator);
 
 } // softcombining
 } // harq

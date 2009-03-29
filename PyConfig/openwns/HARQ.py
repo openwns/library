@@ -25,7 +25,35 @@
 #
 ###############################################################################
 
-from logger import Logger
+import openwns
+from openwns.logger import Logger
+
+class UniformRandomDecoder(openwns.StaticFactoryClass):
+
+    def __init__(self, initialPER = 0.1, rolloffFactor=1, parentLogger = None):
+        """ Simple statistical decoder. No SINR values used. The probability
+        that after the k-th transmission the PDU cannot be decoded is given by
+
+        PER(k) = initialPER^(k*rollofFactor)
+
+        k=1 Initial transmission
+        k=2 First retransmission
+        etc..
+
+        UniformRandomDecoder ignores the redundancy version field (RV)
+        """
+
+        openwns.StaticFactoryClass.__init__(self, "UniformRandomDecoder")
+        self.initialPER = initialPER
+        self.rolloffFactor = rolloffFactor
+        self.logger = Logger('WNS', 'UniformRandomDecoder', True, parentLogger)
+
+class ReceiverProcess:
+
+    def __init__(self, numRVs = 3, parentLogger = None):
+        self.numRVs = numRVs
+        self.decoder = UniformRandomDecoder(parentLogger = parentLogger)
+        self.logger = Logger('WNS', 'HARQReceiverProcess', True, parentLogger)
 
 class HARQ:
     __plugin__ = 'wns.harq.HARQ'
@@ -33,8 +61,14 @@ class HARQ:
 
     def __init__(self, numSenderProcesses, numReceiverProcesses, parentLogger = None):
         self.numSenderProcesses = numSenderProcesses
-        self.numReceiverProcesses = numReceiverProcesses
+
         self.logger = Logger('WNS', 'HARQ', True, parentLogger)
+
+        self.receiverProcesses = []
+
+        for i in xrange(numReceiverProcesses):
+            self.receiverProcesses.append(ReceiverProcess(numRVs = 3, parentLogger = self.logger))
+
         self.numRVs = 3
 
 

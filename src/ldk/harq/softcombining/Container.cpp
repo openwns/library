@@ -43,13 +43,13 @@ Container::clear()
 }
 
 int
-Container::getNumRVs()
+Container::getNumRVs() const
 {
     return receivedCompounds_.size();
 }
 
 Container::CompoundList
-Container::getCompoundsForRV(int rv)
+Container::getCompoundsForRV(int rv) const
 {
     checkIfValidRV(rv);
 
@@ -65,7 +65,7 @@ Container::appendCompoundForRV(int rv, wns::ldk::CompoundPtr compound)
 }
 
 void
-Container::checkIfValidRV(int rv)
+Container::checkIfValidRV(int rv) const
 {
     if (rv < 0 || rv >= getNumRVs())
     {

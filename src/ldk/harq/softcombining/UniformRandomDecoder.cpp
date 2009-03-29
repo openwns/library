@@ -28,11 +28,21 @@
 #include <WNS/ldk/harq/softcombining/UniformRandomDecoder.hpp>
 
 #include <WNS/distribution/Uniform.hpp>
+#include <WNS/ldk/FUNConfigCreator.hpp>
 
 using namespace wns::ldk::harq::softcombining;
 
-UniformRandomDecoder::UniformRandomDecoder():
-    dis(new wns::distribution::StandardUniform())
+STATIC_FACTORY_REGISTER_WITH_CREATOR(
+    UniformRandomDecoder,
+    IDecoder,
+    "UniformRandomDecoder",
+    wns::ldk::FUNConfigCreator);
+
+UniformRandomDecoder::UniformRandomDecoder(wns::ldk::fun::FUN*, const wns::pyconfig::View& config):
+    initialPER_(config.get<double>("initialPER")),
+    rolloffFactor_(config.get<double>("rolloffFactor")),
+    logger_(config.get("logger")),
+    dis_(new wns::distribution::StandardUniform())
 {
 }
 
@@ -40,10 +50,29 @@ UniformRandomDecoder::~UniformRandomDecoder()
 {
 }
 
-bool
-UniformRandomDecoder::canDecode(const Container&)
+void
+UniformRandomDecoder::onFUNCreated()
 {
-    if ((*dis)() < 0.5)
+
+}
+
+bool
+UniformRandomDecoder::canDecode(const Container& c)
+{
+    int numTransmissions = 0;
+
+    for (int ii=0; ii < c.getNumRVs(); ++ii)
+    {
+        numTransmissions += c.getCompoundsForRV(ii).size();
+    }
+
+    double threshold = pow(initialPER_, numTransmissions * rolloffFactor_);
+
+    MESSAGE_BEGIN(NORMAL, logger_, m, "");
+    m << "Effective PER is " << threshold;
+    MESSAGE_END();
+
+    if ((*dis_)() > threshold)
     {
         return true;
     }
