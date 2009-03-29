@@ -28,6 +28,9 @@
 #ifndef WNS_LDK_HARQ_HARQ_HPP
 #define WNS_LDK_HARQ_HARQ_HPP
 
+#include <WNS/ldk/harq/softcombining/Container.hpp>
+#include <WNS/ldk/harq/softcombining/IDecoder.hpp>
+
 #include <WNS/ldk/fu/Plain.hpp>
 #include <WNS/ldk/Delayed.hpp>
 
@@ -50,6 +53,7 @@ namespace wns { namespace ldk { namespace harq {
             peer.type = INVALID;
             peer.NDI = false;
             peer.processId = -1;
+            peer.rv = 0;
         }
 
         struct {
@@ -59,6 +63,7 @@ namespace wns { namespace ldk { namespace harq {
             FrameType type;
             bool NDI;
             int processId;
+            int rv;
         } peer;
 
         struct {} magic;
@@ -89,7 +94,7 @@ namespace wns { namespace ldk { namespace harq {
         {
         public:
 
-            HARQSenderProcess(int processID, HARQ* entity, wns::logger::Logger logger);
+            HARQSenderProcess(int processID, int numRVs, HARQ* entity, wns::logger::Logger logger);
 
             bool
             hasCapacity() const;
@@ -105,6 +110,8 @@ namespace wns { namespace ldk { namespace harq {
 
         private:
             int processID_;
+
+            int numRVs_;
 
             HARQ* entity_;
 
@@ -122,7 +129,7 @@ namespace wns { namespace ldk { namespace harq {
         {
         public:
 
-            HARQReceiverProcess(int processID, HARQ* entity, wns::logger::Logger logger);
+            HARQReceiverProcess(int processID, int numRVs, HARQ* entity, wns::logger::Logger logger);
 
             void
             receive(const wns::ldk::CompoundPtr&);
@@ -130,14 +137,15 @@ namespace wns { namespace ldk { namespace harq {
         private:
             int processID_;
 
+            int numRVs_;
+
             HARQ* entity_;
 
             wns::logger::Logger logger_;
 
-            wns::ldk::CompoundPtr ack_;
+            softcombining::Container receptionBuffer_;
 
-            wns::ldk::CompoundPtr buffer_;
-
+            wns::SmartPtr<softcombining::IDecoder> decoder_;
         };
 
         virtual void
@@ -163,6 +171,8 @@ namespace wns { namespace ldk { namespace harq {
         int numSenderProcesses_;
 
         int numReceiverProcesses_;
+
+        int numRVs_;
 
         std::vector<HARQSenderProcess> senderProcesses_;
 

@@ -35,5 +35,6 @@ class HARQ:
         self.numSenderProcesses = numSenderProcesses
         self.numReceiverProcesses = numReceiverProcesses
         self.logger = Logger('WNS', 'HARQ', True, parentLogger)
+        self.numRVs = 3
 
 

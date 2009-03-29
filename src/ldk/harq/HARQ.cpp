@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/ldk/harq/HARQ.hpp>
+#include <WNS/ldk/harq/softcombining/UniformRandomDecoder.hpp>
 
 using namespace wns::ldk::harq;
 
@@ -35,8 +36,12 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     "wns.harq.HARQ",
     wns::ldk::FUNConfigCreator);
 
-HARQ::HARQSenderProcess::HARQSenderProcess(int processID, HARQ* entity, wns::logger::Logger logger):
+HARQ::HARQSenderProcess::HARQSenderProcess(int processID,
+                                           int numRVs,
+                                           HARQ* entity,
+                                           wns::logger::Logger logger):
     processID_(processID),
+    numRVs_(numRVs),
     entity_(entity),
     logger_(logger),
     buffer_(),
@@ -72,7 +77,7 @@ HARQ::HARQSenderProcess::enqueueTransmission(const wns::ldk::CompoundPtr& compou
     command->peer.processId = processID_;
     buffer_ = compound;
 
-    entity_->addToSendQueue(compound);
+    entity_->addToSendQueue(buffer_->copy());
 }
 
 void
@@ -93,16 +98,29 @@ HARQ::HARQSenderProcess::nackReceived()
     waitingForFeedback_ = false;
     retransmissionCounter_++;
 
+    wns::ldk::CompoundPtr retransmission = buffer_->copy();
+
+    HARQCommand* command = entity_->getCommand(retransmission->getCommandPool());
+    command->peer.NDI = false;
+    command->peer.rv = (command->peer.rv + 1) % numRVs_;
+
+    entity_->addToSendQueue(retransmission);
+
     MESSAGE_BEGIN(NORMAL, logger_, m, "");
     m << "Process " << processID_ << " received NACK";
     MESSAGE_END();
 }
 
-HARQ::HARQReceiverProcess::HARQReceiverProcess(int processID, HARQ* entity, wns::logger::Logger logger):
+HARQ::HARQReceiverProcess::HARQReceiverProcess(int processID,
+                                               int numRVs,
+                                               HARQ* entity,
+                                               wns::logger::Logger logger):
     processID_(processID),
+    numRVs_(numRVs),
     entity_(entity),
     logger_(logger),
-    buffer_()
+    receptionBuffer_(numRVs),
+    decoder_(new softcombining::UniformRandomDecoder())
 {
     assure(entity_ != NULL, "No HARQ entity available. This should not have happened");
 
@@ -116,35 +134,45 @@ HARQ::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
 {
     assure(entity_ != NULL, "No HARQ entity available. This should not have happened");
 
-    buffer_ = compound;
+    HARQCommand* command = entity_->getCommand(compound->getCommandPool());
 
-    CommandPool* ackPCI = entity_->getFUN()->getProxy()->createReply(buffer_->getCommandPool(), entity_);
-    ack_ = wns::ldk::CompoundPtr(new Compound(ackPCI));
+    receptionBuffer_.appendCompoundForRV(command->peer.rv, compound);
+
+    CommandPool* ackPCI = entity_->getFUN()->getProxy()->createReply(compound->getCommandPool(), entity_);
+    wns::ldk::CompoundPtr ack_ = wns::ldk::CompoundPtr(new Compound(ackPCI));
     HARQCommand* harqCommand = entity_->activateCommand(ackPCI);
-
-    harqCommand->peer.type = HARQCommand::ACK;
     harqCommand->peer.processId = processID_;
 
-    entity_->addToSendQueue(ack_);
+    if (decoder_->canDecode(receptionBuffer_))
+    {
+        harqCommand->peer.type = HARQCommand::ACK;
+        entity_->addToSendQueue(ack_);
 
-    if(entity_->getDeliverer()->size())
-        entity_->getDeliverer()->getAcceptor(compound)->onData(compound);
+        if(entity_->getDeliverer()->size())
+            entity_->getDeliverer()->getAcceptor(compound)->onData(compound);
+    }
+    else
+    {
+        harqCommand->peer.type = HARQCommand::NACK;
+        entity_->addToSendQueue(ack_);
+    }
 }
 
 HARQ::HARQ(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
     fu::Plain<HARQ, HARQCommand>(fuNet),
     numSenderProcesses_(config.get<int>("numSenderProcesses")),
     numReceiverProcesses_(config.get<int>("numReceiverProcesses")),
+    numRVs_(config.get<int>("numRVs")),
     logger_(config.get("logger"))
 {
     for (int ii=0; ii < numSenderProcesses_; ++ii)
     {
-        senderProcesses_.push_back(HARQSenderProcess(ii, this, logger_));
+        senderProcesses_.push_back(HARQSenderProcess(ii, numRVs_, this, logger_));
     }
 
     for (int ii=0; ii < numReceiverProcesses_; ++ii)
     {
-        receiverProcesses_.push_back(HARQ::HARQReceiverProcess(ii, this, logger_));
+        receiverProcesses_.push_back(HARQ::HARQReceiverProcess(ii, numRVs_, this, logger_));
     }
 }
 
