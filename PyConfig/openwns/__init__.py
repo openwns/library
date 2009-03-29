@@ -73,3 +73,10 @@ class Position:
         self.x = x
         self.y = y
         self.z = z
+
+class StaticFactoryClass(object):
+
+    __slots__ = ["nameInStaticFactory"]
+
+    def __init__(self, name):
+        self.nameInStaticFactory = name
