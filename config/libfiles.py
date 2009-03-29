@@ -317,6 +317,9 @@ srcFiles = [
     'src/ldk/arq/statuscollector/Counter.cpp',
     'src/ldk/arq/statuscollector/TwoSizesWindowed.cpp',
 
+    # ldk.HARQ
+    'src/ldk/harq/HARQ.cpp',
+
     # ldk.CRC
     'src/ldk/crc/CRC.cpp',
     'src/ldk/crc/CRCFilter.cpp',
@@ -518,6 +521,7 @@ hppFiles = [
 'src/ldk/arq/statuscollector/TwoSizesWindowed.hpp',
 'src/ldk/arq/StopAndWait.hpp',
 'src/ldk/arq/tests/PiggyBackerTest.hpp',
+'src/ldk/harq/HARQ.hpp',
 'src/ldk/buffer/Bounded.hpp',
 'src/ldk/buffer/Buffer.hpp',
 'src/ldk/buffer/Dropping.hpp',
@@ -892,6 +896,7 @@ hppFiles = [
 
 pyconfig = [
 'openwns/ARQ.py',
+'openwns/HARQ.py',
 'openwns/CRC.py',
 'openwns/Command.py',
 'openwns/Tools.py',
