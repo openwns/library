@@ -72,7 +72,7 @@ namespace wns { namespace ldk {
 	 * @brief Basic transmission unit within a fun::FUN.
 	 */
 	class Compound :
-		virtual public HasBirthmark,
+		public virtual HasBirthmark,
 		public wns::osi::PDU
 	{
 	public:
