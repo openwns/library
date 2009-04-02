@@ -58,9 +58,6 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 	public:
 		virtual ~PhyModeInterface() {}
 
-		//wns::SmartPtr<PhyModeInterface>
-		//copy() { return wns::SmartPtr<PhyModeInterface>(clone()); } // copy
-
 		/** @brief true if PhyMode is set (not undefined) */
 		virtual bool isValid() const = 0;
 
