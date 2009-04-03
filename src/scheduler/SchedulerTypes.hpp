@@ -412,6 +412,21 @@ namespace wns { namespace scheduler {
 		}
 	};
 
+	/** @brief function class which should compute the capacity of channel to decide which channel capacity is better */
+	class BetterChannelCapacity
+	{
+	public:
+		/** @brief true if a is better than b */
+		bool operator()(double a, double b)
+	  {
+		  if (a == 0.0) { // undefined
+			  return false; // b is better if a is undefined
+		  }
+
+		  return a>b;
+		}
+	};
+
 }} // namespace wns::scheduler
 #endif // WNS_SCHEDULER_SCHEDULERTYPES_HPP
 
