@@ -131,9 +131,9 @@ DispatcherTest::testSizes()
 {
 	CompoundPtr compound(fuNet->createCompound());
 
-	CPPUNIT_ASSERT_EQUAL(0, compound->getLengthInBits());
+	CPPUNIT_ASSERT_EQUAL(Bit(0), compound->getLengthInBits());
 	upper1->sendData(compound);
-	CPPUNIT_ASSERT_EQUAL(42, compound->getLengthInBits());
+	CPPUNIT_ASSERT_EQUAL(Bit(42), compound->getLengthInBits());
 } // testIncoming
 
 

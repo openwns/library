@@ -688,13 +688,13 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		for (int i = 0; i < windowSize; i++)
 			getLowerStub()->onData(getLowerStub()->sent[i]);
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(windowSize+1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(uint32_t(windowSize+1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), getUpperStub()->received.size());
 
 		for (int i = 0; i < windowSize; i++)
 			getLowerStub()->onData(getLowerStub()->sent[i+windowSize]);
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(uint32_t(1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), getUpperStub()->received.size());
 
 		getTestee<GoBackN>()->doDeliver();

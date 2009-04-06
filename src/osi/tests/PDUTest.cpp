@@ -214,7 +214,7 @@ namespace wns { namespace osi { namespace tests {
         WNS_ASSERT_ASSURE_EXCEPTION(testPDU.getLengthInBits());
 
         FixedSizePDU goodPDU = FixedSizePDU(10);
-        CPPUNIT_ASSERT_EQUAL(10, goodPDU.getLengthInBits());
+        CPPUNIT_ASSERT_EQUAL(Bit(10), goodPDU.getLengthInBits());
     }
 
     void

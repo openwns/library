@@ -80,7 +80,7 @@ namespace wns { namespace ldk { namespace tools { namespace tests {
 			upper->sendData(compound);
 			CPPUNIT_ASSERT(lower->sent.size() == 1);
 			CPPUNIT_ASSERT(lower->sent[0] == compound);
-			CPPUNIT_ASSERT_EQUAL(42, compound->getLengthInBits());
+			CPPUNIT_ASSERT_EQUAL(Bit(42), compound->getLengthInBits());
 		}
 
 
