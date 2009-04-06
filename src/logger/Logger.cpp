@@ -113,7 +113,8 @@ Logger::Logger(const Logger& other) :
 	lName(other.lName),
 	masterLogger(other.masterLogger), // sharing the same instance
 	enabled(other.enabled),
-	level(other.level)
+	level(other.level),
+	showFunction(other.showFunction)
 {
 }
 
@@ -125,6 +126,7 @@ Logger::operator=(const Logger& other)
 	masterLogger = other.masterLogger; // sharing the same instance
 	enabled = other.enabled;
 	level = other.level;
+	showFunction = other.showFunction;
 	return *this;
 }
 
@@ -135,6 +137,7 @@ Logger::configure(const wns::pyconfig::View& config)
 	lName = config.get<std::string>("name");
 	enabled = config.get<bool>("enabled");
 	level = config.get<int32_t>("level");
+	showFunction = config.get<bool>("showFunction");
 } // configure
 
 void

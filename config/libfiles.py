@@ -317,6 +317,11 @@ srcFiles = [
     'src/ldk/arq/statuscollector/Counter.cpp',
     'src/ldk/arq/statuscollector/TwoSizesWindowed.cpp',
 
+    # ldk.HARQ
+    'src/ldk/harq/HARQ.cpp',
+    'src/ldk/harq/softcombining/Container.cpp',
+    'src/ldk/harq/softcombining/UniformRandomDecoder.cpp',
+
     # ldk.CRC
     'src/ldk/crc/CRC.cpp',
     'src/ldk/crc/CRCFilter.cpp',
@@ -408,6 +413,7 @@ srcFiles = [
     'src/ldk/arq/tests/SelectiveRepeatTest.cpp',
     'src/ldk/arq/tests/GoBackNTest.cpp',
     'src/ldk/arq/tests/PiggyBackerTest.cpp',
+    'src/ldk/harq/softcombining/tests/ContainerTest.cpp',
     'src/ldk/crc/tests/CRCTest.cpp',
     'src/ldk/crc/tests/CRCFilterTest.cpp',
     'src/ldk/buffer/tests/BoundedTest.cpp',
@@ -518,6 +524,10 @@ hppFiles = [
 'src/ldk/arq/statuscollector/TwoSizesWindowed.hpp',
 'src/ldk/arq/StopAndWait.hpp',
 'src/ldk/arq/tests/PiggyBackerTest.hpp',
+'src/ldk/harq/HARQ.hpp',
+'src/ldk/harq/softcombining/Container.hpp',
+'src/ldk/harq/softcombining/IDecoder.hpp',
+'src/ldk/harq/softcombining/UniformRandomDecoder.hpp',
 'src/ldk/buffer/Bounded.hpp',
 'src/ldk/buffer/Buffer.hpp',
 'src/ldk/buffer/Dropping.hpp',
@@ -893,6 +903,7 @@ hppFiles = [
 
 pyconfig = [
 'openwns/ARQ.py',
+'openwns/HARQ.py',
 'openwns/CRC.py',
 'openwns/Command.py',
 'openwns/Tools.py',
