@@ -72,13 +72,6 @@ namespace wns { namespace scheduler {
 	// wns::scheduler::PowerControlType
 
 	/** @brief there are three positions for the scheduler... */
-    /*
-	typedef enum {
-	  DLMaster,
-	  ULMaster,
-	  ULSlave
-	} SchedulerSpot;
-    */
 	// wns::scheduler::SchedulerSpot
 	ENUM_BEGIN(SchedulerSpot);
 	ENUM(DLMaster,  1);
@@ -174,17 +167,6 @@ namespace wns { namespace scheduler {
 		s << ")";
 		return s.str();
 	}
-
-    /*
-    template <class ContainerTemplateType>;
-	inline std::string
-	printContainer<ContainerTemplateType>(ContainerTemplateType& container) {
-		std::stringstream s;
-		s << "Container(";
-		s << ")";
-		return s.str();
-	}
-    */
 
 	/** @brief stream operator for class Group */
 	inline std::ostream&
