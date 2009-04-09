@@ -386,12 +386,15 @@ namespace wns { namespace scheduler {
 		/** @brief true if a is better than b */
 		bool operator()(wns::scheduler::ChannelQualityOnOneSubChannel a, wns::scheduler::ChannelQualityOnOneSubChannel b)
 	  {
-			if (a.pathloss == wns::Ratio()) { // undefined
-			  return false; // b is better if a is undefined
-			}
-			return a.pathloss.get_factor() * a.interference.get_mW()
-			     < b.pathloss.get_factor() * b.interference.get_mW();
-		}
+		  if (a.pathloss == wns::Ratio()) {
+			  return false;
+		  }
+		  if (b.pathloss == wns::Ratio()) { // undefined
+			  return true; // a is better if b is undefined
+		  }
+		  return a.pathloss.get_factor() * a.interference.get_mW()
+			  < b.pathloss.get_factor() * b.interference.get_mW();
+	  }
 	};
 
 	/** @brief function class which should compute the capacity of channel to decide which channel capacity is better */
@@ -401,8 +404,11 @@ namespace wns { namespace scheduler {
 		/** @brief true if a is better than b */
 		bool operator()(double a, double b)
 	  {
-		  if (a == 0.0) { // undefined
-			  return false; // b is better if a is undefined
+		  if (a == 0.0) {
+			  return false;
+		  }
+		  if (b == 0.0) { // undefined
+			  return true; // a is better if b is undefined
 		  }
 
 		  return a>b;
