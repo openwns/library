@@ -27,10 +27,10 @@
 
 class Interval:
     def __init__(self, lowerBound, upperBound, intervalType = "[]"):
-	self.lowerBound = lowerBound
-	self.upperBound = upperBound
-	self.intervalType = intervalType
-	
+        self.lowerBound = lowerBound
+        self.upperBound = upperBound
+        self.intervalType = intervalType
+
     lowerBound = None
     upperBound = None
     intervalType = None
