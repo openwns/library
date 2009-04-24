@@ -76,7 +76,8 @@ class Position:
 
 class StaticFactoryClass(object):
 
-    __slots__ = ["nameInStaticFactory"]
+    __slots__ = ["nameInStaticFactory", "__plugin__"]
 
     def __init__(self, name):
         self.nameInStaticFactory = name
+        self.__plugin__ = name
