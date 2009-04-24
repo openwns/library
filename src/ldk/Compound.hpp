@@ -187,7 +187,7 @@ namespace wns { namespace ldk {
 
 	typedef SmartPtr<Compound> CompoundPtr;
 
-#ifdef WNS_SMART_PTR_DEBUGGING
+#ifdef WNS_SMARTPTR_DEBUGGING
 #define CompoundPtr(...) CompoundPtr(__FILE__, __LINE__, ##__VA_ARGS__)
 #endif
 

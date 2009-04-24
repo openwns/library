@@ -28,7 +28,10 @@
 #ifndef WNS_SMARTPTR_HPP
 #define WNS_SMARTPTR_HPP
 
+#ifdef WNS_SMARTPTR_DEBUGGING
 #include <WNS/SmartPtrBase.hpp>
+#endif
+
 #include <WNS/RefCountable.hpp>
 #include <WNS/TypeInfo.hpp>
 
@@ -68,7 +71,7 @@ namespace wns {
 #ifdef WNS_SMARTPTR_DEBUGGING
 			SmartPtrBase(),
 			id(++getCounter()),
-			file(""),
+			file(),
 			line(0),
 #endif
 			ptr(NULL)
@@ -90,8 +93,8 @@ namespace wns {
 		{
 			assert(ptr);
 			ptr->incRefCount();
-#ifdef WNS_SMART_PTR_DEBUGGING
-			this->created("", 0);
+#ifdef WNS_SMARTPTR_DEBUGGING
+			this->created(file, 0);
 #endif
 		}
 
@@ -383,7 +386,8 @@ namespace wns {
 			    itr != getAllPointers().end();
 			    ++itr) {
 				std::cout << "Pointer id: " << (*itr)->id << "\n"
-					  << "Created at: " << (*itr)->file << ":" << (*itr)->line << "\n";
+					  << "Created at: " << (*itr)->file << ":" << (*itr)->line << "\n"
+                                          << "Backtrace: \n" << (*itr)->getBacktrace() << "\n";
 
 			}
 #endif
