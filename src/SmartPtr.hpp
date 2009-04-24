@@ -38,6 +38,10 @@
 #include <iostream>
 #include <list>
 
+#ifdef WNS_SMARTPTR_DEBUGGING
+#include <WNS/Backtrace.hpp>
+#endif
+
 namespace wns {
 	/**
 	 * @brief Intrusive reference counting
@@ -68,7 +72,8 @@ namespace wns {
 #ifdef WNS_SMARTPTR_DEBUGGING
 			SmartPtrBase(),
 			id(++getCounter()),
-			file(""),
+			file(),
+                        backtrace(),
 			line(0),
 #endif
 			ptr(NULL)
@@ -84,14 +89,15 @@ namespace wns {
 			SmartPtrBase(),
 			id(++getCounter()),
 			file(""),
+                        backtrace(""),
 			line(0),
 #endif
 			ptr(p)
 		{
 			assert(ptr);
 			ptr->incRefCount();
-#ifdef WNS_SMART_PTR_DEBUGGING
-			this->created("", 0);
+#ifdef WNS_SMARTPTR_DEBUGGING
+			this->created(file, 0);
 #endif
 		}
 
@@ -104,6 +110,7 @@ namespace wns {
 			SmartPtrBase(),
 			id(++getCounter()),
 			file(""),
+                        backtrace(""),
 			line(0),
 #endif
 			ptr(s.ptr)
@@ -126,6 +133,7 @@ namespace wns {
 			SmartPtrBase(),
 			id(++getCounter()),
 			file(""),
+                        backtrace(""),
 			line(0),
 #endif
 			ptr(s.getPtr())
@@ -146,6 +154,7 @@ namespace wns {
 			SmartPtrBase(),
 			id(++getCounter()),
 			file(""),
+                        backtrace(""),
 			line(0),
 			ptr(NULL)
 		{
@@ -161,6 +170,7 @@ namespace wns {
 			SmartPtrBase(),
 			id(++getCounter()),
 			file(""),
+                        backtrace(""),
 			line(0),
 			ptr(p)
 		{
@@ -177,6 +187,7 @@ namespace wns {
 			SmartPtrBase(),
 			id(++getCounter()),
 			file(""),
+                        backtrace(""),
 			line(0),
 			ptr(s.ptr)
 		{
@@ -195,6 +206,7 @@ namespace wns {
 			SmartPtrBase(),
 			id(++getCounter()),
 			file(""),
+                        backtrace(""),
 			line(0),
 			ptr(s.getPtr())
 		{
@@ -383,7 +395,8 @@ namespace wns {
 			    itr != getAllPointers().end();
 			    ++itr) {
 				std::cout << "Pointer id: " << (*itr)->id << "\n"
-					  << "Created at: " << (*itr)->file << ":" << (*itr)->line << "\n";
+					  << "Created at: " << (*itr)->file << ":" << (*itr)->line << "\n"
+                                          << "Backtrace: \n" << (*itr)->backtrace << "\n";
 
 			}
 #endif
@@ -408,6 +421,7 @@ namespace wns {
 		int64_t id;
 
 		std::string file;
+                std::string backtrace;
 		int line;
 
 		void
@@ -416,6 +430,10 @@ namespace wns {
 			this->getAllPointers().push_back(this);
 			this->file = _file;
 			this->line = _line;
+
+                        wns::Backtrace bt;
+                        bt.snapshot();
+                        this->backtrace = bt.toString();
 		}
 
 		void
