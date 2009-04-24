@@ -48,6 +48,10 @@
 #include <WNS/simulator/SignalHandler.hpp>
 #include <WNS/simulator/CPUTimeExhaustedHandler.hpp>
 
+#ifdef WNS_SMARTPTR_DEBUGGING
+#include <WNS/SmartPtrBase.hpp>
+#endif
+
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/TestResult.h>
@@ -456,6 +460,7 @@ CALLGRIND_STOP_INSTRUMENTATION;
 		// used in event loop
 		handler.removeSignalHandler(SIGXCPU);
 		MESSAGE_SINGLE(NORMAL, logger_, "Simulation finished");
+
     }
 }
 
@@ -470,6 +475,11 @@ Application::doShutdown()
     // delete ProbeBusRegisty (auto_ptr)
     probeBusRegistry.reset();
 
+    wns::simulator::getEventScheduler()->reset();
+
+#ifdef WNS_SMARTPTR_DEBUGGING
+    wns::SmartPtrBase::printAllExistingPointers();
+#endif
 	MESSAGE_SINGLE(NORMAL, logger_, "Calling shutDown for all modules");
 	for(std::list<module::Base*>::iterator itr = loadedModules_.begin();
 	    itr != loadedModules_.end();
