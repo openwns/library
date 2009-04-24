@@ -47,6 +47,9 @@
 #include <WNS/simulator/SegmentationViolationHandler.hpp>
 #include <WNS/simulator/SignalHandler.hpp>
 #include <WNS/simulator/CPUTimeExhaustedHandler.hpp>
+#ifdef WNS_SMARTPTR_DEBUGGING
+#  include <WNS/SmartPtrBase.hpp>
+#endif
 
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
@@ -462,6 +465,12 @@ CALLGRIND_STOP_INSTRUMENTATION;
 void
 Application::doShutdown()
 {
+
+#ifdef WNS_SMARTPTR_DEBUGGING
+    MESSAGE_SINGLE(NORMAL, logger_, "SmartPtr debugging:");
+    wns::SmartPtrBase::printAllExistingPointers();
+#endif
+
     if (!testing_)
     {
         stopProbes();
