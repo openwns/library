@@ -63,7 +63,7 @@ Main::Main(Layer* _layer) :
 			"  wakeupLogger.level = 3\n"
 			"  onDataLogger = openwns.logger.Logger(\"WNS\", \"LinkHandler\", False)\n"
 			"  onDataLogger.level = 3\n"
-			"  traceCompoundJourney = True\n"
+			"  traceCompoundJourney = False\n" // @todo: make configurable
 			"linkHandler = LinkHandler()\n");
 	wns::pyconfig::View view(pyco, "linkHandler");
 

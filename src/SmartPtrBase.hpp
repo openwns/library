@@ -29,6 +29,7 @@
 #define WNS_SMARTPTRBASE_HPP
 
 #include <WNS/TypeInfo.hpp>
+#include <WNS/Backtrace.hpp>
 
 #include <list>
 #include <stdint.h>
@@ -65,6 +66,9 @@ namespace wns {
 			globalId(++SmartPtrBase::getCounter())
 		{
 			SmartPtrBase::getAllPointers().push_back(this);
+                        wns::Backtrace bt;
+                        bt.snapshot();
+                        this->backtrace = bt.toString();
 		}
 
 		/**
@@ -93,10 +97,16 @@ namespace wns {
 			    ++itr) {
 				std::cout << "Pointer type: " << (*itr)->getTypeInfo()
 					  << " id: " << (*itr)->getId()
-					  << " global id: " << (*itr)->globalId << "\n";
+					  << " global id: " << (*itr)->globalId << "\n"
+                                          << (*itr)->getBacktrace() << std::endl;
 			}
 		}
 
+                std::string
+                getBacktrace()
+                {
+                    return this->backtrace;
+                }
 	private:
 		/**
 		 * @brief Provide type information on the SmartPtr
@@ -135,6 +145,11 @@ namespace wns {
 		 * @brief Global identifier
 		 */
 		Id globalId;
+
+                /**
+                 * @brief To record the backtrace for all created SmartPtrs
+                 */ 
+                std::string backtrace;
 	};
 } // wns
 
