@@ -328,17 +328,13 @@ namespace wns { namespace scheduler {
 	public:
 		ChannelQualityOnOneSubChannel():
 			pathloss(),
-			interference(),
-			subBandIndex(0),
-			isRealSubBandIndex(true)
+			interference()
 			{
 			}
 
-		ChannelQualityOnOneSubChannel(wns::Ratio _pathloss,  wns::Power _interference, int _subBandIndex):
+		ChannelQualityOnOneSubChannel(wns::Ratio _pathloss,  wns::Power _interference):
 			pathloss(_pathloss),
-			interference(_interference),
-			subBandIndex(_subBandIndex),
-			isRealSubBandIndex(true)
+			interference(_interference)
 			{
 			}
 
@@ -346,12 +342,6 @@ namespace wns { namespace scheduler {
 		wns::Ratio pathloss;
 		/** @brief measured (I + N) */
 		wns::Power interference;
-		/** @brief required as libwns scheduler index, not real(OFDMA) index */
-		int subBandIndex; // libwns scheduler index, not real(OFDMA) index
-		/** @brief true if subBandIndex means OFDMA subChannel,
-		    false if subBandIndex means "libwns scheduler subBand index".
-		    It is translated during the process using "ChannelMapping". */
-		bool isRealSubBandIndex; // TODO: use and change later. Important to avoid double-mapping!!!
 	}; // ChannelQualityOnOneSubChannel
 
 	//typedef std::vector<ChannelQualityOnOneSubChannel> ChannelsQualitiesOnAllSubBand; // index is real(OFDMA) subchannel number
