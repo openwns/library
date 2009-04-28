@@ -233,7 +233,7 @@ namespace wns { namespace scheduler {
 	typedef std::map<UserID, PowerAllocation> PowerMap;
 
 	class Grouping
-	  : public wns::RefCountable
+	  : virtual public wns::RefCountable
 	{
 	public:
 		Grouping() {};
@@ -346,7 +346,7 @@ namespace wns { namespace scheduler {
 
 	//typedef std::vector<ChannelQualityOnOneSubChannel> ChannelsQualitiesOnAllSubBand; // index is real(OFDMA) subchannel number
 	class ChannelQualitiesOnAllSubBands
-	  : public wns::RefCountable,
+	  : virtual public wns::RefCountable,
 	    public std::vector<ChannelQualityOnOneSubChannel>
 	{
 	public:
@@ -358,7 +358,7 @@ namespace wns { namespace scheduler {
 
 	//typedef	std::map<UserID, ChannelsQualitiesOnAllSubBand*> ChannelQualitiesOfAllUsers;
 	class ChannelQualitiesOfAllUsers
-	  : public wns::RefCountable,
+	  : virtual public wns::RefCountable,
 	    public std::map<UserID, ChannelQualitiesOnAllSubBandsPtr>
 	{
 	public:

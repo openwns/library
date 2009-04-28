@@ -42,7 +42,7 @@ PCI::PCI(pduType aPDUType, const uint32_t aPDULength) :
 }
 
 PCI::PCI(const PCI& that) :
-    wns::RefCountable(),
+    //wns::RefCountable(),
     wns::IOutputStreamable(),
 	p_pdu(that.p_pdu),
 	p_pduId(that.p_pduId),

@@ -40,7 +40,7 @@ namespace wns {
 
 		// For testing purpose
 		class A
-			: public RefCountable
+			: virtual public RefCountable
 		{
 		public:
 			virtual ~A()

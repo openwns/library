@@ -44,7 +44,7 @@ namespace wns { namespace probe { namespace bus { namespace tests { namespace de
 
 // begin example "wns.probe.bus.tests.DevelopersGuideTestSimpleCollector.job.example"
 class Job:
-    public wns::RefCountable
+    virtual public wns::RefCountable
 {
 public:
     enum Priority
