@@ -57,14 +57,14 @@ RegistryProxyStub::RegistryProxyStub()
 	  queueSizeLimit(100000)
 {
 	wns::pyconfig::Parser parser;
-	parser.loadString("import wns.PhyMode\n" // libwns*/addOn/PyConfig/wns/PhyMode.py
-			  "from wns.Interval import Interval\n"
-			  "phyMode = wns.PhyMode.PhyModeDropin3()\n"
-			  "phyModeMap = wns.PhyMode.PhyModeMapperDropin()\n"
+	parser.loadString("import openwns.PhyMode\n" 
+			  "from openwns.Interval import Interval\n"
+			  "phyMode = openwns.PhyMode.PhyModeDropin3()\n"
+			  "phyModeMap = openwns.PhyMode.PhyModeMapperDropin()\n"
 			  "phyModeMap.setMinimumSINR(3.0)\n"
-			  "phyModeMap.addPhyMode(Interval(-200.0,   3.0, \"(]\"), wns.PhyMode.PhyModeDropin1())\n"
-			  "phyModeMap.addPhyMode(Interval(   3.0,  10.0, \"(]\"), wns.PhyMode.PhyModeDropin2())\n"
-			  "phyModeMap.addPhyMode(Interval(  10.0, 200.0, \"(]\"), wns.PhyMode.PhyModeDropin3())\n"
+			  "phyModeMap.addPhyMode(Interval(-200.0,   3.0, \"(]\"), openwns.PhyMode.PhyModeDropin1())\n"
+			  "phyModeMap.addPhyMode(Interval(   3.0,  10.0, \"(]\"), openwns.PhyMode.PhyModeDropin2())\n"
+			  "phyModeMap.addPhyMode(Interval(  10.0, 200.0, \"(]\"), openwns.PhyMode.PhyModeDropin3())\n"
 			  "\n"
 		);
 	phyMode = wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface>

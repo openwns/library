@@ -75,7 +75,7 @@ void SimpleQueueTest::setUp() {
 
 	std::stringstream ss;
 
-	ss << "from wns.Scheduler import SimpleQueue\n"
+	ss << "from openwns.Scheduler import SimpleQueue\n"
 	   << "queue = SimpleQueue()\n";
 
 	queueConfig.loadString(ss.str());

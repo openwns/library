@@ -73,8 +73,8 @@ PhyModeMapper::PhyModeMapper()
 	  minimumSINR(0.0)
 {
 	wns::pyconfig::Parser parser;
-	parser.loadString("import wns.PhyMode\n"
-			  "phyMode = wns.PhyMode.PhyModeDropin()\n");
+	parser.loadString("import openwns.PhyMode\n"
+			  "phyMode = openwns.PhyMode.PhyModeDropin()\n");
 	wns::service::phy::phymode::PhyModeInterfacePtr
 		phyModeInterfacePtr = wns::service::phy::phymode::PhyModeInterfacePtr
 		( new wns::scheduler::tests::PhyMode(parser.get("phyMode")) );
