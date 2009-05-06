@@ -61,7 +61,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 		/** @brief true if PhyMode is set (not undefined) */
 		virtual bool isValid() const = 0;
 
-		/** @brief true if PhyMode is set (not undefined) */
+		/** @brief true if dataRate can be calculated. False if something is missing. */
 		virtual bool dataRateIsValid() const = 0;
 
 		/** @brief test PhyModes for equality */

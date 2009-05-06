@@ -29,7 +29,9 @@
 #define _CANDI_HPP
 
 #include <WNS/PowerRatio.hpp>
+#include <WNS/IOutputStreamable.hpp>
 #include <cmath>
+
 namespace wns
 {
     /**
@@ -37,6 +39,7 @@ namespace wns
 	 *  for SDMA purposes intra-cell interference can be given separately
      */
     class CandI
+      : public wns::IOutputStreamable
     {
     public:
 		// Default constructor
@@ -69,6 +72,18 @@ namespace wns
 			return ( (C/I) < (candi.C / candi.I) );
 		}
 
+		/** @brief required for IOutputStreamable */
+		virtual std::string doToString() const
+		{
+			std::stringstream s;
+			if (isValid()) {
+			  s << toSINR().get_dB() << " dB";
+			} else {
+			  s << "invalid_CandI";
+			}
+			return s.str();
+		}
+
 		friend std::ostream& operator <<(std::ostream &str, const CandI& candi)
 		{
 			if (candi.isValid()) {
@@ -81,6 +96,7 @@ namespace wns
 
 		// Default destructor
 		~CandI(){}
+
 		wns::Power C;
 		wns::Power I;
 

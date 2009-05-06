@@ -378,7 +378,7 @@ namespace wns {
 		printAllExistingPointers()
 		{
 #ifdef WNS_SMARTPTR_DEBUGGING
-			std::cout << "Curently existing SmartPtr<"
+			std::cout << "Currently existing SmartPtr<"
 				  << wns::TypeInfo::create<T>()
 				  <<  ">: " << "\n";
 
@@ -400,7 +400,7 @@ namespace wns {
 		printNumberOfExistingPointers()
 		{
 #ifdef WNS_SMARTPTR_DEBUGGING
-			std::cout << "Number of curently existing SmartPtr<"
+			std::cout << "Number of currently existing SmartPtr<"
 				  << wns::TypeInfo::create<T>()
 				  <<  ">: " << getAllPointers().size() << "\n";
 #endif

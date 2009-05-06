@@ -65,7 +65,7 @@ namespace wns { namespace container { namespace tests {
         // end example
 
         class FLTest2 :
-            public RefCountable,
+            virtual public RefCountable,
             public FastListEnabler< SmartPtr<FLTest2> >
         {
         public:
