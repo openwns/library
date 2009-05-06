@@ -1085,7 +1085,9 @@ pyconfig = [
 'openwns/toolsupport/pytreevisitors/node.py',
 'openwns/toolsupport/pytreevisitors/probebus.py',
 'openwns/toolsupport/pytreevisitors/FUN.py',
-
+'openwns/scheduler/__init__.py',
+'openwns/scheduler/APCStrategy.py',
+'openwns/scheduler/DSAStrategy.py',
 'openwns/markov/mmpp_example.gdf',
 'openwns/markov/markov_onoff1.gdf',
 'openwns/qos.py',

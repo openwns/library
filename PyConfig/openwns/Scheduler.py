@@ -25,15 +25,14 @@
 #
 ###############################################################################
 
-from wns.Sealed import Sealed
-from wns.PyConfig import attrsetter
-import wns.Logger
-import wns.scheduler.APCStrategy
-import wns.scheduler.DSAStrategy
+from openwns.pyconfig import attrsetter
+import openwns.logger
+import openwns.scheduler.APCStrategy
+import openwns.scheduler.DSAStrategy
 import openwns.qos
 import copy
 
-class PowerCapabilities(Sealed):
+class PowerCapabilities(object):
     maxPerSubband = None
     nominalPerSubband = None
     maxOverall = None
@@ -46,7 +45,7 @@ class PowerCapabilities(Sealed):
         self.nominalPerSubband = nominalPerSubband
         self.maxOverall = maxOverall
 
-class Strategy(Sealed):
+class Strategy(object):
     nameInStrategyFactory = None
     symbolDuration = None
     txMode = None # True for outgoing schedulers (Scheduler-TX) in BS and UT; False for uplink master scheduler (Scheduler-RX) in BS, because this does not really transmit packets
@@ -63,13 +62,13 @@ class Strategy(Sealed):
                  parentLogger = None,
                  powerControlSlave = False,
                  excludeTooLowSINR = True,
-                 apcstrategy   = wns.scheduler.APCStrategy.DoNotUseAPC(),
-                 dsastrategy   = wns.scheduler.DSAStrategy.DoNotUseDSA(),
-                 dsafbstrategy = wns.scheduler.DSAStrategy.DoNotUseDSA(),
+                 apcstrategy   = openwns.scheduler.APCStrategy.DoNotUseAPC(),
+                 dsastrategy   = openwns.scheduler.DSAStrategy.DoNotUseDSA(),
+                 dsafbstrategy = openwns.scheduler.DSAStrategy.DoNotUseDSA(),
                  **kw):
         self.symbolDuration = symbolDuration
         self.txMode = txMode
-        self.logger = wns.Logger.Logger("WNS", "Strategy", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "Strategy", True, parentLogger)
         self.powerControlSlave = powerControlSlave
         self.excludeTooLowSINR = excludeTooLowSINR
         self.setAPCStrategy(apcstrategy)
@@ -79,12 +78,12 @@ class Strategy(Sealed):
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
         myParentLogger = copy.deepcopy(parentLogger) # original object shares logger instance
-        self.logger = wns.Logger.Logger("WNS", "Strategy", True, myParentLogger)
+        self.logger = openwns.logger.Logger("WNS", "Strategy", True, myParentLogger)
         #self.dsastrategy.setParentLogger(self.logger)
         ### above: BS1.L2.tdd100.RS-TX.Strategy.DSAStrategy.LinearFFirst
         ### below: BS1.L2.tdd100.RS-TX.DSAStrategy.LinearFFirst
         self.dsastrategy.setParentLogger(myParentLogger)
-        self.dsafbstrategy.setParentLogger(wns.Logger.Logger("WNS", "FB", True, myParentLogger))
+        self.dsafbstrategy.setParentLogger(openwns.logger.Logger("WNS", "FB", True, myParentLogger))
         self.apcstrategy.setParentLogger(myParentLogger)
     def setDSAStrategy(self, dsastrategy):
         self.dsastrategy = copy.deepcopy(dsastrategy)
@@ -199,13 +198,13 @@ class StaticPriority(Strategy):
         attrsetter(self, kw)
         self.nameInStrategyFactory = "StaticPriority"
         self.subStrategies = []
-        self.logger = wns.Logger.Logger("WNS", "SP", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "SP", True, parentLogger)
         self.numberOfPriorities = len(subStrategies) # 0..4 => 5
         priority = openwns.qos.priorityBest # ==0
         for subStrategy in subStrategies:
             mySubStrategy = copy.deepcopy(subStrategy) # original object shares logger instance
             #print "subStrategy[%s]=%s"%(priority,mySubStrategy.__plugin__)
-            logger = wns.Logger.Logger("WNS", "SP[%d]"%priority, True, self.logger)
+            logger = openwns.logger.Logger("WNS", "SP[%d]"%priority, True, self.logger)
             mySubStrategy.setParentLogger(logger)
             self.subStrategies.append(mySubStrategy)
             priority = priority+1
@@ -219,70 +218,70 @@ class SubStrategy:
     def __init__(self, **kw):
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "SubStrategy", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "SubStrategy", True, parentLogger)
 
 class RoundRobin(SubStrategy):
     __plugin__ = "RoundRobin"
     blockSize = 1 # number of pdus taken out out queue for one cid per round
     def __init__(self, parentLogger = None, **kw):
-        self.logger = wns.Logger.Logger("WNS", "RoundRobin", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "RoundRobin", True, parentLogger)
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "RoundRobin", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "RoundRobin", True, parentLogger)
 
 class ExhaustiveRoundRobin(SubStrategy):
     __plugin__ = "ExhaustiveRoundRobin"
     blockSize = 1000000 # don't ask.
     def __init__(self, parentLogger = None, **kw):
-        self.logger = wns.Logger.Logger("WNS", "ExhaustiveRR", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "ExhaustiveRR", True, parentLogger)
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "ExhaustiveRR", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "ExhaustiveRR", True, parentLogger)
 
 # TODO:
 class EqualTimeRoundRobin(SubStrategy):
     __plugin__ = "EqualTimeRoundRobin"
     def __init__(self, parentLogger = None, **kw):
-        self.logger = wns.Logger.Logger("WNS", "EqualTimeRR", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "EqualTimeRR", True, parentLogger)
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "EqualTimeRR", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "EqualTimeRR", True, parentLogger)
 
 # TODO:
 class EqualRateRoundRobin(SubStrategy):
     __plugin__ = "EqualRateRoundRobin"
     def __init__(self, parentLogger = None, **kw):
-        self.logger = wns.Logger.Logger("WNS", "EqualRateRR", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "EqualRateRR", True, parentLogger)
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "EqualRateRR", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "EqualRateRR", True, parentLogger)
 
 # TODO: First Come First Serve (FCFS)
 class FCFS(SubStrategy):
     __plugin__ = "FCFS"
     def __init__(self, parentLogger = None, **kw):
-        self.logger = wns.Logger.Logger("WNS", "FCFS", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "FCFS", True, parentLogger)
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "FCFS", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "FCFS", True, parentLogger)
 
 # TODO:
 class ProportionalFair(SubStrategy):
     __plugin__ = "ProportionalFair"
     def __init__(self, parentLogger = None, **kw):
-        self.logger = wns.Logger.Logger("WNS", "ProportionalFair", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "ProportionalFair", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
 
 # TODO: Earliest Deadline First (EDF)
 class EDF(SubStrategy):
     __plugin__ = "EDF"
     def __init__(self, parentLogger = None, **kw):
-        self.logger = wns.Logger.Logger("WNS", "EDF", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "EDF", True, parentLogger)
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
-        self.logger = wns.Logger.Logger("WNS", "EDF", True, parentLogger)
+        self.logger = openwns.logger.Logger("WNS", "EDF", True, parentLogger)
 
 
 ######################################################
@@ -292,7 +291,7 @@ class NoGrouper:
     beamforming = False
 
 
-class Grouper(Sealed):
+class Grouper(object):
     nameInGrouperFactory = None
     friendliness_dBm = None
     MonteCarloSim = None
@@ -306,7 +305,7 @@ class Grouper(Sealed):
         self.MonteCarloSim = False
         self.beamforming = True
         self.uplink = False
-        self.logger = wns.Logger.Logger("WNS", "SpatialGrouper", True, parentLogger);
+        self.logger = openwns.logger.Logger("WNS", "SpatialGrouper", True, parentLogger);
         attrsetter(self, kw)
 
 class RelayMetaGrouper(Grouper):
@@ -348,12 +347,12 @@ class DoAHeuristicPreferredAngle(DoAGrouper):
         super(DoAHeuristicPreferredAngle,self).__init__(minAngleDegree, weight, **kw)
         self.nameInGrouperFactory = "DoAHeuristicPreferredAngle"
 
-class RegistryProxy(Sealed):
+class RegistryProxy(object):
     nameInRegistryProxyFactory = None
 
 ######################################################
 ### SimpleQueue (stores segmented PDUs of size<=segmentSize)
-class SimpleQueue(Sealed):
+class SimpleQueue(object):
     nameInQueueFactory = None
     logger = None
     sizeProbeName = None
@@ -369,12 +368,12 @@ class SimpleQueue(Sealed):
     def __init__(self, parentLogger = None, **kw):
         self.localIDs = {}
         self.nameInQueueFactory = "SimpleQueue"
-        self.logger = wns.Logger.Logger("WNS", "SimpleQueue", True, parentLogger);
+        self.logger = openwns.logger.Logger("WNS", "SimpleQueue", True, parentLogger);
         self.sizeProbeName = 'SimpleQueueSize'
         attrsetter(self, kw)
 
 ### SegmentingQueue (stores unsegmented original PDUs and does segmentation on-the-fly)
-class SegmentingQueue(Sealed):
+class SegmentingQueue(object):
     nameInQueueFactory = None
     logger = None
     sizeProbeName = None
@@ -392,10 +391,9 @@ class SegmentingQueue(Sealed):
         super(SegmentingQueue,self).__init__()
         self.localIDs = {}
         self.nameInQueueFactory = "SegmentingQueue"
-        self.logger = wns.Logger.Logger("WNS", "SegmentingQueue", True, parentLogger);
+        self.logger = openwns.logger.Logger("WNS", "SegmentingQueue", True, parentLogger);
         self.sizeProbeName = 'SegmentingQueueSize'
         self.minimumSegmentSize = 32 # Bits
         #self.sizeProbeName = 'schedulerQueueSize'
         attrsetter(self, kw) # new [rs]
 
-#class QueueProxy(Sealed): # see WinProSt Implementation
