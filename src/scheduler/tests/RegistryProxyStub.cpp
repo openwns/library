@@ -58,7 +58,7 @@ RegistryProxyStub::RegistryProxyStub()
 {
 	wns::pyconfig::Parser parser;
 	parser.loadString("import openwns.PhyMode\n" 
-			  "from openwns.Interval import Interval\n"
+			  "from openwns.interval import Interval\n"
 			  "phyMode = openwns.PhyMode.PhyModeDropin3()\n"
 			  "phyModeMap = openwns.PhyMode.PhyModeMapperDropin()\n"
 			  "phyModeMap.setMinimumSINR(3.0)\n"

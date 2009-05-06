@@ -241,7 +241,7 @@ StrategyTest::setupULStrategy(std::string strategyName)
         // create PyConfig for Strategy module creation
 	wns::pyconfig::Parser pyCoParser;
         std::stringstream ss;
-        ss << "import openwns.Logger\n"
+        ss << "import openwns.logger\n"
 	   << "symbolDuration = 0.00001389\n"
            << "txMode = False\n"
 	   << "logger = openwns.logger.Logger(\"WNS\", \"Scheduling Strategy Test\", True)\n"
