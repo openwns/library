@@ -51,7 +51,7 @@ typedef uint32_t pduType;
  * @brief Protocol Data Unit
  */
 class PDU :
-    public wns::RefCountable,
+    virtual public wns::RefCountable,
     public wns::IOutputStreamable
 {
 public:

@@ -98,7 +98,7 @@ namespace wns { namespace ldk {
 		 */
 		class PhaseDescriptor
 			: public PhaseDescriptorInterface,
-			  public wns::RefCountable
+			  virtual public wns::RefCountable
 		{
 		public:
 			PhaseDescriptor( FrameBuilder* frameBuilder, const wns::pyconfig::View& config );

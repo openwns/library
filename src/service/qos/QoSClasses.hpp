@@ -40,7 +40,7 @@ namespace wns {
       ENUM(CONTROLPLANE,	1);	// Control Messages
       ENUM(REALTIME,		2);	// VoIP, VT, etc.
       ENUM(GUARANTEEDTP,	3);	// Streaming (one side traffic)
-      ENUM(BESTEFFORT,	4);	// FileTransfer/Background
+      ENUM(BESTEFFORT,		4);	// FileTransfer/Background
       ENUM_END();
       typedef int QoSClass;
       // wns::service::qos::QoSClasses::UNDEFINED() // use this to get a QoSClass

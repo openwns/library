@@ -144,6 +144,16 @@ namespace wns { namespace node {
 		virtual unsigned int
 		getNodeID() const = 0;
 
+		/**
+		 * @brief true if both Interfaces are the same (have the same number)
+		 *
+		 * @return true/false
+		 */
+		virtual bool
+		isEqual(Interface* second) const
+		{ assure(second!=NULL,"operand==NULL");
+		  return getNodeID()==second->getNodeID(); };
+
 	private:
 		/**
 		 * @brief Retrieve a Service by its name

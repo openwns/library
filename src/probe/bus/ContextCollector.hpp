@@ -50,14 +50,14 @@ namespace wns { namespace probe { namespace bus {
      *
 	 * @ref wns.probe.bus.contextcollector
      * The ContextCollector
- 	 * -# takes your measured value
+	 * -# takes your measured value
 	 * -# uses a visitor pattern to gather as much context information
 	 *    related to the measurement as it can
 	 * -# forwards the measurement and the context to potential measurement
 	 *    sinks in the probebus subsystem
 	 */
 	class ContextCollector :
-		public wns::RefCountable
+		virtual public wns::RefCountable
 	{
 		ContextProviderCollection contextProviders_;
         /** @brief The ProbeBus where we publish our measurements */

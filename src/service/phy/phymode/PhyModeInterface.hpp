@@ -61,7 +61,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 		/** @brief true if PhyMode is set (not undefined) */
 		virtual bool isValid() const = 0;
 
-		/** @brief true if PhyMode is set (not undefined) */
+		/** @brief true if dataRate can be calculated. False if something is missing. */
 		virtual bool dataRateIsValid() const = 0;
 
 		/** @brief test PhyModes for equality */
@@ -161,6 +161,7 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 		return *empty;
 	}
 
+	/** @brief Helper method to yield a PhyModeInterfacePtr (SmartPtr) to an empty (Undefined) PhyMode Object */
 	inline PhyModeInterfacePtr
 	emptyPhyModePtr()
 	{
@@ -176,5 +177,10 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 } // phy
 } // service
 } // wns
+
+namespace wns {
+  // for convenience: wns::PhyModePtr
+  typedef wns::service::phy::phymode::PhyModeInterfacePtr PhyModePtr;
+}
 
 #endif // WNS_SERVICE_PHY_PHYMODE_PHYMODEINTERFACE_HPP

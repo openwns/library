@@ -35,7 +35,7 @@
 namespace wns { namespace ldk { namespace harq { namespace softcombining {
 
      class IDecoder:
-        public wns::RefCountable
+        virtual public wns::RefCountable
      {
      public:
 

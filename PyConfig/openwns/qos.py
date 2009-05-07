@@ -35,7 +35,7 @@ realTimeQosClass = "REALTIME"
 guaranteedTpQosClass ="GUARANTEEDTP"
 bestEffortQosClass = "BESTEFFORT"
 priorityBest  = 0
-priorityWorst = 4
+priorityWorst = 3
 
 # one element of the classes:
 class QoSClass:
@@ -54,11 +54,11 @@ class QoSClasses:
         self.mapEntries = []
         # this list must be consistent with C++ code in QoS/QoSClasses.hpp
         # uppercase is important!
-        self.mapEntries.append(QoSClass("UNDEFINED",0,priority=4))
-        self.mapEntries.append(QoSClass("CONTROLPLANE",1,priority=1))
-        self.mapEntries.append(QoSClass("REALTIME",2,priority=2))
-        self.mapEntries.append(QoSClass("GUARANTEEDTP",3,priority=3))
-        self.mapEntries.append(QoSClass("BESTEFFORT",4,priority=4))
+        self.mapEntries.append(QoSClass("UNDEFINED",0,priority=3))
+        self.mapEntries.append(QoSClass("CONTROLPLANE",1,priority=0))
+        self.mapEntries.append(QoSClass("REALTIME",2,priority=1))
+        self.mapEntries.append(QoSClass("GUARANTEEDTP",3,priority=2))
+        self.mapEntries.append(QoSClass("BESTEFFORT",4,priority=3))
         attrsetter(self, kw)
     
     def addQoSClass(self, name, number):

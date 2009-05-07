@@ -75,6 +75,8 @@ namespace wns { namespace service { namespace phy { namespace power {
 		virtual const wns::service::phy::phymode::PhyModeInterfacePtr getPhyMode() const = 0;
 		/** @brief get OFDMA subchannel on which PDU has been sent */
 		virtual const int getSubChannel() const = 0; // OFDMA subchannel used
+		/** @brief get MIMO/beamforming beam on which PDU has been sent */
+		virtual const int getBeam() const = 0; // MIMO/beamforming beam
 		/** @brief get transmitter node */
 		virtual wns::node::Interface* getSourceNode() const = 0;
 		/** @brief method to get a verbose output (string) */
