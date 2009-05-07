@@ -64,16 +64,16 @@ namespace wns { namespace node {
 		virtual void
 		addService(const std::string& name, service::Service* si) = 0;
 
-        /**
-        * @brief Called immedeatly after constructor
-        *
-        * This will be called after the constructor has been
-        * called. The Node can call virtual methods of itself which 
-        * is forbidden in the constructor. The probing system is
-        * available at this point
-        */
-        virtual void
-        startup() = 0;
+		/**
+		 * @brief Called immedeatly after constructor
+		 *
+		 * This will be called after the constructor has been
+		 * called. The Node can call virtual methods of itself which
+		 * is forbidden in the constructor. The probing system is
+		 * available at this point
+		 */
+		virtual void
+		startup() = 0;
 
 		/**
 		 * @brief Inform all components that world has been created.
@@ -122,27 +122,37 @@ namespace wns { namespace node {
 			return dynamic_cast<SERVICETYPE>(si);
 		}
 
-        /**
-         * @return ContextProviderCollection for Probes
-         */
-        virtual probe::bus::ContextProviderCollection&
-        getContextProviderCollection() = 0;
+		/**
+		 * @return ContextProviderCollection for Probes
+		 */
+		virtual probe::bus::ContextProviderCollection&
+		getContextProviderCollection() = 0;
 
-        /**
-         * @brief Name of the Node (also used in the registry)
-         *
-         * @return Name of this node
-         */
-        virtual std::string
-        getName() const = 0;
+		/**
+		 * @brief Name of the Node (also used in the registry)
+		 *
+		 * @return Name of this node
+		 */
+		virtual std::string
+		getName() const = 0;
 
-        /**
-         * @brief NodeID of the Node
-         *
-         * @return NodeID of this node
-         */
-        virtual unsigned int
-        getNodeID() const = 0;
+		/**
+		 * @brief NodeID of the Node
+		 *
+		 * @return NodeID of this node
+		 */
+		virtual unsigned int
+		getNodeID() const = 0;
+
+		/**
+		 * @brief true if both Interfaces are the same (have the same number)
+		 *
+		 * @return true/false
+		 */
+		virtual bool
+		isEqual(Interface* second) const
+		{ assure(second!=NULL,"operand==NULL");
+		  return getNodeID()==second->getNodeID(); };
 
 	private:
 		/**

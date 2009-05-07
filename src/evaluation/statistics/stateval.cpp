@@ -57,7 +57,8 @@ StatEval::StatEval(formatType format,
       format_(format),
       name_(name),
       desc_(desc),
-      prefix_("#")
+      prefix_("#"),
+      scalingFactor_(1.0)
 {
 }
 
@@ -72,7 +73,8 @@ StatEval::StatEval(const wns::pyconfig::View& config) :
     format_((config.get<std::string>("format")=="scientific") ? StatEval::scientific : StatEval::fixed),
     name_(config.get<std::string>("name")),
     desc_(config.get<std::string>("description")),
-    prefix_(config.get<std::string>("prefix"))
+    prefix_(config.get<std::string>("prefix")),
+    scalingFactor_(config.get<double>("scalingFactor"))
 {}
 
 StatEval::~StatEval()
@@ -95,6 +97,8 @@ StatEval::printLog(std::ostream&)
 void
 StatEval::put(double xI)
 {
+    xI *= scalingFactor_;
+
     if(xI > maxValue_)
         maxValue_ = xI;
     if(xI < minValue_)

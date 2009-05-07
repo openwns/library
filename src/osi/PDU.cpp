@@ -58,7 +58,7 @@ PDU::PDU(PCI* aPCIPtr, PDU* anSDUPtr) :
 }
 
 PDU::PDU(const PDU& aPDURef) :
-    wns::RefCountable(),
+    //wns::RefCountable(),
     wns::IOutputStreamable(),
 	p_pciPtr(aPDURef.p_pciPtr),
 	p_userDataPtr(aPDURef.p_userDataPtr)

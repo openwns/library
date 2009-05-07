@@ -50,7 +50,7 @@ CommandPool::CommandPool(const CommandProxy* _proxy,
 
 
 CommandPool::CommandPool(const CommandPool& that) :
-    RefCountable(),
+        // RefCountable(),
 	PCI(that),
 	proxy(that.proxy),
 	commands(),

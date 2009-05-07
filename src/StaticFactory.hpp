@@ -339,4 +339,10 @@ namespace wns {
 
 #endif // NOT defined WNS_STATICFACTORY_HPP
 
+#define STATIC_FACTORY_DEFINE(INTERFACE, CREATOR) \
+    typedef CREATOR<INTERFACE> INTERFACE ## Creator;\
+    typedef wns::StaticFactory<INTERFACE ## Creator> INTERFACE ## Factory;
+
+#define STATIC_FACTORY_NEW_INSTANCE(INTERFACE, CREATOR, VIEW, ARGS...) \
+    wns::StaticFactory< CREATOR<INTERFACE> >::creator(VIEW.get<std::string>("nameInStaticFactory"))->create(ARGS)
 

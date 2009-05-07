@@ -232,10 +232,10 @@ FlowSeparator::doIsAccepting(const CompoundPtr& compound) const
 	}
 	catch(const InstanceNotFound& ifn)
 	{
- 		MESSAGE_SINGLE(
+		MESSAGE_SINGLE(
 			VERBOSE,
 			logger,
-			"this->getFUN()->getName(): " <<
+			this->getFUN()->getName()<<": " <<
 			"creating new instance for key (" <<
 			ifn.key->str() <<
 			") temporarily.");
@@ -299,7 +299,7 @@ FlowSeparator::_getInstance(const CompoundPtr& compound, int direction) const
 		throw InstanceNotFound(key);
 	}
 
-	MESSAGE_BEGIN(VERBOSE, logger, m,"this->getFUN()->getName()");
+	MESSAGE_BEGIN(VERBOSE, logger, m, this->getFUN()->getName());
 	m << ": "
 	  << "reusing instance for key "
 	  << key->str();
@@ -319,15 +319,15 @@ FlowSeparator::tryGetInstanceAndInsertPermanent(const CompoundPtr& compound, int
 	}
 	catch(const InstanceNotFound& ifn)
 	{
- 		MESSAGE_SINGLE(
+		MESSAGE_SINGLE(
 			VERBOSE,
 			logger,
-			"this->getFUN()->getName(): " <<
+			this->getFUN()->getName()<<": " <<
 			"adding new instance for key (" <<
 			ifn.key->str() <<
 			") permanently to FlowSeparator");
 		fu = this->notFound->ifNotFound(ifn.key);
- 		this->addInstance(ifn.key, fu);
+		this->addInstance(ifn.key, fu);
 	}
 	// throw on
 	catch(...)

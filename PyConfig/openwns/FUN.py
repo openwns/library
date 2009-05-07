@@ -128,38 +128,38 @@ class PyTree:
                             types.TypeType]
             or hasattr(type(obj), '__class__')):
 
-                result.append("%s: %s" % (name, obj))
+            result.append("%s: %s" % (name, obj))
 
             # for modules we have some extra code to suppress
             # recursion into std python modules...
-                if type(obj) == types.ModuleType:
+            if type(obj) == types.ModuleType:
                 # builtin modules don't have a __file__ attribute, and we
                 # don't want builtin modules to show up in our dump
-                    if (obj.__name__ != '__main__'
+                if (obj.__name__ != '__main__'
                     and not hasattr(obj, '__file__')):
-                        return result
+                    return result
 
                 for nono in self.ignorePaths:
                     if obj.__file__.startswith(nono):
                         return result
-
-                        delimiter = {types.ModuleType: '::',
+                    
+            delimiter = {types.ModuleType: '::',
                         types.ClassType: ':',
                         types.TypeType: ':'}.setdefault(type(obj), '.')
+    
+            for it in dir(obj):
+                if self.skip(it):
+                    continue
 
-                for it in dir(obj):
-                    if self.skip(it):
-                        continue
+                result += self.scan(getattr(obj, it), "%s%s%s" % (name, delimiter, it))
 
-                    result += self.scan(getattr(obj, it), "%s%s%s" % (name, delimiter, it))
+        else:
+            result.append("%s: %s (fallback)" % (name, obj))
+            for it in dir(obj):
+                if self.skip(it):
+                    continue
 
-                else:
-                    result.append("%s: %s (fallback)" % (name, obj))
-                for it in dir(obj):
-                    if self.skip(it):
-                        continue
-
-                    return result
+        return result
 
     def skip(self, name):
         return name.startswith('_')
@@ -214,8 +214,8 @@ class FunctionalUnit(object):
 class Node(FunctionalUnit):
     config = None
 
-    def __init__(self, name, config):
-        super(Node,self).__init__(name)
+    def __init__(self, funame, config, commandname = None):
+        super(Node,self).__init__(funame, commandname)
         self.config = config
 
 class Connection(object):

@@ -64,7 +64,7 @@ struct EnumRegister : private _Enums {\
 inline int fromString(const std::string& s) {\
         _Enums::S2I& s2i = _Enums::getS2I();\
         _Enums::S2I::iterator itr = s2i.find(s);\
-        assure(itr != s2i.end(), "No Enum with this name (s)!");\
+	assure(itr != s2i.end(), "No Enum with this name (\""<<s<<"\")!");	\
         return itr->second;\
 }\
 inline int fromString(const char* c) {\
@@ -74,7 +74,7 @@ inline int fromString(const char* c) {\
 inline std::string toString(int i) {\
         _Enums::I2S& i2s = _Enums::getI2S();\
         _Enums::I2S::iterator itr = i2s.find(i);\
-        assure(itr != i2s.end(), "No Enum with this integer value (i)!");\
+	assure(itr != i2s.end(), "No Enum with this integer value ("<<i<<")!"); \
         return itr->second;\
 } \
 class ThisClassDoesNotExist /* to allow semicolon */

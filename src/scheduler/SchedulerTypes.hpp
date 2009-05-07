@@ -25,17 +25,23 @@
  *
  ******************************************************************************/
 
-
 #ifndef WNS_SCHEDULER_SCHEDULERTYPES_HPP
 #define WNS_SCHEDULER_SCHEDULERTYPES_HPP
 
+
+#include <WNS/scheduler/MapInfoEntry.hpp>
+#include <WNS/service/dll/StationTypes.hpp>
+#include <WNS/service/phy/ofdma/Pattern.hpp>
+#include <WNS/service/phy/phymode/PhyModeInterface.hpp>
+#include <WNS/ldk/Command.hpp>
+#include <WNS/ldk/Compound.hpp>
+#include <WNS/ldk/FunctionalUnit.hpp>
+#include <WNS/ldk/Classifier.hpp>
 #include <WNS/node/Node.hpp>
 #include <WNS/PowerRatio.hpp>
 #include <WNS/CandI.hpp>
-
-#include <WNS/service/phy/ofdma/Pattern.hpp>
-
 #include <WNS/Enum.hpp>
+#include <WNS/SmartPtr.hpp>
 
 #include <map>
 #include <vector>
@@ -45,47 +51,131 @@
 #include <sstream>
 
 namespace wns { namespace scheduler {
+	class MapInfoEntry; // forward declaration
+	namespace strategy {
+	  class StrategyInput;
+	  class StrategyInterface;
+	}
 
-	typedef wns::node::Interface* UserID;
-	
-    /* For now we change this to be long until LDK is published*/
-    //typedef wns::ldk::ClassificationID ConnectionID;
-    
-    typedef long ConnectionID;
-	typedef std::vector<ConnectionID> ConnectionVector;
+	const simTimeType slotLengthRoundingTolerance = 1e-12;
+	const int subChannelNotFound = -1;
 
 	typedef int Symbols;
 	typedef int Bits;
-	typedef int PHYmode; // TODO: use better type: chall PhyModeInterface
-	typedef float DataRate;
 
-	const int noPhyMode =  0;
-	const int noCID = -1;
+	/** @brief there are three positions for the scheduler... */
+	typedef enum {
+	  PowerControlDLMaster,
+	  PowerControlULMaster,
+	  PowerControlULSlave
+	} PowerControlType;
+	// wns::scheduler::PowerControlType
 
-	typedef std::map<wns::scheduler::UserID, wns::CandI> Group;
-	typedef std::set<wns::scheduler::UserID> UserSet;
+	/** @brief there are three positions for the scheduler... */
+	// wns::scheduler::SchedulerSpot
+	ENUM_BEGIN(SchedulerSpot);
+	ENUM(DLMaster,  1);
+	ENUM(ULMaster,  2);
+	ENUM(ULSlave,   3);
+	ENUM_END();
+	// wns::scheduler::SchedulerSpot::DLMaster()
+	// wns::scheduler::SchedulerSpot::toString()
+	/** @brief wns::scheduler::SchedulerSpotType */
+	typedef int SchedulerSpotType;
+
+	/** @brief for RelayNodes: in which task are we */
+	ENUM_BEGIN(TaskBSorUT);
+	ENUM(TaskBaseStation,  1);
+	ENUM(TaskUserTerminal, 2);
+	ENUM_END();
+	// wns::scheduler::TaskBSorUT::TaskBaseStation()
+	// wns::scheduler::TaskBSorUT::toString()
+	/** @brief wns::scheduler::TaskBSorUTType */
+	typedef int TaskBSorUTType;
+
+	typedef std::list<wns::ldk::CompoundPtr> CompoundList;
+	typedef wns::node::Interface* UserID;
+	typedef wns::ldk::ClassificationID ConnectionID;
+	typedef std::vector<ConnectionID> ConnectionVector;
+	typedef std::list  <ConnectionID> ConnectionList;
+	typedef std::set   <ConnectionID> ConnectionSet;
+	typedef std::set   <UserID>       UserSet;
+	/** @brief Group is quite an antiquated datastructure. Only used for grouping in WiMAC */
+	typedef std::map   <UserID, wns::CandI> Group;
 
 	inline std::string
 	printGroup(const wns::scheduler::Group& group) {
 		std::stringstream s;
 		s << "Group(";
-		for (Group::const_iterator iter = group.begin();
-		     iter != group.end(); ++iter)
+		for (Group::const_iterator iter = group.begin(); iter != group.end(); )
 		{
-			s << iter->first->getName() << ",";
+			s << iter->first->getName();
+			if (++iter != group.end()) s << ",";
 		}
 		s << ")";
 		return s.str();
 	}
 
-	/** @brief define stream operator for class Group */
+	inline std::string
+	printUserSet(const wns::scheduler::UserSet& userSet) {
+		std::stringstream s;
+		s << "UserSet(";
+		for (UserSet::const_iterator iter = userSet.begin(); iter != userSet.end(); )
+		{
+		  s << (*iter)->getName();
+		  if (++iter != userSet.end()) s << ",";
+		}
+		s << ")";
+		return s.str();
+	}
+
+	inline std::string
+	printConnectionVector(const wns::scheduler::ConnectionVector& connectionVector) {
+		std::stringstream s;
+		s << "ConnectionVector(";
+		for (ConnectionVector::const_iterator iter = connectionVector.begin(); iter != connectionVector.end(); )
+		{
+		  s << (*iter);
+		  if (++iter != connectionVector.end()) s << ",";
+		}
+		s << ")";
+		return s.str();
+	}
+
+	inline std::string
+	printConnectionList(const wns::scheduler::ConnectionList& connectionList) {
+		std::stringstream s;
+		s << "ConnectionList(";
+		for (ConnectionList::const_iterator iter = connectionList.begin(); iter != connectionList.end(); )
+		{
+		  s << (*iter);
+		  if (++iter != connectionList.end()) s << ",";
+		}
+		s << ")";
+		return s.str();
+	}
+
+	inline std::string
+	printConnectionSet(const wns::scheduler::ConnectionSet& connectionSet) {
+		std::stringstream s;
+		s << "ConnectionSet(";
+		for (ConnectionSet::const_iterator iter = connectionSet.begin(); iter != connectionSet.end(); )
+		{
+		  s << (*iter);
+		  if (++iter != connectionSet.end()) s << ",";
+		}
+		s << ")";
+		return s.str();
+	}
+
+	/** @brief stream operator for class Group */
 	inline std::ostream&
 	operator<< (std::ostream& s, const wns::scheduler::Group& group) {
 		s << "Group(";
-		for (Group::const_iterator iter = group.begin();
-		     iter != group.end(); ++iter)
+		for (Group::const_iterator iter = group.begin(); iter != group.end(); )
 		{
-			s << iter->first->getName() << ",";
+			s << iter->first->getName();
+			if (++iter != group.end()) s << ",";
 		}
 		s << ")";
 		return s;
@@ -103,15 +193,18 @@ namespace wns { namespace scheduler {
 
 		explicit
 		PowerCapabilities(const wns::pyconfig::View& config) :
+			maxOverall(config.get<wns::Power>("maxOverall")),
 			maxPerSubband(config.get<wns::Power>("maxPerSubband")),
-			nominalPerSubband(config.get<wns::Power>("nominalPerSubband")),
-			maxOverall(config.get<wns::Power>("maxOverall"))
+			nominalPerSubband(config.get<wns::Power>("nominalPerSubband"))
 		{}
 
-		wns::Power maxPerSubband;
-		wns::Power nominalPerSubband;
+		/** @brief total transmit power limit over the whole bandwidth */
 		wns::Power maxOverall;
-	};
+		/** @brief transmit power limit over one subChannel */
+		wns::Power maxPerSubband;
+		/** @brief default transmit power over one subChannel */
+		wns::Power nominalPerSubband;
+	}; // PowerCapabilities
 
 	/** @brief Info about joint power and resource allocation, currently
 	 * used by PCRR scheduling strategy */
@@ -135,11 +228,16 @@ namespace wns { namespace scheduler {
 			ss << user->getName() << ": " << maxNumSubbands << " simultaneously with " << txPowerPerSubband << " each." << std::endl;
 			return ss.str();
 		}
-	};
+	}; // PowerAllocation
 
 	typedef std::map<UserID, PowerAllocation> PowerMap;
 
-	struct Grouping {
+	class Grouping
+	  : virtual public wns::RefCountable
+	{
+	public:
+		Grouping() {};
+		~Grouping() {};
 		std::string getDebugOutput() {
 			std::stringstream ss;
 			for (unsigned int i = 0; i < groups.size(); ++i) {
@@ -206,57 +304,106 @@ namespace wns { namespace scheduler {
 		std::map<UserID, wns::service::phy::ofdma::PatternPtr> patterns;
 		std::vector<Group> groups;
 		std::map<UserID, int> userGroupNumber; // what group is user in
-	};
+	}; // Grouping
+	// a copy of the original structure is bad for memory/time
+	typedef SmartPtr<Grouping> GroupingPtr;
 
-	/** @brief data structure which is used to store channel quality  */
-	class ChannelQualityOnOneSubband
+	/** @brief This is used e.g. for building ResourceRequests */
+	struct QueueStatus {
+		QueueStatus()
+		{
+			numOfBits = 0;
+			numOfCompounds = 0;
+		}
+
+		unsigned int numOfBits;
+		unsigned int numOfCompounds;
+	};
+	/** @brief Holds QueueStatus for all cids. ResourceRequests contain such a container. */
+	typedef wns::container::Registry<ConnectionID, QueueStatus> QueueStatusContainer;
+
+	/** @brief data structure which is used to store channel quality */
+	class ChannelQualityOnOneSubChannel
 	{
 	public:
-		ChannelQualityOnOneSubband():
-			Pathloss(),
-			Interference(),
-			subBandIndex(0)
+		ChannelQualityOnOneSubChannel():
+			pathloss(),
+			interference()
 			{
 			}
 
-		ChannelQualityOnOneSubband(wns::Ratio pathloss,  wns::Power interference, int indexOfSubband):
-			Pathloss(pathloss),
-			Interference(interference),
-			subBandIndex(indexOfSubband)
+		ChannelQualityOnOneSubChannel(wns::Ratio _pathloss,  wns::Power _interference):
+			pathloss(_pathloss),
+			interference(_interference)
 			{
 			}
 
-		wns::Ratio Pathloss;
-		wns::Power Interference;    // (I + N)
-		int subBandIndex; // libwns scheduler index, not real(OFDMA) index
-	};
+		/** @brief measured pathloss (counted positive, i.e. x dB with x>0) */
+		wns::Ratio pathloss;
+		/** @brief measured (I + N) */
+		wns::Power interference;
+	}; // ChannelQualityOnOneSubChannel
 
-        typedef std::vector<ChannelQualityOnOneSubband> ChannelsQualitiesOnAllSubBand; // index is real(OFDMA) subchannel number
-
-	//class which is used to record the txPower usage
-	class TxPower4PDU
+	//typedef std::vector<ChannelQualityOnOneSubChannel> ChannelsQualitiesOnAllSubBand; // index is real(OFDMA) subchannel number
+	class ChannelQualitiesOnAllSubBands
+	  : virtual public wns::RefCountable,
+	    public std::vector<ChannelQualityOnOneSubChannel>
 	{
 	public:
-		TxPower4PDU():
-			beginTime(0.0),
-			endTime(0.0),
-			txPower()
-			{}
+	  ChannelQualitiesOnAllSubBands() {};
+	  ~ChannelQualitiesOnAllSubBands() {};
+	};
+	/** @brief SmartPtr created in the CQI; no need for memory tracking later */
+	typedef SmartPtr<ChannelQualitiesOnAllSubBands> ChannelQualitiesOnAllSubBandsPtr;
 
-		TxPower4PDU(double beginT, double endT, wns::Power usedPower):
-			beginTime(beginT),
-			endTime(endT),
-			txPower(usedPower)
-			{}
+	//typedef	std::map<UserID, ChannelsQualitiesOnAllSubBand*> ChannelQualitiesOfAllUsers;
+	class ChannelQualitiesOfAllUsers
+	  : virtual public wns::RefCountable,
+	    public std::map<UserID, ChannelQualitiesOnAllSubBandsPtr>
+	{
+	public:
+	  ChannelQualitiesOfAllUsers() {};
+	  ~ChannelQualitiesOfAllUsers() {};
+	  virtual bool knowsUser(UserID user) {
+	    return (find(user) != end()); }
+	};
+	typedef SmartPtr<ChannelQualitiesOfAllUsers> ChannelQualitiesOfAllUsersPtr;
 
-		double beginTime;
-		double endTime;
-		wns::Power txPower;
+	/** @brief function class which should be used in sort() to decide which channel quality is better */
+	class BetterChannelQuality
+	{
+	public:
+		/** @brief true if a is better than b */
+		bool operator()(wns::scheduler::ChannelQualityOnOneSubChannel a, wns::scheduler::ChannelQualityOnOneSubChannel b)
+	  {
+		  if (a.pathloss == wns::Ratio()) {
+			  return false;
+		  }
+		  if (b.pathloss == wns::Ratio()) { // undefined
+			  return true; // a is better if b is undefined
+		  }
+		  return a.pathloss.get_factor() * a.interference.get_mW()
+			  < b.pathloss.get_factor() * b.interference.get_mW();
+	  }
 	};
 
-	typedef std::vector<TxPower4PDU> usedTxPowerOnOneChannel;
-	typedef std::vector<usedTxPowerOnOneChannel> usedTxPowerOnAllChannels;
+	/** @brief function class which should compute the capacity of channel to decide which channel capacity is better */
+	class BetterChannelCapacity
+	{
+	public:
+		/** @brief true if a is better than b */
+		bool operator()(double a, double b)
+	  {
+		  if (a == 0.0) {
+			  return false;
+		  }
+		  if (b == 0.0) { // undefined
+			  return true; // a is better if b is undefined
+		  }
 
+		  return a>b;
+		}
+	};
 
 }} // namespace wns::scheduler
 #endif // WNS_SCHEDULER_SCHEDULERTYPES_HPP

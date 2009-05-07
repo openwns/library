@@ -49,8 +49,8 @@ namespace wns { namespace service { namespace tl {
 		/**
 		 * @brief Destructor.
 		 */
- 		virtual
- 		~Connection()
+		virtual
+		~Connection()
 		{}
 
 		/**

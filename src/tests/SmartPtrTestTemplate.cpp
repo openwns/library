@@ -110,6 +110,35 @@ namespace wns { namespace tests {
 			bool executed;
 		};
 
+		class F2;
+		class F1 :
+			public virtual RefCountable
+		{
+		public:
+			F1()
+			{}
+			~F1()
+			{
+			  // should never occur in this test
+			  std::cout<<"F1:~F1() called. Should not happen."<<std::endl;
+			}
+
+			SmartPtr<F2> peer;
+		};
+		class F2 :
+			public virtual RefCountable
+		{
+		public:
+			F2()
+			{}
+			~F2()
+			{
+			  std::cout<<"F1:~F1() called"<<std::endl;
+			}
+
+			SmartPtr<F1> peer;
+		};
+
 		CPPUNIT_TEST_SUITE( SmartPtrTest );
 		CPPUNIT_TEST( refCountable );
 		CPPUNIT_TEST( STLContainer );
@@ -122,6 +151,7 @@ namespace wns { namespace tests {
 		CPPUNIT_TEST( stlContainer );
 		CPPUNIT_TEST( functionAdapterTest );
 		CPPUNIT_TEST( isNull );
+		CPPUNIT_TEST( cyclicDependencyTest );
 		CPPUNIT_TEST_SUITE_END();
 	public:
 		bool destructorHasBeenCalled;
@@ -139,6 +169,7 @@ namespace wns { namespace tests {
 		void classDerivedFromSPEETLObject();
 		void functionAdapterTest();
 		void isNull();
+		void cyclicDependencyTest();
 	};
 
 
@@ -349,6 +380,30 @@ namespace wns { namespace tests {
 
 		bar = SmartPtr<E>(new E);
 		CPPUNIT_ASSERT( bar != NULL );
+	}
+
+    // (cd tests/unit/unitTests/; ./openwns -v -s -y "WNS.masterLogger.enabled = True"  -tT wns::tests::SmartPtrTest::cyclicDependencyTest)
+	void SmartPtrTest::cyclicDependencyTest()
+	{
+	  std::cout<<std::endl;
+	  SmartPtr<F1> object1 = SmartPtr<F1>(new F1);
+	  SmartPtr<F2> object2 = SmartPtr<F2>(new F2);
+	  //std::cout<<"cyclicDependencyTest: object1.getRefCount()="<<object1.getRefCount()<<std::endl;
+	  //std::cout<<"cyclicDependencyTest: object2.getRefCount()="<<object1.getRefCount()<<std::endl;
+	  object1->peer = object2;
+	  object2->peer = object1;
+	  //std::cout<<"cyclicDependencyTest: object1.getRefCount()="<<object1.getRefCount()<<std::endl;
+	  //std::cout<<"cyclicDependencyTest: object2.getRefCount()="<<object1.getRefCount()<<std::endl;
+	  CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), object1.getRefCount() );
+	  CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), object2.getRefCount() );
+	  object1 = SmartPtr<F1>(); // empty
+	  CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), object2->peer.getRefCount() );
+	  object2 = SmartPtr<F2>(); // empty
+	  // here the SmartPtrs do not call their contained destructors automatically
+	  // because there is a cyclic dependency
+	  // You can find that with valgrind --tool=memcheck --leak-check=yes --num-callers=20 --leak-resolution=high --log-file=val.log
+	  //std::cout<<"cyclicDependencyTest: object1.getRefCount()="<<object1.getRefCount()<<std::endl;
+	  //std::cout<<"cyclicDependencyTest: object2.getRefCount()="<<object1.getRefCount()<<std::endl;
 	}
 
 } // tests

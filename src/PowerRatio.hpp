@@ -146,9 +146,9 @@ namespace wns {
 		inline double get_mW     () const;
 
 		inline void   operator +=(const Power& p);
- 		inline void   operator -=(const Power& p);
+		inline void   operator -=(const Power& p);
 		inline Power  operator + (const Power& p) const;
- 		inline Power  operator - (const Power& p) const;
+		inline Power  operator - (const Power& p) const;
 		inline void   operator +=(const Ratio& r);
 		inline void   operator -=(const Ratio& r);
 		inline void   operator *=(double d);
@@ -163,10 +163,12 @@ namespace wns {
 		inline Power  operator * (float f) const;
 		inline Power  operator * (int32_t i) const;
 		inline Power  operator * (uint32_t i) const;
+		inline Power  operator * (const Ratio& r) const;
 		inline Power  operator / (double d) const;
 		inline Power  operator / (float f) const;
 		inline Power  operator / (int32_t i) const;
 		inline Power  operator / (uint32_t i) const;
+		inline Power  operator / (const Ratio& r) const;
 		inline Ratio  operator / (const Power& p) const;
 		inline bool   operator < (const Power& p) const;
 		inline bool   operator > (const Power& p) const;
@@ -442,6 +444,10 @@ namespace wns {
 		return Power(mW*(double)u);
 	}
 
+	inline Power Power::operator *(const Ratio& r) const {
+		return Power(mW*r.get_factor());
+	}
+
 	inline void Power::operator *=(double d) {
 		mW*=d;
 		assert(mW>=0);
@@ -475,6 +481,10 @@ namespace wns {
 
 	inline Power Power::operator /(uint32_t u) const {
 		return Power(mW/(double)u);
+	}
+
+	inline Power Power::operator /(const Ratio& r) const {
+		return Power(mW/r.get_factor());
 	}
 
 	inline void Power::operator /=(double d) {

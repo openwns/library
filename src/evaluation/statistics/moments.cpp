@@ -84,6 +84,8 @@ Moments::put(double xI, double wI)
     // only positive weights
     assert(wI > 0.0);
 
+    xI *= scalingFactor_;
+
     // this causes the square to be positive
     double square = wI * xI * xI;
     double cube = xI * square;

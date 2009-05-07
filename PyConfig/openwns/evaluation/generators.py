@@ -50,14 +50,15 @@ class ITreeNodeGenerator(openwns.interface.Interface):
 
 class Accept(ITreeNodeGenerator):
     """ Accept measurements based on the context"""
-    def __init__(self, by, ifIn):
+    def __init__(self, by, ifIn, suffix = ''):
         self.by = by
         self.ifIn = ifIn
+        self.suffix = suffix
 
     def __call__(self, pathname):
-            yield tree.TreeNode(wrappers.ProbeBusWrapper(
-                    openwns.probebus.ContextFilterProbeBus(self.by, self.ifIn),
-                    ''))
+        yield tree.TreeNode(wrappers.ProbeBusWrapper(
+                openwns.probebus.ContextFilterProbeBus(self.by, self.ifIn),
+                self.suffix))
 
 class Equidistant(ITreeNodeGenerator):
     """ Sort measurement in equidistant bins"""
@@ -221,14 +222,18 @@ class TimeSeries(ITreeNodeGenerator):
 class Moments(ITreeNodeGenerator):
 
     def __init__(self, format = "fixed", name = "no name available", 
-        description = "no description available"):
+                 description = "no description available",
+                 scalingFactor = 1.0):
         self.format = format
         self.name = name
         self.description = description
+        self.scalingFactor = scalingFactor
 
     def __call__(self, pathname):
-        momentseval = statistics.MomentsEval(format = self.format, name = self.name, description = 
-            self.description)
+        momentseval = statistics.MomentsEval(format = self.format, 
+                                             name = self.name,
+                                             description = self.description,
+                                             scalingFactor = self.scalingFactor)
         
         pb = openwns.probebus.StatEvalProbeBus(pathname + '_Moments.dat', momentseval)
 
