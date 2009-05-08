@@ -48,7 +48,7 @@ class Frozen(OnlyImmutableAttributes):
 class Sealed(OnlyImmutableAttributes):
     def __setattr__(self, attr, value):
         getattr(self, attr) # raises an exception in case attr is not known
-	object.__setattr__(self, attr, value)
+        object.__setattr__(self, attr, value)
 
 def Plugin(name):
     class Strategy(Frozen):
@@ -341,10 +341,10 @@ class PyConfigTestWithArg:
 class Tests(unittest.TestCase):
 
     class A(Frozen):
-	x = 3
+        x = 3
 
     class B(A):
-	y = 42
+        y = 42
 
     class C:
         def __init__(self, z):

@@ -35,8 +35,8 @@ class OpcodeProvider(object):
     opcodeSize = None
 
     def __init__(self, opcodeSize, **kw):
-	self.opcodeSize = opcodeSize
-	attrsetter(self, kw)
+        self.opcodeSize = opcodeSize
+        attrsetter(self, kw)
 
 
 class OpcodeSetter(object):
@@ -46,8 +46,8 @@ class OpcodeSetter(object):
     opcodeProvider = None
 
     def __init__(self, opcode, opcodeProvider, **kw):
-	self.opcode = opcode
-	self.opcodeProvider = opcodeProvider
+        self.opcode = opcode
+        self.opcodeProvider = opcodeProvider
         attrsetter(self, kw)
 
 
@@ -60,7 +60,7 @@ class Dispatcher(openwns.FUN.FunctionalUnit):
 
     def __init__(self, opcodeSize, parentLogger=None, logName = "Dispatcher", moduleName = "WNS", **kw):
         super(Dispatcher,self).__init__()
-	assert type(opcodeSize) == type(1)
+        assert type(opcodeSize) == type(1)
 
         self.opcodeSize = opcodeSize
         self.logger = openwns.logger.Logger(moduleName, logName, True, parentLogger)

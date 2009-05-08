@@ -371,7 +371,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		CompoundPtr ackFrame = createACKFrame(getLowerStub()->sent[2]);
 		getLowerStub()->onData(ackFrame);
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(uint32_t(1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(windowSize + 2), compoundsSent());
 
 		// Check if the first and second frame (index 0 and 1)  have been repeated

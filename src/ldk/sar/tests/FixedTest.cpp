@@ -167,13 +167,13 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		innerPDU->setLengthInBits(1);
 		CompoundPtr compound(new Compound(commandPool, innerPDU));
 
-		CPPUNIT_ASSERT_EQUAL(1, getTotalSize(commandPool));
+		CPPUNIT_ASSERT_EQUAL(Bit(1), getTotalSize(commandPool));
 
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(0), compoundsSent());
 		getUpperStub()->sendData(compound);
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), compoundsSent());
 
-		CPPUNIT_ASSERT_EQUAL(2, getTotalSize(commandPool));
+		CPPUNIT_ASSERT_EQUAL(Bit(2), getTotalSize(commandPool));
 	} // noSegmentation
 
 
@@ -183,13 +183,13 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		innerPDU->setLengthInBits(41);
 		CompoundPtr compound(new Compound(commandPool, innerPDU));
 
-		CPPUNIT_ASSERT_EQUAL(41, getTotalSize(commandPool));
+		CPPUNIT_ASSERT_EQUAL(Bit(41), getTotalSize(commandPool));
 
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(0), compoundsSent());
 		getUpperStub()->sendData(compound);
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), compoundsSent());
 
-		CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
 	} // segmentSize
 
 
@@ -199,14 +199,14 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		innerPDU->setLengthInBits(43);
 		CompoundPtr compound(new Compound(commandPool, innerPDU));
 
-		CPPUNIT_ASSERT_EQUAL(43, getTotalSize(commandPool));
+		CPPUNIT_ASSERT_EQUAL(Bit(43), getTotalSize(commandPool));
 
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(0), compoundsSent());
 		getUpperStub()->sendData(compound);
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(2), compoundsSent());
 
-		CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL(3, getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(3), getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
 	} // segmentation
 
 
@@ -216,15 +216,15 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		innerPDU->setLengthInBits(400);
 		CompoundPtr compound(new Compound(commandPool, innerPDU));
 
-		CPPUNIT_ASSERT_EQUAL(400, getTotalSize(commandPool));
+		CPPUNIT_ASSERT_EQUAL(Bit(400), getTotalSize(commandPool));
 
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(0), compoundsSent());
 		getUpperStub()->sendData(compound);
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(10), compoundsSent());
 
 		for(int i = 0; i < 9; ++i)
-			CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[i]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL(32, getTotalSize(getLowerStub()->sent[9]->getCommandPool()));
+			CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[i]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(32), getTotalSize(getLowerStub()->sent[9]->getCommandPool()));
 	} // heavySegmentation
 
 
@@ -238,7 +238,7 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		getLowerStub()->onData(getLowerStub()->sent[0]);
 		getLowerStub()->sent.clear();
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), compoundsDelivered());
-		CPPUNIT_ASSERT_EQUAL(1, getTotalSize(getUpperStub()->received[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(1), getTotalSize(getUpperStub()->received[0]->getCommandPool()));
 	} // noReassembly
 
 
@@ -252,7 +252,7 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		getLowerStub()->onData(getLowerStub()->sent[0]);
 		getLowerStub()->sent.clear();
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), compoundsDelivered());
-		CPPUNIT_ASSERT_EQUAL(41, getTotalSize(getUpperStub()->received[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(41), getTotalSize(getUpperStub()->received[0]->getCommandPool()));
 	} // segmentSizeReassembly
 
 
@@ -268,7 +268,7 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		getLowerStub()->onData(getLowerStub()->sent[1]);
 		getLowerStub()->sent.clear();
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), compoundsDelivered());
-		CPPUNIT_ASSERT_EQUAL(43, getTotalSize(getUpperStub()->received[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(43), getTotalSize(getUpperStub()->received[0]->getCommandPool()));
 	} // reassembly
 
 
@@ -287,7 +287,7 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 			}
 		getLowerStub()->sent.clear();
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), compoundsDelivered());
-		CPPUNIT_ASSERT_EQUAL(410, getTotalSize(getUpperStub()->received[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(410), getTotalSize(getUpperStub()->received[0]->getCommandPool()));
 	} // heavyReassembly
 
 
@@ -297,14 +297,14 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		innerPDU->setLengthInBits(82);
 		CompoundPtr compound(new Compound(commandPool, innerPDU));
 
-		CPPUNIT_ASSERT_EQUAL(82, getTotalSize(commandPool));
+		CPPUNIT_ASSERT_EQUAL(Bit(82), getTotalSize(commandPool));
 
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(0), compoundsSent());
 		getUpperStub()->sendData(compound);
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(2), compoundsSent());
 
-		CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
 	} // multipleSegmentSize
 
 
@@ -337,10 +337,10 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(4), compoundsSent());
 		getLowerStub()->step();
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(4), compoundsSent());
-		CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL(21, getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL(21, getTotalSize(getLowerStub()->sent[2]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL( 4, getTotalSize(getLowerStub()->sent[3]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(21), getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(21), getTotalSize(getLowerStub()->sent[2]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(4), getTotalSize(getLowerStub()->sent[3]->getCommandPool()));
 	} // changingSegmentSizeOutgoing
 
 	void
@@ -360,7 +360,7 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
 		getLowerStub()->onData(getLowerStub()->sent[3]);
 
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(1), compoundsDelivered());
-		CPPUNIT_ASSERT_EQUAL(84, getTotalSize(getUpperStub()->received[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(84), getTotalSize(getUpperStub()->received[0]->getCommandPool()));
 	} // changingSegmentSizeIncoming
 
 	void
@@ -377,9 +377,9 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
  		getTestee<Fixed>()->setSegmentSize(42);
 		getLowerStub()->step();
  		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(3), compoundsSent());
-		CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL(42, getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
-		CPPUNIT_ASSERT_EQUAL(5, getTotalSize(getLowerStub()->sent[2]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[0]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(42), getTotalSize(getLowerStub()->sent[1]->getCommandPool()));
+		CPPUNIT_ASSERT_EQUAL(Bit(5), getTotalSize(getLowerStub()->sent[2]->getCommandPool()));
 	}
 
 }}}}

@@ -44,7 +44,7 @@ class Forwarder(object):
     name = "Forwarder"
 
     def __init__(self, *args, **kw):
-	pass
+        pass
 
 class Padding(object):
     __plugin__ = 'wns.tools.Padding'

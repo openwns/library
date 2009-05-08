@@ -27,10 +27,10 @@
 
 class Interval:
     def __init__(self, lowerBound, upperBound, intervalType = "[]"):
-	self.lowerBound = lowerBound
-	self.upperBound = upperBound
-	self.intervalType = intervalType
-
+        self.lowerBound = lowerBound
+        self.upperBound = upperBound
+        self.intervalType = intervalType
+    
     def __contains__(self, value):
         if(value < self.lowerBound):
             return False
@@ -42,7 +42,6 @@ class Interval:
             return False
 
         return True
-
     lowerBound = None
     upperBound = None
     intervalType = None
