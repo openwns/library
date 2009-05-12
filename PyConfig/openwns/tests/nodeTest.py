@@ -6,7 +6,7 @@ class NodeTest(unittest.TestCase):
     lastNodeID = None
 
     def setUp(self):
-	self.lastNodeID = Node.id
+        self.lastNodeID = Node.id
 
     def testUniqueID(self):
         node1 = Node("Me")

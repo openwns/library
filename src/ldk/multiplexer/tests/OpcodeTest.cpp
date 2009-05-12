@@ -117,9 +117,9 @@ OpcodeTest::testSizes()
 {
 	CompoundPtr compound(fuNet->createCompound());
 
-	CPPUNIT_ASSERT_EQUAL(0, compound->getLengthInBits());
+	CPPUNIT_ASSERT_EQUAL(Bit(0), compound->getLengthInBits());
 	upper->sendData(compound);
-	CPPUNIT_ASSERT_EQUAL(23, compound->getLengthInBits());
+	CPPUNIT_ASSERT_EQUAL(Bit(23), compound->getLengthInBits());
 } // testIncoming
 
 

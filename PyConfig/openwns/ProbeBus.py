@@ -39,41 +39,41 @@ class NeedsFilename(openwns.interface.Interface):
 
 class MeasurementSource(object):
 
-	def __init__(self):
-		object.__init__(self)
-		self.observers = []
+    def __init__(self):
+        object.__init__(self)
+        self.observers = []
 
-	def addObserver(self, probeBus):
-		self.observers.append(probeBus)
-		return probeBus
+    def addObserver(self, probeBus):
+        self.observers.append(probeBus)
+        return probeBus
 
 class ProbeBus(MeasurementSource):
 
-	def __init__(self):
-		MeasurementSource.__init__(self)
+    def __init__(self):
+        MeasurementSource.__init__(self)
 
-	def observe(self, probeBus):
-		probeBus.addObserver(self)
-		return probeBus
+    def observe(self, probeBus):
+        probeBus.addObserver(self)
+        return probeBus
 
 class ProbeBusRegistry(object):
 
-        def __init__(self):
-                super(ProbeBusRegistry, self).__init__()
-		self.measurementSources = {}
-                self.logger = openwns.logger.Logger("WNS", "ProbeBusRegistry", True)
+    def __init__(self):
+        super(ProbeBusRegistry, self).__init__()
+        self.measurementSources = {}
+        self.logger = openwns.logger.Logger("WNS", "ProbeBusRegistry", True)
 
-	def getMeasurementSource(self, probeBusID):
-		if not self.measurementSources.has_key(probeBusID):
-			self.measurementSources[probeBusID] = MeasurementSource()
+    def getMeasurementSource(self, probeBusID):
+        if not self.measurementSources.has_key(probeBusID):
+            self.measurementSources[probeBusID] = MeasurementSource()
 
-		return self.measurementSources[probeBusID]
+        return self.measurementSources[probeBusID]
 
-        def removeMeasurementSource(self, probeBusID):
-            self.measurementSources.pop(probeBusID)
+    def removeMeasurementSource(self, probeBusID):
+        self.measurementSources.pop(probeBusID)
 
-        def getMeasurementSources(self):
-            return self.measurementSources
+    def getMeasurementSources(self):
+        return self.measurementSources
 
 class PassThroughProbeBus(ProbeBus):
         """ The PassThroughProbeBus always accepts and always forwards. """
@@ -97,9 +97,9 @@ class LoggingProbeBus(ProbeBus):
         nameInFactory = "LoggingProbeBus"
 
         def __init__(self, probeName='', parentLogger=None):
-                ProbeBus.__init__(self)
-		if len(probeName) > 0:
-			probeName = '.' + probeName
+            ProbeBus.__init__(self)
+            if len(probeName) > 0:
+                probeName = '.' + probeName
                 self.logger = openwns.logger.Logger("WNS", "LoggingProbeBus"+probeName, True, parentLogger)
 
 class PythonProbeBus(ProbeBus):
@@ -182,94 +182,94 @@ class StatEvalProbeBus(ProbeBus):
         nameInFactory = "StatEvalProbeBus"
 
         statEval = None
-	appendFlag = None
+        appendFlag = None
 
         def __init__(self, outputFilename, statEvalConfig):
-                ProbeBus.__init__(self)
-                self.outputFilename = outputFilename
-		self.statEval = statEvalConfig
-		if (statEvalConfig.appendFlag == None):
-			self.appendFlag = False
-		else:
-			self.appendFlag = statEvalConfig.appendFlag
+            ProbeBus.__init__(self)
+            self.outputFilename = outputFilename
+            self.statEval = statEvalConfig
+            if (statEvalConfig.appendFlag == None):
+                self.appendFlag = False
+            else:
+                self.appendFlag = statEvalConfig.appendFlag
 
 class TabPar:
-	"""
-	Helper Class to configure the TableProbeBus.
+    """
+    Helper Class to configure the TableProbeBus.
 
-	Configure one of these for each dimension of your table.
-	Parameters:
+    Configure one of these for each dimension of your table.
+    Parameters:
 
-	idName: the name in the IDregistry/Context under which the
-	        value for this axis should be searched
-	minimum: min value of the axis
-	maximum: max value of the axis
-	resolution: number of equidistant intervals into which the
-	            range from min to max will be divided. Note that
-		    the maximum value will be counted into the last interval
-	"""
-	idName = None
-	minimum = None
-	maximum = None
-	resolution = None
-	def __init__(self, idName, minimum, maximum, resolution):
-		self.idName = idName
-		self.minimum = minimum
-		self.maximum = maximum
-		self.resolution = resolution
+    idName: the name in the IDregistry/Context under which the
+            value for this axis should be searched
+    minimum: min value of the axis
+    maximum: max value of the axis
+    resolution: number of equidistant intervals into which the
+                range from min to max will be divided. Note that
+            the maximum value will be counted into the last interval
+    """
+    idName = None
+    minimum = None
+    maximum = None
+    resolution = None
+    def __init__(self, idName, minimum, maximum, resolution):
+        self.idName = idName
+        self.minimum = minimum
+        self.maximum = maximum
+        self.resolution = resolution
 
 class TableProbeBus(ProbeBus):
-	"""
-	The TableProbeBus consumes measurement values and sorts them
-	into n-dimensional tables of statistical evaluation objects.
+    """
+    The TableProbeBus consumes measurement values and sorts them
+    into n-dimensional tables of statistical evaluation objects.
 
-	Parameters:
+    Parameters:
 
-	axisParams: list of TabPar objecst, one for each dimension of the desired table
-	outputFilename: base name of the output files produced by the TableProbeBus
-	evals: list of strings with the requested statistics, possible values are:
-	       'mean', 'variance', 'relativeVariance', 'coeffOfVariation', 'M2', 'M3', 'Z3',
-	       'skewness', 'deviation', 'relativeDeviation', 'trials', 'min', 'max'
-	formats: list of strings with the requested output formats, possible values are:
-	       'HumanReadable', 'PythonReadable', 'MatlabReadable', 'MatlabReadableSparse'
+    axisParams: list of TabPar objecst, one for each dimension of the desired table
+    outputFilename: base name of the output files produced by the TableProbeBus
+    evals: list of strings with the requested statistics, possible values are:
+           'mean', 'variance', 'relativeVariance', 'coeffOfVariation', 'M2', 'M3', 'Z3',
+           'skewness', 'deviation', 'relativeDeviation', 'trials', 'min', 'max'
+    formats: list of strings with the requested output formats, possible values are:
+           'HumanReadable', 'PythonReadable', 'MatlabReadable', 'MatlabReadableSparse'
 
-	"""
-	nameInFactory = "TableProbeBus"
-	axisParams = None
-	outputFilename = None
-	evals   = None
-	formats = None
+    """
+    nameInFactory = "TableProbeBus"
+    axisParams = None
+    outputFilename = None
+    evals   = None
+    formats = None
 
-        def __init__(self, axisParams, outputFilename, evals = ['mean'], formats = ['HumanReadable']):
-                ProbeBus.__init__(self)
-                self.axisParams = axisParams
-		self.outputFilename = outputFilename
-		self.evals = list(set(evals)) # filter out potential duplicates
-		self.formats = list(set(formats)) # filter out potential duplicates
+    def __init__(self, axisParams, outputFilename, evals = ['mean'], formats = ['HumanReadable']):
+        ProbeBus.__init__(self)
+        self.axisParams = axisParams
+        self.outputFilename = outputFilename
+        self.evals = list(set(evals)) # filter out potential duplicates
+        self.formats = list(set(formats)) # filter out potential duplicates
 
 class TextProbeBus(ProbeBus):
-	"""
-	Wrapper for a ProbeText StatEval
-	"""
-	nameInFactory = "TextProbeBus"
-	key = None
-	outputFilename = None
-	evalConfig = None
-        writeHeader = None
-        prependSimTimeFlag = None
-        simTimePrecision = None
-        simTimeWidth = None
-        skipInterval = None
+    """
+    Wrapper for a ProbeText StatEval
+    """
+    nameInFactory = "TextProbeBus"
+    key = None
+    outputFilename = None
+    evalConfig = None
+    writeHeader = None
+    prependSimTimeFlag = None
+    simTimePrecision = None
+    simTimeWidth = None
+    skipInterval = None
 
-        def __init__(self, name, description):
-                ProbeBus.__init__(self)
-		self.key = name
-		self.outputFilename = name
-		self.evalConfig = openwns.evaluation.statistics.TextEval()
-		self.evalConfig.name = name
-		self.evalConfig.description = description
-                self.writeHeader = True
-                self.prependSimTimeFlag = True
-                self.simTimePrecision = 7
-                self.simTimeWidth = 10
-                self.skipInterval = 0
+    def __init__(self, name, description):
+        ProbeBus.__init__(self)
+        self.key = name
+        self.outputFilename = name
+        self.evalConfig = openwns.evaluation.statistics.TextEval()
+        self.evalConfig.name = name
+        self.evalConfig.description = description
+        self.writeHeader = True
+        self.prependSimTimeFlag = True
+        self.simTimePrecision = 7
+        self.simTimeWidth = 10
+        self.skipInterval = 0

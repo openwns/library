@@ -68,7 +68,7 @@ class View(dict):
                 return self.asString(4)
             if key == '__stringRepresentation__':
                 return self.asString(4)
-	    try:
+            try:
                 return getattr(__builtins__, key)
             except:
                 return __builtins__[key]

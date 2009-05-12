@@ -173,12 +173,12 @@ CRCTest::testSize()
 
 	CompoundPtr aPDU(new Compound(commandPool, innerPDU));
 
-	CPPUNIT_ASSERT_EQUAL(42, aPDU->getLengthInBits());
+	CPPUNIT_ASSERT_EQUAL(Bit(42), aPDU->getLengthInBits());
 
 	upper->sendData(aPDU);
 
 	CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
-	CPPUNIT_ASSERT_EQUAL( 42+checkSumSize, lower->sent[0]->getLengthInBits() );
+	CPPUNIT_ASSERT_EQUAL( Bit(42+checkSumSize), lower->sent[0]->getLengthInBits() );
 
 } // testSize
 

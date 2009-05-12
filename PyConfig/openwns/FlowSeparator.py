@@ -47,6 +47,7 @@ class Prototype(object):
         else:
             self.name = prototypeConfig.commandName
             self.fuName = prototypeConfig.functionalUnitName
+            
         self.prototypeConfig = prototypeConfig
 
 class Config(Prototype):
@@ -101,7 +102,7 @@ class FlowSeparator(openwns.FUN.FunctionalUnit):
     def __init__(self, keyBuilder, notFound, logName = 'FlowSeparator', parentLogger = None, **kw):
         super(FlowSeparator,self).__init__()
         self.keyBuilder = keyBuilder
-	self.notFound = notFound
+        self.notFound = notFound
         self.logger = Logger('WNS', logName, True, parentLogger)
         attrsetter(self,kw)
 
