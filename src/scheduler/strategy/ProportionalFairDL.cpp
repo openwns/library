@@ -142,18 +142,16 @@ ProportionalFairDL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
 					firstPDU = true;
 
 				wns::ldk::CompoundPtr pdu = colleagues.queue->getHeadOfLinePDU(cid);
-				userBursts[earliest]->compounds.push_back(pdu);
-				compoundReady(subBand,
-					      burstStart + timeMarkers[earliest], // startTime of PDU
-					      burstStart + timeMarkers[earliest] + pduDuration, // endTime of PDU
-					      earliest, // the user
-					      pdu, // the PDU
-					      beamId[earliest], // also for plotting
-					      patterns[earliest], // the BF pattern
-					      userBursts[earliest], // The Burst
-					      *userPhyModes[earliest], // PhyMode&
-					      txPowerPerStream, //tx Power per stream or beam
-					      group[earliest]); // estimated C and I for that PDU
+                userBursts[earliest]->compounds.push_back(pdu);
+                userBursts[earliest]->start = burstStart;
+                userBursts[earliest]->user = earliest;
+                userBursts[earliest]->subBand = subBand;
+                userBursts[earliest]->beam = beamId[earliest];
+                userBursts[earliest]->txPower = txPowerPerStream;
+                userBursts[earliest]->phyModePtr = userPhyModes[earliest];
+                userBursts[earliest]->pattern = patterns[earliest];
+                userBursts[earliest]->estimatedCandI = group[earliest];
+                userBursts[earliest]->phyModePtr = userPhyModes[earliest];
 
 				timeMarkers[earliest] += pduDuration;
 				bitsThisFrame[earliest] += pdu->getLengthInBits();
@@ -256,15 +254,15 @@ ProportionalFairDL::doStartScheduling(int subBands, int maxBeams, simTimeType sl
 
 	wns::Power txPowerPerStream;
 
-	//unsigned int burstsBeforeRound;
-	bool somethingWasScheduled=false;
+	unsigned int burstsBeforeRound;
+	//bool somethingWasScheduled=false;
 	int roundNumber=0; // just for debugging
 	do // while some PDU scheduled
 	{
-		somethingWasScheduled=false;
-		//burstsBeforeRound = bursts.size(); // 0 at the beginning
-		//MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<"): burstsBeforeRound=" << burstsBeforeRound);
-		MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<")");
+		//somethingWasScheduled=false;
+		burstsBeforeRound = getSchedulerState()->currentState->bursts->size(); // 0 at the beginning
+		MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<"): burstsBeforeRound=" << burstsBeforeRound);
+		//MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<")");
 
 		// get only those users that are still active
 		allUsersInQueue = colleagues.queue->getQueuedUsers();
@@ -348,7 +346,7 @@ ProportionalFairDL::doStartScheduling(int subBands, int maxBeams, simTimeType sl
 				txPowerPerStream);
 
 			assure(thisBurstDuration + nextFreeSubBand[subBand] <= slotLength + slotLengthRoundingTolerance, "burst too long");
-			somethingWasScheduled=true;
+			//somethingWasScheduled=true;
 			// if something scheduled, save the end of this burst and round to the next new OFDM symbol
 			if (thisBurstDuration > 0.0)
 				nextFreeSubBand[subBand] += ceil(thisBurstDuration / symbolDuration) * symbolDuration;
@@ -369,8 +367,8 @@ ProportionalFairDL::doStartScheduling(int subBands, int maxBeams, simTimeType sl
 				preferences.pop();
 		} // else, go, schedule the next group
 		roundNumber++; // just for debugging
-	} while (somethingWasScheduled);
-	//} while (bursts.size() != burstsBeforeRound); // something was scheduled
+	//} while (somethingWasScheduled);
+	} while (getSchedulerState()->currentState->bursts->size() != burstsBeforeRound); // something was scheduled
 	// update the past data rates for all users that we know of:
 	for (UserSet::const_iterator iter = allUsers.begin();
 	     iter != allUsers.end(); ++iter)

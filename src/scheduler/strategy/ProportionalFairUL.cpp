@@ -142,21 +142,19 @@ ProportionalFairUL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
 				if (timeMarkers[earliest] == 0.0)
 					firstPDU = true;
 
+                PowerCapabilities power = colleagues.registry->getPowerCapabilities(earliest);
+
 				wns::ldk::CompoundPtr pdu = colleagues.queue->getHeadOfLinePDU(cid);
 				userBursts[earliest]->compounds.push_back(pdu);
-				PowerCapabilities power = colleagues.registry->getPowerCapabilities(earliest);
-				compoundReady(subBand,
-					      burstStart + timeMarkers[earliest], // startTime of PDU
-					      burstStart + timeMarkers[earliest] + pduDuration, // endTime of PDU
-					      earliest, // the user
-					      pdu, // the PDU
-					      beamId[earliest], // also for plotting
-					      patterns[earliest], // the BF pattern
-					      userBursts[earliest], // The Burst
-					      //userPhyModes[earliest].first, // PHY mode
-					      *userPhyModes[earliest], // PhyMode&
-					      power.nominalPerSubband,
-					      group[earliest]);
+                userBursts[earliest]->start = burstStart;
+                userBursts[earliest]->user = earliest;
+                userBursts[earliest]->subBand = subBand;
+                userBursts[earliest]->beam = beamId[earliest];
+                userBursts[earliest]->txPower = txPowerPerStream;
+                userBursts[earliest]->phyModePtr = userPhyModes[earliest];
+                userBursts[earliest]->pattern = patterns[earliest];
+                userBursts[earliest]->estimatedCandI = group[earliest];
+                userBursts[earliest]->txPower = power.nominalPerSubband;
 
 				timeMarkers[earliest] += pduDuration;
 				bitsThisFrame[earliest] += pdu->getLengthInBits();
@@ -260,15 +258,15 @@ ProportionalFairUL::doStartScheduling(int subBands, int maxBeams, simTimeType sl
 	wns::Power txPowerPerStream;
 	txPowerPerStream = getTxPower();
 
-	//unsigned int burstsBeforeRound;
-	bool somethingWasScheduled=false;
+	unsigned int burstsBeforeRound;
+	//bool somethingWasScheduled=false;
 	int roundNumber=0; // just for debugging
 	do // while some PDU scheduled
 	{
-		somethingWasScheduled=false;
-		//burstsBeforeRound = bursts.size(); // 0 at the beginning
-		//MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<"): burstsBeforeRound=" << burstsBeforeRound);
-		MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<")");
+		//somethingWasScheduled=false;
+		burstsBeforeRound = getSchedulerState()->currentState->bursts->size(); // 0 at the beginning
+		MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<"): burstsBeforeRound=" << burstsBeforeRound);
+		//MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<")");
 
 		// get only those users that are still active
 		allUsersInQueue = colleagues.queue->getQueuedUsers();
@@ -361,8 +359,8 @@ ProportionalFairUL::doStartScheduling(int subBands, int maxBeams, simTimeType sl
 				preferences.pop();
 		} // else, go, schedule the next group
 		roundNumber++; // just for debugging
-	} while (somethingWasScheduled);
-	//} while (bursts.size() != burstsBeforeRound); // something was scheduled
+	//} while (somethingWasScheduled);
+	} while (getSchedulerState()->currentState->bursts->size() != burstsBeforeRound); // something was scheduled
 
 	// update the past data rates for all users that we know of:
 	for (UserSet::const_iterator iter = allUsers.begin();
