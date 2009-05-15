@@ -54,6 +54,7 @@ srcFiles = [
     'src/evaluation/statistics/stateval.cpp',
     'src/evaluation/statistics/moments.cpp',
     'src/evaluation/statistics/pdf.cpp',
+    'src/evaluation/statistics/dlre.cpp',
 
     'src/logger/Master.cpp',
     'src/logger/Message.cpp',
@@ -760,6 +761,7 @@ hppFiles = [
 'src/evaluation/statistics/stateval.hpp',
 'src/evaluation/statistics/moments.hpp',
 'src/evaluation/statistics/pdf.hpp',
+'src/evaluation/statistics/dlre.hpp',
 'src/events/CanTimeout.hpp',
 'src/events/NoOp.hpp',
 'src/events/MemberFunction.hpp',
