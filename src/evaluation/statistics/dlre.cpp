@@ -739,7 +739,7 @@ void DLRE::print(ostream& aStreamRef,
     for (i = indexMin_; i < indexMax_; i++)
     {
         // Print current level
-        p_printLevel(aStreamRef, i, errorString, false, aFunctionType);
+        printLevel(aStreamRef, i, errorString, false, aFunctionType);
     }
 
     if (not (aFunctionType == pf and not numTrials_))
@@ -877,122 +877,123 @@ bool DLRE::pd_result::operator != (const pd_result& aResultRef)
 
 
 //! print one y level
-void DLRE::p_printLevel(ostream& aStreamRef,
-                        unsigned int aLevel,
-                        const string& errorString,
-                        bool aDiscretePointFlag,
-                        functionType aFunctionType) const
+void DLRE::printLevel(ostream& aStreamRef,
+                      int level,
+                      const string& errorString,
+                      bool discretePointFlag,
+                      functionType functionType) const
 {
     string prefix(prefix_ + " ");
 
     double64 f = 0.0, d = 0.0, rho = 0.0, sigma = 0.0,
 	     v = 0.0, r = 0.0, n = 0.0, a = 0.0;
 
-    bool evaluated = checkLargeSample_(aLevel);
+    bool evaluated = checkLargeSample_(level);
 
     // Just to play safe
-    if (aFunctionType == pf)
+    if (functionType == pf)
     {
-	aDiscretePointFlag = false;
+        discretePointFlag = false;
     }
-    n = double64(numTrials_);
-    r = double64(results_[aLevel].sumh_);
+    n = double(numTrials_);
+    r = double(results_[level].sumh_);
     if (evaluated)
     {
 
-	// Calculate local correlation coefficient rho(x) resp. rho(x)
-	//                                            F            G
-	// n:   num trials
-	// r:   num sorted values
-	// a:   num transitions
-	//
-	//                a/r
-	// rho(x) = 1 - -------
-	//              1 - r/n
-	//
-	a = double64(results_[aLevel].c_);
+        // Calculate local correlation coefficient rho(x) resp. rho(x)
+        //                                            F            G
+        // n:   num trials
+        // r:   num sorted values
+        // a:   num transitions
+        //
+        //                a/r
+        // rho(x) = 1 - -------
+        //              1 - r/n
+        //
+        a = double64(results_[level].c_);
 
-	rho = 1.0 - a / r / (1.0 - r / n);
-
-
-
-	//
-	//  2     1 - r/n   1 + rho(x)                 a/r
-	// d(x) = ------- * ----------; rho(x) = 1 - -------
-	//  F        r      1 - rho(x)               1 - r/n
-
-	d = ((1.0 - r / n) / r) * (1.0 + rho) / (1.0 - rho);
-
-	if (d >= 0.0)
-	{
-	    d = sqrt(d);
-	}
+        rho = 1.0 - a / r / (1.0 - r / n);
 
 
-	// Calculate mean quadratic deviation from mean local
-	// correlation coefficient
-	//
-	//      2          1 - a/r   1 - a/v
-	// sigma(x) = a * (------- + -------); v = n - r
-	//      rho         r * r     v * v
-	//
-	v = n - r;
-	sigma = a * ((1.0 - a / r) / (r * r) + (1.0 - a / v) / (v * v));
-	if (sigma > 0.0)
-	{
-	    sigma = sqrt(sigma);
-	}
+        //
+        //  2     1 - r/n   1 + rho(x)                 a/r
+        // d(x) = ------- * ----------; rho(x) = 1 - -------
+        //  F        r      1 - rho(x)               1 - r/n
+
+        d = ((1.0 - r / n) / r) * (1.0 + rho) / (1.0 - rho);
+
+        if (d >= 0.0)
+        {
+            d = sqrt(d);
+        }
+
+
+        // Calculate mean quadratic deviation from mean local
+        // correlation coefficient
+        //
+        //      2          1 - a/r   1 - a/v
+        // sigma(x) = a * (------- + -------); v = n - r
+        //      rho         r * r     v * v
+        //
+        v = n - r;
+        sigma = a * ((1.0 - a / r) / (r * r) + (1.0 - a / v) / (v * v));
+        if (sigma > 0.0)
+        {
+            sigma = sqrt(sigma);
+        }
 
     }
 
     if ((not evaluated) or d > relErrMax_)
     {
-	if (not aStreamRef)
-	{
-	    throw(wns::Exception(errorString));
-	}
+        if (not aStreamRef)
+        {
+            throw(wns::Exception(errorString));
+        }
     }
 
 
-    if (aDiscretePointFlag)
+    if (discretePointFlag)
     {
-	// Output F(x)/G(x), x, number of sorted values, and number of
-	// transitions of previous interval
-	aLevel--;
+        // Output F(x)/G(x), x, number of sorted values, and number of
+        // transitions of previous interval
+        level--;
     }
     // Discrete point in evaluated interval
-    if (evaluated and aDiscretePointFlag)
+    if (evaluated and discretePointFlag)
     {
-	f = double64(results_[aLevel].sumh_ - results_[aLevel].h_) / n;
+        f = double64(results_[level].sumh_ - results_[level].h_) / n;
     }
     else
     {
-	double64 occ = double64(results_[aLevel].h_);
+        double occ = double64(results_[level].h_);
 
-	if (aFunctionType == pf)
-    {
-        f = occ / n;
+        if (functionType == pf)
+        {
+            f = occ / n;
 
-        //
-        // cdf: use left  insertion limit
-        //  df: use right insertion limit
-        //
-        //	    f = function_ == cdf ?
-        //		(r - double64(rmc_(aLevel + 1).numSortedValues)) / n :
-        //		(double64(rmc_(aLevel - 1).numSortedValues) - r) / n;
-    }
-	// Discrete point in non evaluated interval
-	else if (not evaluated and not aDiscretePointFlag and
-		 occ > 1.0 and r - occ > 0.0)
-	{
-	    f = (r - occ) / n;
-	}
-	// Non discrete point in non evaluated interval or
-	// evaluated interval
-    else
-    {
-        f = r / n;
-    }
+            //
+            // cdf: use left  insertion limit
+            //  df: use right insertion limit
+            //
+            //	    f = function_ == cdf ?
+            //		(r - double64(rmc_(level + 1).numSortedValues)) / n :
+            //		(double64(rmc_(level - 1).numSortedValues) - r) / n;
+        }
+        // Discrete point in non evaluated interval
+        else if (not evaluated and
+                 not discretePointFlag and
+                 occ > 1.0 and
+                 r - occ > 0.0)
+        {
+            f = (r - occ) / n;
+        }
+        // Non discrete point in non evaluated interval or
+        // evaluated interval
+        else
+        {
+            f = r / n;
+        }
     }
     assert(0.0 <= f and f <= 1.0);
 
@@ -1004,13 +1005,12 @@ void DLRE::p_printLevel(ostream& aStreamRef,
                << resetiosflags(ios::left)
                << setiosflags(ios::right)
                << setw(14)
-               << results_[aLevel].x_
+               << results_[level].x_
                << "  ";
     if (not aStreamRef)
     {
         throw(wns::Exception(errorString));
     }
-
 
     if (evaluated and d >= 0.0)
     {
@@ -1063,10 +1063,10 @@ void DLRE::p_printLevel(ostream& aStreamRef,
                << resetiosflags(ios::right)
                << setiosflags(ios::left)
                << setw(10)
-               << results_[aLevel].h_
+               << results_[level].h_
                << "   "
                << setw(10)
-               << results_[aLevel].c_
+               << results_[level].c_
                << "       ";
 
     if ((not evaluated) or d > relErrMax_)
