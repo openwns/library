@@ -196,7 +196,7 @@ PhysicalResourceBlock::getFreeBitsOnPhysicalResourceBlock(MapInfoEntryPtr mapInf
 	 || (*mapPhyModePtr == *phyModePtr),
 	 "all PhyModes must match on a (used) PhysicalResourceBlock: "<<*phyModePtr<<" != "<<*mapPhyModePtr);
   double dataRate = mapPhyModePtr->getDataRate();
-  return freeTime * dataRate;
+  return (freeTime+wns::scheduler::slotLengthRoundingTolerance) * dataRate;
 } // getFreeBitsOnPhysicalResourceBlock
 
 bool

@@ -142,11 +142,11 @@ class PyTree:
                 for nono in self.ignorePaths:
                     if obj.__file__.startswith(nono):
                         return result
-
+                    
             delimiter = {types.ModuleType: '::',
-                         types.ClassType: ':',
-                         types.TypeType: ':'}.setdefault(type(obj), '.')
-
+                        types.ClassType: ':',
+                        types.TypeType: ':'}.setdefault(type(obj), '.')
+    
             for it in dir(obj):
                 if self.skip(it):
                     continue
@@ -185,8 +185,9 @@ class FunctionalUnit(object):
             self.commandName = self.functionalUnitName
         else:
             self.commandName = commandName
-	self.upConnects = []
-	self.downConnects = []
+            
+        self.upConnects = []
+        self.downConnects = []
 
     def connect(self, other):
         self.fun.connect(self, other)
@@ -201,21 +202,21 @@ class FunctionalUnit(object):
         self.__upConnect(other)
 
     def __connect(self, other):
-	self.__downConnect(other)
-	self.__upConnect(other)
+        self.__downConnect(other)
+        self.__upConnect(other)
 
     def __downConnect(self, other):
-	self.downConnects.append(other.functionalUnitName)
+        self.downConnects.append(other.functionalUnitName)
 
     def __upConnect(self, other):
-	self.upConnects.append(other.functionalUnitName)
+        self.upConnects.append(other.functionalUnitName)
 
 class Node(FunctionalUnit):
     config = None
 
     def __init__(self, funame, config, commandname = None):
         super(Node,self).__init__(funame, commandname)
-	self.config = config
+        self.config = config
 
 class Connection(object):
     __slots__ = ("type", "src", "dst")
@@ -262,12 +263,12 @@ class FUN(object):
             it.fun = self
 
     def add(self, node):
-	node.fun = self
+        node.fun = self
         self.functionalUnit.append(node)
-	return node
+        return node
 
     def dot(self, name, showParameters=True, FUcompressLists = [], FUnoLists = []):
-	out = file(name, 'w')
+        out = file(name, 'w')
 
         out.write('digraph lala {')
         out.write('node [shape=record]')

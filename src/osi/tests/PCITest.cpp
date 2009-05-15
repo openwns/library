@@ -72,19 +72,19 @@ namespace wns { namespace osi { namespace tests {
         PCI testPCI1 = PCI();
         pduType dontKnow = PCI::unknown;
         CPPUNIT_ASSERT_EQUAL(dontKnow, testPCI1.getPDUType());
-        CPPUNIT_ASSERT_EQUAL(0, testPCI1.getPDULength());
+        CPPUNIT_ASSERT_EQUAL(Bit(0), testPCI1.getPDULength());
 
         /*With explicit type*/
         pduType type = 123;
         PCI testPCI2 = PCI(type);
         CPPUNIT_ASSERT_EQUAL(pduType(123), testPCI2.getPDUType());
-        CPPUNIT_ASSERT_EQUAL(0, testPCI2.getPDULength());
+        CPPUNIT_ASSERT_EQUAL(Bit(0), testPCI2.getPDULength());
         
         /* With type and length*/     
         Bit length = 1024;
         PCI testPCI3 = PCI(type, length);
         CPPUNIT_ASSERT_EQUAL(pduType(123), testPCI3.getPDUType());
-        CPPUNIT_ASSERT_EQUAL(1024, testPCI3.getPDULength());
+        CPPUNIT_ASSERT_EQUAL(Bit(1024), testPCI3.getPDULength());
     }
 
     void

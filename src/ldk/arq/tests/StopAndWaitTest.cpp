@@ -252,8 +252,8 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 	{
 		getUpperStub()->sendData(getFUN()->createCompound());
 
-		int commandPoolSize;
-		int dataSize;
+		Bit commandPoolSize;
+		Bit dataSize;
 		getFUN()->calculateSizes(getLowerStub()->sent[0]->getCommandPool(), commandPoolSize, dataSize);
 		CPPUNIT_ASSERT(commandPoolSize == 2);
 		CPPUNIT_ASSERT(dataSize == 0);
@@ -271,8 +271,8 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 
 		getLowerStub()->onData(compound);
 
-		int commandPoolSize;
-		int dataSize;
+		Bit commandPoolSize;
+		Bit dataSize;
 		getFUN()->calculateSizes(getLowerStub()->sent[0]->getCommandPool(), commandPoolSize, dataSize);
 		CPPUNIT_ASSERT(commandPoolSize == 3);
 		CPPUNIT_ASSERT(dataSize == 0);

@@ -85,8 +85,8 @@ Strategy::~Strategy()
 	if (colleagues.dsafbstrategy) delete colleagues.dsafbstrategy;
 	// delete SchedulerState:
 	if (schedulerState) {
-	  schedulerState->clearMap();
 	  if (schedulerState->currentState) {
+	    schedulerState->clearMap();
 	    if (schedulerState->currentState->strategyInput) {
 	      schedulerState->currentState->strategyInput = NULL;
 	    }

@@ -66,8 +66,8 @@ class StatusCollectorCounter:
     logger = None
 
     def __init__(self, parentLogger = None, loggerEnabled=True, **kw):
-	self.logger = Logger('WNS', 'ARQStat', loggerEnabled, parentLogger)
-	attrsetter(self, kw)
+        self.logger = Logger('WNS', 'ARQStat', loggerEnabled, parentLogger)
+        attrsetter(self, kw)
 
 class StatusCollectorTwoSizesWindowed:
     __plugin__ = "StatusCollectorTwoSizesWindowed"
@@ -78,14 +78,14 @@ class StatusCollectorTwoSizesWindowed:
     frameSizeThreshold = None
 
     def __init__(self, parentLogger = None, loggerEnabled=True, **kw):
-	self.logger = Logger('WNS', 'ARQStat', loggerEnabled, parentLogger)
-	attrsetter(self, kw)
+        self.logger = Logger('WNS', 'ARQStat', loggerEnabled, parentLogger)
+        attrsetter(self, kw)
 
     def setParams(self,  windowSize, minSamples, insufficientSamplesReturn, frameSizeThreshold):
-	self.windowSize = windowSize
-	self.minSamples = minSamples
-	self.insufficientSamplesReturn = insufficientSamplesReturn
-	self.frameSizeThreshold = frameSizeThreshold
+        self.windowSize = windowSize
+        self.minSamples = minSamples
+        self.insufficientSamplesReturn = insufficientSamplesReturn
+        self.frameSizeThreshold = frameSizeThreshold
 
 class NoARQ(ARQ):
     __plugin__ = 'wns.arq.None'
@@ -94,10 +94,10 @@ class NoARQ(ARQ):
     windowSize = 0
 
     def __init__(self, parentLogger = None, **kw):
-      super(NoARQ,self).__init__()
-      self.logger = Logger('WNS', 'No-ARQ', True, parentLogger)
-      self.arqStatusCollector = NoStatusCollection();
-      attrsetter(self, kw)
+        super(NoARQ,self).__init__()
+        self.logger = Logger('WNS', 'No-ARQ', True, parentLogger)
+        self.arqStatusCollector = NoStatusCollection();
+        attrsetter(self, kw)
 
 class StopAndWait(ARQ):
     __plugin__ = 'wns.arq.StopAndWait'
@@ -107,10 +107,10 @@ class StopAndWait(ARQ):
     bitsPerRRFrame = 2
 
     def __init__(self, parentLogger = None, statusCollector=NoStatusCollection, **kw):
-      super(StopAndWait,self).__init__()
-      self.logger = Logger('WNS', 'SNW-ARQ', True, parentLogger)
-      self.arqStatusCollector = statusCollector(self.logger)
-      attrsetter(self, kw)
+        super(StopAndWait,self).__init__()
+        self.logger = Logger('WNS', 'SNW-ARQ', True, parentLogger)
+        self.arqStatusCollector = statusCollector(self.logger)
+        attrsetter(self, kw)
 
 class GoBackN(ARQ):
     __plugin__ = 'wns.arq.GoBackN'
@@ -123,10 +123,10 @@ class GoBackN(ARQ):
     probeName = "xxxTransmissionAttempts"
 
     def __init__(self, parentLogger = None, statusCollector=NoStatusCollection, **kw):
-      super(GoBackN,self).__init__()
-      self.logger = Logger('WNS', 'GBN-ARQ', True, parentLogger)
-      self.arqStatusCollector = statusCollector(self.logger)
-      attrsetter(self, kw)
+        super(GoBackN,self).__init__()
+        self.logger = Logger('WNS', 'GBN-ARQ', True, parentLogger)
+        self.arqStatusCollector = statusCollector(self.logger)
+        attrsetter(self, kw)
 
 class CumulativeACK(ARQ):
     __plugin__ = 'wns.arq.CumulativeACK'
@@ -136,10 +136,10 @@ class CumulativeACK(ARQ):
     sequenceNumberSize = 2*windowSize
 
     def __init__(self, parentLogger = None, statusCollector=NoStatusCollection,**kw):
-      super(CumulativeACK,self).__init__()
-      self.logger = Logger('WNS', 'CUM-ARQ', True, parentLogger)
-      self.arqStatusCollector = statusCollector(self.logger)
-      attrsetter(self, kw)
+        super(CumulativeACK,self).__init__()
+        self.logger = Logger('WNS', 'CUM-ARQ', True, parentLogger)
+        self.arqStatusCollector = statusCollector(self.logger)
+        attrsetter(self, kw)
 
 class SelectiveRepeat(ARQ):
     __plugin__ = 'wns.arq.SelectiveRepeat'
@@ -154,20 +154,20 @@ class SelectiveRepeat(ARQ):
     commandSize = None
 
     def __init__(self, parentLogger = None, statusCollector=NoStatusCollection, **kw):
-      super(SelectiveRepeat,self).__init__()
-      self.logger = Logger('WNS', 'SR-ARQ', True, parentLogger)
-      self.arqStatusCollector = statusCollector(self.logger)
-      attrsetter(self, kw)
-      if (self.commandSize == None):
+        super(SelectiveRepeat,self).__init__()
+        self.logger = Logger('WNS', 'SR-ARQ', True, parentLogger)
+        self.arqStatusCollector = statusCollector(self.logger)
+        attrsetter(self, kw)
+        if (self.commandSize == None):
           # reserve command space for the max length of the sequence number
-          self.commandSize = int(math.ceil(math.log(self.sequenceNumberSize)/math.log(2)))
+            self.commandSize = int(math.ceil(math.log(self.sequenceNumberSize)/math.log(2)))
           # plus one additional bit for the command type (I or ACK)
-          self.commandSize += 1
+            self.commandSize += 1
 
-      assert self.sequenceNumberSize >= 2*self.windowSize, """You misconfigured the sequenceNumberSize.
-      It needs to be at least two times the windowSize"""
+        assert self.sequenceNumberSize >= 2*self.windowSize, """You misconfigured the sequenceNumberSize.
+        It needs to be at least two times the windowSize"""
 
-      assert pow(2,(self.commandSize-1)) >= self.sequenceNumberSize, "Misconfigured or Mis-calculated commandSize."
+        assert pow(2,(self.commandSize-1)) >= self.sequenceNumberSize, "Misconfigured or Mis-calculated commandSize."
 
 
 class PiggyBacker(object):

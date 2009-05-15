@@ -154,7 +154,7 @@ void StrategyTest::prepare()
 
 	wns::pyconfig::Parser queueConfig;
 	std::stringstream ss;
-	ss << "from wns.Scheduler import SimpleQueue\n"
+	ss << "from openwns.Scheduler import SimpleQueue\n"
 	   << "queue = SimpleQueue()\n";
 	queueConfig.loadString(ss.str());
 
@@ -207,21 +207,21 @@ StrategyTest::setupStrategy(std::string strategyName)
         // create PyConfig for Strategy module creation
 	wns::pyconfig::Parser pyCoParser;
         std::stringstream ss;
-        ss << "import wns.Logger\n"
-	   << "import wns.scheduler.APCStrategy\n"
-	   << "import wns.scheduler.DSAStrategy\n"
+        ss << "import openwns.logger\n"
+	   << "import openwns.scheduler.APCStrategy\n"
+	   << "import openwns.scheduler.DSAStrategy\n"
 	   << "symbolDuration = 0.00001389\n"
            << "txMode = True\n"
-	   << "logger = wns.Logger.Logger(\"WNS\", \"Scheduling Strategy Test\", True)\n"
+	   << "logger = openwns.logger.Logger(\"WNS\", \"Scheduling Strategy Test\", True)\n"
 	   << "historyWeight = 0.9\n"
 	   << "maxBursts = 100\n"
 	   << "scalingBetweenMaxTPandPFair = 0.0\n" // 0.0=MaxThroughput; 1.0=ProportionalFair
 	   << "allowReGrouping = False\n"
 	   << "powerControlSlave = False\n"
 	   << "excludeTooLowSINR = True\n"
-	   << "dsastrategy = wns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
-	   << "dsafbstrategy = wns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
-	   << "apcstrategy = wns.scheduler.APCStrategy.UseNominalTxPower()\n";
+	   << "dsastrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
+	   << "dsafbstrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
+	   << "apcstrategy = openwns.scheduler.APCStrategy.UseNominalTxPower()\n";
 	pyCoParser.loadString(ss.str());
 
 	// create Strategy module
@@ -241,19 +241,19 @@ StrategyTest::setupULStrategy(std::string strategyName)
         // create PyConfig for Strategy module creation
 	wns::pyconfig::Parser pyCoParser;
         std::stringstream ss;
-        ss << "import wns.Logger\n"
+        ss << "import openwns.logger\n"
 	   << "symbolDuration = 0.00001389\n"
            << "txMode = False\n"
-	   << "logger = wns.Logger.Logger(\"WNS\", \"Scheduling Strategy Test\", True)\n"
+	   << "logger = openwns.logger.Logger(\"WNS\", \"Scheduling Strategy Test\", True)\n"
 	   << "historyWeight = 0.9\n"
 	   << "maxBursts = 100\n"
 	   << "scalingBetweenMaxTPandPFair = 0.0\n" // 0.0=MaxThroughput; 1.0=ProportionalFair
 	   << "allowReGrouping = False\n"
 	   << "powerControlSlave = False\n"
 	   << "excludeTooLowSINR = True\n"
-	   << "dsastrategy = wns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
-	   << "dsafbstrategy = wns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
-	   << "apcstrategy = wns.scheduler.APCStrategy.UseNominalTxPower()\n";
+	   << "dsastrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
+	   << "dsafbstrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
+	   << "apcstrategy = openwns.scheduler.APCStrategy.UseNominalTxPower()\n";
 	pyCoParser.loadString(ss.str());
 
 	// create Strategy module

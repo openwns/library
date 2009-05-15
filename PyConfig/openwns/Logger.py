@@ -38,7 +38,7 @@ class LoggerRegistry(object):
         assert isinstance(category, str)
         if not self.dict.has_key(category):
             self.dict[category] = []
-        self.dict[category].append(logger)
+            self.dict[category].append(logger)
 
     def setAttribute(self, category, attribute, value):
         assert isinstance(category, str)
@@ -61,7 +61,7 @@ class ModuleColor(object):
     def __init__(self, _name, _modifiers):
         super(ModuleColor, self).__init__()
         self.name = _name
-	modifiers = ';'.join(['00'] + _modifiers)
+        modifiers = ';'.join(['00'] + _modifiers)
         self.modifier = "\033[" + modifiers + "m"
 
 class Effects(openwns.pyconfig.Frozen):
@@ -106,38 +106,38 @@ class Logger(object):
     def __init__(self, moduleName, name, enabled, parent = None, **kw):
         self.moduleName = moduleName
         self.__enabled = enabled
-	self.__parent = parent
+        self.__parent = parent
         self.__name = name
         self.__level = None
         self.showFunction = False
-	openwns.pyconfig.attrsetter(self, kw)
+        openwns.pyconfig.attrsetter(self, kw)
         globalRegistry.addLogger("all", self)
         globalRegistry.addLogger(moduleName, self)
         globalRegistry.addLogger("%s.%s" % (moduleName, name), self)
 
     def __levelGetter(self):
         if self.__level is not None:
-	    return self.__level
+            return self.__level
 
-	if self.__parent is not None:
-	    return self.__parent.level
+        if self.__parent is not None:
+            return self.__parent.level
 
-	return self.__defaultLevel
+        return self.__defaultLevel
 
     def __levelSetter(self, value):
-    	self.__level = value
+        self.__level = value
 
     def __enabledGetter(self):
-	if self.__parent is not None:
-	    return (self.__parent.enabled and
+        if self.__parent is not None:
+            return (self.__parent.enabled and
                     self.__enabled and
                     self.level > 0)
 
-	return (self.__enabled and
-                self.level > 0)
+        return (self.__enabled and
+            self.level > 0)
 
     def __enabledSetter(self, value):
-    	self.__enabled = value
+        self.__enabled = value
 
     def __nameSetter(self, value):
         self.__name = value
