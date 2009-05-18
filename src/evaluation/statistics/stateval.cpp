@@ -517,8 +517,8 @@ StatEval::mapEvalTypeToString(statEvalType statType)
 
 void
 StatEval::printBanner(ostream& stream,
-                            std::string probeTypeDesc,
-                            std::string errorString) const
+                      std::string probeTypeDesc,
+                      std::string errorString) const
 {
     std::string prefix(prefix_ + " ");
 

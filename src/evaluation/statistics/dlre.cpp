@@ -46,7 +46,6 @@ DLRE::DLRE(vector<double> xValuesArr,
            formatType format)
     : StatEval(format, name, description),
       results_(NULL),
-      line_(),
       relErrMax_(error),
       maxNrv_(maxNrv),
       wastedLeft_(0),
@@ -103,7 +102,7 @@ DLRE::initNonEqui(int level,
     }
     else
     {
-        unsigned int i = 0;
+        int i = 0;
         while((i < xValuesArr.size()) and (i < level))
         {
             results_[i].x_ = xValuesArr[i];
@@ -163,7 +162,6 @@ DLRE::DLRE(double xMin,
            formatType format)
     : StatEval(format, name, description),
       results_(NULL),
-      line_(),
       relErrMax_(error),
       maxNrv_(maxNrv),
       wastedLeft_(0),
@@ -199,7 +197,7 @@ DLRE::initEqui(double xMin,
     assure(xMin < xMax, "xMin must be smaller than xMax");
 
     double tmp = (xMax - xMin) / intSize;
-    unsigned int level = (unsigned int)(tmp) + 1;
+    int level = tmp + 1;
 
     assure(level > 1, "Settings for xMax, xMin, intSize results in less than 2 levels");
 
@@ -242,7 +240,6 @@ DLRE::initEqui(double xMin,
 DLRE::DLRE(const wns::pyconfig::View& config) :
     StatEval(config),
     results_(NULL),
-    line_(),
     relErrMax_(config.get<double>("maxError")),
     maxNrv_(UINT_MAX),
     wastedLeft_(0),
@@ -322,13 +319,13 @@ DLRE::~DLRE()
 
 
 //! print
-void DLRE::print(ostream& aStreamRef) const
+/*void DLRE::print(ostream& aStreamRef) const
 {
     aStreamRef << "skipInterval_ : "       << skipInterval_       << endl;
     aStreamRef << "forceRminusAOK_ : "     << forceRminusAOK_     << endl;
     aStreamRef << "name_ : "               << name_               << endl;
     aStreamRef << "desc_ : "               << desc_               << endl;
-}
+    }*/
 
 
 
@@ -435,22 +432,24 @@ const int DLRE::largeSampleNumSortedValues_ = 100;
 const int DLRE::largeSampleNumTransitions_  = 10;
 
 //! return index of x value
-int DLRE::getIndex(double curRv)
+int DLRE::getIndex(double value) const
 {
-    if (curRv < xMin_)
+    if (value < xMin_)
     {
         return lower;
     }
-    else if (curRv > xMax_)
+    else if (value > xMax_)
     {
         return greater;
     }
     else if (equiDist_)
     {
-        int index = std::min(int(indexMin_ + (curRv - xMin_) / intSize_),
+        int index = std::min(int(indexMin_ + (value - xMin_) / intSize_),
                              int((indexMax_ - 1)));
 
-        return (fabs(curRv - results_[index].x_) < getMaxError<double>()) ?
+        return index;
+
+        return (fabs(value - results_[index].x_) < getMaxError<double>()) ?
             index : int(noIndex);
     }
     else
@@ -465,18 +464,18 @@ int DLRE::getIndex(double curRv)
         {
             // `>>1' equals `/2' but is faster
             lauf = start + (step >> 1);
-            if (fabs(lauf->x_ - curRv) < getMaxError<double>())
+            if (fabs(lauf->x_ - value) < getMaxError<double>())
             {
                 return (step >> 1) + (start - results_);
             }
-            else if (lauf->x_ > curRv)
+            else if (lauf->x_ > value)
             {
                 if (end - lauf > 0)
                     end = lauf;
                 else
                     return noIndex;
             }
-            else if (lauf->x_ < curRv)
+            else if (lauf->x_ < value)
             {
                 if (lauf - start > 0)
                     start = lauf;
@@ -492,9 +491,9 @@ int DLRE::getIndex(double curRv)
 
 
 //! output function-specific evaluation results
-void DLRE::print(ostream& aStreamRef,
-                 functionType aFunctionType,
-                 const double yMin) const
+void DLRE::printAll(ostream& aStreamRef,
+                    functionType aFunctionType,
+                    const double yMin) const
 {
     string prefix(prefix_ + " ");
     string separator = prefix + "---------------------------------------------------------------------------";
@@ -671,7 +670,7 @@ void DLRE::print(ostream& aStreamRef,
     }
 
 
-
+    // print first level, (cdf/df -> f = 1.0, pf -> f = 0.0)
     {
         double f = 0.0, x = 0.0;
         string infinity;
@@ -736,32 +735,32 @@ void DLRE::print(ostream& aStreamRef,
         }
     }
 
+    // Print levels between the first and last index
     for (i = indexMin_; i < indexMax_; i++)
     {
-        // Print current level
         printLevel(aStreamRef, i, errorString, false, aFunctionType);
     }
 
-    if (not (aFunctionType == pf and not numTrials_))
+    // Print last level (cdf/df -> f = 0.0, pf -> f = maxProbability)
+    // deactivated for cdf/df, smx 2009-05-18
+    //if ((not aFunctionType == pf) or (numTrials_ > 0))
+    if(aFunctionType == pf and numTrials_ > 0)
     {
         double f, x;
-
         if (aFunctionType == cdf)
         {
             f = 0.0;
             x = maxValue_;
         }
-        else
+        else if (aFunctionType == df)
         {
-            if(aFunctionType == pf)
-            {
-                f = (double(results_[curLevelIndex_ + 1].h_) / double(numTrials_));
-            }
-            else
-            {
-                f = 0.0;
-            }
+            f = 0.0;
             x = maxValue_;
+        }
+        else if (aFunctionType == pf)
+        {
+            f = (double(results_[curLevelIndex_ + 1].h_) / double(numTrials_));
+            x = minValue_;
         }
 
         aStreamRef << resetiosflags(ios::right)
@@ -825,22 +824,22 @@ void DLRE::print(ostream& aStreamRef,
 
 
 //! check large sample conditions
-bool DLRE::pd_checkLargeSample(unsigned int anIndex) const throw(BadTypeId, RangeErr)
+bool DLRE::checkLargeSample(int index) const
 {
     return
         (phase_ == initialize and numTrials_ >= largeSampleNumTrials_) or
         ((phase_ == iterate or phase_ == finish) and
          ((numTrials_ >= largeSampleNumTrials_) and
-          ((unsigned int)results_[anIndex].sumh_ >= largeSampleNumSortedValues_) and
-          ((numTrials_ - (unsigned int)results_[anIndex].sumh_) >= largeSampleNumSortedValues_) and
-          ((unsigned int)results_[anIndex].c_ >= largeSampleNumTransitions_)  and
+          (results_[index].sumh_ >= largeSampleNumSortedValues_) and
+          ((numTrials_ - results_[index].sumh_) >= largeSampleNumSortedValues_) and
+          (results_[index].c_ >= largeSampleNumTransitions_)  and
           // ai == ci +- 1, so we do not need to check ai
           (not forceRminusAOK_ or
-           (((((unsigned int)results_[anIndex].sumh_ - (unsigned int)results_[anIndex].c_)  >= largeSampleNumTransitions_) or
-             (anIndex > (unsigned int)indexMax_ - 3) ) and
+           ((((results_[index].sumh_ - results_[index].c_)  >= largeSampleNumTransitions_) or
+             (index > indexMax_ - 3) ) and
             // again, we assume ai == ci
-            (((numTrials_ - (unsigned int)results_[anIndex].sumh_ - (unsigned int)results_[anIndex].c_) >= largeSampleNumTransitions_) or
-             (anIndex < (unsigned int)indexMin_ + 3)
+            (((numTrials_ - results_[index].sumh_ - results_[index].c_) >= largeSampleNumTransitions_) or
+             (index < indexMin_ + 3)
                 )
                )
               )
@@ -850,26 +849,23 @@ bool DLRE::pd_checkLargeSample(unsigned int anIndex) const throw(BadTypeId, Rang
 }
 
 //! constructor
-DLRE::pd_result::pd_result() throw()
-    : x(0.0),
-      h(0),
-      sumh(0),
-      c(0)
+DLRE::Result::Result()
+    : x_(0.0),
+      h_(0),
+      sumh_(0),
+      c_(0)
 {}
 
 
 /*! Unequal '!=' comparison operator. This operator only works if
   both objects compared are of the same type and if method compare of
   this type has been overloaded. */
-bool DLRE::pd_result::operator != (const pd_result& aResultRef)
-    const throw(GenErr)
+bool DLRE::Result::operator != (const Result& other) const
 {
-    const pd_result* ptr = &aResultRef;
-
-    return not ((fabs(x - ptr->x) < getMaxError<double>()) and
-                (h == ptr->h) and
-                (sumh == ptr->sumh) and
-                (c == ptr->c));
+    return not ((fabs(x_ - other.x_) < getMaxError<double>()) and
+                (h_ == other.h_) and
+                (sumh_ == other.sumh_) and
+                (c_ == other.c_));
 }
 
 
@@ -877,7 +873,7 @@ bool DLRE::pd_result::operator != (const pd_result& aResultRef)
 
 
 //! print one y level
-void DLRE::printLevel(ostream& aStreamRef,
+void DLRE::printLevel(ostream& stream,
                       int level,
                       const string& errorString,
                       bool discretePointFlag,
@@ -885,144 +881,53 @@ void DLRE::printLevel(ostream& aStreamRef,
 {
     string prefix(prefix_ + " ");
 
-    double64 f = 0.0, d = 0.0, rho = 0.0, sigma = 0.0,
-	     v = 0.0, r = 0.0, n = 0.0, a = 0.0;
+    bool evaluated = checkLargeSample(level);
+    ResultLine line;
+    getResultLine(level, line);
 
-    bool evaluated = checkLargeSample_(level);
-
-    // Just to play safe
-    if (functionType == pf)
+    if (not evaluated)
     {
-        discretePointFlag = false;
-    }
-    n = double(numTrials_);
-    r = double(results_[level].sumh_);
-    if (evaluated)
-    {
-
-        // Calculate local correlation coefficient rho(x) resp. rho(x)
-        //                                            F            G
-        // n:   num trials
-        // r:   num sorted values
-        // a:   num transitions
-        //
-        //                a/r
-        // rho(x) = 1 - -------
-        //              1 - r/n
-        //
-        a = double64(results_[level].c_);
-
-        rho = 1.0 - a / r / (1.0 - r / n);
-
-
-        //
-        //  2     1 - r/n   1 + rho(x)                 a/r
-        // d(x) = ------- * ----------; rho(x) = 1 - -------
-        //  F        r      1 - rho(x)               1 - r/n
-
-        d = ((1.0 - r / n) / r) * (1.0 + rho) / (1.0 - rho);
-
-        if (d >= 0.0)
-        {
-            d = sqrt(d);
-        }
-
-
-        // Calculate mean quadratic deviation from mean local
-        // correlation coefficient
-        //
-        //      2          1 - a/r   1 - a/v
-        // sigma(x) = a * (------- + -------); v = n - r
-        //      rho         r * r     v * v
-        //
-        v = n - r;
-        sigma = a * ((1.0 - a / r) / (r * r) + (1.0 - a / v) / (v * v));
-        if (sigma > 0.0)
-        {
-            sigma = sqrt(sigma);
-        }
-
-    }
-
-    if ((not evaluated) or d > relErrMax_)
-    {
-        if (not aStreamRef)
+        if (not stream)
         {
             throw(wns::Exception(errorString));
         }
     }
 
-
-    if (discretePointFlag)
+    if(not evaluated or line.relErr_ < 0.0)
     {
-        // Output F(x)/G(x), x, number of sorted values, and number of
-        // transitions of previous interval
-        level--;
+        stream << prefix;
     }
-    // Discrete point in evaluated interval
-    if (evaluated and discretePointFlag)
-    {
-        f = double64(results_[level].sumh_ - results_[level].h_) / n;
-    }
-    else
-    {
-        double occ = double64(results_[level].h_);
 
-        if (functionType == pf)
-        {
-            f = occ / n;
+    stream << resetiosflags(ios::right)
+           << setiosflags(ios::left)
+           << (evaluated ? setw(15) : setw(15-prefix.length()))
+           << line.vf_
+           << resetiosflags(ios::left)
+           << setiosflags(ios::right)
+           << setw(14)
+           << line.x_
+           << "  ";
 
-            //
-            // cdf: use left  insertion limit
-            //  df: use right insertion limit
-            //
-            //	    f = function_ == cdf ?
-            //		(r - double64(rmc_(level + 1).numSortedValues)) / n :
-            //		(double64(rmc_(level - 1).numSortedValues) - r) / n;
-        }
-        // Discrete point in non evaluated interval
-        else if (not evaluated and
-                 not discretePointFlag and
-                 occ > 1.0 and
-                 r - occ > 0.0)
-        {
-            f = (r - occ) / n;
-        }
-        // Non discrete point in non evaluated interval or
-        // evaluated interval
-        else
-        {
-            f = r / n;
-        }
-    }
-    assert(0.0 <= f and f <= 1.0);
-
-
-    aStreamRef << resetiosflags(ios::right)
-               << setiosflags(ios::left)
-               << setw(15)
-               << f * base_
-               << resetiosflags(ios::left)
-               << setiosflags(ios::right)
-               << setw(14)
-               << results_[level].x_
-               << "  ";
-    if (not aStreamRef)
+    if (not stream)
     {
         throw(wns::Exception(errorString));
     }
 
-    if (evaluated and d >= 0.0)
+    if (evaluated and line.relErr_ >= 0.0)
     {
-        aStreamRef << setw(14)
-                   << d
-                   << "  ";
+        stream << setw(14)
+               << line.relErr_
+               << "  ";
     }
     else
     {
-        aStreamRef << " not_available  ";
+        stream << setw(14)
+               << line.relErr_
+               << "  ";
+        //stream << " not_available  ";
     }
-    if (not aStreamRef)
+
+    if (not stream)
     {
         throw(wns::Exception(errorString));
     }
@@ -1030,55 +935,53 @@ void DLRE::printLevel(ostream& aStreamRef,
 
     if (evaluated)
     {
-        aStreamRef << setw(14)
-                   << rho;
+        stream << setw(14)
+               << line.rho_;
     }
     else
     {
-        aStreamRef << " not_available";
+        stream << " not_available";
     }
-    if (not aStreamRef)
+    if (not stream)
     {
         throw(wns::Exception(errorString));
     }
 
 
-    if (not evaluated or sigma < 0.0)
+    if (not evaluated or line.sigRho_ < 0.0)
     {
-        aStreamRef << "   not_available";
+        stream << "   not_available";
     }
     else
     {
-        aStreamRef << "  "
-                   << setw(14)
-                   << sigma;
+        stream << "  "
+               << setw(14)
+               << line.sigRho_;
     }
-    if (not aStreamRef)
+    if (not stream)
     {
         throw(wns::Exception(errorString));
     }
 
 
-    aStreamRef << "   "
-               << resetiosflags(ios::right)
-               << setiosflags(ios::left)
-               << setw(10)
-               << results_[level].h_
-               << "   "
-               << setw(10)
-               << results_[level].c_
-               << "       ";
+    stream << "   "
+           << resetiosflags(ios::right)
+           << setiosflags(ios::left)
+           << setw(10)
+           << line.nx_
+           << "   "
+           << setw(10)
+           << results_[level].c_
+           << "       ";
 
-    if ((not evaluated) or d > relErrMax_)
+    if ((not evaluated) or line.relErr_ > relErrMax_)
     {
-        aStreamRef << "n";
+        stream << "n";
     }
     else
     {
-        aStreamRef << "y";
+        stream << "y";
     }
-    aStreamRef << endl;
+    stream << endl;
 }
 
-//virtual void
-//put(double value);

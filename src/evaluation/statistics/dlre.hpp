@@ -76,10 +76,6 @@ namespace wns { namespace evaluation { namespace statistics {
 
                 ~DLRE();
 
-                virtual void
-                print(std::ostream& stream = std::cout) const;
-
-
                 /**
                  * @brief Class DLRE::resultLine: one line of evaluation results.
                  */
@@ -162,19 +158,18 @@ namespace wns { namespace evaluation { namespace statistics {
 
                 /**
                  * @brief Put new value to probe
-                 *
-                 * Implementation for DLREG
                  */
                 virtual void
-                put(double value);
+                put(double value) = 0;
 
                 /**
                  * @brief Return result line
-                 *
-                 * Implementation for DLREG
                  */
-                virtual const
-                ResultLine* getResult(int);
+                virtual void
+                getResultLine(const int index, ResultLine& line) const = 0;
+
+                virtual void
+                print(std::ostream& stream = std::cout) const = 0;
 
             protected:
                 enum Phase {
@@ -218,20 +213,20 @@ namespace wns { namespace evaluation { namespace statistics {
                  * @brief get index of current x
                  */
                 int
-                getIndex(double curRv);
+                getIndex(double value) const;
 
                 /**
                  * @brief Output function-specific evaluation results
                  */
                 void
-                print(std::ostream& stream,
-                      functionType functionType,
-                      const double yMin) const;
+                printAll(std::ostream& stream,
+                         functionType functionType,
+                         const double yMin) const;
 
                 /**
                  * @brief Large sample conditions are fulfilled?
                  */
-                bool checkLargeSample(int index);
+                bool checkLargeSample(int index) const;
 
                 /**
                  * @brief Comparison result returned by getIndex()
@@ -257,11 +252,6 @@ namespace wns { namespace evaluation { namespace statistics {
                  * @brief Array of results
                  */
                 Result* results_;
-
-                /**
-                 * @brief Temporary struct holding a single result-line
-                 */
-                ResultLine line_;
 
                 double relErrMax_;
 
@@ -386,7 +376,7 @@ namespace wns { namespace evaluation { namespace statistics {
                                 int level,
                                 const std::string& errorString,
                                 bool discretePointFlag,
-                                functionType functionType);
+                                functionType functionType) const;
             };
         } // statistics
     } // evaluation
