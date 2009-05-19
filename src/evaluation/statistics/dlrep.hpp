@@ -25,8 +25,8 @@
  *
  ******************************************************************************/
 
-#ifndef _DLREP_HPP
-#define _DLREP_HPP
+#ifndef WNS_EVALUATION_STATISTICS_DLREP_HPP
+#define WNS_EVALUATION_STATISTICS_DLREP_HPP
 
 #include <WNS/evaluation/statistics/dlre.hpp>
 
@@ -99,4 +99,4 @@ namespace wns { namespace evaluation { namespace statistics {
         } // end namespace statistics
     } // end namespace evaluation
 } // end namespace wns
-#endif  // _DLREP_HPP
+#endif  // WNS_EVALUATION_STATISTICS_DLREP_HPP

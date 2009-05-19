@@ -25,40 +25,36 @@
  *
  ******************************************************************************/
 
-#include <WNS/evaluation/statistics/dlreg.hpp>
+#include <WNS/evaluation/statistics/dlref.hpp>
 #include <cmath>
-
 
 using namespace std;
 using namespace wns::evaluation::statistics;
 
-
-STATIC_FACTORY_REGISTER_WITH_CREATOR(DLREG,
+STATIC_FACTORY_REGISTER_WITH_CREATOR(DLREF,
                                      StatEvalInterface,
-                                     "openwns.evaluation.statistics.DLREG",
+                                     "openwns.evaluation.statistics.DLREF",
                                      wns::PyConfigViewCreator);
 
-
-DLREG::DLREG(std::vector<double> xValuesArr,
+DLREF::DLREF(std::vector<double> xValuesArrPtr,
              int level,
              double error,
              double preFirst,
              std::string name,
              std::string description,
              bool forceRMinusAOk,
-             double gMin,
-             int maxNrv,
-             int skipInterval,
+             double fMin,
+             uint maxNrv,
+             uint skipInterval,
              formatType format)
-    : DLRE(xValuesArr, level, error, preFirst, name, description, forceRMinusAOk, maxNrv, skipInterval, format),
-      gMin_(gMin)
+    : DLRE(xValuesArrPtr, level, error, preFirst, name, description, forceRMinusAOk, maxNrv, skipInterval, format),
+      fMin_(fMin)
+
 {
-    curLevelIndex_ = indexMin_;
+    curLevelIndex_ = indexMax_ - 1;
 }
 
-
-//! Constructor for equi-distant x-values
-DLREG::DLREG(double xMin,
+DLREF::DLREF(double xMin,
              double xMax,
              double intSize,
              double error,
@@ -66,41 +62,32 @@ DLREG::DLREG(double xMin,
              std::string name,
              std::string description,
              bool forceRMinusAOk,
-             double gMin,
-             int maxNrv,
-             int skipInterval,
-             formatType aFormat)
-    : DLRE(xMin, xMax, intSize, error, preFirst, name, description, forceRMinusAOk, maxNrv, skipInterval, aFormat),
-      gMin_(gMin)
+             double fMin,
+             uint32_t maxNrv,
+             uint32_t skipInterval,
+             formatType format)
+    : DLRE(xMin, xMax, intSize, error, preFirst, name, description, forceRMinusAOk, maxNrv, skipInterval, format),
+      fMin_(fMin)
 {
-    curLevelIndex_ = indexMin_;
+    curLevelIndex_ = indexMax_ - 1;
 }
 
-
-//! omnipotent pyconfig constructor
-DLREG::DLREG(const wns::pyconfig::View& config) :
+DLREF::DLREF(const wns::pyconfig::View& config) :
     DLRE(config),
-    gMin_(config.get<double>("minLevel"))
+    fMin_(config.get<double>("minLevel"))
 {
-    curLevelIndex_ = indexMin_;
+    curLevelIndex_ = indexMax_ - 1;
 }
 
-//! Destructor
-DLREG::~DLREG()
+DLREF::~DLREF()
 {}
 
-
-//! print results
-void
-DLREG::print(std::ostream& stream) const
+void DLREF::print(ostream& stream) const
 {
-    printAll(stream, cdf, gMin_);
+    printAll(stream, df, fMin_);
 }
 
-
-//! put trial to probe
-void
-DLREG::put(double value)
+void DLREF::put(double value)
 {
     if (numTrials_ + 1 < maxNrv_)
     {
@@ -108,44 +95,43 @@ DLREG::put(double value)
 
         if (curIndex_ == noIndex)
         {
-            throw wns::Exception("Warning: Wrong x value in DLREG::put !");
+            throw wns::Exception("Warning: Wrong x value in DLREF::put !");
             return;
         }
-
         StatEval::put(value);
         ++h_;
 
         if (curIndex_ == lower)
         {
             ++wastedLeft_;
-            if (preRv_ > value)
+            preRv_ = xMin_ - 1.0;
+            preIndex_ = indexMin_;
+            return ;
+        }
+        else if (curIndex_ == greater)
+        {
+            ++wastedRight_;
+            if (preRv_ < value)
             {
-                for (int i = preIndex_; i >= indexMin_ ; --i)
+                for (int i = preIndex_; i <= (indexMax_ - 1); i++)
                 {
                     ++(results_[i].c_);
                 }
             }
 
-            preRv_ = xMin_ - 1.0;
-            preIndex_ = indexMin_;
-            return;
-        }
-        else if (curIndex_ == greater)
-        {
-            ++wastedRight_;
             preRv_ = xMax_ + 1.0;
             preIndex_ = indexMax_ - 1;
             return;
         }
-        else if (preRv_ > value)
+        else if (preRv_ < value)
         {
-            for (int i = preIndex_; i > curIndex_; i--)
+            for (int i = preIndex_; i < curIndex_; i++)
             {
-                ++(results_[i].c_);
+                (results_[i].c_)++;
             }
         }
 
-        results_[curIndex_].h_++;
+        ++(results_[curIndex_].h_);
         // Increment number of sorted values counters
         for (int i = 0; i <= curIndex_; i++)
         {
@@ -169,22 +155,20 @@ DLREG::put(double value)
     }
 }
 
-
-//! return current G level
 double
-DLREG::curGLev() const
+DLREF::curFLev()
 {
-    if (not (checkLargeSample(curLevelIndex_)))
+    if (not checkLargeSample(curLevelIndex_))
     {
         return 1.0;
     }
     else
     {
-        // subtract all values that are 'left' from the current
-        // level (including the underflows)
+        // subtract all values that are 'right' from the current
+        // level (including the overflows)
 
-        int vf = numTrials_ - wastedLeft_;
-        for (int i = indexMin_; i <= curLevelIndex_; i++)
+        int vf = numTrials_ - wastedRight_;
+        for (int i = indexMax_ - 1; i >= curLevelIndex_; --i)
         {
             vf -= results_[i].h_;
         }
@@ -192,10 +176,8 @@ DLREG::curGLev() const
     }
 }
 
-
-//! return g value of x(t)
 double
-DLREG::g(double xt) const
+DLREF::f(double xt)
 {
     if (numTrials_ < 1000)
     {
@@ -204,11 +186,11 @@ DLREG::g(double xt) const
     else
     {
         int i;
-        int vf = numTrials_ - results_[indexMin_].h_ - wastedLeft_;
+        int vf = numTrials_ - results_[indexMin_].h_ - wastedRight_;
 
-        for (i = indexMin_;
-             (i < (indexMax_ - 1) and (fabs(results_[i].x_ - xt) > getMaxError<double>()));
-             ++i)
+        for (i = indexMax_ - 1;
+             (i > indexMin_) and (fabs(results_[i].x_ - xt) > getMaxError<double>());
+             --i)
         {
             vf -= results_[i + 1].h_;
         }
@@ -224,44 +206,42 @@ DLREG::g(double xt) const
     }
 }
 
-
-//! get result line
+//! return probe's results
 void
-DLREG::getResultLine(const int index, ResultLine& line) const
+DLREF::getResultLine(int index, ResultLine& line) const
 {
-    if ((index < minIndex()) or (index > maxIndex()))
+    if ((index < minIndex()) || (index > maxIndex()))
     {
-        throw wns::Exception("DLREG::getResult(): index out of range.");
+        throw wns::Exception("DLREF::getResult(): index out of range.");
         return;
     }
 
     double nf = double(numTrials_);
-    double vf = wastedRight_;
+    double vf = wastedLeft_;
     int i;
-    for (i = indexMax_ - 1; i >= index; i--)
+    for (i = indexMin_; i <= index; i++)
     {
         vf += double(results_[i].h_);
     }
 
-    double G = vf/nf;
-    double cf = double(results_[index].c_);
-
+    double F = vf / nf;
+    double cf = double(results_[ index ].c_);
     // large sample conditions not fulfilled ?
     if (not checkLargeSample(index))
     {
-        line.rho_    = 0.0;
+        line.rho_ = 0.0;
         line.sigRho_ = 0.0;
         line.relErr_ = 0.0;
     }
     else
     {
-        if((fabs(G) < getMaxError<double>()) or (fabs(vf) < getMaxError<double>()))
+        if((fabs(F - 1.0) < getMaxError<double>()) or (fabs(vf) < getMaxError<double>()))
         {
             line.rho_ = 0.0;
         }
         else
         {
-            line.rho_ = 1.0 - cf/vf/(1.0 - G);
+            line.rho_ = 1.0 - cf/vf/( 1.0 - F );
         }
 
         double uf = nf - vf;
@@ -272,7 +252,7 @@ DLREG::getResultLine(const int index, ResultLine& line) const
         }
         else
         {
-            line.sigRho_ =  sqrt(cf * (((1 - cf/vf)/(vf*vf)) + ((1 - cf/uf)/(uf*uf))));
+            line.sigRho_ = sqrt(cf * (((1.0 - cf/vf)/(vf*vf)) + ((1.0 - cf/uf)/(uf*uf))));
         }
 
         if((fabs(vf) < getMaxError<double>()) or (fabs(line.rho_ - 1.0) < getMaxError<double>()))
@@ -284,20 +264,17 @@ DLREG::getResultLine(const int index, ResultLine& line) const
             line.relErr_ = sqrt((1.0 - vf/nf)/vf * (1.0 + line.rho_)/(1.0 - line.rho_));
         }
     }
-
-    line.vf_ = G * base_;
+    line.vf_ = F * base_;
     line.nx_ = results_[index].h_;
     line.x_  = results_[index].x_;
 }
 
-
-//! change maximum relative error
 void
-DLREG::changeError(double newError)
+DLREF::changeError(double newError)
 {
     if (newError < relErrMax_)
     {
-        curLevelIndex_ = indexMin_;
+        curLevelIndex_ = indexMax_ - 1;
     }
     relErrMax_ = newError;
     phase_ = rtc();
@@ -308,7 +285,7 @@ DLREG::changeError(double newError)
   fulfilled and measured error is lower than provided one; the number of
   values to collect before next rtc-call is determined by skipInterval.*/
 DLRE::Phase
-DLREG::rtc()
+DLREF::rtc()
 {
     if (numTrials_ < 1000)
     {
@@ -316,7 +293,7 @@ DLREG::rtc()
         return phase_;
     }
 
-    if (curGLev() <= gMin_)
+    if (curFLev() <= fMin_)
     {
         phase_ = finish;
         reason_ = minimum;
@@ -325,18 +302,18 @@ DLREG::rtc()
     else
     {
         double cf;
-        double d_square;
+        double dSquare;
         double rho;
         double nf = double(numTrials_);
         double vf;
-        double max_error_square = relErrMax_ * relErrMax_;
+        double maxErrorSquare = relErrMax_ * relErrMax_;
 
         int i = curLevelIndex_;
 
-        while (i < indexMax_ - 1) // was pd_indexMax - 3 before
+        while (i > indexMin_)
         {
-            cf = results_[i + 1].c_;
-            vf = (double)(results_[i].sumh_ - wastedLeft_);
+            cf = results_[i - 1].c_;
+            vf = (double)(numTrials_ - wastedRight_ - results_[i].sumh_);
 
             if (not checkLargeSample(i))
             {
@@ -350,13 +327,13 @@ DLREG::rtc()
                 // The large sample conditions are fulfilled, so check
                 // the estimated number of samples
 
-                // special treatment for last level (index indexMax_)
-                if (i == (indexMax_ - 2) and
+                // special treatment for last level (index 0)
+                if ((i == indexMin_ + 1) and
                     (fabs(vf - cf) < getMaxError<double>()) and
-                    (fabs(maxValue_ - xMax_) < getMaxError<double>()))
+                    (fabs(minValue_ - xMin_) < getMaxError<double>()))
                 {
                     std::cout << "Relative error of last level cannot be calculated: \n"
-                              << "DLREG::status set to finish !!\n";
+                              << "DLREF::status set to finish !!\n";
 
                     phase_ = finish;
                     reason_ = last;
@@ -371,28 +348,28 @@ DLREG::rtc()
                 }
                 else
                 {
-                    rho =  1.0 - cf / vf / (1.0 - vf / nf);
+                    rho = 1.0 - cf / vf / (1.0 - vf / nf);
                 }
 
                 if((fabs(vf) < getMaxError<double>()) or
                    (fabs(nf) < getMaxError<double>()) or
                    (fabs(rho - 1.0) < getMaxError<double>()))
                 {
-                    d_square = 0.0;
+                    dSquare = 0.0;
                 }
                 else
                 {
-                    d_square = (1.0 - vf / nf) / vf * (1.0 + rho) / (1.0 - rho);
+                    dSquare = (1.0 - vf / nf) / vf * (1.0 + rho) / (1.0 - rho);
                 }
 
-                if (phase_ == initialize or d_square > max_error_square)
+                if (phase_ == initialize or dSquare > maxErrorSquare)
                 {
                     phase_ = iterate;
                     curLevelIndex_ = i;
                     return phase_;
                 }
             }
-            ++i;
+            --i;
         }
         curLevelIndex_ = i;
         phase_ = finish;

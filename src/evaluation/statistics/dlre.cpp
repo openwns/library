@@ -743,8 +743,8 @@ void DLRE::printAll(ostream& aStreamRef,
 
     // Print last level (cdf/df -> f = 0.0, pf -> f = maxProbability)
     // deactivated for cdf/df, smx 2009-05-18
-    //if ((not aFunctionType == pf) or (numTrials_ > 0))
-    if(aFunctionType == pf and numTrials_ > 0)
+    if(not(aFunctionType == pf and not numTrials))
+        //if(aFunctionType == pf and numTrials_ > 0)
     {
         double f, x;
         if (aFunctionType == cdf)

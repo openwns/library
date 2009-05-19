@@ -56,6 +56,7 @@ srcFiles = [
     'src/evaluation/statistics/pdf.cpp',
     'src/evaluation/statistics/dlre.cpp',
     'src/evaluation/statistics/dlreg.cpp',
+    'src/evaluation/statistics/dlref.cpp',
     'src/evaluation/statistics/dlrep.cpp',
 
     'src/logger/Master.cpp',
@@ -765,6 +766,7 @@ hppFiles = [
 'src/evaluation/statistics/pdf.hpp',
 'src/evaluation/statistics/dlre.hpp',
 'src/evaluation/statistics/dlreg.hpp',
+'src/evaluation/statistics/dlref.hpp',
 'src/evaluation/statistics/dlrep.hpp',
 'src/events/CanTimeout.hpp',
 'src/events/NoOp.hpp',

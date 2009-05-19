@@ -25,41 +25,38 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_EVALUATION_STATISTICS_DLREG_HPP
-#define WNS_EVALUATION_STATISTICS_DLREG_HPP
-
+#ifndef WNS_EVALUATION_STATISTICS_DLREF_HPP
+#define WNS_EVALUATION_STATISTICS_DLREF_HPP
 
 #include <WNS/evaluation/statistics/dlre.hpp>
 
 namespace wns { namespace evaluation { namespace statistics {
             /**
-             * @brief Class DLREG: Discrete LRE (LRE III) for complementary
-             * distribution function
+             * @brief Class DLREF: Discrete LRE (LRE III) for distribution function
              */
-
-            class DLREG : public DLRE
+            class DLREF : public DLRE
             {
             public:
 
                 /**
                  * @brief Constructor for non-equi-distant x-values
                  */
-                DLREG(std::vector<double> xValuesArr,
-                      int level,
+                DLREF(std::vector<double> xValues,
+                      int32_t level,
                       double error,
                       double preFirst,
                       std::string name,
                       std::string description,
                       bool forceRMinusAOk,
-                      double gMin,
-                      int maxNrv,
-                      int skipInterval,
+                      double fMin,
+                      uint32_t maxNrv,
+                      uint32_t skipInterval,
                       formatType format);
 
                 /**
-                 * @brief  Constructor for equi-distant x-values
+                 * @brief Constructor for equi-distant x-values
                  */
-                DLREG(double xMin,
+                DLREF(double xMin,
                       double xMax,
                       double intSize,
                       double error,
@@ -67,14 +64,14 @@ namespace wns { namespace evaluation { namespace statistics {
                       std::string name,
                       std::string description,
                       bool forceRMinusAOk,
-                      double gMin,
-                      int maxNrv,
-                      int skipInterval,
-                      formatType aFormat);
+                      double fMin,
+                      uint32_t maxNrv,
+                      uint32_t skipInterval,
+                      formatType format);
 
-                DLREG(const wns::pyconfig::View& config);
+                DLREF(const wns::pyconfig::View& config);
 
-                ~DLREG();
+                ~DLREF();
 
                 /**
                  * @brief Print output
@@ -89,16 +86,16 @@ namespace wns { namespace evaluation { namespace statistics {
                 put(double value);
 
                 /**
-                 * @brief Return current g-level
+                 * @brief Return current f-level
                  */
                 virtual double
-                curGLev() const;
+                curFLev();
 
                 /**
-                 * @brief Return the g-level of x(t)
+                 * @brief Return the f-level of x(t)
                  */
                 virtual double
-                g(double xt) const;
+                f(double xt);
 
                 /**
                  * @brief Result line
@@ -115,14 +112,14 @@ namespace wns { namespace evaluation { namespace statistics {
             private:
 
                 // runtime control
-                DLRE::Phase rtc();
+                DLRE::Phase
+                rtc();
 
-                // minimum g level
-                double  gMin_;
-
+                // minimum f level
+                double fMin_;
             };
+        }
+    }
+}
 
-        } // end namespace statistics
-    } // end namespace evaluation
-} // end namespace wns
-#endif  // WNS_EVALUATION_STATISTICS_DLREG_HPP
+#endif  // WNS_EVALUATION_STATISTICS_DLREF_HPP
