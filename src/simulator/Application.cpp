@@ -582,7 +582,7 @@ Application::doStatus() const
 void
 Application::unexpectedHandler()
 {
-    std::cerr << "openWNS: caught an unexpected excpetion!\n";
+    std::cerr << "openWNS: caught an unexpected exception!\n";
     wns::simulator::getMasterLogger()->outputBacktrace();
     exit(1);
 }

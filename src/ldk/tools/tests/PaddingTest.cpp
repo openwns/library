@@ -82,8 +82,8 @@ PaddingTest::testDownlink()
 	Bit commandPoolSize;
 	Bit dataSize;
 	fuNet->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize);
-	CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
-	CPPUNIT_ASSERT_EQUAL(42, dataSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(42), dataSize);
 } // testDownlink
 
 
@@ -108,12 +108,12 @@ PaddingTest::testPad()
 	CPPUNIT_ASSERT(lower->sent.size() == 1);
 	CPPUNIT_ASSERT(lower->sent[0] == compound);
 
-	CPPUNIT_ASSERT_EQUAL(42, compound->getLengthInBits());
+	CPPUNIT_ASSERT_EQUAL(Bit(42), compound->getLengthInBits());
 	Bit commandPoolSize;
 	Bit dataSize;
 	fuNet->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize);
-	CPPUNIT_ASSERT_EQUAL(21, commandPoolSize);
-	CPPUNIT_ASSERT_EQUAL(21, dataSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(21), commandPoolSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(21), dataSize);
 } // testPad
 
 void
@@ -126,12 +126,12 @@ PaddingTest::testNoPad()
 	CPPUNIT_ASSERT(lower->sent.size() == 1);
 	CPPUNIT_ASSERT(lower->sent[0] == compound);
 
-	CPPUNIT_ASSERT_EQUAL(43, compound->getLengthInBits());
+	CPPUNIT_ASSERT_EQUAL(Bit(43), compound->getLengthInBits());
 	Bit commandPoolSize;
 	Bit dataSize;
 	fuNet->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize);
-	CPPUNIT_ASSERT_EQUAL(21, commandPoolSize);
-	CPPUNIT_ASSERT_EQUAL(22, dataSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(21), commandPoolSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(22), dataSize);
 } //testNoPad
 
 
@@ -149,8 +149,8 @@ PaddingTest::testExact()
 	Bit commandPoolSize;
 	Bit dataSize;
 	fuNet->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize);
-	CPPUNIT_ASSERT_EQUAL(21, commandPoolSize);
-	CPPUNIT_ASSERT_EQUAL(21, dataSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(21), commandPoolSize);
+	CPPUNIT_ASSERT_EQUAL(Bit(21), dataSize);
 } // testExact
 
 

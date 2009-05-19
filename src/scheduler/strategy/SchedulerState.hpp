@@ -231,7 +231,7 @@ namespace wns { namespace scheduler {
 		/** @brief clear MapInfoEntryCollection */
 		virtual void clearMap() {
 		  assure(currentState!=RevolvingStatePtr(),"uninitialized currentState");
-		  currentState->clearMap(); }
+		  if (currentState!=RevolvingStatePtr()) currentState->clearMap(); }
 		/** @brief get (volatile) current state */
 		virtual RevolvingStatePtr
 		getCurrentState() {

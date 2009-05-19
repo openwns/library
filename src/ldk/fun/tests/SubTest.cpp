@@ -147,13 +147,13 @@ SubTest::testCloneConnectionsExist()
 
 	tools::Stub* a = otherSubNet->findFriend<tools::Stub*>("sub");
 	tools::Stub* b = otherSubNet->findFriend<tools::Stub*>("other");
-	CPPUNIT_ASSERT_EQUAL(0U, a->getReceptor()->size());
-	CPPUNIT_ASSERT_EQUAL(0U, a->getDeliverer()->size());
-	CPPUNIT_ASSERT_EQUAL(1U, a->getConnector()->size());
+	CPPUNIT_ASSERT_EQUAL(uint32_t(0), a->getReceptor()->size());
+	CPPUNIT_ASSERT_EQUAL(uint32_t(0), a->getDeliverer()->size());
+	CPPUNIT_ASSERT_EQUAL(uint32_t(1), a->getConnector()->size());
 
-	CPPUNIT_ASSERT_EQUAL(1U, b->getReceptor()->size());
-	CPPUNIT_ASSERT_EQUAL(1U, b->getDeliverer()->size());
-	CPPUNIT_ASSERT_EQUAL(0U, b->getConnector()->size());
+	CPPUNIT_ASSERT_EQUAL(uint32_t(1), b->getReceptor()->size());
+	CPPUNIT_ASSERT_EQUAL(uint32_t(1), b->getDeliverer()->size());
+	CPPUNIT_ASSERT_EQUAL(uint32_t(0), b->getConnector()->size());
 
 	delete otherSubNet;
 } // testCloneConnectionsExist

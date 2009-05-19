@@ -527,6 +527,7 @@ hppFiles = [
 'src/Enum.hpp',
 'src/Interval.hpp',
 'src/Object.hpp',
+'src/ObjManager.hpp',
 'src/Ttos.hpp',
 'src/Types.hpp',
 'src/isClass.hpp',

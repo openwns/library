@@ -37,7 +37,7 @@ class ModulesTests(unittest.TestCase):
     def testGetUnknownModule(self):
         def provokeException():
             tmp = self.testee.baz
-        self.assertRaises(Exception, provokeException)
+            self.assertRaises(Exception, provokeException)
 
         try:
             provokeException()
