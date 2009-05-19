@@ -283,22 +283,18 @@ DLRE::DLRE(const wns::pyconfig::View& config) :
     }
     else if (config.get<string>("distances") == "nonequi")
     {
-        string errorString = "Read-in of non-equidistance values not implemented (yet)";
-        throw(wns::Exception(errorString));
         // non-equidistant x-values
-        /*equiDist_ = false;
-		ArrayDouble64* values = NULL;
-		setPtr(values, new ArrayDouble64);
-		int numXValues = config.len("xValues");
-		values->setSize(numXValues);
-		for (int ii=0; ii<numXValues; ++ii)
-			values->put(ii, config.get<double>("xValues",ii));
+        equiDist_ = false;
+        vector<double> xValuesArr;
+        int numXValues = config.len("xValues");
+        for (int ii=0; ii<numXValues; ++ii)
+        {
+            xValuesArr.push_back(config.get<double>("xValues",ii));
+        }
 
-		this->initNonEqui(numXValues,
-							values,
-							config.get<double64>("initValue"));
-
-                            setPtr(values, NULL);*/
+        this->initNonEqui(numXValues,
+                          xValuesArr,
+                          config.get<double>("initValue"));
     }
     else
     {
@@ -313,23 +309,6 @@ DLRE::~DLRE()
 {
     delete [] results_;
 }
-
-
-
-
-
-//! print
-/*void DLRE::print(ostream& aStreamRef) const
-{
-    aStreamRef << "skipInterval_ : "       << skipInterval_       << endl;
-    aStreamRef << "forceRminusAOK_ : "     << forceRminusAOK_     << endl;
-    aStreamRef << "name_ : "               << name_               << endl;
-    aStreamRef << "desc_ : "               << desc_               << endl;
-    }*/
-
-
-
-
 
 //! reset collected data
 void DLRE::reset()
@@ -670,7 +649,7 @@ void DLRE::printAll(ostream& aStreamRef,
     }
 
 
-    // print first level, (cdf/df -> f = 1.0, pf -> f = 0.0)
+    // print first level
     {
         double f = 0.0, x = 0.0;
         string infinity;
@@ -682,13 +661,13 @@ void DLRE::printAll(ostream& aStreamRef,
         }
         else if (aFunctionType == df)
         {
-            f = 1.0;
+            f = 0.0;
             x = minValue_;
         }
         else if (aFunctionType == pf)
         {
             f = 0.0;
-            x = maxValue_;
+            x = minValue_;
         }
 
         aStreamRef << resetiosflags(ios::right)
@@ -742,9 +721,8 @@ void DLRE::printAll(ostream& aStreamRef,
     }
 
     // Print last level (cdf/df -> f = 0.0, pf -> f = maxProbability)
-    // deactivated for cdf/df, smx 2009-05-18
-    if(not(aFunctionType == pf and not numTrials))
-        //if(aFunctionType == pf and numTrials_ > 0)
+    // Add prefix in front as last level is not safe
+    if(not(aFunctionType == pf and not numTrials_))
     {
         double f, x;
         if (aFunctionType == cdf)
@@ -754,18 +732,19 @@ void DLRE::printAll(ostream& aStreamRef,
         }
         else if (aFunctionType == df)
         {
-            f = 0.0;
+            f = 1.0;
             x = maxValue_;
         }
         else if (aFunctionType == pf)
         {
             f = (double(results_[curLevelIndex_ + 1].h_) / double(numTrials_));
-            x = minValue_;
+            x = maxValue_;
         }
 
-        aStreamRef << resetiosflags(ios::right)
+        aStreamRef << prefix + " "
+                   << resetiosflags(ios::right)
                    << setiosflags(ios::left)
-                   << setw(15)
+                   << setw(15 - prefix.length() - 1)
                    << f * base_;
 
         if (not aStreamRef)
