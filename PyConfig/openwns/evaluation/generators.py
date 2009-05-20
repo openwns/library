@@ -182,7 +182,7 @@ class DLRE(ITreeNodeGenerator):
     def __call__(self, pathname):
         dlre = statistics.DLREEval(*self.args, **self.kwargs)
 
-        pb = openwns.probebus.StatEvalProbeBus(pathname + '_DLREF.dat', dlre)
+        pb = openwns.probebus.StatEvalProbeBus(pathname + '_' + dlre.typename + '.dat', dlre)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 

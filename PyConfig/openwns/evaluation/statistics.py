@@ -191,9 +191,9 @@ class DLREEval(StatEval):
 
                            If skipInterval is set to 0 (this is the default), the current
                            level is checked for completion after each input.
-                           Use pd_skipInterval to speed up your simulation, i.e. if your
+                           Use skipInterval to speed up your simulation, i.e. if your
                            simulation generates 10,000 values per second then set
-                           pd_skipInterval to a reasonably high value, e.g. 10,000.
+                           skipInterval to a reasonably high value, e.g. 10,000.
 
     active             :   Flag determining whether this StatEval contributes
                            To determine whether the desired stochastical security
@@ -228,13 +228,13 @@ class DLREEval(StatEval):
         """
         self.distances = distances
         if(mode.lower()=="f"):
-            StatEval.__init__(self,"DLREF")
+            super(DLREEval, self).__init__("DLREF")
             self.nameInFactory = "openwns.evaluation.statistics.DLREF"
         elif(mode.lower()=="g"):
-            StatEval.__init__(self,"DLREG")
+            super(DLREEval, self).__init__("DLREG")
             self.nameInFactory = "openwns.evaluation.statistics.DLREG"
         elif(mode.lower()=="p"):
-            StatEval.__init__(self,"DLREP")
+            super(DLREEval, self).__init__("DLREP")
             self.nameInFactory = "openwns.evaluation.statistics.DLREP"
         else:
             raise Exception("You configured an unknown DLRE mode '"+mode+"'")
