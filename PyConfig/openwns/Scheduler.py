@@ -199,7 +199,7 @@ class StaticPriority(Strategy):
         self.nameInStrategyFactory = "StaticPriority"
         self.subStrategies = []
         self.logger = openwns.logger.Logger("WNS", "SP", True, parentLogger)
-        self.numberOfPriorities = len(subStrategies) # 0..4 => 5
+        self.numberOfPriorities = len(subStrategies) # 0..6 => 7
         priority = openwns.qos.priorityBest # ==0
         for subStrategy in subStrategies:
             mySubStrategy = copy.deepcopy(subStrategy) # original object shares logger instance
