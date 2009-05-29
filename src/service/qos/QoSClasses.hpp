@@ -37,18 +37,22 @@ namespace wns {
       // this must be consistent with Python file Qos.py
       ENUM_BEGIN(QoSClasses);
       ENUM(UNDEFINED,		0);     // should not occur? Or map to worst priority?
-      ENUM(CONTROLPLANE,	1);	// Control Messages
-      ENUM(REALTIME,		2);	// VoIP, VT, etc.
-      ENUM(GUARANTEEDTP,	3);	// Streaming (one side traffic)
-      ENUM(BESTEFFORT,		4);	// FileTransfer/Background
+      ENUM(PCCH,		1);	// Physical Control Channel for UL resource requests and CQI reporting
+      ENUM(PHICH,		2);	// Physical HARQ Indicator Channel for HARQ
+      ENUM(DCCH,		3);	// Dedicated Control Channel for RRC control signalling like admission control
+      ENUM(CONVERSATIONAL,	4);	// VoIP, video telephony
+      ENUM(STREAMING,		5);	// video or audio streaming
+      ENUM(INTERACTIVE,		6);	// WWW
+      ENUM(BACKGROUND,		7);	// file transfer, e-mail
       ENUM_END();
       typedef int QoSClass;
       // wns::service::qos::QoSClasses::UNDEFINED() // use this to get a QoSClass
-      const unsigned int NUMBEROFQOSCLASSES = 5;
+      const unsigned int NUMBEROFQOSCLASSES = 8;
 
+      // Usage:
       // wns::service::qos::QoSClasses::toString(qosClass);
-      // wns::service::qos::QoSClasses::fromString("BESTEFFORT")
-      // wns::service::qos::QoSClasses::CONTROLPLANE()
+      // wns::service::qos::QoSClasses::fromString("BACKGROUND")
+      // wns::service::qos::QoSClasses::CONVERSATIONAL()
 
       // TODO: "UMTS Bearer Service Attributes"
       // http://www.umtsworld.com/technology/qos.htm
