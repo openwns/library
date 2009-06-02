@@ -583,8 +583,15 @@ void DLRE::printAll(ostream& aStreamRef,
     aStreamRef << prefix << " Overflows: " << wastedRight_ << endl << prefix <<  endl;
 
     aStreamRef << prefix;
-    if (phase_ == finish)
+    switch(phase_)
     {
+    case initialize:
+        aStreamRef << "Initialization phase not completed, collecting samples." << endl;
+        break;
+    case iterate:
+        aStreamRef << "Iteration phase not completed, collecting samples." << endl;
+        break;
+    case finish:
         switch (reason_)
         {
         case ok:
@@ -599,10 +606,9 @@ void DLRE::printAll(ostream& aStreamRef,
         default:
             break;
         }
-    }
-    else
-    {
-        aStreamRef << "Not finished, still collecting." << endl;
+        break;
+    default:
+        break;
     }
 
     // an evaluation without values does not make sense

@@ -333,12 +333,14 @@ DLREG::rtc()
 
         int i = curLevelIndex_;
 
-        while (i < indexMax_ - 1) // was pd_indexMax - 3 before
+        while (i < indexMax_ - 1)
         {
             cf = results_[i + 1].c_;
             vf = (double)(results_[i].sumh_ - wastedLeft_);
 
-            if (not checkLargeSample(i))
+            if (not checkLargeSample(i)) // first index can never reach large
+                                         // sample condition... add "and (i !=
+                                         // indexMin_))" ?
             {
                 // We are still waiting for the large sample conditions
                 // to be fulfilled
@@ -355,9 +357,6 @@ DLREG::rtc()
                     (fabs(vf - cf) < getMaxError<double>()) and
                     (fabs(maxValue_ - xMax_) < getMaxError<double>()))
                 {
-                    std::cout << "Relative error of last level cannot be calculated: \n"
-                              << "DLREG::status set to finish !!\n";
-
                     phase_ = finish;
                     reason_ = last;
                     return phase_;
