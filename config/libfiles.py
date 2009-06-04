@@ -205,6 +205,7 @@ srcFiles = [
     'src/probe/bus/detail/tests/SorterTest.cpp',
 
     'src/evaluation/statistics/tests/StatEvalTest.cpp',
+    'src/evaluation/statistics/tests/DLRETest.cpp',
 
     'src/events/tests/MemberFunctionTest.cpp',
     'src/events/tests/DelayedMemberFunctionTest.cpp',

@@ -325,26 +325,25 @@ DLREG::rtc()
     else
     {
         double cf;
-        double d_square;
+        double dSquare;
         double rho;
         double nf = double(numTrials_);
         double vf;
         double max_error_square = relErrMax_ * relErrMax_;
 
-        int i = curLevelIndex_;
+        // check the next level, which is the current + 1
+        int i = curLevelIndex_ + 1;
 
         while (i < indexMax_ - 1)
         {
             cf = results_[i + 1].c_;
             vf = (double)(results_[i].sumh_ - wastedLeft_);
 
-            if (not checkLargeSample(i)) // first index can never reach large
-                                         // sample condition... add "and (i !=
-                                         // indexMin_))" ?
+            if (not checkLargeSample(i))
             {
                 // We are still waiting for the large sample conditions
                 // to be fulfilled
-                curLevelIndex_ = i;
+                ////curLevelIndex_ = i;
                 return iterate;
             }
             else
@@ -370,30 +369,31 @@ DLREG::rtc()
                 }
                 else
                 {
-                    rho =  1.0 - cf / vf / (1.0 - vf / nf);
+                    rho =  1.0 - (cf / vf) / (1.0 - (vf / nf));
                 }
 
                 if((fabs(vf) < getMaxError<double>()) or
                    (fabs(nf) < getMaxError<double>()) or
                    (fabs(rho - 1.0) < getMaxError<double>()))
                 {
-                    d_square = 0.0;
+                    dSquare = 0.0;
                 }
                 else
                 {
-                    d_square = (1.0 - vf / nf) / vf * (1.0 + rho) / (1.0 - rho);
+                    dSquare = (1.0 - (vf / nf)) / vf * (1.0 + rho) / (1.0 - rho);
                 }
 
-                if (phase_ == initialize or d_square > max_error_square)
+                if (phase_ == initialize or dSquare > max_error_square)
                 {
                     phase_ = iterate;
-                    curLevelIndex_ = i;
+                    ////curLevelIndex_ = i;
                     return phase_;
                 }
             }
+            curLevelIndex_ = i;
             ++i;
         }
-        curLevelIndex_ = i;
+
         phase_ = finish;
         reason_ = ok;
         return phase_;

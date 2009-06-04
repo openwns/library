@@ -308,7 +308,8 @@ DLREF::rtc()
         double vf;
         double maxErrorSquare = relErrMax_ * relErrMax_;
 
-        int i = curLevelIndex_;
+        // check the next level, which is the current - 1
+        int i = curLevelIndex_ - 1;
 
         while (i > indexMin_)
         {
@@ -319,7 +320,7 @@ DLREF::rtc()
             {
                 // We are still waiting for the large sample conditions
                 // to be fulfilled
-                curLevelIndex_ = i;
+                ////curLevelIndex_ = i;
                 return iterate;
             }
             else
@@ -332,9 +333,6 @@ DLREF::rtc()
                     (fabs(vf - cf) < getMaxError<double>()) and
                     (fabs(minValue_ - xMin_) < getMaxError<double>()))
                 {
-                    std::cout << "Relative error of last level cannot be calculated: \n"
-                              << "DLREF::status set to finish !!\n";
-
                     phase_ = finish;
                     reason_ = last;
                     return phase_;
@@ -348,7 +346,7 @@ DLREF::rtc()
                 }
                 else
                 {
-                    rho = 1.0 - cf / vf / (1.0 - vf / nf);
+                    rho = 1.0 - (cf / vf) / (1.0 - (vf / nf));
                 }
 
                 if((fabs(vf) < getMaxError<double>()) or
@@ -359,19 +357,20 @@ DLREF::rtc()
                 }
                 else
                 {
-                    dSquare = (1.0 - vf / nf) / vf * (1.0 + rho) / (1.0 - rho);
+                    dSquare = (1.0 - (vf / nf)) / vf * (1.0 + rho) / (1.0 - rho);
                 }
 
                 if (phase_ == initialize or dSquare > maxErrorSquare)
                 {
                     phase_ = iterate;
-                    curLevelIndex_ = i;
+                    ////curLevelIndex_ = i;
                     return phase_;
                 }
             }
+            curLevelIndex_ = i;
             --i;
         }
-        curLevelIndex_ = i;
+
         phase_ = finish;
         reason_ = ok;
         return phase_;
