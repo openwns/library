@@ -58,7 +58,11 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
 		class UserInfo
 		{
 		public:
-			UserInfo() {lastUsedSubChannel=DSAsubChannelNotFound;toggleOffset=+1;};
+			UserInfo(int numOfSubChannels)
+				: usedSubChannels(numOfSubChannels)
+			{
+				lastUsedSubChannel=DSAsubChannelNotFound;toggleOffset=+1;
+			};
 			~UserInfo() {};
 			/** @brief remember position of last used subChannel */
 			int lastUsedSubChannel;

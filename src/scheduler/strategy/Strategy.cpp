@@ -576,10 +576,13 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	      }
 	      //assure(cqiForUser!=ChannelQualitiesOnAllSubBandsPtr(), "cqiForUser["<<request.user->getName()<<"]==NULL");
 	      // just a SmartPtr copy:
-	      (*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user] = cqiForUser;
+		  //(*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user] = cqiForUser;
+		  (*(schedulerState->currentState->channelQualitiesOfAllUsers)).insert(std::map<UserID,ChannelQualitiesOnAllSubBandsPtr>::value_type(request.user,cqiForUser));
+
 	    } else {
-	      cqiForUser = (*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user];
-	    }
+			//cqiForUser = (*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user];
+			cqiForUser = schedulerState->currentState->channelQualitiesOfAllUsers->find(request.user)->second;
+		}
 	    //assure(schedulerState->currentState->channelQualitiesOfAllUsers->count(request.user) > 0, "channelQualitiesOfAllUsers["<<request.user->getName()<<"] empty");
 	    //assure(schedulerState->currentState->channelQualitiesOfAllUsers->knowsUser(request.user), "channelQualitiesOfAllUsers["<<request.user->getName()<<"] empty");
 	    // ^ at this point the CQI info may be empty (e.g. start of simulation).
@@ -596,8 +599,9 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	int beam = 0; // MIMO
 	bool CQIrequired = colleagues.dsastrategy->requiresCQI();
 	bool CQIavailable = (cqiForUser!=ChannelQualitiesOnAllSubBandsPtr())
-	  && (schedulerState->currentState->channelQualitiesOfAllUsers != ChannelQualitiesOfAllUsersPtr())
-	  && ((*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user]->size() > 0);
+		&& (schedulerState->currentState->channelQualitiesOfAllUsers != ChannelQualitiesOfAllUsersPtr())
+		&& ((*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user]->size() > 0);
+
 	MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): useCQI="<<schedulerState->useCQI<<",CQIrequired="<<CQIrequired<<",CQIavailable="<<CQIavailable);
 	ChannelQualityOnOneSubChannel& cqiOnSubChannel
 	  = request.cqiOnSubChannel; // memory of request structure
