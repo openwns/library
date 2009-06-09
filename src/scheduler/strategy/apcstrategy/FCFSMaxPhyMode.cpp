@@ -38,9 +38,9 @@ using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::apcstrategy;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(FCFSMaxPhyMode,
-				     APCStrategyInterface,
-				     "FCFSMaxPhyMode",
-				     wns::PyConfigViewCreator);
+									 APCStrategyInterface,
+									 "FCFSMaxPhyMode",
+									 wns::PyConfigViewCreator);
 
 FCFSMaxPhyMode::FCFSMaxPhyMode(const wns::pyconfig::View& config)
 	: APCStrategy(config)
@@ -67,7 +67,43 @@ FCFSMaxPhyMode::doStartAPC(RequestForResource& request,
 {
 	APCResult apcResult;
 	wns::scheduler::PowerCapabilities powerCapabilities =
-	       schedulerState->strategy->getPowerCapabilities(request.user);
+		schedulerState->strategy->getPowerCapabilities(request.user);
+
+	wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
+	wns::Power interference = request.cqiOnSubChannel.interference;
+
+	assure(request.subChannel>=0,"need a valid subChannel");
+
+	if (schedulerState->defaultTxPower!=wns::Power())
+	{ // predefined, e.g. in slave mode
+		apcResult.txPower = schedulerState->defaultTxPower;
+		apcResult.sinr = apcResult.txPower/(interference*pathloss);
+		apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+		apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
+	} else {
+		wns::Power totalPower = powerCapabilities.maxOverall;
+		wns::Power remainingTxPowerOnAllSubChannels = schedulingMap->getRemainingPower(totalPower);
+
+		if (remainingTxPowerOnAllSubChannels == wns::Power())
+		{
+			apcResult.txPower = wns::Power();
+			return apcResult;
+		}
+
+		wns::Power maxPowerPerSubChannel = powerCapabilities.maxPerSubband;
+		wns::Power maxTxPower =  (maxPowerPerSubChannel > remainingTxPowerOnAllSubChannels ? remainingTxPowerOnAllSubChannels :maxPowerPerSubChannel);
+		wns::Ratio maxSINR = maxTxPower/(interference * pathloss);
+		apcResult.phyModePtr = phyModeMapper->getBestPhyMode(maxSINR);
+
+		//we always try to use the minimal tx power for ceratin phymode to save power
+		wns::Ratio minSINR = phyModeMapper->getMinSINRRatio(apcResult.phyModePtr);
+		apcResult.txPower = wns::Power::from_mW(minSINR.get_factor() * pathloss.get_factor() * interference.get_mW() ) ;
+		apcResult.sinr = minSINR;
+
+	}
+	MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
+				   <<"SINR="<<apcResult.sinr<<", PhyMode="<<*(apcResult.phyModePtr));
+
 	/*
 	wns::Power maxPowerPerSubChannel = powerCapabilities.maxPerSubband;
 	wns::Power maxSummedPowerOnAllChannels = powerCapabilities.maxOverall;
