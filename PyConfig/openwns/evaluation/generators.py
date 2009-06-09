@@ -202,20 +202,22 @@ class TextTrace(ITreeNodeGenerator):
 class TimeSeries(ITreeNodeGenerator):
 
     def __init__(self, format = "fixed", timePrecision = 7, 
-        valuePrecision = 7, name = "no name available", 
-        description = "no description available"):
+                 valuePrecision = 7, name = "no name available", 
+                 description = "no description available",
+                 contextKeys = []):
       
         self.format = format
         self.timePrecision = timePrecision
         self.valuePrecision = valuePrecision
         self.name = name
         self.description = description
+        self.contextKeys = contextKeys
 
     def __call__(self, pathname):
         pb = openwns.probebus.TimeSeriesProbeBus(
             pathname + "_TimeSeries.dat", self.format, 
             self.timePrecision, self.valuePrecision, 
-            self.name, self.description)
+            self.name, self.description, self.contextKeys)
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 

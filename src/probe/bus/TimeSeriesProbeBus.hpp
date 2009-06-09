@@ -51,6 +51,7 @@ namespace wns { namespace probe { namespace bus {
         {
             double value;
             wns::simulator::Time time;
+            std::vector<std::string> context;
         };
 
     public:
@@ -111,6 +112,11 @@ namespace wns { namespace probe { namespace bus {
          * @brief Comment prefix to be used in output files
          */
         std::string prefix;
+
+        /**
+         * @brief Keys of all context values that should be printed
+         */
+        std::vector<std::string> contextKeys;
 
     };
 

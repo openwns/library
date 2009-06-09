@@ -104,10 +104,22 @@ namespace wns { namespace probe { namespace bus {
         insertString(const std::string& key, const std::string& value) = 0;
 
         /**
+         * @brief Test if value stored under 'key' is of type integer
+         */
+        virtual bool
+        isInt(const std::string& key) const = 0;
+
+        /**
 		 * @brief get integer value stored under 'key'
 		 */
         virtual int
         getInt(const std::string& key) const = 0;
+
+        /**
+         * @brief Test if value stored under 'key' is of type integer
+         */
+        virtual bool
+        isString(const std::string& key) const = 0;
 
         /**
 		 * @brief get string value stored under 'key'
@@ -141,8 +153,14 @@ namespace wns { namespace probe { namespace bus {
         virtual void
         insertString(const std::string& key, const std::string& value);
 
+        virtual bool
+        isInt(const std::string& key) const;
+
         virtual int
         getInt(const std::string& key) const;
+
+        virtual bool
+        isString(const std::string& key) const;
 
         virtual std::string
         getString(const std::string& key) const;

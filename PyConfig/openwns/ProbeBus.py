@@ -141,8 +141,9 @@ class TimeSeriesProbeBus(ProbeBus):
         valuePrecision = None
         name = None
         description = None
+        contextKeys = None
 
-        def __init__(self, outputFilename, format, timePrecision, valuePrecision, name, desc):
+        def __init__(self, outputFilename, format, timePrecision, valuePrecision, name, desc, contextKeys):
             ProbeBus.__init__(self)
             self.outputFilename = outputFilename
             self.format = format
@@ -150,6 +151,7 @@ class TimeSeriesProbeBus(ProbeBus):
             self.valuePrecision = valuePrecision
             self.name = name
             self.description = desc
+            self.contextKeys = contextKeys
 
 class ContextFilterProbeBus(ProbeBus):
         nameInFactory = "ContextFilterProbeBus"
