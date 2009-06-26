@@ -41,7 +41,7 @@
 
 
 namespace wns {	namespace ldk {
-	class Layer;
+	class ILayer;
 	class FunctionalUnit;
 	class CommandProxy;
 	class CommandPool;
@@ -131,13 +131,13 @@ namespace wns { namespace ldk { namespace fun {
 		/** @name Getter methods */
 		//@{
 		virtual CommandProxy* getProxy() const = 0;
-		virtual Layer* getLayer() const = 0;
+		virtual ILayer* getLayer() const = 0;
 
 		template <typename LAYERTYPE>
 		LAYERTYPE
 		getLayer() const
 		{
-			Layer* aLayer = getLayer();
+			ILayer* aLayer = getLayer();
 			assureType(aLayer, LAYERTYPE);
 			// we can't use C-Style downcasts here!
 			return dynamic_cast<LAYERTYPE>(aLayer);

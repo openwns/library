@@ -219,7 +219,7 @@ namespace wns { namespace ldk { namespace fsm { namespace tests {
 
 		pyconfig::Parser emptyConfig;
 
-		ldk::Layer* layer;
+		ldk::ILayer* layer;
 		fun::FUN* fuNet;
 		tools::Stub* lower;
 		tools::Stub* upper;

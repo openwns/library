@@ -31,7 +31,9 @@
 using namespace wns::ldk::tests;
 
 LayerStub::LayerStub() :
-	nodeStub(new wns::node::tests::Stub())
+	nodeStub(new wns::node::tests::Stub()),
+    csr(this),
+    msr(this)
 {
 }
 

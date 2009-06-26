@@ -57,7 +57,7 @@ namespace wns { namespace ldk { namespace fun {
 		void testFlowSeparator();
 	private:
 
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fuNet;
 	};
 

@@ -38,7 +38,7 @@
 namespace wns { namespace ldk {
 
 	class ControlServiceInterface;
-	class Layer;
+	class ILayer;
 
 
        /**
@@ -48,10 +48,10 @@ namespace wns { namespace ldk {
 		public wns::container::Registry<std::string, ControlServiceInterface*, wns::container::registry::DeleteOnErase>
 	{
 	public:
-		ControlServiceRegistry( wns::ldk::Layer* _layer)
+		ControlServiceRegistry( wns::ldk::ILayer* _layer)
 			: layer( _layer ) {}
 
-		virtual	wns::ldk::Layer*
+		virtual	wns::ldk::ILayer*
 		getLayer() const { return layer; }
 
 		/**
@@ -61,7 +61,7 @@ namespace wns { namespace ldk {
 		LAYERTYPE
 		getLayer() const
 		{
-			wns::ldk::Layer* aLayer = getLayer();
+			wns::ldk::ILayer* aLayer = getLayer();
 			assureType(aLayer, LAYERTYPE);
 			// we can't use C-Style downcasts here!
 			return dynamic_cast<LAYERTYPE>(aLayer);
@@ -70,7 +70,7 @@ namespace wns { namespace ldk {
 		void
 		onCSRCreated();
 	private:
-		wns::ldk::Layer* layer;
+		wns::ldk::ILayer* layer;
 	};
 
 

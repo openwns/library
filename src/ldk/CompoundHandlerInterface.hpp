@@ -32,7 +32,7 @@
 
 namespace wns { namespace ldk {
 
-	class Layer;
+	class ILayer;
 
 	/**
 	 * @defgroup compoundhandler Compound Handler Interface

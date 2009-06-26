@@ -56,7 +56,7 @@ namespace wns { namespace ldk { namespace tools {
 		void testOpening();
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		Stub* upper;

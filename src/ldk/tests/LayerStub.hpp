@@ -34,16 +34,16 @@
 namespace wns { namespace ldk { namespace tests {
 
 	/**
-	 * @brief Simple Layer Stub for unit tests
+	 * @brief Simple ILayer Stub for unit tests
 	 * @author Marc Schinnenburg <msg@comnets.rwth-aachen.de>
 	 *
 	 * This LayerStub will automatically create a node::tests::Stub
 	 */
 	class LayerStub :
-		public wns::ldk::Layer
+		public wns::ldk::ILayer
 	{
 	public:
-		LayerStub();
+        LayerStub();
 
 		virtual
 		~LayerStub();
@@ -66,11 +66,32 @@ namespace wns { namespace ldk { namespace tests {
 		virtual std::string
 		getNodeName() const;
 
+        virtual ControlServiceRegistry*
+        getCSR() { return &csr; }
+
+        virtual void
+        addControlService(const std::string& name, ControlServiceInterface* csi) { csr.insert(name, csi); }
+
+        virtual ManagementServiceRegistry*
+        getMSR() { return &msr; }
+
+        virtual void
+        addManagementService(const std::string& name, ManagementServiceInterface* msi) { msr.insert(name, msi);}
+
+        virtual ManagementServiceInterface*
+        findManagementService(std::string name) const { return msr.find(name);}
+
+        virtual ControlServiceInterface*
+        findControlServiceInterface(std::string name) const {return csr.find(name);}
+
 	private:
 		virtual void
 		doStartup();
 
 		node::Interface* nodeStub;
+
+        ControlServiceRegistry csr;
+        ManagementServiceRegistry msr;
 	};
 } // tests
 } // ldk

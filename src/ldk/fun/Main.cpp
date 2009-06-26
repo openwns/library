@@ -44,7 +44,7 @@
 using namespace ::wns::ldk;
 using namespace ::wns::ldk::fun;
 
-Main::Main(Layer* _layer) :
+Main::Main(ILayer* _layer) :
 		layer(_layer),
 		proxy(new CommandProxy),
 		fuMap(),
@@ -72,7 +72,7 @@ Main::Main(Layer* _layer) :
 } // Main
 
 
-Main::Main(Layer* _layer, const wns::pyconfig::View& _config) :
+Main::Main(ILayer* _layer, const wns::pyconfig::View& _config) :
 		layer(_layer),
 		proxy(new CommandProxy(_config.get("fun.commandProxy"))),
 		fuMap(),
@@ -313,7 +313,7 @@ Main::reconfigureFUN(const wns::pyconfig::View& reconfig)
 //
 
 
-Layer*
+ILayer*
 Main::getLayer() const
 {
 	return this->layer;
