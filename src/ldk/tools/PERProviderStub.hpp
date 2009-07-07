@@ -43,6 +43,7 @@
 
 namespace wns { namespace ldk { namespace tools {
 
+    // begin example "wns.ldk.tools.PERProviderCommand.example"
 	/**
 	 * @brief Provide a fixed PER for use by other layers
 	 *
@@ -63,11 +64,14 @@ namespace wns { namespace ldk { namespace tools {
 	private:
 		double PER;
 	}; // PERProviderPCI
+    // end example
 
+    // begin example "wns.ldk.tools.PERProviderStub.example"
 	class PERProviderStub :
 		public StubBase,
 		public CommandTypeSpecifier<PERProviderPCI>,
 		public Cloneable<PERProviderStub>
+    // end example
 	{
 	public:
 		/**
