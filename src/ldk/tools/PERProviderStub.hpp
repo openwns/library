@@ -80,13 +80,14 @@ namespace wns { namespace ldk { namespace tools {
 		 */
 		PERProviderStub(fun::FUN* fuNet, const pyconfig::View& config);
 
+        // begin example "wns.ldk.tools.PERProviderStub.calculateSizes.example"
 		// we need a unique overrider
 		virtual void
 		calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const
 		{
 			StubBase::calculateSizes(commandPool, commandPoolSize, dataSize);
 		} // calculateSizes
-
+        // end example
 	private:
 		virtual void
 		doOnData(const CompoundPtr& compound);
