@@ -88,7 +88,6 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
 	int maxBeams = schedulerState->currentState->strategyInput->getMaxBeams();
 	assure(subChannel<maxSubChannel,"invalid subChannel="<<subChannel);
 	MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel);
-	assure(maxSubChannel==schedulerState->currentState->strategyInput->getFChannels(),"maxSubChannel="<<maxSubChannel<<"!=fChannels");
 	bool found  = false;
 	bool giveUp = false;
 	while(!found && !giveUp) {
@@ -113,11 +112,11 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
 	  MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): no free subchannel");
 	  return dsaResult; // empty with subChannel=DSAsubChannelNotFound
 	} else {
-	  MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel);
+	  MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel<<"."<<beam);
 	  lastUsedSubChannel = subChannel;
 	  lastUsedBeam = beam;
 	  dsaResult.subChannel = subChannel;
 	  dsaResult.beam = beam;
 	  return dsaResult;
 	}
-}
+} // getSubChannelWithDSA

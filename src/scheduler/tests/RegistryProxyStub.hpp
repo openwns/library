@@ -48,6 +48,7 @@ namespace wns { namespace scheduler { namespace tests {
 
 		// The Interface:
 		UserID getUserForCID(ConnectionID cid);
+		wns::service::dll::UnicastAddress getPeerAddressForCID(wns::scheduler::ConnectionID cid);
 		ConnectionVector getConnectionsForUser(const UserID user);
 		ConnectionID getCIDforPDU(const wns::ldk::CompoundPtr& compound);
 		void setFriends(const wns::ldk::CommandTypeSpecifierInterface* _classifier);

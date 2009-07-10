@@ -179,7 +179,6 @@ uint32_t
 SimpleQueue::numCompoundsForUser(UserID user) const
 {
 	uint32_t counter = 0;
-
 	// Find all queues that belong to this user
 	for (std::map<ConnectionID, Queue>::const_iterator iter = queues.begin();
 	     iter != queues.end();
@@ -195,7 +194,6 @@ uint32_t
 SimpleQueue::numBitsForUser(UserID user) const
 {
 	uint32_t counter = 0;
-
 	// Find all queues that belong to this user
 	for (std::map<ConnectionID, Queue>::const_iterator iter = queues.begin();
 	     iter != queues.end();

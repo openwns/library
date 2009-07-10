@@ -155,8 +155,8 @@ namespace wns { namespace scheduler { namespace queue {
 		/**
 		 * @brief
 		 *
-		 * Returns the number of Compounds the Queue has stored for a
-		 * certain user
+		 * Returns the number of Compounds the Queue has stored for a certain user.
+		 * Only used in scheduler/strategy/ProportionalFairBase
 		 */
 		virtual uint32_t numCompoundsForUser(UserID user) const = 0;
 
@@ -171,7 +171,8 @@ namespace wns { namespace scheduler { namespace queue {
 		/**
 		 * @brief
 		 *
-		 * Returns the number of Bits schedules for one user
+		 * Returns the number of Bits schedules for one user.
+		 * Only used in scheduler/strategy/ProportionalFairBase
 		 */
 		virtual uint32_t numBitsForUser(UserID user) const = 0;
 

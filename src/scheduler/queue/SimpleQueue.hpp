@@ -57,8 +57,8 @@ namespace wns { namespace scheduler { namespace queue {
 		ConnectionSet getActiveConnections() const;
 		ConnectionSet getActiveConnectionsForPriority(unsigned int priority) const;
 
-		uint32_t numCompoundsForUser(UserID user) const;
-		uint32_t numBitsForUser(UserID user) const;
+		uint32_t numCompoundsForUser(UserID user) const; // obsolete; only used in old schedulers
+		uint32_t numBitsForUser(UserID user) const; // obsolete; only used in old schedulers
 		uint32_t numCompoundsForCid(ConnectionID cid) const;
 		uint32_t numBitsForCid(ConnectionID cid) const;
 
@@ -102,7 +102,8 @@ namespace wns { namespace scheduler { namespace queue {
 		struct Queue {
 			Queue()
 				: bits(0),
-				  user(0)
+				  user(0),
+				  priority(0)
 				{}
 			Bits bits;
 			UserID user;
@@ -116,6 +117,7 @@ namespace wns { namespace scheduler { namespace queue {
 		QueueContainer queues;
 
 		struct Colleagues {
+			Colleagues() : registry(NULL) {}
 			RegistryProxyInterface* registry;
 		} colleagues;
 
