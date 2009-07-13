@@ -575,7 +575,7 @@ void DLRE::printAll(ostream& aStreamRef,
     }
     else
     {
-        aStreamRef << indexMax_ - curLevelIndex_ << endl;
+        aStreamRef << indexMax_ - curLevelIndex_ - 1 << endl;
     }
 
     aStreamRef.setf(ios::fixed);
@@ -583,15 +583,22 @@ void DLRE::printAll(ostream& aStreamRef,
     aStreamRef << prefix << " Overflows: " << wastedRight_ << endl << prefix <<  endl;
 
     aStreamRef << prefix;
-    if (phase_ == finish)
+    switch(phase_)
     {
+    case initialize:
+        aStreamRef << "Initialization phase not completed, collecting samples." << endl;
+        break;
+    case iterate:
+        aStreamRef << "Iteration phase not completed, collecting samples." << endl;
+        break;
+    case finish:
         switch (reason_)
         {
         case ok:
             aStreamRef << "All levels completed." << endl;
             break;
         case minimum:
-            aStreamRef << "Evaluated till minimum y value = " << yMin << "." << endl;
+            aStreamRef << "Evaluated till minimum y value = " << setprecision(10) << yMin << "." << endl;
             break;
         case last:
             aStreamRef << "Last level cannot be calculated." << endl;
@@ -599,10 +606,9 @@ void DLRE::printAll(ostream& aStreamRef,
         default:
             break;
         }
-    }
-    else
-    {
-        aStreamRef << "Not finished, still collecting." << endl;
+        break;
+    default:
+        break;
     }
 
     // an evaluation without values does not make sense
@@ -650,6 +656,7 @@ void DLRE::printAll(ostream& aStreamRef,
 
 
     // print first level
+    if(false)
     {
         double f = 0.0, x = 0.0;
         string infinity;
@@ -721,8 +728,7 @@ void DLRE::printAll(ostream& aStreamRef,
     }
 
     // Print last level (cdf/df -> f = 0.0, pf -> f = maxProbability)
-    // Add prefix in front as last level is not safe
-    if(not(aFunctionType == pf and not numTrials_))
+    if(false and not(aFunctionType == pf and not numTrials_))
     {
         double f, x;
         if (aFunctionType == cdf)
@@ -860,7 +866,7 @@ void DLRE::printLevel(ostream& stream,
 {
     string prefix(prefix_ + " ");
 
-    bool evaluated = checkLargeSample(level);
+    bool evaluated = (phase_ == finish) or (checkLargeSample(level));
     ResultLine line;
     getResultLine(level, line);
 
@@ -872,7 +878,7 @@ void DLRE::printLevel(ostream& stream,
         }
     }
 
-    if(not evaluated or line.relErr_ < 0.0)
+    if((not evaluated) or (line.relErr_ > relErrMax_))
     {
         stream << prefix;
     }

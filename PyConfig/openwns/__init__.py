@@ -66,14 +66,6 @@ def frommW(str):
     i = str.index('mW')
     return(float(str[0:i-1]))
 
-class Position:
-    __slots__ = ["x", "y", "z"]
-
-    def __init__(self, x=0, y=0,z=0):
-        self.x = x
-        self.y = y
-        self.z = z
-
 class StaticFactoryClass(object):
 
     __slots__ = ["nameInStaticFactory", "__plugin__"]

@@ -205,6 +205,7 @@ srcFiles = [
     'src/probe/bus/detail/tests/SorterTest.cpp',
 
     'src/evaluation/statistics/tests/StatEvalTest.cpp',
+    'src/evaluation/statistics/tests/DLRETest.cpp',
 
     'src/events/tests/MemberFunctionTest.cpp',
     'src/events/tests/DelayedMemberFunctionTest.cpp',
@@ -283,6 +284,7 @@ srcFiles = [
     'src/scheduler/strategy/staticpriority/SubStrategy.cpp',
     'src/scheduler/strategy/staticpriority/RoundRobin.cpp',
     'src/scheduler/strategy/staticpriority/ExhaustiveRoundRobin.cpp',
+    'src/scheduler/strategy/staticpriority/ProportionalFair.cpp',
     'src/scheduler/strategy/StaticPriority.cpp',
     
     # the scheduler helpers
@@ -923,6 +925,7 @@ hppFiles = [
 'src/scheduler/strategy/staticpriority/SubStrategy.hpp',
 'src/scheduler/strategy/staticpriority/RoundRobin.hpp',
 'src/scheduler/strategy/staticpriority/ExhaustiveRoundRobin.hpp',
+'src/scheduler/strategy/staticpriority/ProportionalFair.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategy.hpp',
 'src/scheduler/strategy/dsastrategy/DoNotUseDSA.hpp',

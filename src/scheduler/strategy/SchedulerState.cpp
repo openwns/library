@@ -53,7 +53,7 @@ std::string
 RequestForResource::toString() const
 {
   std::stringstream s;
-  s << "Req("<<cid<<","<<user->getName()<<","<<int(bits)<<"bits";
+  s << "Req(cid="<<cid<<","<<user->getName()<<","<<int(bits)<<"bits";
   if (phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr()) {
     s << "," << *phyModePtr; }
   if (subChannel!=wns::scheduler::subChannelNotFound) {

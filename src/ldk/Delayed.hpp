@@ -160,16 +160,18 @@ namespace wns { namespace ldk {
 			}
 		} // tryToSend
 
-	private:
-		//
-		// CompoundHandlerInterface implementation
-		//
 		/** Part of CompoundHandlerInterface implementation. */
 		virtual bool
 		doIsAccepting(const CompoundPtr& /* compound */) const
 		{
 			return hasCapacity();
 		} // isAccepting
+
+
+	private:
+		//
+		// CompoundHandlerInterface implementation
+		//
 
 		/** Part of CompoundHandlerInterface implementation. */
 		virtual void

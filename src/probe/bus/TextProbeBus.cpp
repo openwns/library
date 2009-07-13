@@ -121,7 +121,7 @@ TextProbeBus::printText(std::ostream& theStream)
         << std::endl;
         if (!theStream.good())
         {
-            throw(wns::Exception("Can't dunp ProbeText data file"));
+            throw(wns::Exception("Can't dump ProbeText data file"));
         }
         writeHeader_ = false;
     }
@@ -138,14 +138,14 @@ TextProbeBus::printText(std::ostream& theStream)
 					   << time_str;
 			if (!theStream.good())
 			{
-				throw(wns::Exception("Can't dunp ProbeText data file"));
+				throw(wns::Exception("Can't dump ProbeText data file"));
 			}
 		}
 		theStream << messages_.front()
 				   << std::endl;
 		if (!theStream.good())
 		{
-			throw(wns::Exception("Can't dunp ProbeText data file"));
+			throw(wns::Exception("Can't dump ProbeText data file"));
 		}
 		messages_.pop_front();
     }

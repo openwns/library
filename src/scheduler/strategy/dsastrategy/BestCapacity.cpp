@@ -58,7 +58,10 @@ BestCapacity::initialize(SchedulerStatePtr schedulerState,
 						 SchedulingMapPtr schedulingMap)
 {
 	DSAStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
-	userInfoMap.clear();
+	if (!userInfoMap.empty())
+	{
+		userInfoMap.clear();
+	}
 	// just a SmartPtr:
 	//ChannelQualitiesOfAllUsersPtr
 	assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
@@ -74,7 +77,11 @@ BestCapacity::getSubChannelWithDSA(RequestForResource& request,
 {
 	DSAResult dsaResult;
 	UserID user = request.user;
-	UserInfo& userInfo = userInfoMap[user]; // automatically creates it
+	if (userInfoMap.find(user) == userInfoMap.end()) {
+		userInfoMap.insert(UserInfoMap::value_type(user, UserInfo(schedulerState->currentState->strategyInput->fChannels)));
+	}
+	UserInfo& userInfo = userInfoMap.find(user)->second;
+
 	int lastUsedSubChannel = userInfo.lastUsedSubChannel;
 	int subChannel = lastUsedSubChannel;
 	int maxSubChannel = schedulingMap->subChannels.size();

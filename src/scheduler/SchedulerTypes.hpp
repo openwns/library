@@ -248,7 +248,7 @@ namespace wns { namespace scheduler {
 				     iter != groups[i].end();
 				     ++iter)
 					ss << (*iter).first->getName() << " @ "
-					   << (*iter).second.C / (*iter).second.I << ", )\n";
+					   << (*iter).second.C / (*iter).second.I << ", )" << std::endl;
 			}
 			return ss.str();
 		}

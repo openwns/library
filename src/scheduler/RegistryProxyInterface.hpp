@@ -28,6 +28,7 @@
 #ifndef WNS_SCHEDULER_REGISTRYPROXYINTERFACE_HPP
 #define WNS_SCHEDULER_REGISTRYPROXYINTERFACE_HPP
 
+#include <WNS/service/dll/Address.hpp>
 #include <WNS/service/phy/phymode/PhyModeInterface.hpp>
 #include <WNS/service/phy/phymode/PhyModeMapperInterface.hpp>
 //#include <WNS/scheduler/strategy/apcstrategy/APCStrategyInterface.hpp>
@@ -66,6 +67,9 @@ namespace wns { namespace scheduler {
 		 *
 		 */
 		virtual UserID getUserForCID(ConnectionID cid) = 0;
+		/**@brief determines Address of next hop */
+		virtual wns::service::dll::UnicastAddress
+		getPeerAddressForCID(wns::scheduler::ConnectionID cid) = 0;
 		/**
 		 * @brief Retrieve a list of (internal) Connection IDs that the specified
 		 * user is associated with. The convention is that the strategy serves

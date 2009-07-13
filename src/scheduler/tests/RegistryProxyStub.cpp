@@ -76,11 +76,18 @@ RegistryProxyStub::~RegistryProxyStub()
 {
 }
 
-
 UserID
 RegistryProxyStub::getUserForCID(ConnectionID cid)
 {
 	return CID2User[cid];
+}
+
+wns::service::dll::UnicastAddress
+RegistryProxyStub::getPeerAddressForCID(wns::scheduler::ConnectionID cid)
+{
+	assure(false, "not implemented; not tested");
+	wns::service::dll::UnicastAddress peerAddress;
+	return peerAddress;
 }
 
 ConnectionVector
