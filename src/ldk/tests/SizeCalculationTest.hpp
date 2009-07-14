@@ -54,7 +54,7 @@ namespace wns { namespace ldk {
 		void testInPath();
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		tools::Stub* upper;

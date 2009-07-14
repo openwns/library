@@ -40,6 +40,10 @@ namespace wns { namespace logger {
 	class Logger;
 }}
 
+namespace wns { namespace ldk {
+    class ILayer;
+}}
+
 namespace wns { namespace ldk { namespace fun {
 
 	/**
@@ -57,7 +61,7 @@ namespace wns { namespace ldk { namespace fun {
 		/**
 		 * @deprecated Don't use this constructor any more!
 		 */
-		Main(Layer* layer);
+		Main(ILayer* layer);
 
 		/**
 		 * @brief This is the new default constructor for a FUN.
@@ -65,7 +69,7 @@ namespace wns { namespace ldk { namespace fun {
 		 * @todo: ksw,msg
 		 * - change all calls of the deprecated constructor to calls of the new one
 		 */
-		Main(Layer* layer, const wns::pyconfig::View& _config);
+		Main(ILayer* layer, const wns::pyconfig::View& _config);
 
 		virtual ~Main();
 
@@ -91,7 +95,7 @@ namespace wns { namespace ldk { namespace fun {
 
 		// getter
 		virtual CommandProxy* getProxy() const;
-		virtual Layer* getLayer() const;
+		virtual ILayer* getLayer() const;
 		virtual std::string getName() const;
 		virtual LinkHandlerInterface* getLinkHandler() const;
 		virtual CommandReaderInterface* getCommandReader(const std::string& commandName) const;
@@ -102,7 +106,7 @@ namespace wns { namespace ldk { namespace fun {
 		void onFUNCreated(wns::logger::Logger* logger = NULL);
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		CommandProxy* proxy;
 		FunctionalUnitMap fuMap;
 		LinkHandlerInterface* linkHandler;

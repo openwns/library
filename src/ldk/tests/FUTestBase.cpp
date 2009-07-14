@@ -122,7 +122,7 @@ FUTestBase::newLowerStub()
     return new tools::Stub(fun, emptyConfig);
 }
 
-wns::ldk::Layer*
+wns::ldk::ILayer*
 FUTestBase::newLayer()
 {
     return new wns::ldk::tests::LayerStub();

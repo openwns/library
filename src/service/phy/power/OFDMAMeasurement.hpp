@@ -70,7 +70,7 @@ namespace wns { namespace service { namespace phy { namespace power {
 		/** @brief something to specify the origin (source node, transmitter) */
 		virtual wns::node::Interface* getSourceNode() const = 0;
 		// on layer2 you can translate this to the MAC address:
-		// stationManager = fun->getLayer<dll::Layer2*>()->getStationManager();
+		// stationManager = fun->getLayer<dll::ILayer2*>()->getStationManager();
 		// wns::service::dll::UnicastAddress source = stationManager->getStationByNode(source)->getDLLAddress();
 
 		/** @brief number of OFDM subchannels */

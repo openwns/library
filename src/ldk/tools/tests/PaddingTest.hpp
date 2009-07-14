@@ -55,7 +55,7 @@ namespace wns { namespace ldk { namespace tools {
 		void testNoPad();
 		void testExact();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		Stub* upper;

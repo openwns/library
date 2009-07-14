@@ -59,7 +59,7 @@ namespace wns { namespace ldk { namespace multiplexer {
 		void testWakeup();
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fuNet;
 
 		tools::Stub* upper1;

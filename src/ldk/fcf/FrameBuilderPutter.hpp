@@ -35,7 +35,7 @@
 
 namespace wns { namespace ldk {
 
-	class Layer;
+	class ILayer;
 
 	namespace fun {
 		class FUN;

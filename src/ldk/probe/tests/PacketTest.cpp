@@ -58,7 +58,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
 		void testSize();
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		wns::ldk::tools::Stub* upper;

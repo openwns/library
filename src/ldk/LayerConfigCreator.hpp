@@ -33,19 +33,19 @@
 
 namespace wns { namespace ldk {
 
-	class Layer;
+	class ILayer;
 
     /**
 	 * @brief Creator implementation to be used with StaticFactory.
 	 *
-	 * Useful for constructors with a Layer and pyconfig::View parameter.
+	 * Useful for constructors with a ILayer and pyconfig::View parameter.
 	 *
 	 */
 	template <typename T, typename KIND = T>
 	struct LayerConfigCreator :
 		public LayerConfigCreator<KIND, KIND>
 	{
-		virtual KIND* create(Layer* layer, wns::pyconfig::View& config)
+		virtual KIND* create(ILayer* layer, wns::pyconfig::View& config)
 		{
 			return new T(layer, config);
 		}
@@ -56,7 +56,7 @@ namespace wns { namespace ldk {
 		public wns::Creator<KIND, KIND>
 	{
 	public:
-		virtual KIND* create(Layer*, wns::pyconfig::View&) = 0;
+		virtual KIND* create(ILayer*, wns::pyconfig::View&) = 0;
 
 		virtual ~LayerConfigCreator()
 		{}

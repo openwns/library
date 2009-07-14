@@ -54,7 +54,7 @@ namespace wns { namespace ldk { namespace multiplexer {
 		void testIncoming();
 		void testSizes();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fuNet;
 
 		OpcodeProvider* provider;

@@ -64,7 +64,7 @@ namespace wns { namespace ldk { namespace crc {
 
 	private:
 		void emptyBuffers();
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fuNet;
 
 		tools::Stub* upper;

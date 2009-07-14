@@ -54,8 +54,8 @@ namespace wns { namespace ldk { namespace tools {
 		void testLossyFromAbove();
 
 	private:
-		Layer* layerA;
-		Layer* layerB;
+		ILayer* layerA;
+		ILayer* layerB;
 		fun::FUN* funA;
 		fun::FUN* funB;
 		Stub* a;

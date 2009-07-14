@@ -243,13 +243,13 @@ namespace wns {
 		void testRemoveFunctionalUnitNotAddedToFUN();
 
 	private:
-		wns::ldk::Layer* layer;
+		wns::ldk::ILayer* layer;
 		wns::ldk::fun::FUN* fuNet;
 
 		testFunctionalUnit::FunkyFunctionalUnit* fsl;
 		testFunctionalUnit::PunkyFunctionalUnit* psl;
 		testFunctionalUnit::FunkyFunctionalUnit* bangFunctionalUnit;
-		wns::ldk::Layer* bangLayer;
+		wns::ldk::ILayer* bangLayer;
 		wns::ldk::fun::FUN* bangFUN;
 		wns::ldk::CommandPool* bangCollection;
 	};

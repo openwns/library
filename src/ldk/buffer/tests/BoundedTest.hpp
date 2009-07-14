@@ -51,7 +51,7 @@ namespace wns { namespace ldk { namespace buffer {
 		void testFill();
 		void testWakeup();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		tools::Stub* upper;
@@ -72,7 +72,7 @@ namespace wns { namespace ldk { namespace buffer {
 		void testFill();
 		void testEmpty();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		tools::Stub* upper;

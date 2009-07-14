@@ -62,7 +62,7 @@ namespace wns { namespace ldk { namespace classifiertest {
 	void classify();
 
     private:
-	Layer* layer;
+	ILayer* layer;
 	fun::FUN* fuNet;
 
 	Classifier<IncementingClassificationPolicy>* classifier;

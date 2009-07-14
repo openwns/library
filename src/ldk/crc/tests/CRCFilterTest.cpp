@@ -63,7 +63,7 @@ namespace wns { namespace ldk {	namespace crc {
 		void testErrorsCommandInList();
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fuNet;
 
 		tools::Stub* upperNotInList;

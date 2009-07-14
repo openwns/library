@@ -88,7 +88,7 @@ namespace wns { namespace ldk { namespace arq {
 		void testSizeACK();
 		void testSizeBoth();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fuNet;
 
 		buffer::Bounded* buffer;

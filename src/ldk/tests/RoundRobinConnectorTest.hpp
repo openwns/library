@@ -35,7 +35,7 @@
 
 
 namespace wns { namespace ldk {
-	class Layer;
+	class ILayer;
 }}
 
 namespace wns { namespace ldk { namespace tests {
@@ -57,7 +57,7 @@ namespace wns { namespace ldk { namespace tests {
 		void testAccepting();
 
 	private:
-		wns::ldk::Layer* l;
+		wns::ldk::ILayer* l;
 		wns::ldk::fun::FUN* fuNet;
 		wns::ldk::tools::Stub* s1;
 		wns::ldk::tools::Stub* s2;

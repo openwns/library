@@ -37,7 +37,7 @@
 namespace wns { namespace ldk {
 
 	class ManagementServiceInterface;
-	class Layer;
+	class ILayer;
 
        /**
          * @brief The ManagementServiceRegistry keeps all instances of ManagementServices.
@@ -46,10 +46,10 @@ namespace wns { namespace ldk {
 		public wns::container::Registry<std::string, ManagementServiceInterface*, wns::container::registry::DeleteOnErase>
 	{
 	public:
-		ManagementServiceRegistry( wns::ldk::Layer* _layer )
+		ManagementServiceRegistry( wns::ldk::ILayer* _layer )
 			: layer( _layer ) {}
 
-		virtual wns::ldk::Layer*
+		virtual wns::ldk::ILayer*
 		getLayer() const { return layer; }
 
 		/**
@@ -59,7 +59,7 @@ namespace wns { namespace ldk {
 		LAYERTYPE
 		getLayer() const
 		{
-			wns::ldk::Layer* aLayer = getLayer();
+			wns::ldk::ILayer* aLayer = getLayer();
 			assureType(aLayer, LAYERTYPE);
 			// we can't use C-Style downcasts here!
 			return dynamic_cast<LAYERTYPE>(aLayer);
@@ -73,7 +73,7 @@ namespace wns { namespace ldk {
 		onMSRCreated();
 
 	private:
-		wns::ldk::Layer* layer;
+		wns::ldk::ILayer* layer;
 	};
 
 	/**

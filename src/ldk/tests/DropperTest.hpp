@@ -123,7 +123,7 @@ namespace wns { namespace ldk {
 		void testDrop();
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		tools::Stub* upper;
