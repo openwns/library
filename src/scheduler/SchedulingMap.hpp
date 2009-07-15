@@ -152,6 +152,8 @@ namespace wns { namespace scheduler {
 		//usedTxPowerOnOneChannel usedTxPower; // std::vector<TxPower4PDU> is very bad
 		/** @brief transmit power used in this subChannel (e.g. when APC is used) */
 		wns::Power txPower;
+		/** @brief Antenna pattern for beamforming; else empty */
+		wns::service::phy::ofdma::PatternPtr antennaPattern;
 	}; // PhysicalResourceBlock
 
 	/** @brief collection of all subChannels and all (MIMO) beams */
@@ -218,6 +220,8 @@ namespace wns { namespace scheduler {
 		//usedTxPowerOnOneChannel usedTxPower; // std::vector<TxPower4PDU> is very bad
 		/** @brief transmit power used in this subChannel (e.g. when APC is used) */
 		//wns::Power txPower;
+		/** @brief isUsable = flag to exclude certain subchannels from DSA */
+		bool subChannelIsUsable;
 		/** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
 		PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
 	}; // SchedulingSubChannel

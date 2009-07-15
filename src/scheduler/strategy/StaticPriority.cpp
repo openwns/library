@@ -105,8 +105,6 @@ StaticPriority::onColleaguesKnown()
 	}
 }
 
-//void
-//StaticPriority::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 StrategyResult
 StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
 				  SchedulingMapPtr schedulingMap)

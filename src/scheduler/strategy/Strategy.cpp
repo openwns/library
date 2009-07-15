@@ -422,6 +422,7 @@ Strategy::schedulingMapReady(StrategyResult& strategyResult)
 	      { // for every compound in subchannel:
 		  SchedulingCompound schedulingCompound = iterPRB->scheduledCompounds.front();
 		  iterPRB->scheduledCompounds.pop_front(); // remove from map
+		  assure(schedulingCompound.endTime<=schedulerState->currentState->strategyInput->slotLength,"endTime="<<schedulingCompound.endTime<<" > slotLength="<<schedulerState->currentState->strategyInput->slotLength<<" is an ERROR");
 		  MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
 		  // fill mapInfoEntry
 		  mapInfoEntry->start      = schedulingCompound.startTime;
@@ -645,7 +646,9 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 		cqiOnSubChannel.interference = estimatedCandI.I;
 		cqiOnSubChannel.pathloss = nominalPowerPerSubChannel / estimatedCandI.C;
 	} // with|without CQI information
-	MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): subChannel="<<subChannel);
+	// Tell result of DSA: subChannel
+	MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"):"
+		       <<" subChannel="<<subChannel<<"."<<beam);
 
 	if (subChannel==dsastrategy::DSAsubChannelNotFound)
 	  return resultMapInfoEntry; // empty means no result
