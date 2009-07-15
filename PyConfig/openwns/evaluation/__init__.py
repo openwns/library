@@ -32,6 +32,30 @@ from openwns.evaluation.generators import *
 from openwns.evaluation.tree import *
 from openwns.evaluation.formatters import *
 
+class Error(Exception):
+    """ Base class for exceptions in this module."""
+    def __str__(self):
+        return "\n\n" + self.message  
+  
+class SourceNotRegistered(Error):
+  
+    def __init__(self, sourceName, keys):
+        self.message = "Source node " 
+        self.message += sourceName 
+        self.message += " was not yet created. Use createMeasurementSource()\n"
+        self.message += "The following source nodes were created by now:\n"
+        for s in keys():
+            self.message += str(s) + "\n"
+
+class SourceRegisteredAndHasChildren(Error):
+    
+    def __init__(self, sourceName):
+        self.message = "Source "
+        self.message += sourceName 
+        self.message += " was already created and has children. "
+        self.message += "Either remove the source node first by using removeMeasurementSource() "
+        self.message += "or use getMeasurementSourceNode()"    
+
 class TreeNodeProbeBusRegistry(object):
 
     def __init__(self, probeBusRegistry):
@@ -65,16 +89,14 @@ class TreeNodeProbeBusRegistry(object):
             self.treeNodes[measurementSource] = node
 
         sourceNode = self.treeNodes[measurementSource]
-        assert not sourceNode.hasChildren(), "The source node was already created and has children. Either remove the source node first by using removeMeasurementSource() or use getMeasurementSourceNode()"
+        if sourceNode.hasChildren():
+            raise SourceRegisteredAndHasChildren(measurementSource)
+        
         return sourceNode
 
     def getMeasurementSourceNode(self, measurementSource):
         if not self.treeNodes.has_key(measurementSource):
-            message = "That source node was not yet created. Use createMeasurementSource()\n\n"
-            message += "The following source nodes were created by now:\n"
-            for s in self.treeNodes.keys():
-                message += str(s)
-            assert self.treeNodes.has_key(measurementSource), message
+            raise SourceNotRegistered(measurementSource, self.treeNodes.keys)
 
         return self.treeNodes[measurementSource]
 

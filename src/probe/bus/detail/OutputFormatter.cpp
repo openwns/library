@@ -33,6 +33,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR( HumanReadable, OutputFormatter, "HumanRead
 STATIC_FACTORY_REGISTER_WITH_CREATOR( PythonReadable, OutputFormatter, "PythonReadable", StatEvalTableCreator );
 STATIC_FACTORY_REGISTER_WITH_CREATOR( MatlabReadable, OutputFormatter, "MatlabReadable", StatEvalTableCreator );
 STATIC_FACTORY_REGISTER_WITH_CREATOR( MatlabReadableSparse, OutputFormatter, "MatlabReadableSparse", StatEvalTableCreator );
+STATIC_FACTORY_REGISTER_WITH_CREATOR( WrowserReadable, OutputFormatter, "WrowserReadable", StatEvalTableCreator );
 
 void
 OutputFormatter::print(std::ostream& strm,
@@ -205,7 +206,7 @@ void
 MatlabReadable::print(std::ostream& strm,
                       std::string valueType) const
 {
-    strm << "\n";
+    strm << getPrefix() << "\n";
     size_t ii = 0;
     for (; ii<sorters().size(); ++ii)
     {
@@ -291,3 +292,46 @@ MatlabReadableSparse::doPrint(std::ostream& strm,
     }
 }
 
+void
+WrowserReadable::print(std::ostream& strm,
+                      std::string valueType) const
+{
+    strm << getPrefix() << "\n";
+    OutputFormatter::print(strm, valueType);
+}
+
+void
+WrowserReadable::doPrint(std::ostream& strm,
+                              std::list<int> fixedIndices,
+                              int dim,
+                              std::string valueType) const
+{
+    size_t level = fixedIndices.size();
+    assure(dim + level == sorters().size(), "dim/level mismatch");
+
+    if (dim == 0)
+    {
+        // Print this entry with all its indices
+        int counter = 0;
+        std::list<int>::const_iterator index = fixedIndices.begin();
+        std::list<int>::const_iterator end   = fixedIndices.end();
+        for (; index != end; ++index)
+        {
+            strm << sorters().at(counter).getMin(*index) << "\t";
+            ++counter;
+        }
+        strm << data.getByIndex(fixedIndices).get(valueType) << "\n";
+        return;
+    }
+    else
+    {
+        // Add last index
+        fixedIndices.push_back(0);
+        for (int ii = 0; ii< sorters().at(level).getResolution(); ++ii)
+        {
+            fixedIndices.back() = ii;
+            doPrint(strm, fixedIndices, dim-1, valueType);
+        }
+        return;
+    }
+}
