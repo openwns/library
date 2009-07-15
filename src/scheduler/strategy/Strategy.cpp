@@ -343,7 +343,7 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
 	// Initialize the "working" datastructures
 	// init the Scheduling Map (empty and free):
 	assure(schedulerState->currentState->schedulingMap==SchedulingMapPtr(),"schedulingMap must be NULL here");
-	SchedulingMapPtr schedulingMap = SchedulingMapPtr(new wns::scheduler::SchedulingMap(strategyInput.slotLength, strategyInput.fChannels, strategyInput.maxBeams));
+	SchedulingMapPtr schedulingMap = SchedulingMapPtr(new wns::scheduler::SchedulingMap(strategyInput.slotLength, strategyInput.fChannels, strategyInput.maxBeams, strategyInput.frameNr));
 	schedulerState->currentState->schedulingMap = schedulingMap;
 	// new burst result structure (part of the state):
 	assure(schedulerState->currentState->bursts==MapInfoCollectionPtr(),"bursts must be NULL here");

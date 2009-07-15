@@ -84,7 +84,12 @@ SchedulingCompound::toString() const
 	s.precision(1);
 	s << "SchedulingCompound(";
 	s << "cid="<<connectionID;
-	s << ", bits="<< compoundPtr->getLengthInBits();
+	if (userID!=NULL) {
+	  s << ", user="<<userID->getName();
+	}
+	if (compoundPtr != wns::ldk::CompoundPtr()) {
+	  s << ", bits="<< compoundPtr->getLengthInBits();
+	}
 	s << ", T=[" << startTime*1e6 << "-" << endTime*1e6 << "]us";
 	s << ", d=" << (endTime-startTime)*1e6 << "us";
 	s << ")";
@@ -253,11 +258,11 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
 {
   // mapInfoEntry can contain compounds when in while loop:
   //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
-  assure(compoundPtr!=wns::ldk::CompoundPtr(),"compoundPtr==NULL");
-  int compoundBits = compoundPtr->getLengthInBits();
+  //assure(compoundPtr!=wns::ldk::CompoundPtr(),"compoundPtr==NULL"); // empty is allowed for uplink master scheduling
+  //int compoundBits = compoundPtr->getLengthInBits();
   //assure(compoundBits==request.bits, "bits mismatch: "<<compoundBits<<" != "<<request.bits);
   // ^ in the UL the real bits may be less than the requested bits.
-  assure(compoundBits<=request.bits, "bits mismatch: "<<compoundBits<<" != "<<request.bits);
+  //assure(compoundBits<=request.bits, "bits mismatch: "<<compoundBits<<" != "<<request.bits);
   wns::service::phy::phymode::PhyModeInterfacePtr mapPhyModePtr = mapInfoEntry->phyModePtr;
   double dataRate = mapPhyModePtr->getDataRate();
   simTimeType compoundDuration = request.bits / dataRate;
@@ -365,9 +370,10 @@ SchedulingSubChannel::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) cons
 
 /**************************************************************/
 
-SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams )
+SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams, int _frameNr )
 //SchedulingMap::SchedulingMap(const simTimeType& _slotLength, const int& _subChannels)
-  : slotLength(_slotLength),
+  : frameNr(_frameNr),
+    slotLength(_slotLength),
     numberOfSubChannels(_numberOfSubChannels),
     numberOfBeams(_numberOfBeams),
     numberOfCompounds(0),
@@ -572,7 +578,11 @@ SchedulingMap::toString()
 	s.precision(1);
 	assure(numberOfSubChannels==subChannels.size(),"numberOfSubChannels="<<numberOfSubChannels<<" != subChannels.size()="<<subChannels.size());
 	assure(std::fabs(slotLength-subChannels[0].slotLength)<1e-6,"mismatch in slotLength="<<slotLength);
-	s << "SchedulingMap("<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
+	if (frameNr>=0) { // valid frameNr
+	  s << "SchedulingMap(frame="<<frameNr<<": "<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
+	} else {
+	  s << "SchedulingMap("<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
+	}
 	double resourceUsage = this->getResourceUsage(); // getResourceUsage() is not const
 	if (resourceUsage < slotLengthRoundingTolerance) {
 	  s << "empty." << std::endl;
