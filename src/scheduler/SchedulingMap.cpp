@@ -100,7 +100,8 @@ PhysicalResourceBlock::PhysicalResourceBlock()
     nextPosition(0.0),
     scheduledCompounds(),
     phyModePtr(),
-    txPower()
+    txPower(),
+    antennaPattern()
 {
 }
 
@@ -222,6 +223,7 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
 	assure((predecessors==0)||(phyModePtr == _phyModePtr),
 	       "phyModePtr mismatch: "<<*phyModePtr<<"!="<<*_phyModePtr);
 	phyModePtr = _phyModePtr; // all compounds should have the same phyMode
+	antennaPattern = _pattern; // all compounds should have the same antenna pattern
 	SchedulingCompound newScheduledCompound(this->subChannelIndex,
 						this->beamIndex,
 						startTime,
