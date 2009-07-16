@@ -167,6 +167,20 @@ DSAStrategy::channelIsUsable(int subChannel,
 		if (prbDescriptor.scheduledCompounds.empty())
 			{ return true; }
 		// now we are sure that the subChannel is used by at least one packet
+		// check the grouping constraints:
+		//if (groupingRequired()) ? <- is this question enough ?
+		if (schedulerState->currentState->getGrouping() != GroupingPtr()) // grouping enabled
+		{
+			// check if request.user fulfils the grouping constraints...
+			// get otherUsers on this subchannel
+			// if one of them is in the same group as request.user, it's ok to continue
+			// if one of them is the same as request.user, this also proves it's ok
+			// if one of them in in another group, it's not ok -> return false
+			// so we see it's enough to only test one otherUser and not all of them
+			// UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
+			// if (!(otherUser is in same group as request.user))
+			// { return false; }
+		}
 		// check if another user is blocking the subChannel:
 		if (oneUserOnOneSubChannel)
 		{	// checking the first packet is sufficient:
@@ -215,6 +229,20 @@ DSAStrategy::channelIsUsable(int subChannel,
 	if (prbDescriptor.scheduledCompounds.empty())
 		{ return true; }
 	// now we are sure that the subChannel is used by at least one packet
+	// check the grouping constraints:
+	//if (groupingRequired()) ? <- is this question enough ?
+	if (schedulerState->currentState->getGrouping() != GroupingPtr()) // grouping enabled
+	{
+		// check if request.user fulfils the grouping constraints...
+		// get otherUsers on this subchannel
+		// if one of them is in the same group as request.user, it's ok to continue
+		// if one of them is the same as request.user, this also proves it's ok
+		// if one of them in in another group, it's not ok -> return false
+		// so we see it's enough to only test one otherUser and not all of them
+		// UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
+		// if (!(otherUser is in same group as request.user))
+		// { return false; }
+	}
 	// check if another user is blocking the subChannel:
 	if (oneUserOnOneSubChannel)
 	{	// checking the first packet is sufficient:
@@ -224,7 +252,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 	} else {
 		// we will have a problem with different txPower and PhyMode on this subChannel
 	}
-	// check if the PhyMode is already fixed:
+	// This is the check if the PhyMode is already fixed:
 	wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
 		prbDescriptor.phyModePtr;
 	RequestForResource requestWithGivenPhyMode = request; // copy
