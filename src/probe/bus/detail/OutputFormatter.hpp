@@ -234,10 +234,7 @@ namespace wns { namespace probe { namespace bus { namespace detail {
     
             virtual
             ~WrowserReadable(){}
-    
-            virtual void
-            print(std::ostream& strm, std::string valueType) const;
-    
+
             virtual std::string
             getPrefix() const { return "# "; };
     

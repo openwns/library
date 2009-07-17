@@ -293,14 +293,6 @@ MatlabReadableSparse::doPrint(std::ostream& strm,
 }
 
 void
-WrowserReadable::print(std::ostream& strm,
-                      std::string valueType) const
-{
-    strm << getPrefix() << "\n";
-    OutputFormatter::print(strm, valueType);
-}
-
-void
 WrowserReadable::doPrint(std::ostream& strm,
                               std::list<int> fixedIndices,
                               int dim,
