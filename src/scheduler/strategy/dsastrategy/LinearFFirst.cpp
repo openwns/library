@@ -66,6 +66,8 @@ LinearFFirst::initialize(SchedulerStatePtr schedulerState,
 {
 	DSAStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
 	lastUsedSubChannel = 0;
+	// with beamforming/grouping it might be useful to remember lastUsedSubChannel[userID] separately
+	// ^ this would form a new strategy "BFOptimizedLinearFFirst" or "LinearFFirstForBeamForming"
 	if (useRandomChannelAtBeginning)
 	{
 	  int maxSubChannel = schedulingMap->subChannels.size();
