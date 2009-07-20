@@ -231,7 +231,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 	// now we are sure that the subChannel is used by at least one packet
 	// check the grouping constraints:
 	//if (groupingRequired()) ? <- is this question enough ?
-	if (schedulerState->currentState->getGrouping() != GroupingPtr()) // grouping enabled
+	if (schedulerState->currentState->groupingIsValid()) // grouping enabled
 	{
 		// check if request.user fulfils the grouping constraints...
 		// get otherUsers on this subchannel

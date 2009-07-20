@@ -148,6 +148,8 @@ namespace wns { namespace scheduler {
 		virtual std::string toString() const { return "(RevolvingState)"; };
 		virtual GroupingPtr getNewGrouping()
 		{ grouping = GroupingPtr(new Grouping()); return grouping; }
+		virtual bool groupingIsValid() const
+		{ return (grouping!=GroupingPtr()); }
 		virtual GroupingPtr getGrouping() const
 		{ assure(grouping!=GroupingPtr(),"invalid grouping"); return grouping; }
 		virtual void setGrouping(GroupingPtr groupingPtr)
