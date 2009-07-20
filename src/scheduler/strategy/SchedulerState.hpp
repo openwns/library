@@ -52,8 +52,6 @@
 
 namespace wns { namespace scheduler {
 	class MapInfoEntry; // forward declaration
-    //class SchedulingMap;
-    //class SchedulingMapPtr;
 	namespace strategy {
 	  class StrategyInput;
 	  class StrategyInterface;
@@ -98,33 +96,10 @@ namespace wns { namespace scheduler {
 		int beam;
 		/** @brief channel state (CQI) on the proposed subChannel.
 		    Contains values even if CQI is not available (uses CandI estimateTxSINRAt in this case)
-		    The values are set after DSA is finished. */
+		    The values are set after DSA is finished.
+		    This is a datastructure containing pathloss and interference predictions. */
 		ChannelQualityOnOneSubChannel cqiOnSubChannel; // memory here
 	};
-
-	/** @brief This collection of parameters is local for a subStrategy.
-	    Each substrategy class should derive from this and keep track itself.
-	    This state is persistent within each scheduler object. */
-    /*
-	class SubStrategyState {
-		SubStrategyState() {};
-		virtual ~SubStrategyState() {};
-		virtual std::string toString() {
-		  std::stringstream s;
-		  s << "activeConnections="<<printConnectionSet(activeConnections);
-		  return s.str();
-		};
-	public:
-		/** @brief set of all valid cids (within the currect priority) *
-		ConnectionSet activeConnections;
-		/** @brief will be extended by the derived classes ... *
-	};
-	/** @brief created in the subStrategies; no need for memory tracking later *
-	typedef SmartPtr<SubStrategyState> SubStrategyStatePtr;
-	/** @brief one SubStrategyStatePtr entry per priority level *
-	typedef std::vector< SubStrategyStatePtr > SubStrategyStateVector;
-    */
-
 
 	/** @brief This collection of parameters is local for a subStrategy.
 	    Each substrategy class should derive from this and keep track itself.
@@ -137,7 +112,6 @@ namespace wns { namespace scheduler {
 		  : strategyInput(_strategyInput),
 		    bursts(),
 		    schedulingMap(),
-		    //allActiveConnections(),
 		    activeConnections(),
 		    grouping(),
 		    currentPriority(0)
