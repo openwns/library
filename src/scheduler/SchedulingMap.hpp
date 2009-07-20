@@ -240,7 +240,7 @@ namespace wns { namespace scheduler {
 		SchedulingMap() {};
 
 		/** @brief construct a new empty SchedulingMap which contains a number of SchedulingSubChannel's */
-		SchedulingMap(simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams);
+		SchedulingMap(simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams, int _frameNr);
 		//SchedulingMap(const simTimeType& _slotLength, const int& _subChannels);
 
 		~SchedulingMap();
@@ -306,6 +306,8 @@ namespace wns { namespace scheduler {
 		toString();
 
 	private:
+		/** @brief index of the frame this map is for (system dependent) */
+		int frameNr;
 		/** @brief size of resources in time-direction */
 		simTimeType slotLength;
 		/** @brief size of resources in frequency-direction */

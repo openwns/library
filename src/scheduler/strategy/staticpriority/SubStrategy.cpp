@@ -121,7 +121,6 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     assure(ok,"schedulingMap->addCompound("<<request.toString()<<") failed. mapInfoEntry="<<mapInfoEntry->toString());
     mapInfoEntry->compounds.push_back(compoundPtr); // (currentBurst)
     allCompoundsEndTime += request.getDuration();
-    //throw wns::Exception("useDynamicSegmentation: not yet implemented");
   } else { // normal pre-segmented PDUs
     //while(schedulingMap->pduFitsIntoSubChannel(request, mapInfoEntry))
     if (request.bits > freeBits) {

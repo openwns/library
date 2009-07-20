@@ -343,7 +343,7 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
 	// Initialize the "working" datastructures
 	// init the Scheduling Map (empty and free):
 	assure(schedulerState->currentState->schedulingMap==SchedulingMapPtr(),"schedulingMap must be NULL here");
-	SchedulingMapPtr schedulingMap = SchedulingMapPtr(new wns::scheduler::SchedulingMap(strategyInput.slotLength, strategyInput.fChannels, strategyInput.maxBeams));
+	SchedulingMapPtr schedulingMap = SchedulingMapPtr(new wns::scheduler::SchedulingMap(strategyInput.slotLength, strategyInput.fChannels, strategyInput.maxBeams, strategyInput.frameNr));
 	schedulerState->currentState->schedulingMap = schedulingMap;
 	// new burst result structure (part of the state):
 	assure(schedulerState->currentState->bursts==MapInfoCollectionPtr(),"bursts must be NULL here");
@@ -697,7 +697,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	resultMapInfoEntry->txPower    = apcResult.txPower;
 	resultMapInfoEntry->phyModePtr = apcResult.phyModePtr;
 	resultMapInfoEntry->estimatedCandI = apcResult.estimatedCandI;
-	// do we need grouping things here?
+	// Set antennaPattern according to grouping result
 	if (groupingRequired()) {
 	  assure(schedulerState->currentState->getGrouping() != GroupingPtr(),"invalid grouping");
 	  wns::service::phy::ofdma::PatternPtr antennaPattern = schedulerState->currentState->getGrouping()->patterns[request.user];
@@ -706,6 +706,12 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	  //assure(estimatedCandI==apcResult.estimatedCandI,"estimatedCandI mismatch");
 	  resultMapInfoEntry->pattern = antennaPattern;
 	}
+	// else:
+	// what about static antenna patterns (e.g. for sectorized transmission)?
+	// can we set them here or is this done statically?
+	// what about PhyUser::deleteReceiveAntennaPatterns() then? (called every frame when switching Rx/Tx in FDD mode)
+	// Does this flatten every pattern ever set?
+
 	//resultMapInfoEntry->compounds = (empty list) // not here, but in caller
 	/* we don't put the compound(s) in here because
 	   a) we don't have it/them here
@@ -716,7 +722,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	*/
 	//double dataRate = apcResult.phyModePtr->getDataRate();
 	//simTimeType compoundDuration = request.bits / dataRate;
-	//resultMapInfoEntry->compoundDuration = compoundDuration;
+	//resultMapInfoEntry->compoundDuration = compoundDuration; // done later
 	resultMapInfoEntry->start = wns::scheduler::undefinedTime;
 	resultMapInfoEntry->end   = wns::scheduler::undefinedTime;
 	return resultMapInfoEntry;
