@@ -577,11 +577,9 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	      }
 	      //assure(cqiForUser!=ChannelQualitiesOnAllSubBandsPtr(), "cqiForUser["<<request.user->getName()<<"]==NULL");
 	      // just a SmartPtr copy:
-		  //(*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user] = cqiForUser;
 		  (*(schedulerState->currentState->channelQualitiesOfAllUsers)).insert(std::map<UserID,ChannelQualitiesOnAllSubBandsPtr>::value_type(request.user,cqiForUser));
 
 	    } else {
-			//cqiForUser = (*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user];
 			cqiForUser = schedulerState->currentState->channelQualitiesOfAllUsers->find(request.user)->second;
 		}
 	    //assure(schedulerState->currentState->channelQualitiesOfAllUsers->count(request.user) > 0, "channelQualitiesOfAllUsers["<<request.user->getName()<<"] empty");
@@ -741,48 +739,6 @@ Strategy::compoundReady(unsigned int fSlot,
 {
   assure(!isNewStrategy(),"compoundReady() only allowed for the old obsolete strategies");
   return; // callBack now done at the end in schedulingMapReady()
-  // do nothing here anymore.
-	int frameNr = schedulerState->currentState->strategyInput->frameNr;
-	// store SINR estimation in burst object (only needed for master DL scheduler)
-	burst->estimatedCandI = estimatedCandI;
-	// Manipulate master Burst when in slave mode
-	MapInfoEntryPtr masterBurst = schedulerState->currentState->strategyInput->mapInfoEntryFromMaster;
-	if (masterBurst == MapInfoEntryPtr()) { // empty, i.e. we are master scheduler
-		masterBurst = burst;
-	}
-	masterBurst->user = user;
-
-	MESSAGE_BEGIN(NORMAL, logger, m, "Strategy::compoundReady("<<burst->compounds.size()<<" pdu):");
-	m << " startTime=" << startTime;
-	m << ", stopTime=" << endTime;
-	m << "\nUser=" << user->getName();
-	m << ", subChannel=" << fSlot;
-	m << ", txPower=" << requestedTxPower;
-	m << ", eSINR=" << estimatedCandI.toSINR(); // "dB" included
-	m << ", phyMode=" << phyMode;
-	MESSAGE_END();
-
-	MapInfoEntryPtr resultMapInfoEntry = MapInfoEntryPtr(new MapInfoEntry(*masterBurst)); // copy
-	resultMapInfoEntry->frameNr    = frameNr;
-	resultMapInfoEntry->subBand    = fSlot;
-	resultMapInfoEntry->beam       = beam;
-	resultMapInfoEntry->start      = startTime;
-	resultMapInfoEntry->end        = endTime;
-	resultMapInfoEntry->user       = user;
-	resultMapInfoEntry->pattern    = pattern;
-	resultMapInfoEntry->txPower    = requestedTxPower;
-	resultMapInfoEntry->phyModePtr = wns::PhyModePtr(&phyMode);
-	resultMapInfoEntry->estimatedCandI = estimatedCandI;
-	//resultMapInfoEntry->compounds.push_back(pdu); // already in because copied from "masterBurst" above
-	// this could be done here instead of the
-	// "bursts.push_back(currentBurst);" in the old strategies
-	// "bursts_push_back(currentBurst);" in the old strategies (wrapper)
-	//schedulerState->currentState->bursts->push_back(resultMapInfoEntry);
-
-	assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
-	MESSAGE_SINGLE(NORMAL, logger,"compoundReady("<<resultMapInfoEntry->compounds.size()<<" pdu): calling callback...");
-	schedulerState->currentState->strategyInput->callBackObject->
-	  callBack(resultMapInfoEntry);
 } // compoundReady
 
 
