@@ -300,8 +300,7 @@ SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfBe
   : subChannelIndex(_subChannelIndex),
     numberOfBeams(_numberOfBeams),
     slotLength(_slotLength),
-    subChannelIsUsable(true)//,
-    //txPower()
+    subChannelIsUsable(true)
 {
 	for ( int beamIndex = 0; beamIndex < numberOfBeams; ++beamIndex )
 	{

@@ -72,7 +72,6 @@ namespace wns { namespace scheduler {
 		int beam;
 		simTimeType startTime;
 		simTimeType endTime;
-		//simTimeType compoundDuration;
 		wns::scheduler::ConnectionID connectionID;
 		wns::scheduler::UserID userID;
 		wns::ldk::CompoundPtr compoundPtr;
@@ -184,28 +183,6 @@ namespace wns { namespace scheduler {
 		    Depends on PhyMode provided by mapInfoEntry. */
 		int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
 
-		/** @brief put scheduled compound (one after another) into the SchedulingSubChannel */
-	  /*
-		bool addCompound(simTimeType compoundDuration,
-				 wns::scheduler::ConnectionID connectionID,
-				 wns::scheduler::UserID userID,
-				 wns::ldk::CompoundPtr compoundPtr,
-				 wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
-				 wns::Power txPower,
-				 wns::service::phy::ofdma::PatternPtr pattern
-				 );
-	  */
-		/** @brief put scheduled compound (one after another) into the SchedulingSubChannel
-		    @param MapInfoEntryPtr contains result from doAdaptiveResourceScheduling(), but without compound contained
-		    @param compoundPtr is the PDU to be put into the resource
-		    @return true if successful, false if not enough space.
-		*/
-	  /*
-		bool addCompound(strategy::RequestForResource& request,
-				 MapInfoEntryPtr mapInfoEntry, // <- must not contain compounds yet
-				 wns::ldk::CompoundPtr compoundPtr
-				 );
-	  */
 	public:
 		/** @brief my own subChannelIndex as seen from outside (container) */
 		int subChannelIndex;
@@ -215,11 +192,6 @@ namespace wns { namespace scheduler {
 		int numberOfBeams;
 		/** @brief fixed frame/slot length given from outside */
 		simTimeType slotLength;
-		/** @brief phyMode used in this subChannel (all compounds should have the same) */
-		//wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
-		//usedTxPowerOnOneChannel usedTxPower; // std::vector<TxPower4PDU> is very bad
-		/** @brief transmit power used in this subChannel (e.g. when APC is used) */
-		//wns::Power txPower;
 		/** @brief isUsable = flag to exclude certain subchannels from DSA */
 		bool subChannelIsUsable;
 		/** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
@@ -241,7 +213,6 @@ namespace wns { namespace scheduler {
 
 		/** @brief construct a new empty SchedulingMap which contains a number of SchedulingSubChannel's */
 		SchedulingMap(simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams, int _frameNr);
-		//SchedulingMap(const simTimeType& _slotLength, const int& _subChannels);
 
 		~SchedulingMap();
 
