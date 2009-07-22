@@ -89,7 +89,7 @@ UniformTest::testVar()
     Uniform dis = Uniform(40.0, 44.0);
 
     VarEstimator var;
-    for(int i = 0; i < 100000; ++i)
+    for(int i = 0; i < 1000000; ++i)
         var.put(dis());
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(4.0 / 3.0, var.get(), 0.01);
