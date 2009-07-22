@@ -217,6 +217,31 @@ namespace wns { namespace probe { namespace bus { namespace detail {
         ~MatlabReadableSparse(){}
     };
 
+    /** @brief Formatter Implementation that produces Wrowser readable output. */
+    class WrowserReadable :
+        public OutputFormatter
+    {
+        virtual
+        void doPrint(std::ostream& strm,
+                     std::list<int> fixedIndices,
+                     int dim,
+                     std::string valueType) const;
+
+        public:
+            WrowserReadable(const StatEvalTable& table) :
+                OutputFormatter(table)
+                {}
+    
+            virtual
+            ~WrowserReadable(){}
+
+            virtual std::string
+            getPrefix() const { return "# "; };
+    
+            virtual std::string
+            getFilenameSuffix() const { return "_Log.log.dat"; }
+    };
+
     typedef StatEvalTableCreator<OutputFormatter, OutputFormatter> FormatterCreator;
     typedef StaticFactory<FormatterCreator> FormatterFactory;
 

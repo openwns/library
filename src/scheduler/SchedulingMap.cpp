@@ -84,7 +84,12 @@ SchedulingCompound::toString() const
 	s.precision(1);
 	s << "SchedulingCompound(";
 	s << "cid="<<connectionID;
-	s << ", bits="<< compoundPtr->getLengthInBits();
+	if (userID!=NULL) {
+	  s << ", user="<<userID->getName();
+	}
+	if (compoundPtr != wns::ldk::CompoundPtr()) {
+	  s << ", bits="<< compoundPtr->getLengthInBits();
+	}
 	s << ", T=[" << startTime*1e6 << "-" << endTime*1e6 << "]us";
 	s << ", d=" << (endTime-startTime)*1e6 << "us";
 	s << ")";
@@ -100,7 +105,8 @@ PhysicalResourceBlock::PhysicalResourceBlock()
     nextPosition(0.0),
     scheduledCompounds(),
     phyModePtr(),
-    txPower()
+    txPower(),
+    antennaPattern()
 {
 }
 
@@ -139,7 +145,7 @@ PhysicalResourceBlock::toString() const
 	    s << ":"<<std::endl;
 	    for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
 	      {
-		s << "  " << iter->toString() << "\n";
+		s << "  " << iter->toString() << std::endl;
 	      }
 	  }
 	} else {
@@ -222,6 +228,7 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
 	assure((predecessors==0)||(phyModePtr == _phyModePtr),
 	       "phyModePtr mismatch: "<<*phyModePtr<<"!="<<*_phyModePtr);
 	phyModePtr = _phyModePtr; // all compounds should have the same phyMode
+	antennaPattern = _pattern; // all compounds should have the same antenna pattern
 	SchedulingCompound newScheduledCompound(this->subChannelIndex,
 						this->beamIndex,
 						startTime,
@@ -251,9 +258,11 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
 {
   // mapInfoEntry can contain compounds when in while loop:
   //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
-  assure(compoundPtr!=wns::ldk::CompoundPtr(),"compoundPtr==NULL");
-  int compoundBits = compoundPtr->getLengthInBits();
-  assure(compoundBits==request.bits, "bits mismatch: "<<compoundBits<<" != "<<request.bits);
+  //assure(compoundPtr!=wns::ldk::CompoundPtr(),"compoundPtr==NULL"); // empty is allowed for uplink master scheduling
+  //int compoundBits = compoundPtr->getLengthInBits();
+  //assure(compoundBits==request.bits, "bits mismatch: "<<compoundBits<<" != "<<request.bits);
+  // ^ in the UL the real bits may be less than the requested bits.
+  //assure(compoundBits<=request.bits, "bits mismatch: "<<compoundBits<<" != "<<request.bits);
   wns::service::phy::phymode::PhyModeInterfacePtr mapPhyModePtr = mapInfoEntry->phyModePtr;
   double dataRate = mapPhyModePtr->getDataRate();
   simTimeType compoundDuration = request.bits / dataRate;
@@ -282,15 +291,16 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
 SchedulingSubChannel::SchedulingSubChannel()
   : subChannelIndex(0),
     numberOfBeams(0),
-    slotLength(0.0)
+    slotLength(0.0),
+    subChannelIsUsable(true)
 {
 }
 
 SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfBeams, simTimeType _slotLength)
   : subChannelIndex(_subChannelIndex),
     numberOfBeams(_numberOfBeams),
-    slotLength(_slotLength)//,
-    //txPower()
+    slotLength(_slotLength),
+    subChannelIsUsable(true)
 {
 	for ( int beamIndex = 0; beamIndex < numberOfBeams; ++beamIndex )
 	{
@@ -310,9 +320,13 @@ std::string
 SchedulingSubChannel::toString() const
 {
 	std::stringstream s;
-	for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
-	{
-	  s << physicalResources[beamIndex].toString();
+	if (subChannelIsUsable) {
+	  for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+	  {
+	    s << physicalResources[beamIndex].toString();
+	  }
+	} else {
+	  s << "SubChannel(#"<<subChannelIndex<<"): locked/unusable";
 	}
 	return s.str();
 }
@@ -320,6 +334,7 @@ SchedulingSubChannel::toString() const
 simTimeType
 SchedulingSubChannel::getFreeTime() const
 {
+  if (!subChannelIsUsable) return 0.0;
   simTimeType freeTime = 0.0;
   for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
   {
@@ -333,6 +348,7 @@ SchedulingSubChannel::pduFitsIntoSubChannel(strategy::RequestForResource& reques
 					    MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
 					    ) const
 {
+  if (!subChannelIsUsable) return false;
   // is it correct to ask like this?
   // or do we have to loop over all beams?
   int beam = mapInfoEntry->beam;
@@ -343,6 +359,7 @@ SchedulingSubChannel::pduFitsIntoSubChannel(strategy::RequestForResource& reques
 int
 SchedulingSubChannel::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const
 {
+  if (!subChannelIsUsable) return 0;
   // is it correct to ask like this?
   // or do we have to loop over all beams?
   int beam = mapInfoEntry->beam;
@@ -352,9 +369,10 @@ SchedulingSubChannel::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) cons
 
 /**************************************************************/
 
-SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams )
+SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams, int _frameNr )
 //SchedulingMap::SchedulingMap(const simTimeType& _slotLength, const int& _subChannels)
-  : slotLength(_slotLength),
+  : frameNr(_frameNr),
+    slotLength(_slotLength),
     numberOfSubChannels(_numberOfSubChannels),
     numberOfBeams(_numberOfBeams),
     numberOfCompounds(0),
@@ -559,11 +577,20 @@ SchedulingMap::toString()
 	s.precision(1);
 	assure(numberOfSubChannels==subChannels.size(),"numberOfSubChannels="<<numberOfSubChannels<<" != subChannels.size()="<<subChannels.size());
 	assure(std::fabs(slotLength-subChannels[0].slotLength)<1e-6,"mismatch in slotLength="<<slotLength);
-	s << "SchedulingMap("<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
-	s << this->getResourceUsage()*100.0 << "% full.\n"; // getResourceUsage() is not const
-	for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
-	{
-		s << subChannels[subChannelIndex].toString();
+	if (frameNr>=0) { // valid frameNr
+	  s << "SchedulingMap(frame="<<frameNr<<": "<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
+	} else {
+	  s << "SchedulingMap("<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
+	}
+	double resourceUsage = this->getResourceUsage(); // getResourceUsage() is not const
+	if (resourceUsage < slotLengthRoundingTolerance) {
+	  s << "empty." << std::endl;
+	} else {
+	  s << resourceUsage*100.0 << "% full." << std::endl;
+	  for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+	  {
+	    s << subChannels[subChannelIndex].toString();
+	  }
 	}
 	return s.str();
 }

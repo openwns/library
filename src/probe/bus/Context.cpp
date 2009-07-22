@@ -124,6 +124,25 @@ Context::knows(const std::string& key) const
     return result==1;
 }
 
+bool
+Context::isInt(const std::string& key) const
+{
+    assure(Py_IsInitialized(), "Python interpreter is not initialized!");
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
+
+    PyObject* pyKey = PyString_FromString(key.c_str());
+
+    // PyDict_GetItem returns a "borrowed" reference, which means we are not
+    // responsible of DECREFING it.
+    PyObject* pyValue = PyDict_GetItem(pyDict_.obj_, pyKey);
+    Py_DECREF(pyKey);
+
+    if (pyValue == NULL)
+        throw context::NotFound();
+
+    return PyInt_Check(pyValue);
+}
+
 int
 Context::getInt(const std::string& key) const
 {
@@ -151,6 +170,25 @@ Context::getInt(const std::string& key) const
     Py_DECREF(pyKey);
 
     return value;
+}
+
+bool
+Context::isString(const std::string& key) const
+{
+    assure(Py_IsInitialized(), "Python interpreter is not initialized!");
+    assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
+
+    PyObject* pyKey = PyString_FromString(key.c_str());
+
+    // PyDict_GetItem returns a "borrowed" reference, which means we are not
+    // responsible of DECREFING it.
+    PyObject* pyValue = PyDict_GetItem(pyDict_.obj_, pyKey);
+    Py_DECREF(pyKey);
+
+    if (pyValue == NULL)
+        throw context::NotFound();
+
+    return PyString_Check(pyValue);
 }
 
 std::string

@@ -93,7 +93,11 @@ MapInfoEntry::toString() const
       for ( std::list<wns::ldk::CompoundPtr>::const_iterator iterCompound = compounds.begin();
 	    iterCompound != compounds.end(); ++iterCompound){
 	s << "\n\t #" << c++ << ": ";
-	s << (*iterCompound)->getLengthInBits() << " bits";
+	if ((*iterCompound) != wns::ldk::CompoundPtr()) {
+	  s << (*iterCompound)->getLengthInBits() << " bits";
+	} else {
+	  s << "NULL-compound";
+	}
       }
     }
     s << "\n";

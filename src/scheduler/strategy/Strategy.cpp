@@ -343,7 +343,7 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
 	// Initialize the "working" datastructures
 	// init the Scheduling Map (empty and free):
 	assure(schedulerState->currentState->schedulingMap==SchedulingMapPtr(),"schedulingMap must be NULL here");
-	SchedulingMapPtr schedulingMap = SchedulingMapPtr(new wns::scheduler::SchedulingMap(strategyInput.slotLength, strategyInput.fChannels, strategyInput.maxBeams));
+	SchedulingMapPtr schedulingMap = SchedulingMapPtr(new wns::scheduler::SchedulingMap(strategyInput.slotLength, strategyInput.fChannels, strategyInput.maxBeams, strategyInput.frameNr));
 	schedulerState->currentState->schedulingMap = schedulingMap;
 	// new burst result structure (part of the state):
 	assure(schedulerState->currentState->bursts==MapInfoCollectionPtr(),"bursts must be NULL here");
@@ -422,6 +422,7 @@ Strategy::schedulingMapReady(StrategyResult& strategyResult)
 	      { // for every compound in subchannel:
 		  SchedulingCompound schedulingCompound = iterPRB->scheduledCompounds.front();
 		  iterPRB->scheduledCompounds.pop_front(); // remove from map
+		  assure(schedulingCompound.endTime<=schedulerState->currentState->strategyInput->slotLength,"endTime="<<schedulingCompound.endTime<<" > slotLength="<<schedulerState->currentState->strategyInput->slotLength<<" is an ERROR");
 		  MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
 		  // fill mapInfoEntry
 		  mapInfoEntry->start      = schedulingCompound.startTime;
@@ -576,10 +577,11 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	      }
 	      //assure(cqiForUser!=ChannelQualitiesOnAllSubBandsPtr(), "cqiForUser["<<request.user->getName()<<"]==NULL");
 	      // just a SmartPtr copy:
-	      (*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user] = cqiForUser;
+		  (*(schedulerState->currentState->channelQualitiesOfAllUsers)).insert(std::map<UserID,ChannelQualitiesOnAllSubBandsPtr>::value_type(request.user,cqiForUser));
+
 	    } else {
-	      cqiForUser = (*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user];
-	    }
+			cqiForUser = schedulerState->currentState->channelQualitiesOfAllUsers->find(request.user)->second;
+		}
 	    //assure(schedulerState->currentState->channelQualitiesOfAllUsers->count(request.user) > 0, "channelQualitiesOfAllUsers["<<request.user->getName()<<"] empty");
 	    //assure(schedulerState->currentState->channelQualitiesOfAllUsers->knowsUser(request.user), "channelQualitiesOfAllUsers["<<request.user->getName()<<"] empty");
 	    // ^ at this point the CQI info may be empty (e.g. start of simulation).
@@ -596,8 +598,9 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	int beam = 0; // MIMO
 	bool CQIrequired = colleagues.dsastrategy->requiresCQI();
 	bool CQIavailable = (cqiForUser!=ChannelQualitiesOnAllSubBandsPtr())
-	  && (schedulerState->currentState->channelQualitiesOfAllUsers != ChannelQualitiesOfAllUsersPtr())
-	  && ((*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user]->size() > 0);
+		&& (schedulerState->currentState->channelQualitiesOfAllUsers != ChannelQualitiesOfAllUsersPtr())
+		&& ((*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user]->size() > 0);
+
 	MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): useCQI="<<schedulerState->useCQI<<",CQIrequired="<<CQIrequired<<",CQIavailable="<<CQIavailable);
 	ChannelQualityOnOneSubChannel& cqiOnSubChannel
 	  = request.cqiOnSubChannel; // memory of request structure
@@ -641,7 +644,9 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 		cqiOnSubChannel.interference = estimatedCandI.I;
 		cqiOnSubChannel.pathloss = nominalPowerPerSubChannel / estimatedCandI.C;
 	} // with|without CQI information
-	MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): subChannel="<<subChannel);
+	// Tell result of DSA: subChannel
+	MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"):"
+		       <<" subChannel="<<subChannel<<"."<<beam);
 
 	if (subChannel==dsastrategy::DSAsubChannelNotFound)
 	  return resultMapInfoEntry; // empty means no result
@@ -690,7 +695,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	resultMapInfoEntry->txPower    = apcResult.txPower;
 	resultMapInfoEntry->phyModePtr = apcResult.phyModePtr;
 	resultMapInfoEntry->estimatedCandI = apcResult.estimatedCandI;
-	// do we need grouping things here?
+	// Set antennaPattern according to grouping result
 	if (groupingRequired()) {
 	  assure(schedulerState->currentState->getGrouping() != GroupingPtr(),"invalid grouping");
 	  wns::service::phy::ofdma::PatternPtr antennaPattern = schedulerState->currentState->getGrouping()->patterns[request.user];
@@ -699,6 +704,12 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	  //assure(estimatedCandI==apcResult.estimatedCandI,"estimatedCandI mismatch");
 	  resultMapInfoEntry->pattern = antennaPattern;
 	}
+	// else:
+	// what about static antenna patterns (e.g. for sectorized transmission)?
+	// can we set them here or is this done statically?
+	// what about PhyUser::deleteReceiveAntennaPatterns() then? (called every frame when switching Rx/Tx in FDD mode)
+	// Does this flatten every pattern ever set?
+
 	//resultMapInfoEntry->compounds = (empty list) // not here, but in caller
 	/* we don't put the compound(s) in here because
 	   a) we don't have it/them here
@@ -709,7 +720,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 	*/
 	//double dataRate = apcResult.phyModePtr->getDataRate();
 	//simTimeType compoundDuration = request.bits / dataRate;
-	//resultMapInfoEntry->compoundDuration = compoundDuration;
+	//resultMapInfoEntry->compoundDuration = compoundDuration; // done later
 	resultMapInfoEntry->start = wns::scheduler::undefinedTime;
 	resultMapInfoEntry->end   = wns::scheduler::undefinedTime;
 	return resultMapInfoEntry;
@@ -728,48 +739,6 @@ Strategy::compoundReady(unsigned int fSlot,
 {
   assure(!isNewStrategy(),"compoundReady() only allowed for the old obsolete strategies");
   return; // callBack now done at the end in schedulingMapReady()
-  // do nothing here anymore.
-	int frameNr = schedulerState->currentState->strategyInput->frameNr;
-	// store SINR estimation in burst object (only needed for master DL scheduler)
-	burst->estimatedCandI = estimatedCandI;
-	// Manipulate master Burst when in slave mode
-	MapInfoEntryPtr masterBurst = schedulerState->currentState->strategyInput->mapInfoEntryFromMaster;
-	if (masterBurst == MapInfoEntryPtr()) { // empty, i.e. we are master scheduler
-		masterBurst = burst;
-	}
-	masterBurst->user = user;
-
-	MESSAGE_BEGIN(NORMAL, logger, m, "Strategy::compoundReady("<<burst->compounds.size()<<" pdu):");
-	m << " startTime=" << startTime;
-	m << ", stopTime=" << endTime;
-	m << "\nUser=" << user->getName();
-	m << ", subChannel=" << fSlot;
-	m << ", txPower=" << requestedTxPower;
-	m << ", eSINR=" << estimatedCandI.toSINR(); // "dB" included
-	m << ", phyMode=" << phyMode;
-	MESSAGE_END();
-
-	MapInfoEntryPtr resultMapInfoEntry = MapInfoEntryPtr(new MapInfoEntry(*masterBurst)); // copy
-	resultMapInfoEntry->frameNr    = frameNr;
-	resultMapInfoEntry->subBand    = fSlot;
-	resultMapInfoEntry->beam       = beam;
-	resultMapInfoEntry->start      = startTime;
-	resultMapInfoEntry->end        = endTime;
-	resultMapInfoEntry->user       = user;
-	resultMapInfoEntry->pattern    = pattern;
-	resultMapInfoEntry->txPower    = requestedTxPower;
-	resultMapInfoEntry->phyModePtr = wns::PhyModePtr(&phyMode);
-	resultMapInfoEntry->estimatedCandI = estimatedCandI;
-	//resultMapInfoEntry->compounds.push_back(pdu); // already in because copied from "masterBurst" above
-	// this could be done here instead of the
-	// "bursts.push_back(currentBurst);" in the old strategies
-	// "bursts_push_back(currentBurst);" in the old strategies (wrapper)
-	//schedulerState->currentState->bursts->push_back(resultMapInfoEntry);
-
-	assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
-	MESSAGE_SINGLE(NORMAL, logger,"compoundReady("<<resultMapInfoEntry->compounds.size()<<" pdu): calling callback...");
-	schedulerState->currentState->strategyInput->callBackObject->
-	  callBack(resultMapInfoEntry);
 } // compoundReady
 
 

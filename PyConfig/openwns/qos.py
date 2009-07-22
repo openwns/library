@@ -29,13 +29,14 @@
 # corresponds to C++ file QoS/QoSClasses.hpp
 from openwns.pyconfig import attrsetter
 
-numberOfQoSClasses = 5
+numberOfQoSClasses = 8
 undefinedQosClass = "UNDEFINED"
-realTimeQosClass = "REALTIME"
-guaranteedTpQosClass ="GUARANTEEDTP"
-bestEffortQosClass = "BESTEFFORT"
+conversationalQosClass = "CONVERSATIONAL"
+streamingQosClass ="STREAMING"
+interactiveQosClass = "INTERACTIVE"
+backgroundQosClass = "BACKGROUND"
 priorityBest  = 0
-priorityWorst = 3
+priorityWorst = 6
 
 # one element of the classes:
 class QoSClass:
@@ -52,17 +53,19 @@ class QoSClasses:
 
     def __init__(self, **kw):
         self.mapEntries = []
-        # this list must be consistent with C++ code in QoS/QoSClasses.hpp
+        # this list must be consistent with C++ code in service/qos/QoSClasses.hpp
         # uppercase is important!
-        self.mapEntries.append(QoSClass("UNDEFINED",0,priority=3))
-        self.mapEntries.append(QoSClass("CONTROLPLANE",1,priority=0))
-        self.mapEntries.append(QoSClass("REALTIME",2,priority=1))
-        self.mapEntries.append(QoSClass("GUARANTEEDTP",3,priority=2))
-        self.mapEntries.append(QoSClass("BESTEFFORT",4,priority=3))
+        self.mapEntries.append(QoSClass("UNDEFINED",0,priority=6))
+        self.mapEntries.append(QoSClass("PCCH",1,priority=0))
+        self.mapEntries.append(QoSClass("PHICH",2,priority=1))
+        self.mapEntries.append(QoSClass("DCCH",3,priority=2))
+        self.mapEntries.append(QoSClass("CONVERSATIONAL",4,priority=3))
+        self.mapEntries.append(QoSClass("STREAMING",5,priority=4))
+        self.mapEntries.append(QoSClass("INTERACTIVE",6,priority=5))
+        self.mapEntries.append(QoSClass("BACKGROUND",7,priority=6))
         attrsetter(self, kw)
     
     def addQoSClass(self, name, number):
-        # items must be added in order of ascending sinr ranges
         tmp = QoSClass(name, number)
         self.mapEntries.append(tmp)
 
@@ -96,4 +99,3 @@ class QoSClasses:
             if mapEntry.name == name:
                 priority = mapEntry.priority
         return priority
-

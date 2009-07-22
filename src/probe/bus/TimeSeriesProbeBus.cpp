@@ -27,6 +27,8 @@
 
 #include <WNS/probe/bus/TimeSeriesProbeBus.hpp>
 #include <WNS/simulator/ISimulator.hpp>
+#include <WNS/Ttos.hpp>
+
 #include <fstream>
 #include <iomanip>
 
@@ -50,6 +52,11 @@ TimeSeriesProbeBus::TimeSeriesProbeBus(const wns::pyconfig::View& pyco):
 {
     wns::pyconfig::View pycoRoot = wns::simulator::getConfiguration();
     outputPath = pycoRoot.get<std::string>("outputDir");
+
+    for (int ii = 0; ii < pyco.len("contextKeys"); ++ii)
+    {
+        contextKeys.push_back(pyco.get<std::string>("contextKeys", ii));
+    }
 }
 
 TimeSeriesProbeBus::~TimeSeriesProbeBus()
@@ -65,11 +72,28 @@ TimeSeriesProbeBus::accepts(const wns::simulator::Time&, const IContext&)
 void
 TimeSeriesProbeBus::onMeasurement(const wns::simulator::Time& _time,
                                const double& _value,
-                               const IContext&)
+                               const IContext& _context)
 {
     LogEntry entry;
     entry.value = _value;
     entry.time  = _time;
+
+    for(std::vector<std::string>::const_iterator it = contextKeys.begin();
+        it != contextKeys.end();
+        ++it)
+    {
+        if(_context.knows(*it))
+        {
+            if(_context.isInt(*it))
+            {
+                entry.context.push_back(wns::Ttos(_context.getInt(*it)));
+            }
+            else if(_context.isString(*it))
+            {
+                entry.context.push_back(_context.getString(*it));
+            }
+        }
+    }
 
     // Store value for later output
     logQueue.push_back(entry);
@@ -81,7 +105,7 @@ TimeSeriesProbeBus::output()
     std::ofstream out((outputPath + "/" + filename).c_str(),
                       (firstWrite ? std::ios::out : (std::ios::out |  std::ios::app)));
 
-    if (firstWrite) 
+    if (firstWrite)
     {
         firstWrite = false;
         out<<prefix<<"  PROBE RESULTS (THIS IS A MAGIC LINE)" << std::endl;
@@ -90,6 +114,17 @@ TimeSeriesProbeBus::output()
         out<<prefix<<" ---------------------------------------------------------------------------" << std::endl;
         out<<prefix<<"  Name: " << name << std::endl;
         out<<prefix<<"  Description: " << desc << std::endl;
+        if(not contextKeys.empty())
+        {
+            out<<prefix<<"  ContextKeys:";
+            for(std::vector<std::string>::const_iterator it = contextKeys.begin();
+                it != contextKeys.end();
+                ++it)
+            {
+                out << " " << (*it);
+            }
+            out << std::endl;
+        }
         out<<prefix<<" ---------------------------------------------------------------------------" << std::endl;
     }
 
@@ -103,7 +138,14 @@ TimeSeriesProbeBus::output()
             LogEntry entry = logQueue.front();
             logQueue.pop_front();
             out << std::setprecision(timePrecision) << entry.time
-                << " " << std::setprecision(valuePrecision) << entry.value << std::endl;
+                << " " << std::setprecision(valuePrecision) << entry.value;
+            for(std::vector<std::string>::const_iterator it = entry.context.begin();
+                it != entry.context.end();
+                ++it)
+            {
+                out << " " << (*it);
+            }
+            out << std::endl;
             assure(out, "I/O Error: Can't dump TimeSeriesProbeBus log file");
         }
 }

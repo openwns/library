@@ -199,7 +199,7 @@ class StaticPriority(Strategy):
         self.nameInStrategyFactory = "StaticPriority"
         self.subStrategies = []
         self.logger = openwns.logger.Logger("WNS", "SP", True, parentLogger)
-        self.numberOfPriorities = len(subStrategies) # 0..4 => 5
+        self.numberOfPriorities = len(subStrategies) # 0..6 => 7
         priority = openwns.qos.priorityBest # ==0
         for subStrategy in subStrategies:
             mySubStrategy = copy.deepcopy(subStrategy) # original object shares logger instance
@@ -238,6 +238,19 @@ class ExhaustiveRoundRobin(SubStrategy):
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "ExhaustiveRR", True, parentLogger)
 
+class ProportionalFair(SubStrategy):
+    __plugin__ = "ProportionalFair"
+    blockSize = 1000000
+    # 0.0 = no history; 0.9 = factor of older pastDataRates to keep
+    historyWeight = 0.9
+    # 0.0=MaxThroughput; 1.0=ProportionalFair
+    scalingBetweenMaxTPandPFair = 1.0
+    def __init__(self, parentLogger = None, **kw):
+        self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
+        attrsetter(self, kw)
+    def setParentLogger(self,parentLogger = None):
+        self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
+
 # TODO:
 class EqualTimeRoundRobin(SubStrategy):
     __plugin__ = "EqualTimeRoundRobin"
@@ -264,15 +277,6 @@ class FCFS(SubStrategy):
         attrsetter(self, kw)
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "FCFS", True, parentLogger)
-
-# TODO:
-class ProportionalFair(SubStrategy):
-    __plugin__ = "ProportionalFair"
-    def __init__(self, parentLogger = None, **kw):
-        self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
-        attrsetter(self, kw)
-    def setParentLogger(self,parentLogger = None):
-        self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
 
 # TODO: Earliest Deadline First (EDF)
 class EDF(SubStrategy):

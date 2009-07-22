@@ -105,8 +105,6 @@ StaticPriority::onColleaguesKnown()
 	}
 }
 
-//void
-//StaticPriority::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 StrategyResult
 StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
 				  SchedulingMapPtr schedulingMap)
@@ -142,6 +140,8 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
 	UserSet activeUsers = colleagues.registry->filterReachable(allUsers);
 	MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): activeUsers.size()="<<activeUsers.size()<<": Users="<<printUserSet(activeUsers));
 
+	// prepare grouping here before going into priorities (subschedulers).
+	// This code block could also be moved into the base class Strategy::startScheduling()
 	if ( !activeUsers.empty() && groupingRequired() ) // only if (maxBeams>1)
 	{	// grouping needed for beamforming & its antenna pattern
 		GroupingPtr grouping = schedulerState->currentState->getNewGrouping(); // also stored in schedulerState
@@ -166,6 +166,7 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
 	// priority is out of [0..MaxPriority-1]:
 	for ( int priority = 0; priority < numberOfPriorities; ++priority )
 	{
+		// (grouping alternative: do grouping within each priority; do be discussed; but seems to be less useful)
 		if (subStrategies[priority] == NULL) continue;
 		schedulerState->currentState->setCurrentPriority(priority);
 		MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): now scheduling priority=" << priority);
