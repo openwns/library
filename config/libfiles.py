@@ -121,6 +121,10 @@ srcFiles = [
     'src/distribution/TimeDependent.cpp',
     'src/distribution/Operation.cpp',
     'src/distribution/Rice.cpp',
+    'src/distribution/Weibull.cpp',
+    'src/distribution/LogNorm.cpp',
+    'src/distribution/Cauchy.cpp',
+
 
     'src/queuingsystem/Job.cpp',
     'src/queuingsystem/JobContextProvider.cpp',
@@ -328,6 +332,8 @@ srcFiles = [
     'src/distribution/tests/RiceTest.cpp',
     'src/distribution/tests/TimeDependentTest.cpp',
     'src/distribution/tests/OperationTest.cpp',
+    'src/distribution/tests/LogNormTest.cpp',
+    'src/distribution/tests/WeibullTest.cpp',
     
     'src/geometry/Point.cpp',
     'src/geometry/Vector.cpp',
@@ -556,6 +562,9 @@ hppFiles = [
 'src/distribution/Poisson.hpp',
 'src/distribution/RNGConfigCreator.hpp',
 'src/distribution/Rice.hpp',
+'src/distribution/Weibull.hpp',
+'src/distribution/LogNorm.hpp',
+'src/distribution/Cauchy.hpp',
 'src/distribution/TimeDependent.hpp',
 'src/distribution/Uniform.hpp',
 'src/distribution/tests/CDFTableTest.hpp',
@@ -571,6 +580,8 @@ hppFiles = [
 'src/distribution/tests/RiceTest.hpp',
 'src/distribution/tests/UniformTest.hpp',
 'src/distribution/tests/VarEstimator.hpp',
+'src/distribution/tests/LogNormTest.hpp',
+'src/distribution/tests/WeibullTest.hpp',
 'src/fsm/FSMConfigCreator.hpp',
 'src/fsm/FSM.hpp',
 'src/DoubleDispatcher.hpp',

@@ -188,6 +188,36 @@ class Pareto(Distribution):
         super(Pareto, self).__init__(**kw)
         self.mean = self.shapeA*self.scaleB / (self.shapeA - 1.0)
 
+class LogNorm(Distribution):
+    __plugin__ = 'LogNorm'
+
+    mean = None
+    std = None
+    def __init__(self, mean, std, **kw):
+        self.mean = mean
+        self.std = std
+        super(LogNorm, self).__init__(**kw)
+
+class Weibull(Distribution):
+    __plugin__ = 'Weibull'
+
+    scale = None
+    shape = None
+    def __init__(self, shape, scale, **kw):
+        self.scale = scale
+        self.shape = shape
+        super(Weibull, self).__init__(**kw)
+
+class Cauchy(Distribution):
+    __plugin__ = 'Cauchy'
+
+    median = None
+    sigma = None
+    def __init__(self, median, sigma, **kw):
+        self.median = median
+        self.sigma = sigma
+        super(Cauchy, self).__init__(**kw)
+
 class TimeDependent(Distribution):
     __plugin__ = 'wns.distribution.TimeDependent'
 
