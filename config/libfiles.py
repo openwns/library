@@ -423,6 +423,7 @@ srcFiles = [
     'src/ldk/tools/Overhead.cpp',
     'src/ldk/tools/Consumer.cpp',
     'src/ldk/tools/ConstantDelay.cpp',
+    'src/ldk/tools/Compressor.cpp',
 
     # ldk.Probe
     'src/ldk/probe/Packet.cpp',
@@ -504,6 +505,7 @@ srcFiles = [
     'src/ldk/tools/tests/PaddingTest.cpp',
     'src/ldk/tools/tests/GateTest.cpp',
     'src/ldk/tools/tests/OverheadTest.cpp',
+    'src/ldk/tools/tests/CompressorTest.cpp',
     'src/ldk/multiplexer/tests/OpcodeDelivererTest.cpp',
     'src/ldk/multiplexer/tests/OpcodeTest.cpp',
     'src/ldk/multiplexer/tests/DispatcherTest.cpp',
@@ -737,6 +739,7 @@ hppFiles = [
 'src/ldk/tools/Stutter.hpp',
 'src/ldk/tools/Synchronizer.hpp',
 'src/ldk/tools/ConstantDelay.hpp',
+'src/ldk/tools/Compressor.hpp',
 'src/ldk/tools/tests/BridgeTest.hpp',
 'src/ldk/tools/tests/ConsumerTest.hpp',
 'src/ldk/tools/tests/ForwarderTest.hpp',
