@@ -58,14 +58,20 @@ class Packet(Probe):
     incomingThroughputProbeName = None
     outgoingSizeProbeName = None
     incomingSizeProbeName = None
+    
+    prefix = None
+    """ Probe name prefix """
+
 
     def __init__(self, name, prefix, commandName = None, parentLogger=None, moduleName='WNS', **kw):
         super(Packet,self).__init__(name, commandName)
-        self.incomingDelayProbeName = prefix + ".packet.incoming.delay"
-        self.outgoingDelayProbeName = prefix + ".packet.outgoing.delay"
-        self.incomingThroughputProbeName = prefix + ".packet.incoming.bitThroughput"
-        self.outgoingSizeProbeName = prefix + ".packet.outgoing.size"
-        self.incomingSizeProbeName = prefix + ".packet.incoming.size"
+                
+        self.prefix = prefix
+        self.incomingDelayProbeName = self.prefix + ".packet.incoming.delay"
+        self.outgoingDelayProbeName = self.prefix + ".packet.outgoing.delay"
+        self.incomingThroughputProbeName = self.prefix + ".packet.incoming.bitThroughput"
+        self.outgoingSizeProbeName = self.prefix + ".packet.outgoing.size"
+        self.incomingSizeProbeName = self.prefix + ".packet.incoming.size"
         self.logger = Logger(moduleName, name, True, parentLogger)
         attrsetter(self, kw)
 
@@ -123,6 +129,9 @@ class Window(Probe):
 
     sampleInterval = None
     """ Time between two puts into the probe """
+    
+    prefix = None
+    """ Probe name prefix """
 
     def __init__(self, name, prefix, commandName=None, windowSize = 1.0, sampleInterval = None, parentLogger=None, moduleName='WNS', **kw):
         super(Window,self).__init__(name, commandName)
@@ -133,14 +142,16 @@ class Window(Probe):
         else:
             self.sampleInterval = sampleInterval
 
+        self.prefix = prefix
+
         assert(self.sampleInterval <= self.windowSize)
 
-        self.incomingBitThroughputProbeName = prefix + ".window.incoming.bitThroughput"
-        self.incomingCompoundThroughputProbeName = prefix + ".window.incoming.compoundThroughput"
-        self.outgoingBitThroughputProbeName = prefix + ".window.outgoing.bitThroughput"
-        self.outgoingCompoundThroughputProbeName = prefix + ".window.outgoing.compoundThroughput"
-        self.aggregatedBitThroughputProbeName = prefix + ".window.aggregated.bitThroughput"
-        self.aggregatedCompoundThroughputProbeName = prefix + ".window.aggregated.compoundThroughput"
+        self.incomingBitThroughputProbeName = self.prefix + ".window.incoming.bitThroughput"
+        self.incomingCompoundThroughputProbeName = self.prefix + ".window.incoming.compoundThroughput"
+        self.outgoingBitThroughputProbeName = self.prefix + ".window.outgoing.bitThroughput"
+        self.outgoingCompoundThroughputProbeName = self.prefix + ".window.outgoing.compoundThroughput"
+        self.aggregatedBitThroughputProbeName = self.prefix + ".window.aggregated.bitThroughput"
+        self.aggregatedCompoundThroughputProbeName = self.prefix + ".window.aggregated.compoundThroughput"
 
         attrsetter(self, kw)
 
