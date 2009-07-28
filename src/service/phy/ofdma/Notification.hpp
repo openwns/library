@@ -35,18 +35,21 @@
 
 namespace wns { namespace service { namespace phy { namespace ofdma {
 
-	/**
+    /**
 	 * @brief OFDMA Phy Notification Service (upstack compounds)
 	 */
-	class Notification :
-		// [rs] why not derive from virtual public service::Notification<Handler> ?
-		virtual public service::Service,
-		virtual public wns::Subject<CarrierSensing>
-	{
-	public:
-		virtual void
-		registerHandler(Handler* handler) = 0;
-	};
+    class Notification :
+        // [rs] why not derive from virtual public service::Notification<Handler> ?
+        virtual public service::Service
+        ///virtual public wns::Subject<CarrierSensing>
+    {
+    public:
+        virtual void
+        registerHandler(Handler* handler) = 0;
+
+        virtual void
+        registerRSSHandler(RSSHandler* rssHandler) = 0;
+    };
 } // ofdma
 } // phy
 } // service
