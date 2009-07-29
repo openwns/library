@@ -281,6 +281,17 @@ namespace wns { namespace ldk {
 			CommandPool* commandPool,
 			const CommandTypeSpecifierInterface* kind);
 
+        /**
+         * @brief Activate and return a Command.
+         *
+         * Commands can only get activated once. Activating a Command
+         * twice will cause the program to abort.
+         */
+        Command*
+        activateCommand(
+            CommandPool* commandPool,
+            const CommandIDType& id);
+
 		/**
 		 * @brief Return true if the given Command is activated.
 		 *

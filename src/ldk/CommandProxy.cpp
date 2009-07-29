@@ -250,6 +250,16 @@ CommandProxy::activateCommand(
 	return command;
 } // activateCommand
 
+Command*
+CommandProxy::activateCommand(
+                 CommandPool* commandPool,
+                 const CommandIDType& id)
+{
+    assure(commandPool != NULL, "Invalid argument.");
+    assure(id < commandTypeSpecifiers.size(), "Invalid ID");
+
+    activateCommand(commandPool, commandTypeSpecifiers.at(id));
+}
 
 CommandPool*
 CommandProxy::createCommandPool(const fun::FUN* origin) const

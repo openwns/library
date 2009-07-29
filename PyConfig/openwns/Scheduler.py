@@ -391,13 +391,17 @@ class SegmentingQueue(object):
     def addLocalIDs(self, localIDs):
         self.localIDs.update(localIDs)
 
-    def __init__(self, parentLogger = None, **kw):
+    def __init__(self, segmentHeaderFUName, segmentHeaderCommandName, parentLogger = None, **kw):
         super(SegmentingQueue,self).__init__()
         self.localIDs = {}
         self.nameInQueueFactory = "SegmentingQueue"
         self.logger = openwns.logger.Logger("WNS", "SegmentingQueue", True, parentLogger);
         self.sizeProbeName = 'SegmentingQueueSize'
         self.minimumSegmentSize = 32 # Bits
+        self.fixedHeaderSize = 16
+        self.extensionHeaderSize = 8
         #self.sizeProbeName = 'schedulerQueueSize'
+        self.segmentHeaderFUName = segmentHeaderFUName
+        self.segmentHeaderCommandName = segmentHeaderCommandName
         attrsetter(self, kw) # new [rs]
 

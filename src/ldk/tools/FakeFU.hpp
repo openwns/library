@@ -114,7 +114,7 @@ namespace wns { namespace ldk { namespace tools {
 		}
 
 		virtual CommandReaderInterface*
-		getCommandReader(const CommandProxy*) const
+		getCommandReader(CommandProxy*)
 		{
 			return NULL;
 		}
