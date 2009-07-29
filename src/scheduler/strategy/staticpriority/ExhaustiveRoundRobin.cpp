@@ -38,15 +38,15 @@ using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::staticpriority;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(ExhaustiveRoundRobin,
-				     SubStrategyInterface,
-				     "ExhaustiveRoundRobin",
-				     wns::PyConfigViewCreator);
+                                     SubStrategyInterface,
+                                     "ExhaustiveRoundRobin",
+                                     wns::PyConfigViewCreator);
 
 ExhaustiveRoundRobin::ExhaustiveRoundRobin(const wns::pyconfig::View& config)
-  : RoundRobin(config)
+    : RoundRobin(config)
 {
-	blockSize=INT_MAX; // ExhaustiveRoundRobin=RoundRobin with infinite blockSize
-	MESSAGE_SINGLE(NORMAL, logger, "ExhaustiveRoundRobin(): constructed");
+    blockSize=INT_MAX; // ExhaustiveRoundRobin=RoundRobin with infinite blockSize
+    MESSAGE_SINGLE(NORMAL, logger, "ExhaustiveRoundRobin(): constructed");
 }
 
 ExhaustiveRoundRobin::~ExhaustiveRoundRobin()
@@ -56,13 +56,13 @@ ExhaustiveRoundRobin::~ExhaustiveRoundRobin()
 void
 ExhaustiveRoundRobin::initialize()
 {
-	MESSAGE_SINGLE(NORMAL, logger, "ExhaustiveRoundRobin(): initialized");
-	RoundRobin::initialize();
+    MESSAGE_SINGLE(NORMAL, logger, "ExhaustiveRoundRobin(): initialized");
+    RoundRobin::initialize();
 }
 
 MapInfoCollectionPtr
 ExhaustiveRoundRobin::doStartSubScheduling(SchedulerStatePtr schedulerState,
-					   wns::scheduler::SchedulingMapPtr schedulingMap)
+                                           wns::scheduler::SchedulingMapPtr schedulingMap)
 {
-	return RoundRobin::doStartSubScheduling(schedulerState,schedulingMap);
+    return RoundRobin::doStartSubScheduling(schedulerState,schedulingMap);
 } // doStartSubScheduling

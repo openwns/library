@@ -37,15 +37,15 @@
 using namespace wns::scheduler;
 using namespace wns::scheduler::tests;
 /*
-RegistryProxyStub::RegistryProxyStub()
-	: classifier(NULL),
-	  phyModeMapper(NULL),
-	  myUserID(new wns::node::tests::Stub()),
-	  queueSizeLimit(100000),
-	channelQualities(),
-	phymode2SINR()
-{
-}
+  RegistryProxyStub::RegistryProxyStub()
+  : classifier(NULL),
+  phyModeMapper(NULL),
+  myUserID(new wns::node::tests::Stub()),
+  queueSizeLimit(100000),
+  channelQualities(),
+  phymode2SINR()
+  {
+  }
 */
 
 RegistryProxyStub::RegistryProxyStub()
@@ -57,7 +57,7 @@ RegistryProxyStub::RegistryProxyStub()
 	  queueSizeLimit(100000)
 {
 	wns::pyconfig::Parser parser;
-	parser.loadString("import openwns.PhyMode\n" 
+	parser.loadString("import openwns.PhyMode\n"
 			  "from openwns.interval import Interval\n"
 			  "phyMode = openwns.PhyMode.PhyModeDropin3()\n"
 			  "phyModeMap = openwns.PhyMode.PhyModeMapperDropin()\n"
@@ -102,7 +102,7 @@ RegistryProxyStub::getCIDforPDU(const wns::ldk::CompoundPtr& compound)
 	if (classifier) // if classifier is set, use it
 	{
 		wns::ldk::ClassifierCommand* command = dynamic_cast<wns::ldk::ClassifierCommand*>(classifier->getCommand(compound->getCommandPool()));
-        return command->peer.id;
+		return command->peer.id;
 	}
 	assure(compound2CIDmap.find(compound) != compound2CIDmap.end(), "setCIDforPDU has to be called first");
 
@@ -122,13 +122,13 @@ RegistryProxyStub::setFriends(const wns::ldk::CommandTypeSpecifierInterface* _cl
 }
 
 /*
-void
-RegistryProxyStub::setFriends(const wns::ldk::CommandTypeSpecifierInterface* _classifier,
-			      wns::service::phy::ofdma::BFInterface* _ofdmaProvider)
-{
-	classifier = const_cast<wns::ldk::CommandTypeSpecifierInterface*>(_classifier);
-	ofdmaProvider = _ofdmaProvider;
-}
+  void
+  RegistryProxyStub::setFriends(const wns::ldk::CommandTypeSpecifierInterface* _classifier,
+  wns::service::phy::ofdma::BFInterface* _ofdmaProvider)
+  {
+  classifier = const_cast<wns::ldk::CommandTypeSpecifierInterface*>(_classifier);
+  ofdmaProvider = _ofdmaProvider;
+  }
 */
 
 void
@@ -145,8 +145,8 @@ RegistryProxyStub::getNameForUser(const UserID /* user */)
 wns::service::phy::phymode::PhyModeMapperInterface*
 RegistryProxyStub::getPhyModeMapper() const
 {
-//	assure (phyModeMapper != NULL, "phyModeMapper==NULL");
-         return phyModeMapper;
+	//	assure (phyModeMapper != NULL, "phyModeMapper==NULL");
+	return phyModeMapper;
 }
 
 wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface>
@@ -202,14 +202,21 @@ RegistryProxyStub::getStationType(const UserID /* user */)
 	return 0;
 }
 
+// soon obsolete. Use filterReachable(UserSet users, const int frameNr) for future code
 UserSet
 RegistryProxyStub::filterReachable(UserSet users)
 {
 	return users;
 }
 
+UserSet
+RegistryProxyStub::filterReachable(UserSet users, const int frameNr)
+{
+	return users;
+}
+
 ConnectionSet
-RegistryProxyStub::filterReachable(ConnectionSet connections)
+RegistryProxyStub::filterReachable(ConnectionSet connections, const int frameNr)
 {
 	return connections;
 }

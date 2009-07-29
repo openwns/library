@@ -285,6 +285,7 @@ srcFiles = [
     'src/scheduler/strategy/staticpriority/RoundRobin.cpp',
     'src/scheduler/strategy/staticpriority/ExhaustiveRoundRobin.cpp',
     'src/scheduler/strategy/staticpriority/ProportionalFair.cpp',
+    'src/scheduler/strategy/staticpriority/HARQRetransmission.cpp',
     'src/scheduler/strategy/StaticPriority.cpp',
     
     # the scheduler helpers
@@ -926,6 +927,7 @@ hppFiles = [
 'src/scheduler/strategy/staticpriority/RoundRobin.hpp',
 'src/scheduler/strategy/staticpriority/ExhaustiveRoundRobin.hpp',
 'src/scheduler/strategy/staticpriority/ProportionalFair.hpp',
+'src/scheduler/strategy/staticpriority/HARQRetransmission.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategy.hpp',
 'src/scheduler/strategy/dsastrategy/DoNotUseDSA.hpp',

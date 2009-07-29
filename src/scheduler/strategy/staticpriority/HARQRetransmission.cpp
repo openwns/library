@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <WNS/scheduler/strategy/staticpriority/RoundRobin.hpp>
+#include <WNS/scheduler/strategy/staticpriority/HARQRetransmission.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
 
 #include <vector>
@@ -38,34 +38,33 @@ using namespace wns::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::staticpriority;
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(RoundRobin,
+STATIC_FACTORY_REGISTER_WITH_CREATOR(HARQRetransmission,
                                      SubStrategyInterface,
-                                     "RoundRobin",
+                                     "HARQRetransmission",
                                      wns::PyConfigViewCreator);
 
 
-RoundRobin::RoundRobin(const wns::pyconfig::View& config)
-    : SubStrategy(config),
-      blockSize(config.get<int>("blockSize"))
+HARQRetransmission::HARQRetransmission(const wns::pyconfig::View& config)
+    : SubStrategy(config)
 {
-    assure(blockSize>0,"invalid blockSize="<<blockSize);
-    MESSAGE_SINGLE(NORMAL, logger, "RoundRobin(): constructed with blockSize="<<blockSize);
+    blockSize=INT_MAX; // ExhaustiveRoundRobin=RoundRobin with infinite blockSize
+    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission(): constructed");
 }
 
-RoundRobin::~RoundRobin()
+HARQRetransmission::~HARQRetransmission()
 {
 }
 
 void
-RoundRobin::initialize()
+HARQRetransmission::initialize()
 {
     // make state
     lastScheduledConnection = 0;
-    MESSAGE_SINGLE(NORMAL, logger, "RoundRobin(): initialized");
+    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission(): initialized");
 }
 
 wns::scheduler::ConnectionID
-RoundRobin::getValidCurrentConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
+HARQRetransmission::getValidCurrentConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
 {
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
@@ -79,7 +78,7 @@ RoundRobin::getValidCurrentConnection(const ConnectionSet &currentConnections, C
 }
 
 wns::scheduler::ConnectionID
-RoundRobin::getNextConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
+HARQRetransmission::getNextConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
 {
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
@@ -101,14 +100,14 @@ RoundRobin::getNextConnection(const ConnectionSet &currentConnections, Connectio
 
 // return std::list<MapInfoEntryPtr>
 wns::scheduler::MapInfoCollectionPtr
-RoundRobin::doStartSubScheduling(SchedulerStatePtr schedulerState,
+HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                                  wns::scheduler::SchedulingMapPtr schedulingMap)
 {
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
     ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
     if ( currentConnections.empty() ) return mapInfoCollection; // nothing to do
     wns::scheduler::ConnectionID currentConnection = getValidCurrentConnection(currentConnections,lastScheduledConnection);
-    MESSAGE_SINGLE(NORMAL, logger, "RoundRobin::doStartSubScheduling("<<printConnectionSet(currentConnections)<<") start with cid="<<currentConnection);
+    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission::doStartSubScheduling("<<printConnectionSet(currentConnections)<<") start with cid="<<currentConnection);
 
     bool spaceLeft=true;
     while(spaceLeft)

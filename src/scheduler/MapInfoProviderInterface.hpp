@@ -30,24 +30,41 @@
 
 #include <WNS/ldk/ldk.hpp>
 #include <WNS/scheduler/MapInfoEntry.hpp>
+#include <WNS/scheduler/SchedulingMap.hpp>
 
 #include <vector>
 
 namespace wns { namespace scheduler {
 
-	class MapInfoProviderInterface {
-	public:
-		virtual ~MapInfoProviderInterface() {}
+        /** @brief base class for system-specific ResourceSchedulers.
+            This old interface promises MapInfoCollectionPtr's. */
+        class MapInfoProviderInterface {
+        public:
+            virtual ~MapInfoProviderInterface() {}
 
-		/**
-		 * @brief Returns a vector with burst start/end times and subBand identifier
-		 * for every user scheduled by the scheduler. To be used by the map
-		 * writer to write UL (and DL) maps
-		 */
-		virtual MapInfoCollectionPtr getMapInfo() const = 0;
+            /**
+             * @brief Returns a vector with burst start/end times and subBand identifier
+             * for every user scheduled by the scheduler. To be used by the map
+             * writer to write UL (and DL) maps
+             */
+            virtual MapInfoCollectionPtr getMapInfo() const = 0;
 
-		virtual int getNumBursts() const = 0;
-	};
+            virtual int getNumBursts() const = 0;
+        };
+
+        /** @brief base class for system-specific ResourceSchedulers.
+            This new interface promises SchedulingMaps. */
+        class SchedulingMapProviderInterface {
+        public:
+            virtual ~SchedulingMapProviderInterface() {}
+
+            /**
+             * @brief Returns the scheduling result (SchedulingMap).
+             * To be used by the map writer to write UL (and DL) maps
+             */
+            virtual wns::scheduler::SchedulingMapPtr
+            getSchedulingMap(int frameNr) const = 0;
+        };
 
 }}
 

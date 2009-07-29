@@ -25,8 +25,8 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_STRATEGY_STATICPRIORITY_ROUNDROBIN_HPP
-#define WNS_SCHEDULER_STRATEGY_STATICPRIORITY_ROUNDROBIN_HPP
+#ifndef WNS_SCHEDULER_STRATEGY_STATICPRIORITY_HARQRETRANS_HPP
+#define WNS_SCHEDULER_STRATEGY_STATICPRIORITY_HARQRETRANS_HPP
 
 #include <WNS/scheduler/strategy/staticpriority/SubStrategy.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
@@ -34,21 +34,23 @@
 #include <WNS/scheduler/queue/QueueInterface.hpp>
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/StaticFactory.hpp>
+#include <limits.h>
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
 
-                /**
-                 * @brief Round Robin subscheduler.
-                 *
+                /** @brief subscheduler specialized for HARQ retransmissions.
+                    In this case the items to schedule are not "normal PDUs"
+                    but "resource blocks" which must remain unchanged during retransmission.
+                    Also the PhyMode and Power should be unchanged.
                  */
 
-                class RoundRobin
+                class HARQRetransmission
                         : public SubStrategy
                 {
                 public:
-                    RoundRobin(const wns::pyconfig::View& config);
+                    HARQRetransmission(const wns::pyconfig::View& config);
 
-                    ~RoundRobin();
+                    ~HARQRetransmission();
 
                     virtual void
                     initialize();
@@ -61,15 +63,19 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
                     virtual wns::scheduler::ConnectionID
                     getNextConnection(const ConnectionSet &currentConnections, ConnectionID cid) const;
 
-                    virtual wns::scheduler::MapInfoCollectionPtr
+                    virtual MapInfoCollectionPtr
                     doStartSubScheduling(SchedulerStatePtr schedulerState,
                                          wns::scheduler::SchedulingMapPtr schedulingMap);
+
                 protected:
                     /** @brief keep state of RR pointer */
                     wns::scheduler::ConnectionID lastScheduledConnection;
                     /** @brief Number of packets to schedule of the same cid before proceeding to the next one.
                         (PyConfig parameter) */
                     int blockSize;
+
+                private:
+
                 };
             }}}}
 #endif

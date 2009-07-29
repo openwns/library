@@ -32,51 +32,51 @@
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/PyConfigViewCreator.hpp>
-#include <WNS/scheduler/MapInfoProviderInterface.hpp>
+//#include <WNS/scheduler/MapInfoProviderInterface.hpp>
 #include <WNS/simulator/Time.hpp>
 #include <WNS/StaticFactory.hpp>
 
 namespace wns { namespace scheduler {
-	namespace queue {
-		class QueueInterface;
-	}
-	class RegistryProxyInterface;
+        namespace queue {
+            class QueueInterface;
+        }
+        class RegistryProxyInterface;
 
-	namespace strategy { namespace staticpriority {
-	class SchedulingMap;
-	}}
-}}// forward declarations
+        namespace strategy { namespace staticpriority {
+                class SchedulingMap;
+            }}
+    }}// forward declarations
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
 
-	class SubStrategyInterface
-	{
-	public:
-		virtual ~SubStrategyInterface(){};
+                class SubStrategyInterface
+                {
+                public:
+                    virtual ~SubStrategyInterface(){};
 
-		/** @brief this method is called at the very beginning
-		    Do not overload. At least call this base class method first. */
-		virtual void setColleagues(wns::scheduler::strategy::Strategy* _strategy,
-					   wns::scheduler::queue::QueueInterface* _queue,
-					   wns::scheduler::RegistryProxyInterface* _registry) = 0;
+                    /** @brief this method is called at the very beginning
+                        Do not overload. At least call this base class method first. */
+                    virtual void setColleagues(wns::scheduler::strategy::Strategy* _strategy,
+                                               wns::scheduler::queue::QueueInterface* _queue,
+                                               wns::scheduler::RegistryProxyInterface* _registry) = 0;
 
-		/** @brief this method is used to initialize datastructures.
-		    Please overload/implement this for your derived class */
-		virtual void
-		initialize() = 0;
+                    /** @brief this method is used to initialize datastructures.
+                        Please overload/implement this for your derived class */
+                    virtual void
+                    initialize() = 0;
 
-		/** @brief The main work is done here.
-		    Called by StaticPriority master scheduler.
-		    @param SchedulerState contains all the input parameters and current state of the scheduler.
-		    @param SchedulingMap contains the (incomplete) result so far and will be updated by this method.
-		*/
-		virtual MapInfoCollectionPtr
-		doStartSubScheduling(SchedulerStatePtr schedulerState,
-				     wns::scheduler::SchedulingMapPtr schedulingMap) = 0;
-	};
+                    /** @brief The main work is done here.
+                        Called by StaticPriority master scheduler.
+                        @param SchedulerState contains all the input parameters and current state of the scheduler.
+                        @param SchedulingMap contains the (incomplete) result so far and will be updated by this method.
+                    */
+                    virtual MapInfoCollectionPtr
+                    doStartSubScheduling(SchedulerStatePtr schedulerState,
+                                         wns::scheduler::SchedulingMapPtr schedulingMap) = 0;
+                };
 
-	typedef wns::PyConfigViewCreator<SubStrategyInterface, SubStrategyInterface> SubStrategyCreator;
-	typedef wns::StaticFactory<SubStrategyCreator> SubStrategyFactory;
-}}}}
+                typedef wns::PyConfigViewCreator<SubStrategyInterface, SubStrategyInterface> SubStrategyCreator;
+                typedef wns::StaticFactory<SubStrategyCreator> SubStrategyFactory;
+            }}}}
 #endif
 
