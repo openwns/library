@@ -29,56 +29,67 @@
 #define WNS_LDK_HASRECEPTOR_HPP
 
 #include <WNS/ldk/HasReceptorInterface.hpp>
+#include <WNS/ldk/ReceptorRegistry.hpp>
+#include <WNS/ldk/SinglePort.hpp>
 #include <WNS/ldk/SingleReceptor.hpp>
 
 namespace wns { namespace ldk {
 
-	/**
-	 * @brief HasReceptor specific type declarations.
-	 *
-	 */
-	namespace hasupper
-	{
-		/**
-		 * @brief Default strategy to be used for upper scheduling.
-		 *
-		 */
-		typedef SingleReceptor DefaultReceptorStrategy;
-	}
+        /**
+         * @brief HasReceptor specific type declarations.
+         *
+         */
+        namespace hasupper
+        {
+            /**
+             * @brief Default strategy to be used for upper scheduling.
+             *
+             */
+            typedef SingleReceptor DefaultReceptorStrategy;
+        }
 
-	/**
-	 * @brief Implement the HasReceptor Interface for a given scheduling strategy.
-	 * @ingroup hasupper
-	 *
-	 */
-	template <typename T = hasupper::DefaultReceptorStrategy>
-	class HasReceptor :
-		public virtual HasReceptorInterface
-	{
-	public:
-		typedef T ReceptorType;
+        /**
+         * @brief Implement the HasReceptor Interface for a given scheduling strategy.
+         * @ingroup hasupper
+         *
+         */
+        template <typename RECEPTORTYPE = hasupper::DefaultReceptorStrategy,
+                  typename PORTID = SinglePort>
+        class HasReceptor
+            : public virtual HasReceptorInterface,
+              public virtual ReceptorRegistry
+        {
+        public:
+            HasReceptor()
+                : ReceptorRegistry(),
+                  upper_()
+            {
+                addToReceptorRegistry(PORTID().name, &upper_);
+            }
 
-		HasReceptor() :
-			upper()
-		{}
+            HasReceptor(ReceptorRegistry* rr)
+                : ReceptorRegistry(),
+                  upper_()
+            {
+                rr->addToReceptorRegistry(PORTID().name, &upper_);
+            }
 
-		virtual
-		~HasReceptor()
-		{}
+            virtual
+            ~HasReceptor()
+            {}
 
-		virtual T*
-		getReceptor() const
-		{
-			return &upper;
-		}
-	private:
-		mutable T upper;
-	};
-} // ldk
+            virtual RECEPTORTYPE*
+            getReceptor() const
+            {
+                return &upper_;
+            }
+        private:
+            mutable RECEPTORTYPE upper_;
+        };
+
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_HASRECEPTOR_HPP
-
-
 

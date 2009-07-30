@@ -26,12 +26,11 @@
  ******************************************************************************/
 
 #include <WNS/ldk/SingleConnector.hpp>
-#include <WNS/ldk/FunctionalUnit.hpp>
 
 using namespace wns::ldk;
 
 SingleConnector::SingleConnector() :
-	SingleLink()
+    SingleLink<IConnectorReceptacle>()
 {
 }
 
@@ -42,23 +41,21 @@ SingleConnector::~SingleConnector()
 bool
 SingleConnector::hasAcceptor(const CompoundPtr& compound)
 {
-	assure(this->getFU() != NULL, "Called hasAccecptor even though no FU available");
-	return this->getFU()->isAccepting(compound);
+    assure(getRec() != NULL, "Called hasAccecptor even though no FU available");
+    return getRec()->isAccepting(compound);
 }
 
 
-CompoundHandlerInterface*
+IConnectorReceptacle*
 SingleConnector::getAcceptor(const CompoundPtr&
 #ifndef NDEBUG
-			     compound
+                             compound
 #endif
-	)
+    )
 {
-	assure(this->getFU() != NULL, "Called getAccptor even though no FU available");
-	assure(this->getFU()->isAccepting(compound), "Called getAcceptor although the FU '" << this->getFU()->toString() << "' is not accepting");
+    assure(getRec() != NULL, "Called getAccptor even though no FU available");
+    assure(getRec()->isAccepting(compound), "Called getAcceptor although the FU '" << this->getRec()->getFU()->toString() << "' is not accepting");
 
-	return this->getFU();
+    return getRec();
 }
-
-
 

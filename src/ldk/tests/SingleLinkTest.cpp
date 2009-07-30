@@ -29,6 +29,8 @@
 #include <WNS/ldk/SingleLink.hpp>
 #include <WNS/ldk/tools/FakeFU.hpp>
 
+#include <WNS/ldk/IConnectorReceptacle.hpp>
+
 namespace wns { namespace ldk { namespace tests {
 
 	class SingleLinkTest :
@@ -68,14 +70,14 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testConstructor()
 		{
-			SingleLink testee;
+                    SingleLink<IConnectorReceptacle> testee;
 			CPPUNIT_ASSERT_EQUAL( static_cast<uint32_t>(0), testee.size() );
 		}
 
 		void
 		testSize()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			CPPUNIT_ASSERT_EQUAL( static_cast<uint32_t>(0), testee.size() );
 			tools::FakeFU fu;
 			testee.add(&fu);
@@ -85,14 +87,14 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testAddNull()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			WNS_ASSERT_ASSURE_NOT_NULL_EXCEPTION(testee.add(NULL));
 		}
 
 		void
 		testAddAndEmpty()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			tools::FakeFU fu;
 			testee.add(&fu);
 			CPPUNIT_ASSERT_EQUAL( static_cast<uint32_t>(1), testee.size() );
@@ -101,7 +103,7 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testClearAndEmpty()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			testee.clear();
 			CPPUNIT_ASSERT_EQUAL( static_cast<uint32_t>(0), testee.size() );
 		}
@@ -109,15 +111,15 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testGetAndEmpty()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(0), testee.get().size() );
 		}
 
 		void
 		testSetAndEmpty()
 		{
-			SingleLink testee;
-			Link::ExchangeContainer lec;
+			SingleLink<IConnectorReceptacle> testee;
+			Link<IConnectorReceptacle>::ExchangeContainer lec;
 			tools::FakeFU fu;
 			lec.push_back(&fu);
 			testee.set(lec);
@@ -127,7 +129,7 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testAddAndFull()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			tools::FakeFU fu;
 			tools::FakeFU fu2;
 			testee.add(&fu);
@@ -138,7 +140,7 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testClearAndFull()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			tools::FakeFU fu;
 			testee.add(&fu);
 			testee.clear();
@@ -148,7 +150,7 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testGetAndFull()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			tools::FakeFU fu;
 			testee.add(&fu);
 			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(1), testee.get().size() );
@@ -157,10 +159,10 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testSetAndFull()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			tools::FakeFU fu;
 			testee.add(&fu);
-			Link::ExchangeContainer lec;
+			Link<IConnectorReceptacle>::ExchangeContainer lec;
 			tools::FakeFU fu2;
 			lec.push_back(&fu2);
 			testee.set(lec);
@@ -170,8 +172,8 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testSetMoreThanOneEmpty()
 		{
-			SingleLink testee;
-			Link::ExchangeContainer lec;
+			SingleLink<IConnectorReceptacle> testee;
+			Link<IConnectorReceptacle>::ExchangeContainer lec;
 			tools::FakeFU fu;
 			tools::FakeFU fu2;
 			lec.push_back(&fu);
@@ -183,10 +185,10 @@ namespace wns { namespace ldk { namespace tests {
 		void
 		testSetMoreThanOneFull()
 		{
-			SingleLink testee;
+			SingleLink<IConnectorReceptacle> testee;
 			tools::FakeFU fu3;
 			testee.add(&fu3);
-			Link::ExchangeContainer lec;
+			Link<IConnectorReceptacle>::ExchangeContainer lec;
 			tools::FakeFU fu;
 			tools::FakeFU fu2;
 			lec.push_back(&fu);

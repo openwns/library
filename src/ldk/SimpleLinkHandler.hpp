@@ -36,41 +36,38 @@
 
 namespace wns { namespace ldk {
 
-	class FunctionalUnit;
+        class SimpleLinkHandler :
+        virtual public LinkHandlerInterface
+        {
 
-	class SimpleLinkHandler :
-		virtual public LinkHandlerInterface
-	{
+        public:
+            SimpleLinkHandler(const wns::pyconfig::View& _config);
 
-	public:
-		SimpleLinkHandler(const wns::pyconfig::View& _config);
+            virtual bool
+            isAccepting(IConnectorReceptacle* cr, const CompoundPtr& compound);
 
-		virtual bool
-		isAcceptingForwarded(FunctionalUnit* fu, const CompoundPtr& compound);
+            virtual void
+            sendData(IConnectorReceptacle* cr, const CompoundPtr& compound);
 
-		virtual void
-		sendDataForwarded(FunctionalUnit* fu, const CompoundPtr& compound);
+            virtual void
+            wakeup(IReceptorReceptacle* rr);
 
-		virtual void
-		wakeupForwarded(FunctionalUnit* fu);
+            virtual void
+            onData(IDelivererReceptacle* dr, const CompoundPtr& compound);
 
-		virtual void
-		onDataForwarded(FunctionalUnit* fu, const CompoundPtr& compound);
+        private:
+            wns::pyconfig::View config;
 
-	private:
-		wns::pyconfig::View config;
+            bool traceCompoundJourney;
 
-		bool traceCompoundJourney;
+            wns::logger::Logger isAcceptingLogger;
+            wns::logger::Logger sendDataLogger;
+            wns::logger::Logger wakeupLogger;
+            wns::logger::Logger onDataLogger;
+        };
 
-		wns::logger::Logger isAcceptingLogger;
-		wns::logger::Logger sendDataLogger;
-		wns::logger::Logger wakeupLogger;
-		wns::logger::Logger onDataLogger;
-	};
-
-} // ldk
+    } // ldk
 } // wns
 
 #endif // NOT defined WNS_LDK_SIMPLELINKHANDLER_HPP
-
 

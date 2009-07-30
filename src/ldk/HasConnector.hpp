@@ -28,62 +28,70 @@
 #ifndef WNS_LDK_HASCONNECTOR_HPP
 #define WNS_LDK_HASCONNECTOR_HPP
 
-#include <WNS/ldk/FunctionalUnit.hpp>
+#include <WNS/ldk/HasConnectorInterface.hpp>
+#include <WNS/ldk/ConnectorRegistry.hpp>
+#include <WNS/ldk/SinglePort.hpp>
 #include <WNS/ldk/SingleConnector.hpp>
 
 namespace wns { namespace ldk {
 
-	/**
-	 * @brief HasConnector specific type declarations.
-	 *
-	 */
-	namespace hasconnector
-	{
-		/**
-		 * @brief Default strategy to be used for lower scheduling.
-		 *
-		 */
-		typedef SingleConnector DefaultConnectorStrategy;
-	}
+        /**
+         * @brief HasConnector specific type declarations.
+         *
+         */
+        namespace hasconnector
+        {
+            /**
+             * @brief Default strategy to be used for lower scheduling.
+             *
+             */
+            typedef SingleConnector DefaultConnectorStrategy;
+        }
 
-	/**
-	 * @brief Implements the HasConnector Interface for a given scheduling strategy.
-	 * @ingroup hasconnector
-	 *
-	 */
-	template <typename T = hasconnector::DefaultConnectorStrategy,
-		  typename U = T>
-	class HasConnector :
-		public virtual HasConnectorInterface
-	{
-	public:
-		typedef T ConnectorType;
-		typedef U ConnectorInterface;
+        /**
+         * @brief Implements the HasConnector Interface for a given scheduling strategy.
+         * @ingroup hasconnector
+         *
+         */
+        template <typename CONNECTORTYPE = hasconnector::DefaultConnectorStrategy,
+                  typename PORTID = SinglePort>
+        class HasConnector
+            : public virtual HasConnectorInterface,
+              public virtual ConnectorRegistry
+        {
+        public:
+            HasConnector()
+                : ConnectorRegistry(),
+                  lower_()
+            {
+                addToConnectorRegistry(PORTID().name, &lower_);
+            }
 
-		HasConnector() :
-			lower()
-		{
-		}
+            HasConnector(ConnectorRegistry* cr)
+                : ConnectorRegistry(),
+                  lower_()
+            {
+                cr->addToConnectorRegistry(PORTID().name, &lower_);
+            }
 
-		virtual
-		~HasConnector()
-		{
-		}
+            virtual
+            ~HasConnector()
+            {
+            }
 
-		virtual ConnectorInterface*
-		getConnector() const
-		{
-			return &lower;
-		}
+            CONNECTORTYPE*
+            getConnector() const
+            {
+                return &lower_;
+            }
 
-	private:
-		mutable ConnectorType lower;
-	};
-} // ldk
+        private:
+            mutable CONNECTORTYPE lower_;
+        };
+
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_HASCONNECTOR_HPP
-
-
 

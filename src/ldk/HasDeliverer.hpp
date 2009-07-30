@@ -28,7 +28,9 @@
 #ifndef WNS_LDK_HASDELIVERER_HPP
 #define WNS_LDK_HASDELIVERER_HPP
 
-#include <WNS/ldk/FunctionalUnit.hpp>
+#include <WNS/ldk/HasDelivererInterface.hpp>
+#include <WNS/ldk/DelivererRegistry.hpp>
+#include <WNS/ldk/SinglePort.hpp>
 #include <WNS/ldk/SingleDeliverer.hpp>
 
 namespace wns { namespace ldk {
@@ -39,11 +41,11 @@ namespace wns { namespace ldk {
 	 */
 	namespace hasdeliverer
 	{
-		/**
-		 * @brief Default strategy to be used for upper scheduling.
-		 *
-		 */
-		typedef SingleDeliverer DefaultDeliverer;
+            /**
+             * @brief Default strategy to be used for upper scheduling.
+             *
+             */
+            typedef SingleDeliverer DefaultDelivererStrategy;
 	}
 
 	/**
@@ -51,35 +53,44 @@ namespace wns { namespace ldk {
 	 * @ingroup hasdeliverer
 	 *
 	 */
-	template <typename T = hasdeliverer::DefaultDeliverer>
-	class HasDeliverer :
-		public virtual HasDelivererInterface
-	{
-	public:
-		typedef T DelivererType;
+        template <typename DELIVERERTYPE = hasdeliverer::DefaultDelivererStrategy,
+                  typename PORTID = SinglePort>
+        class HasDeliverer
+            : public virtual HasDelivererInterface,
+              public virtual DelivererRegistry
+        {
+        public:
+            HasDeliverer()
+                : DelivererRegistry(),
+                  deliverer_()
+            {
+                addToDelivererRegistry(PORTID().name, &deliverer_);
+            }
 
-		HasDeliverer() :
-			deliverer()
-		{}
+            HasDeliverer(DelivererRegistry* dr)
+                : DelivererRegistry(),
+                  deliverer_()
+            {
+                dr->addToDelivererRegistry(PORTID().name, &deliverer_);
+            }
 
-		virtual
-		~HasDeliverer()
-		{}
+            virtual
+            ~HasDeliverer()
+            {}
 
-		virtual T*
-		getDeliverer() const
-		{
-			return &deliverer;
-		}
+            DELIVERERTYPE*
+            getDeliverer() const
+            {
+                return &deliverer_;
+            }
 
-	private:
-		mutable T deliverer;
-	};
-} // ldk
+        private:
+            mutable DELIVERERTYPE deliverer_;
+        };
+
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_HASDELIVERER_HPP
-
-
 

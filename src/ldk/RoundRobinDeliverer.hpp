@@ -35,28 +35,27 @@
 #include <WNS/RoundRobin.hpp>
 
 namespace wns { namespace ldk {
-	/**
-	 * @brief Round robin scheduling strategy
-	 * @ingroup hasdeliverer
-	 *
-	 * This class
-	 * @li implements the Deliverer interface,
-	 * @li may be used as parameter to HasDeliverer.
-	 *
-	 */
-	class RoundRobinDeliverer :
-		public Deliverer,
-		public RoundRobinLink
-	{
-	public:
-		virtual	CompoundHandlerInterface*
-		getAcceptor(const CompoundPtr& compound);
-	};
-} // ldk
+        /**
+         * @brief Round robin scheduling strategy
+         * @ingroup hasdeliverer
+         *
+         * This class
+         * @li implements the Deliverer interface,
+         * @li may be used as parameter to HasDeliverer.
+         *
+         */
+        class RoundRobinDeliverer
+            : public Deliverer,
+              public RoundRobinLink<IDelivererReceptacle>
+        {
+        public:
+            virtual IDelivererReceptacle*
+            getAcceptor(const CompoundPtr& compound);
+        };
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_ROUNDROBINDELIVERER_HPP
-
 
 

@@ -34,47 +34,22 @@
 using namespace wns::ldk;
 
 void
-FunctionalUnit::doConnect(FunctionalUnit* that)
+FunctionalUnit::doConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort)
 {
-	doDownConnect(that);
-	doUpConnect(that);
+    doDownConnect(that, srcPort, dstPort);
+    doUpConnect(that, srcPort, dstPort);
 } // _connect
 
 void
-FunctionalUnit::doDownConnect(FunctionalUnit* that)
+FunctionalUnit::doDownConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort)
 {
-	this->getConnector()->add(that);
-	that->getReceptor()->add(this);
+    this->getFromConnectorRegistry(srcPort)->add(that->getFromConnectorReceptacleRegistry(dstPort));
+    that->getFromReceptorRegistry(dstPort)->add(this->getFromReceptorReceptacleRegistry(srcPort));
 } // _downConnect
 
 void
-FunctionalUnit::doUpConnect(FunctionalUnit* that)
+FunctionalUnit::doUpConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort)
 {
-	that->getDeliverer()->add(this);
+    that->getFromDelivererRegistry(dstPort)->add(this->getFromDelivererReceptacleRegistry(srcPort));
 } // _upConnect
-
-bool
-FunctionalUnit::isAcceptingForwarded(const CompoundPtr& compound)
-{
-	return this->getFUN()->getLinkHandler()->isAcceptingForwarded(this, compound);
-}
-
-void
-FunctionalUnit::sendDataForwarded(const CompoundPtr& compound)
-{
-	getFUN()->getLinkHandler()->sendDataForwarded(this, compound);
-}
-
-void
-FunctionalUnit::wakeupForwarded()
-{
-	getFUN()->getLinkHandler()->wakeupForwarded(this);
-}
-
-void
-FunctionalUnit::onDataForwarded(const CompoundPtr& compound)
-{
-	getFUN()->getLinkHandler()->onDataForwarded(this, compound);
-}
-
 

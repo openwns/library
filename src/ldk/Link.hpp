@@ -33,53 +33,52 @@
 #include <stdint.h>
 
 namespace wns { namespace ldk {
-	class FunctionalUnit;
+        /**
+         * @brief Link between FUs.
+         *
+         * Link is the base class for all three different types of Links:
+         * Connector, Receptor and Deliverer.
+         *
+         * Every Link may contain a set of FUs, although implementations may choose
+         * to restrict the set size to some fixed values.
+         *
+         */
+        template <typename RECEPTACLETYPE>
+        class Link
+        {
+        public:
+            typedef std::vector<RECEPTACLETYPE*> ExchangeContainer;
 
-	/**
-	 * @brief Link between FUs.
-	 *
-	 * Link is the base class for all three different types of Links:
-	 * Connector, Receptor and Deliverer.
-	 *
-	 * Every Link may contain a set of FUs, although implementations may choose
-	 * to restrict the set size to some fixed values.
-	 *
-	 */
-	class Link
-	{
-	public:
-		typedef std::vector<FunctionalUnit*> ExchangeContainer;
+            virtual ~Link()
+            {}
 
-		virtual ~Link()
-		{}
+            /**
+             * @brief Add a FU to the link set.
+             */
+            virtual void add(RECEPTACLETYPE* it) = 0;
 
-		/**
-		 * @brief Add a FU to the link set.
-		 */
-		virtual void add(FunctionalUnit* it) = 0;
+            /**
+             * @brief Erase all FUs.
+             */
+            virtual void clear() = 0;
 
-		/**
-		 * @brief Erase all FUs.
-		 */
-		virtual void clear() = 0;
+            /**
+             * @brief Return number of FUs added.
+             */
+            virtual uint32_t size() const = 0;
 
-		/**
-		 * @brief Return number of FUs added.
-		 */
-		virtual uint32_t size() const = 0;
+            /**
+             * @brief Return set of stored FUs.
+             */
+            virtual const ExchangeContainer get() const = 0;
 
-		/**
-		 * @brief Return set of stored FUs.
-		 */
-		virtual const ExchangeContainer get() const = 0;
+            /**
+             * @brief Replace the current set of stored FUs.
+             */
+            virtual void set(const ExchangeContainer&) = 0;
+        };
 
-		/**
-		 * @brief Replace the current set of stored FUs.
-		 */
-		virtual void set(const ExchangeContainer&) = 0;
-	};
-
-} // ldk
+    } // ldk
 } // wns
 
 

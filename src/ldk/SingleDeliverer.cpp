@@ -31,7 +31,7 @@
 using namespace wns::ldk;
 
 SingleDeliverer::SingleDeliverer() :
-	SingleLink()
+    SingleLink<IDelivererReceptacle>()
 {
 }
 
@@ -39,12 +39,10 @@ SingleDeliverer::~SingleDeliverer()
 {
 }
 
-CompoundHandlerInterface*
+IDelivererReceptacle*
 SingleDeliverer::getAcceptor(const CompoundPtr&)
 {
-	assure(this->getFU() != NULL, "called getAcceptor although no functional unit below available");
-	return this->getFU();
+    assure(getRec() != NULL, "called getAcceptor although no functional unit below available");
+    return getRec();
 }
-
-
 

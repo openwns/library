@@ -52,13 +52,13 @@ namespace wns { namespace ldk { namespace multiplexer {
 	 */
 	class OpcodeDeliverer :
 		public Deliverer,
-		public RandomAccessLink
+                public RandomAccessLink<IDelivererReceptacle>
 	{
 	public:
 		void
 		setOpcodeProvider(FunctionalUnit* opcodeProvider);
 
-		virtual FunctionalUnit*
+		virtual IDelivererReceptacle*
 		getAcceptor(const CompoundPtr& compound);
 
 	private:

@@ -32,41 +32,65 @@
 #include <WNS/RoundRobin.hpp>
 
 namespace wns { namespace ldk {
-	class FunctionalUnit;
 
-	class RoundRobinLink :
-		virtual public Link
-	{
-		typedef wns::RoundRobin<FunctionalUnit*> ContainerType;
-	public:
-		RoundRobinLink();
+        template <typename RECEPTACLETYPE>
+        class RoundRobinLink
+            : virtual public Link<RECEPTACLETYPE>
+        {
+            typedef wns::RoundRobin<RECEPTACLETYPE*> ContainerType;
 
-		virtual
-		~RoundRobinLink();
+        public:
+            RoundRobinLink()
+                : recs()
+            {}
+
+            virtual
+            ~RoundRobinLink()
+            {}
 
 
-		// Link interface realization
-		virtual void
-		add(FunctionalUnit* it);
+            // Link interface realization
+            virtual void
+            add(RECEPTACLETYPE* it)
+            {
+                recs.add(it);
+            }
 
-		virtual uint32_t
-		size() const;
+            virtual uint32_t
+            size() const
+            {
+                return recs.size();
+            }
 
-		virtual void
-		clear();
+            virtual void
+            clear()
+            {
+                recs.clear();
+            }
 
-		virtual const Link::ExchangeContainer
-		get() const;
+            virtual const typename Link<RECEPTACLETYPE>::ExchangeContainer
+            get() const
+            {
+                return recs.getAllElements();
+            }
 
-		virtual void
-		set(const Link::ExchangeContainer&);
+            virtual void
+            set(const typename Link<RECEPTACLETYPE>::ExchangeContainer& src)
+            {
+                recs.clear();
+                for(typename Link<RECEPTACLETYPE>::ExchangeContainer::const_iterator it = src.begin();
+                    it != src.end();
+                    ++it)
+                {
+                    recs.add(*it);
+                }
+            }
 
-	protected:
-		ContainerType fus;
-	};
-} // ldk
+        protected:
+            ContainerType recs;
+        };
+    } // ldk
 } // wns
 
 #endif // WNS_LDK_SINGLELINK_HPP
-
 

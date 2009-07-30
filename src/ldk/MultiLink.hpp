@@ -29,41 +29,73 @@
 #define WNS_LDK_MULTILINK_HPP
 
 #include <WNS/ldk/Link.hpp>
-#include <WNS/logger/Logger.hpp>
-
 
 namespace wns { namespace ldk {
 
-	class FunctionalUnit;
+        template <typename RECEPTACLETYPE>
+        class MultiLink
+            : virtual public Link<RECEPTACLETYPE>
+        {
+        public:
+            MultiLink()
+            {}
 
+            virtual
+            ~MultiLink()
+            {}
 
-	class MultiLink :
-		virtual public Link
-	{
-	public:
-		MultiLink(){};
+            /// Link interface realization
+            virtual void
+            add(RECEPTACLETYPE* it)
+            {
+                recs.push_back(it);
+            }
 
-		virtual
-		~MultiLink(){};
+            virtual void
+            clear()
+            {
+                recs.clear();
+            }
 
-		/// Link interface realization
-		virtual void add(FunctionalUnit* fu);
-        /// Link interface realization
-		virtual void clear();
-        /// Link interface realization
-		virtual uint32_t size() const;
-        /// Link interface realization
-		virtual const Link::ExchangeContainer get() const;
-        /// Link interface realization
-		virtual void set(const Link::ExchangeContainer&);
+            virtual uint32_t
+            size() const
+            {
+                return recs.size();
+            }
 
+            virtual const typename Link<RECEPTACLETYPE>::ExchangeContainer
+            get() const
+            {
+                typename Link<RECEPTACLETYPE>::ExchangeContainer result;
 
-	protected:
-		 ExchangeContainer fus_;
-	};
-}} // ldk // wns
+                for(typename Link<RECEPTACLETYPE>::ExchangeContainer::const_iterator it = recs.begin();
+                    it != recs.end();
+                    ++it)
+                {
+                    result.push_back(*it);
+                }
+
+                return result;
+            }
+
+            virtual void
+            set(const typename Link<RECEPTACLETYPE>::ExchangeContainer& src)
+            {
+                recs.clear();
+
+                for(typename Link<RECEPTACLETYPE>::ExchangeContainer::const_iterator it = src.begin();
+                    it != src.end();
+                    ++it)
+                {
+                    recs.push_back(*it);
+                }
+            }
+
+        protected:
+            typename Link<RECEPTACLETYPE>::ExchangeContainer recs;
+        };
+    } // ldk
+} // wns
 
 #endif // NOT defined  WNS_LDK_MULTILINK_HPP
-
-
 

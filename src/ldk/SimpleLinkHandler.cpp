@@ -36,86 +36,86 @@
 using namespace wns::ldk;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(SimpleLinkHandler,
-				     LinkHandlerInterface,
-				     "wns.ldk.SimpleLinkHandler",
-				     wns::ldk::PyConfigCreator);
+                                     LinkHandlerInterface,
+                                     "wns.ldk.SimpleLinkHandler",
+                                     wns::ldk::PyConfigCreator);
 
 SimpleLinkHandler::SimpleLinkHandler(const wns::pyconfig::View& _config) :
-	config(_config),
-	traceCompoundJourney(config.get<bool>("traceCompoundJourney")),
-	isAcceptingLogger(config.get<wns::pyconfig::View>("isAcceptingLogger")),
-	sendDataLogger(config.get<wns::pyconfig::View>("sendDataLogger")),
-	wakeupLogger(config.get<wns::pyconfig::View>("wakeupLogger")),
-	onDataLogger(config.get<wns::pyconfig::View>("onDataLogger"))
+    config(_config),
+    traceCompoundJourney(config.get<bool>("traceCompoundJourney")),
+    isAcceptingLogger(config.get<wns::pyconfig::View>("isAcceptingLogger")),
+    sendDataLogger(config.get<wns::pyconfig::View>("sendDataLogger")),
+    wakeupLogger(config.get<wns::pyconfig::View>("wakeupLogger")),
+    onDataLogger(config.get<wns::pyconfig::View>("onDataLogger"))
 {
 } // SimpleLinkHandler
 
 bool
-SimpleLinkHandler::isAcceptingForwarded(FunctionalUnit* fu, const CompoundPtr& compound)
+SimpleLinkHandler::isAccepting(IConnectorReceptacle* cr, const CompoundPtr& compound)
 {
-	MESSAGE_BEGIN(VERBOSE, isAcceptingLogger, m, fu->getFUN()->getName());
-	m << " calling doIsAccepting of FU "
-	  << fu->getName();
-	MESSAGE_END();
+    MESSAGE_BEGIN(VERBOSE, isAcceptingLogger, m, cr->getFU()->getFUN()->getName());
+    m << " calling doIsAccepting of FU "
+      << cr->getFU()->getName();
+    MESSAGE_END();
 
-	bool isAccepting = doIsAccepting(fu, compound);
+    bool isAccepting = doIsAccepting(cr, compound);
 
-	MESSAGE_BEGIN(VERBOSE, isAcceptingLogger, m, fu->getFUN()->getName());
-	m << " function isAccepting(...) of FU "
-	  << fu->getName() << " called: FU is ";
-	if (isAccepting)
-		m << "accepting";
-	else
-		m << "not accepting";
-	m << "\ncompound: " << compound.getPtr();
-	MESSAGE_END();
+    MESSAGE_BEGIN(VERBOSE, isAcceptingLogger, m, cr->getFU()->getFUN()->getName());
+    m << " function isAccepting(...) of FU "
+      << cr->getFU()->getName() << " called: FU is ";
+    if (isAccepting)
+        m << "accepting";
+    else
+        m << "not accepting";
+    m << "\ncompound: " << compound.getPtr();
+    MESSAGE_END();
 
-	return isAccepting;
+    return isAccepting;
 } // isAcceptingForwarded
 
 void
-SimpleLinkHandler::sendDataForwarded(FunctionalUnit* fu, const CompoundPtr& compound)
+SimpleLinkHandler::sendData(IConnectorReceptacle* cr, const CompoundPtr& compound)
 {
-	MESSAGE_BEGIN(VERBOSE, sendDataLogger, m, fu->getFUN()->getName());
-	m << " function sendData(...) of FU "
-	  << fu->getName() << " called"
-	  << "\ncompound: " << compound.getPtr();
-	MESSAGE_END();
+    MESSAGE_BEGIN(VERBOSE, sendDataLogger, m, cr->getFU()->getFUN()->getName());
+    m << " function sendData(...) of FU "
+      << cr->getFU()->getName() << " called"
+      << "\ncompound: " << compound.getPtr();
+    MESSAGE_END();
 
 #ifndef WNS_NO_LOGGING
-	if (traceCompoundJourney && compound)
-		compound->visit(fu); // JOURNEY
+    if (traceCompoundJourney && compound)
+        compound->visit(cr->getFU()); // JOURNEY
 #endif
 
-	doSendData(fu, compound);
+    doSendData(cr, compound);
 } // sendDataForwarded
 
 void
-SimpleLinkHandler::wakeupForwarded(FunctionalUnit* fu)
+SimpleLinkHandler::wakeup(IReceptorReceptacle* rr)
 {
-	MESSAGE_BEGIN(VERBOSE, wakeupLogger, m, fu->getFUN()->getName());
-	m << " function wakeup(...) of FU "
-	  << fu->getName() << " called";
-	MESSAGE_END();
+    MESSAGE_BEGIN(VERBOSE, wakeupLogger, m, rr->getFU()->getFUN()->getName());
+    m << " function wakeup(...) of FU "
+      << rr->getFU()->getName() << " called";
+    MESSAGE_END();
 
-	doWakeup(fu);
+    doWakeup(rr);
 } // wakeupForwarded
 
 void
-SimpleLinkHandler::onDataForwarded(FunctionalUnit* fu, const CompoundPtr& compound)
+SimpleLinkHandler::onData(IDelivererReceptacle* dr, const CompoundPtr& compound)
 {
-	MESSAGE_BEGIN(VERBOSE, onDataLogger, m, fu->getFUN()->getName());
-	m << " function onData(...) of FU "
-	  << fu->getName() << " called"
-	  << "\ncompound: " << compound.getPtr();
-	MESSAGE_END();
+    MESSAGE_BEGIN(VERBOSE, onDataLogger, m, dr->getFU()->getFUN()->getName());
+    m << " function onData(...) of FU "
+      << dr->getFU()->getName() << " called"
+      << "\ncompound: " << compound.getPtr();
+    MESSAGE_END();
 
 #ifndef WNS_NO_LOGGING
-	if (traceCompoundJourney && compound)
-		compound->visit(fu); // JOURNEY
+    if (traceCompoundJourney && compound)
+        compound->visit(dr->getFU()); // JOURNEY
 #endif
 
-	doOnData(fu, compound);
+    doOnData(dr, compound);
 } // onDataForwarded
 
 
