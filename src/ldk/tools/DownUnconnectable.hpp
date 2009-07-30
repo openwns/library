@@ -92,6 +92,7 @@ namespace wns { namespace ldk { namespace tools {
 			ss << "Impossible to call onData of the Functional Unit" << this->getName();
 			throw wns::Exception(ss.str());
 		}
+    };
 }}}
 #endif
 
