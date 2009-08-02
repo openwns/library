@@ -36,7 +36,7 @@ namespace wns { namespace ldk { namespace tools {
 
 	class DownUnconnectable :
 		public virtual FunctionalUnit,
-		public virtual CompoundHandlerInterface,
+		public virtual CompoundHandlerInterface<FunctionalUnit>,
 		public virtual HasConnectorInterface,
 		public virtual HasReceptorInterface
 	{
@@ -92,6 +92,7 @@ namespace wns { namespace ldk { namespace tools {
 			ss << "Impossible to call onData of the Functional Unit" << this->getName();
 			throw wns::Exception(ss.str());
 		}
+    };
 }}}
 #endif
 
