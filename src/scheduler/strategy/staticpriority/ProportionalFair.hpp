@@ -69,10 +69,6 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 	  doStartSubScheduling(SchedulerStatePtr schedulerState,
 			       wns::scheduler::SchedulingMapPtr schedulingMap);
 
-	private:
-	  virtual void
-	  onColleaguesKnown();
-
 	protected:
 	  /** @brief Number of packets to schedule of the same cid before proceeding to the next one */
 	  int blockSize;

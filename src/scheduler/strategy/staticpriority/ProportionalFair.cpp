@@ -42,11 +42,16 @@ ProportionalFair::ProportionalFair(const wns::pyconfig::View& config)
     allUsers(),
     preferenceVariationDistribution(NULL)
 {
-  assure(blockSize>0,"invalid blockSize="<<blockSize);
-  MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair(): constructed with blockSize="<<blockSize);
-  pastDataRates.clear();
-  allUsers.clear();
-  preferenceVariationDistribution = new wns::distribution::Uniform(-1.0, 1.0);
+    assure(blockSize>0,"invalid blockSize="<<blockSize);
+    MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair(): constructed with blockSize="<<blockSize);
+    pastDataRates.clear();
+    allUsers.clear();
+    preferenceVariationDistribution = new wns::distribution::Uniform(-1.0, 1.0);
+    // historyWeight:
+    // if 0 no history is taken into account -> maxThroughput Scheduler
+    assure(scalingBetweenMaxTPandPFair>=0.0, "scalingBetweenMaxTPandPFair="<<scalingBetweenMaxTPandPFair<<" is out of bounds");
+    assure(scalingBetweenMaxTPandPFair<=1.0, "scalingBetweenMaxTPandPFair="<<scalingBetweenMaxTPandPFair<<" is out of bounds");
+    assure((historyWeight>=0.0)&&(historyWeight<1.0), "historyWeight="<<historyWeight<<" is out of bounds");
 }
 
 ProportionalFair::~ProportionalFair()
@@ -57,17 +62,9 @@ ProportionalFair::~ProportionalFair()
 void
 ProportionalFair::initialize()
 {
-  MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair(): initialized");
-}
-
-void
-ProportionalFair::onColleaguesKnown()
-{
-  MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair(): initialized");
+  MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair::initialize()");
   wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> phyMode = colleagues.registry->getPhyModeMapper()->getHighestPhyMode();
-  MESSAGE_SINGLE(NORMAL, logger, "Message number 1");
   maxRateOfSubchannel = phyMode->getDataRate();
-  MESSAGE_SINGLE(NORMAL, logger, "Message number 2");
   MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair: maxRateOfSubchannel="<<maxRateOfSubchannel<<" bit/s");
   assure(maxRateOfSubchannel>0.0, "unknown maxRateOfSubchannel");
 }
@@ -120,7 +117,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
 	      // a RN must get a better share of the bandwidth
 	      // here: proportional to its number of users:
 	      int weight = colleagues.registry->getTotalNumberOfUsers(iter->first);
-	      MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user<<"): dataRate("<<colleagues.registry->getNameForUser(iter->first)<<")="<<dataRate<<" with weight="<<weight);
+              //MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<colleagues.registry->getNameForUser(iter->first)<<"): weight="<<weight);
 	      dataRate /= static_cast<double>(weight);
 	      // dataRate now has the meaning of a weight.
 	      pastDataRate = dataRate;
@@ -133,12 +130,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
       // preference is achievable current user rate divided by a history
       // factor that takes the past throughput of this user into account
 
-      // historyWeight:
-      // if 0 no history is taken into account -> maxThroughput Scheduler
-
-      assure(scalingBetweenMaxTPandPFair>=0.0, "scalingBetweenMaxTPandPFair is out of bounds");
-      assure(scalingBetweenMaxTPandPFair<=1.0, "scalingBetweenMaxTPandPFair is out of bounds");
-      assure((historyWeight>=0.0)&&(historyWeight<1.0), "historyWeight is out of bounds");
+      assure(maxRateOfSubchannel>0.0, "unknown maxRateOfSubchannel");
 
       // maxRateOfSubchannel is constant, with range [0..1][bit/s]
       float resultMaxThroughput = phyModeRate / maxRateOfSubchannel;
@@ -153,7 +145,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
 	(1.0-scalingBetweenMaxTPandPFair) * resultMaxThroughput
 	+scalingBetweenMaxTPandPFair  * resultPropFair;
 
-      MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user->getName()<<"): pastDataRate= "<<pastDataRate<<"bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
+      MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user->getName()<<"): pastDataRate= "<<pastDataRate<<" bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
 
       // calculate preferences for users and order them
       preferences.push(UserPreference(UserPref, user));
@@ -288,7 +280,6 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
   bool spaceLeft= true;
   int pduCounter = 0;
-  int blockSize = INT_MAX;
   // static const noCID and then check for (currentConnection != noCID)
   while(spaceLeft && (currentConnection >= 0))
     {
