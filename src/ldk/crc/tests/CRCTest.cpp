@@ -27,9 +27,11 @@
 
 #include "CRCTest.hpp"
 
+// begin example "wns.ldk.crc.tests.CRCTest.headers.example"
 #include <WNS/pyconfig/Parser.hpp>
-
 #include <WNS/ldk/tests/LayerStub.hpp>
+#include <WNS/ldk/fun/Main.hpp>
+// end example
 #include <WNS/ldk/tools/Bridge.hpp>
 #include <WNS/ldk/tools/Consumer.hpp>
 #include <WNS/ldk/tools/Producer.hpp>
@@ -47,6 +49,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION( CRCTest );
 const int
 CRCTest::checkSumSize = 8;
 
+// begin example "wns.ldk.crc.tests.CRCTest.prepare.example"
 void
 CRCTest::setUp()
 {
@@ -58,7 +61,9 @@ CRCTest::setUp()
 
 	//:BEWARE: Construction of this test's environment is not complete yet
 } // setUp
+// end example
 
+// begin example "wns.ldk.crc.tests.CRCTest.setupCRC.example"
 void
 CRCTest::setUpCRC(const int _checkSumSize, const bool _Dropping)
 {
@@ -76,7 +81,9 @@ CRCTest::setUpCRC(const int _checkSumSize, const bool _Dropping)
 
 	crc = new CRC(fuNet, config);
 }
+// end example
 
+// begin example "wns.ldk.crc.tests.CRCTest.setupPERProvider.example"
 void
 CRCTest::setUpPERProvider(const double _PER)
 {
@@ -101,6 +108,7 @@ CRCTest::setUpPERProvider(const double _PER)
 	wns::simulator::getEventScheduler()->reset();
 
 }
+// end example
 
 void
 CRCTest::tearDown()
@@ -109,7 +117,7 @@ CRCTest::tearDown()
 	delete layer;
 } // tearDown
 
-
+// begin example "wns.ldk.crc.tests.CRCTest.testNoErrors.example"
 void
 CRCTest::testNoErrors()
 {
@@ -125,6 +133,7 @@ CRCTest::testNoErrors()
 	CPPUNIT_ASSERT_EQUAL( size_t(1), upper->received.size() );
 
 } // testNoErrors
+// end example
 
 void
 CRCTest::testErrors()

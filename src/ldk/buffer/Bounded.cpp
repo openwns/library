@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 #include <WNS/ldk/buffer/Bounded.hpp>
-#include <WNS/ldk/CompoundHandlerInterface.hpp>
+#include <WNS/ldk/IConnectorReceptacle.hpp>
 
 using namespace wns::ldk;
 using namespace wns::ldk::buffer;
@@ -144,7 +144,7 @@ Bounded::tryToSendOnce()
 	buffer.pop_front();
 	currentSize -= (*sizeCalculator)(compound);
 
-	CompoundHandlerInterface* target = getConnector()->getAcceptor(compound);
+	IConnectorReceptacle* target = getConnector()->getAcceptor(compound);
 	target->sendData(compound);
 
 	return true;

@@ -28,32 +28,34 @@
 #ifndef WNS_LDK_HASCONNECTORINTERFACE_HPP
 #define WNS_LDK_HASCONNECTORINTERFACE_HPP
 
+#include <string>
+
 namespace wns { namespace ldk {
 
-	class Connector;
+        class Connector;
 
-	/**
-	 * @defgroup hasconnector HasConnector Interface
-	 * @ingroup ldkaspects
-	 * @brief Provide scheduling strategies to forward compounds to lower functional units.
-	 *
-	 */
+        /**
+         * @defgroup hasconnector HasConnector Interface
+         * @ingroup ldkaspects
+         * @brief Provide scheduling strategies to forward compounds to lower functional units.
+         *
+         */
 
-	/**
-	 * @brief Interface for the aspect of handling lower functional units.
-	 * @ingroup hasconnector
-	 *
-	 */
-	struct HasConnectorInterface
-	{
-		virtual Connector* getConnector() const = 0;
-		virtual ~HasConnectorInterface() {}
-	};
+        /**
+         * @brief Interface for the aspect of handling lower functional units.
+         * @ingroup hasconnector
+         *
+         */
+        class HasConnectorInterface
+        {
+        public:
+            virtual Connector* getConnector() const = 0;
+            //            virtual Connector* getConnector(std::string portname) const = 0;
+            virtual ~HasConnectorInterface() {}
+        };
 
-}}
-
+    } //ldk
+} //wns
 
 #endif // NOT defined WNS_LDK_HASCONNECTORINTERFACE_HPP
-
-
 

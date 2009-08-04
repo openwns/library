@@ -89,8 +89,10 @@ TableProbeBus::output()
 
 			std::ofstream out((outputPath + "/" + outfileBase + "_" + valueType + of->getFilenameSuffix()).c_str(),
 							  std::ios::out);
-			out << of->getPrefix() << "This table contains the " << valueType << " of: " << outfileBase << "\n\n";
-			out << of->getPrefix() << "Dimensions:\n\n";
+			out << of->getPrefix() << "This table contains the " << valueType << " of: " << outfileBase << "\n";
+            out << of->getPrefix() << "\n";
+			out << of->getPrefix() << "Dimensions:\n";
+            out << of->getPrefix() << "\n";
 			for (size_t ii = 0; ii<sorters.size(); ++ii)
 			{
 				out << of->getPrefix() << "Dim " << sorters.size()-ii << ": '" << sorters.at(ii).getIdName() << "'\n";

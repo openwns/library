@@ -77,23 +77,23 @@ FrameDispatcher::whenConnecting()
 
 
 void
-FrameDispatcher::doDownConnect(FunctionalUnit* that)
+FrameDispatcher::doDownConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort)
 {
 	assure(pending, "no unit above dispatcher waiting for a connect from below.");
 	assure(!downConnected, "you may only downconnect once.");
 
-	pending->downConnect(that);
+        pending->downConnect(that, srcPort, dstPort);
 	downConnected = true;
 } // _downConnect
 
 
 void
-FrameDispatcher::doUpConnect(FunctionalUnit* that)
+FrameDispatcher::doUpConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort)
 {
 	assure(pending, "no unit above dispatcher waiting for a connect from below.");
 	assure(!upConnected, "you may only upconnect once.");
 
-	pending->upConnect(that);
+        pending->upConnect(that, srcPort, dstPort);
 	upConnected = true;
 } // _upConnect
 

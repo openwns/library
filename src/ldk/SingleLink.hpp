@@ -30,50 +30,93 @@
 
 #include <WNS/ldk/Link.hpp>
 
+#include <WNS/ldk/FunctionalUnit.hpp>
+
+#include <iostream>
+
 namespace wns { namespace ldk {
 
-	class SingleLink :
-		virtual public Link
-	{
-	public:
-		SingleLink();
+        template <typename RECEPTACLETYPE>
+        class SingleLink
+            : virtual public Link<RECEPTACLETYPE>
+        {
+        public:
+            SingleLink()
+                : rec(NULL)
+            {}
 
-		virtual
-		~SingleLink();
 
-		/**
-		 * @name Link interface
-		 */
-		//{@
-		virtual void
-		add(FunctionalUnit* it);
+            virtual
+            ~SingleLink()
+            {
+                rec = NULL;
+            }
 
-		virtual uint32_t
-		size() const;
+            /**
+             * @name Link interface
+             */
+            //{@
+            virtual void
+            add(RECEPTACLETYPE* it)
+            {
+                assure(
+                    rec == NULL,
+                    "Can't add " + it->getFU()->toString() + ", already got " + rec->getFU()->toString());
 
-		virtual void
-		clear();
+                assureNotNull(it);
 
-		virtual const Link::ExchangeContainer
-		get() const;
+                rec = it;
+            }
 
-		virtual void
-		set(const Link::ExchangeContainer&);
-		//@}
+            virtual uint32_t
+            size() const
+            {
+                return rec == NULL ? 0 : 1;
+            }
 
-	protected:
-		FunctionalUnit*
-		getFU() const
-		{
-			return fu;
-		}
+            virtual void
+            clear()
+            {
+                rec = NULL;
+            }
 
-	private:
-		FunctionalUnit* fu;
-	};
-} // ldk
+            virtual const typename Link<RECEPTACLETYPE>::ExchangeContainer
+            get() const
+            {
+                typename Link<RECEPTACLETYPE>::ExchangeContainer container;
+                if(this->rec != NULL)
+                {
+                    container.push_back(rec);
+                }
+                return container;
+            }
+
+            virtual void
+            set(const typename Link<RECEPTACLETYPE>::ExchangeContainer& src)
+            {
+                assure(src.size() < 2, "SingleLink takes one FU at most");
+
+                rec = NULL;
+                if (!src.empty())
+                {
+                    this->rec = src.front();
+                    assureNotNull(rec);
+                }
+            }
+            //@}
+
+        protected:
+            RECEPTACLETYPE*
+            getRec() const
+            {
+                return rec;
+            }
+
+        private:
+            RECEPTACLETYPE* rec;
+        };
+    } // ldk
 } // wns
 
 #endif // WNS_LDK_SINGLELINK_HPP
-
 

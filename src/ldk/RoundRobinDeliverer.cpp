@@ -30,17 +30,15 @@
 
 using namespace wns::ldk;
 
-CompoundHandlerInterface*
+IDelivererReceptacle*
 RoundRobinDeliverer::getAcceptor(const CompoundPtr&)
 {
-	assure(size(), "FunctionalUnit without functional units above");
+    assure(size(), "FunctionalUnit without functional units above");
 
-	fus.startRound();
-	FunctionalUnit* candidate = fus.next();
-	fus.endRound();
+    recs.startRound();
+    IDelivererReceptacle* candidate = recs.next();
+    recs.endRound();
 
-	return candidate;
+    return candidate;
 } // getAcceptor
-
-
 

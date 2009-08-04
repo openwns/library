@@ -34,34 +34,32 @@
 
 namespace wns { namespace ldk {
 
-	/**
-	 * @brief Single link to antother FU
-	 * @ingroup hasdeliverer
-	 * @author Marc Schinnenburg <msg@comnets.rwth-aachen.de>
-	 *
-	 * This class
-	 * @li implements the Deliverer interface,
-	 * @li may be used as parameter to HasDeliverer.
-	 *
-	 */
-	class SingleDeliverer :
-		virtual public Deliverer,
-		public SingleLink
-	{
-	public:
-		SingleDeliverer();
+        /**
+         * @brief Single link to antother FU
+         * @ingroup hasdeliverer
+         * @author Marc Schinnenburg <msg@comnets.rwth-aachen.de>
+         *
+         * This class
+         * @li implements the Deliverer interface,
+         * @li may be used as parameter to HasDeliverer.
+         *
+         */
+        class SingleDeliverer
+            : virtual public Deliverer,
+              public SingleLink<IDelivererReceptacle>
+        {
+        public:
+            SingleDeliverer();
 
-		virtual
-		~SingleDeliverer();
+            virtual
+            ~SingleDeliverer();
 
-		virtual	CompoundHandlerInterface*
-		getAcceptor(const CompoundPtr& compound);
-	};
-} // ldk
+            virtual IDelivererReceptacle*
+            getAcceptor(const CompoundPtr& compound);
+        };
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_SINGLEDELIVERER_HPP
-
-
 

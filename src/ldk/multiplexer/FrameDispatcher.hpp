@@ -106,8 +106,8 @@ namespace wns { namespace ldk { namespace multiplexer {
 		virtual FunctionalUnit* whenConnecting();
 
 	private:
-		virtual void doDownConnect(FunctionalUnit* that);
-		virtual void doUpConnect(FunctionalUnit* that);
+		virtual void doDownConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort);
+		virtual void doUpConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort);
 
 		pyconfig::View config;
 

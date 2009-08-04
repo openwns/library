@@ -62,11 +62,19 @@ namespace wns { namespace ldk { namespace fun {
 		virtual void addFunctionalUnit(const std::string& commandName, const std::string& functionalUnitName, FunctionalUnit* functionalUnit);
 		virtual void addFunctionalUnit(const std::string& name, FunctionalUnit* functionalUnit);
 		virtual void removeFunctionalUnit(const std::string& name);
-		virtual void connectFunctionalUnit(const std::string& upperName, const std::string& lowerName);
-		virtual void upConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName);
-		virtual void downConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName);
+		virtual void connectFunctionalUnit(
+                    const std::string& upperName, const std::string& lowerName,
+                    const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort");
 
-		virtual void reconfigureFUN(const wns::pyconfig::View& reconfig);
+		virtual void upConnectFunctionalUnit(
+                    const std::string& upperName, const std::string& lowerName,
+                    const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort");
+
+		virtual void downConnectFunctionalUnit(
+                    const std::string& upperName, const std::string& lowerName,
+                    const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort");
+
+            //		virtual void reconfigureFUN(const wns::pyconfig::View& reconfig);
 		virtual void removeFUsFromCommandPool();
 
 		// FU access
@@ -97,11 +105,16 @@ namespace wns { namespace ldk { namespace fun {
 			return parent;
 		} // getParent
 
-		fun::Sub* clone() const;
+            //		fun::Sub* clone() const;
 
 	private:
 		virtual bool _knowsFunctionalUnit(const std::string& name) const;
-
+            /*
+            template<RECEPTACLETYPE>
+            void
+            translateLink(Link<RECEPTACLETYPE>* link,
+                          const std::map<RECEPTACLETYPE*,RECEPTACLETYPE*>& translate);
+            */
 		fun::FUN* parent;
 		Layer* layer;
 		CommandProxy* proxy;

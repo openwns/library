@@ -241,6 +241,74 @@ class Moments(ITreeNodeGenerator):
 
         yield tree.TreeNode(wrappers.ProbeBusWrapper(pb, ''))
 
+class Plot2D(ITreeNodeGenerator):
+
+    def __init__(self, 
+                    xDataKey, 
+                    minX, 
+                    maxX, 
+                    resolution = None, 
+                    statEvals = ['mean'], 
+                    name = None, 
+                    description = None):
+        
+        self.xDataKey = xDataKey
+        self.minX = minX
+        self.maxX = maxX
+        if resolution == None:
+            resolution = maxX - minS
+        else:        
+            self.resolution = resolution
+            
+        self.statEvals = statEvals
+        
+        if name == None:
+            self.name = "y over " + xDataKey
+        else:    
+            self.name = name
+            
+        if description == None:
+            self.description = "y over " + xDataKey
+        else:          
+            self.description = description        
+
+    def __call__(self, pathname):
+        assert len(self.statEvals) >= 1, "You must provide at least one statistical Evaluation"
+        
+        momentseval = statistics.MomentsEval(format = "fixed", 
+                            name = self.name,
+                            description = self.description,
+                            scalingFactor = 1.0)
+        
+        root = tree.TreeNode(wrappers.ProbeBusWrapper(
+            openwns.probebus.StatEvalProbeBus(
+                pathname + "_" + self.statEvals[0] + '_Log.dat', momentseval), ''))
+        
+        leaf = root
+        
+        for statE in self.statEvals[1:]:
+            momentseval = statistics.MomentsEval(format = "fixed", 
+                                                name = self.name,
+                                                description = self.description,
+                                                scalingFactor = 1.0)
+                                             
+            pb = tree.TreeNode(wrappers.ProbeBusWrapper(
+                openwns.probebus.StatEvalProbeBus(pathname + "_" + statE + '_Log.dat', momentseval), ''))
+            leaf.addChild(pb)
+            leaf = pb
+          
+        tableNode = Table(axis1 = self.xDataKey, 
+            minValue1 = self.minX, 
+            maxValue1 = self.maxX, 
+            resolution1 = self.resolution, 
+            values = self.statEvals,
+            formats = ['WrowserReadable'])
+            
+        for creation in tableNode(pathname):
+            leaf.addChild(creation)  
+
+        yield root
+
 class Logger(ITreeNodeGenerator):
 
     def __init__(self):
@@ -263,7 +331,7 @@ class Table(ITreeNodeGenerator):
 
         numAxes = 1
         self.tabPars = []
-        assert paramdict.has_key("axis1"), "You need to specify at least on axis. Use (axisN, minValueN, maxValueN, resolutionN) with an integer N starting at 1"
+        assert paramdict.has_key("axis1"), "You need to specify at least one axis. Use (axisN, minValueN, maxValueN, resolutionN) with an integer N starting at 1"
         while(1):
             if paramdict.has_key("axis%d" % numAxes):
                 assert paramdict.has_key("minValue%d" % numAxes), "You need to specify all parameters for an axis (axisN, minValueN, maxValueN, resolutionN)"

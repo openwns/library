@@ -30,41 +30,42 @@
 
 #include <WNS/ldk/Compound.hpp>
 #include <WNS/ldk/Link.hpp>
+#include <WNS/ldk/IDelivererReceptacle.hpp>
 
 #include <stdint.h>
 
 namespace wns { namespace ldk {
-	class CompoundHandlerInterface;
 
-	/**
-	 * @brief Deliverer scheduling strategy interface.
-	 * @ingroup hasdeliverer
-	 *
-	 * Deliverer is one of the 5 aspects of a FU (see @ref ldkaspects.) <br>
-	 *
-	 * Deliverer is an abstract base class describing the interface required for
-	 * the implementation of strategies to select a FU to deliver a given
-	 * compound to in the incoming data flow. A FU does not select a FU for
-	 * compound delivery in the incoming data flow directly. Instead it
-	 * delegates the choice to its Deliverer strategy. Besides the strategy for
-	 * FU selection, the Deliverer holds the set of FUs the FU is connected to
-	 * in the direction of incoming data flows.<br>
-	 *
-	 * For incoming data flows no inter-FU flow control is needed. This is why
-	 * there is no strategy pairing as for outgoing data flows
-	 * (Receptor/Connector.)
-	 *
-	 */
-	class Deliverer :
-		public virtual Link
-	{
-	public:
-		virtual ~Deliverer()
-		{}
+        /**
+         * @brief Deliverer scheduling strategy interface.
+         * @ingroup hasdeliverer
+         *
+         * Deliverer is one of the 5 aspects of a FU (see @ref ldkaspects.) <br>
+         *
+         * Deliverer is an abstract base class describing the interface required for
+         * the implementation of strategies to select a FU to deliver a given
+         * compound to in the incoming data flow. A FU does not select a FU for
+         * compound delivery in the incoming data flow directly. Instead it
+         * delegates the choice to its Deliverer strategy. Besides the strategy for
+         * FU selection, the Deliverer holds the set of FUs the FU is connected to
+         * in the direction of incoming data flows.<br>
+         *
+         * For incoming data flows no inter-FU flow control is needed. This is why
+         * there is no strategy pairing as for outgoing data flows
+         * (Receptor/Connector.)
+         *
+         */
+        class Deliverer
+            : public virtual Link<IDelivererReceptacle>
+        {
+        public:
+            virtual ~Deliverer()
+            {}
 
-		virtual	CompoundHandlerInterface* getAcceptor(const CompoundPtr& compound) = 0;
-	};
-}}
+            virtual IDelivererReceptacle* getAcceptor(const CompoundPtr& compound) = 0;
+        };
+    }
+}
 
 
 #endif // NOT defined WNS_LDK_DELIVERER_HPP

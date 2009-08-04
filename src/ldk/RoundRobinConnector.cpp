@@ -33,53 +33,51 @@ using namespace wns::ldk;
 bool
 RoundRobinConnector::hasAcceptor(const CompoundPtr& compound)
 {
-	if(fus.size() == 1) {
-		return fus.current()->isAccepting(compound);
-	}
+    if(recs.size() == 1) {
+        return recs.current()->isAccepting(compound);
+    }
 
-	bool result = false;
+    bool result = false;
 
-	fus.startRound();
-	while(fus.hasNext()) {
-		FunctionalUnit* it = fus.next();
+    recs.startRound();
+    while(recs.hasNext()) {
+        IConnectorReceptacle* it = recs.next();
 
-		if(it->isAccepting(compound)) {
-			result = true;
-			break;
-		}
-	}
-	fus.cancelRound();
-	return result;
+        if(it->isAccepting(compound)) {
+            result = true;
+            break;
+        }
+    }
+    recs.cancelRound();
+    return result;
 } // hasAcceptor
 
 
-CompoundHandlerInterface*
+IConnectorReceptacle*
 RoundRobinConnector::getAcceptor(const CompoundPtr& compound)
 {
-	assure(!fus.empty(), "Called getAcceptor even though no FU available");
+    assure(!recs.empty(), "Called getAcceptor even though no FU available");
 
-	if(fus.size() == 1) {
-		assure(fus.current()->isAccepting(compound), "Called getAcceptor although no FU is accepting");
-		return fus.current();
-	}
+    if(recs.size() == 1) {
+        assure(recs.current()->isAccepting(compound), "Called getAcceptor although no FU is accepting");
+        return recs.current();
+    }
 
-	FunctionalUnit* candidate = NULL;
+    IConnectorReceptacle* candidate = NULL;
 
-	fus.startRound();
-	while(fus.hasNext()) {
-		candidate = fus.next();
-		if(candidate->isAccepting(compound)) {
-			break;
-		} else {
-			// not a candidate if not accpeting
-			candidate = NULL;
-		}
-	}
-	fus.endRound();
+    recs.startRound();
+    while(recs.hasNext()) {
+        candidate = recs.next();
+        if(candidate->isAccepting(compound)) {
+            break;
+        } else {
+            // not a candidate if not accpeting
+            candidate = NULL;
+        }
+    }
+    recs.endRound();
 
-	assure(candidate, "getAcceptor call, but there is no valid candidate.");
-	return candidate;
+    assure(candidate, "getAcceptor call, but there is no valid candidate.");
+    return candidate;
 } // getAcceptor
-
-
 

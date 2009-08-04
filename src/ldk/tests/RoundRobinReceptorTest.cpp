@@ -123,7 +123,7 @@ namespace wns { namespace ldk { namespace tests {
 			CPPUNIT_ASSERT_EQUAL( 2, fu2.wakeupCalled );
 			CPPUNIT_ASSERT_EQUAL( 3, fu3.wakeupCalled );
 			CPPUNIT_ASSERT_EQUAL( 0, fu4.wakeupCalled );
-			Link::ExchangeContainer exchange;
+                        Link<IReceptorReceptacle>::ExchangeContainer exchange;
 			exchange = rrr.get();
 			exchange[1] = &fu4;
 			rrr.set(exchange);

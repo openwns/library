@@ -97,23 +97,29 @@ namespace wns { namespace ldk { namespace fun {
 		/**
 		 * @brief Connect two FUs in the outgoing and in the incoming flow.
 		 */
-		virtual void connectFunctionalUnit(const std::string& upperName, const std::string& lowerName) = 0;
+		virtual void connectFunctionalUnit(
+                    const std::string& upperName, const std::string& lowerName,
+                    const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort") = 0;
 
 		/**
 		 * @brief Connect two FUs in the incoming flow.
 		 */
-		virtual void upConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName) = 0;
+		virtual void upConnectFunctionalUnit(
+                    const std::string& upperName, const std::string& lowerName,
+                    const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort") = 0;
 
 		/**
 		 * @brief Connect two FUs in the outgoing flow.
 		 */
-		virtual void downConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName) = 0;
+		virtual void downConnectFunctionalUnit(
+                    const std::string& upperName, const std::string& lowerName,
+                    const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort") = 0;
 
 		/**
 		 * @brief Replace a single FU by another FU using a PyConfigView for
 		 * controling the reconfiguration process.
 		 */
-		virtual void reconfigureFUN(const wns::pyconfig::View& reconfig) = 0;
+            //		virtual void reconfigureFUN(const wns::pyconfig::View& reconfig) = 0;
 
 		//
 		// FU access
