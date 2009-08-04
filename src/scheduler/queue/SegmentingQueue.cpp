@@ -43,7 +43,11 @@ SegmentingQueue::SegmentingQueue(const wns::pyconfig::View& _config)
 	  logger(_config.get("logger")),
 	  minimumSegmentSize(_config.get<uint32_t>("minimumSegmentSize")),
 	  config(_config),
-	  myFUN()
+	  myFUN(),
+      segmentHeaderReader(NULL),
+      fixedHeaderSize(_config.get<Bit>("fixedHeaderSize")),
+      extensionHeaderSize(_config.get<Bit>("extensionHeaderSize")),
+      currentSegmentNumber(0)
 {
 }
 
@@ -71,6 +75,9 @@ void SegmentingQueue::setFUN(wns::ldk::fun::FUN* fun)
 	std::string sizeProbeName = config.get<std::string>("sizeProbeName");
 	sizeProbeBus = wns::probe::bus::ContextCollectorPtr(new wns::probe::bus::ContextCollector(localContext, sizeProbeName));
 	myFUN = fun;
+
+    segmentHeaderReader = myFUN->getCommandReader(config.get<std::string>("segmentHeaderCommandName"));
+    assure(segmentHeaderReader, "No reader for the Segment Header available!");
 }
 
 bool SegmentingQueue::isAccepting(const wns::ldk::CompoundPtr&  compound ) const {
@@ -120,7 +127,7 @@ SegmentingQueue::put(const wns::ldk::CompoundPtr& compound) {
 
 	// saves pdu and automatically create new queue if necessary
 	// needs a 'map' to do so.
-	(queues[cid].pduQueue).push(compound);
+	(queues[cid].pduQueue).push_back(compound);
 	queues[cid].bits += compound->getLengthInBits();
 	queues[cid].user = colleagues.registry->getUserForCID(cid);
 	// ^ future: get rid of this element.
@@ -196,19 +203,7 @@ SegmentingQueue::numCompoundsForUser(UserID user) const
 uint32_t
 SegmentingQueue::numBitsForUser(UserID user) const
 {
-	uint32_t counter = 0;
-
-	// Find all queues that belong to this user
-	for (std::map<ConnectionID, Queue>::const_iterator iter = queues.begin();
-	     iter != queues.end();
-	     ++iter)
-	{
-		if (iter->second.user == user)
-		{
-			counter = counter + iter->second.bits;
-		}
-	}
-	return counter;
+    assure(false, "Per user information on queued bits is not implemented");
 }
 
 uint32_t
@@ -226,7 +221,10 @@ SegmentingQueue::numBitsForCid(ConnectionID cid) const
 	//return queues[cid].bits;
 	std::map<ConnectionID, Queue>::const_iterator iter = queues.find(cid);
 	assure(iter != queues.end(),"cannot find queue for cid="<<cid);
-	return iter->second.bits;
+
+    Bit remainingBits = iter->second.bits - iter->second.frontSegmentSentBits;
+
+    return remainingBits + fixedHeaderSize + (iter->second.pduQueue.size() - 1) * extensionHeaderSize;
 }
 
 // result is sorted per-cid
@@ -256,43 +254,72 @@ SegmentingQueue::getQueueStatus() const
 
 wns::ldk::CompoundPtr
 SegmentingQueue::getHeadOfLinePDU(ConnectionID cid) {
-	assure(queueHasPDUs(cid), "getHeadOfLinePDU called for CID without PDUs or non-existent CID");
-
-	wns::ldk::CompoundPtr pdu = queues[cid].pduQueue.front();
-	queues[cid].pduQueue.pop();
-	queues[cid].bits -= pdu->getLengthInBits();
-
-	if (probeContextProviderForCid && probeContextProviderForPriority && sizeProbeBus) {
-		probeContextProviderForCid->set(cid /*int context*/);
-		//int priority = colleagues.registry->getPriorityForConnection(cid);
-		int priority = queues[cid].priority;
-		probeContextProviderForPriority->set(priority);
-		//sizeProbeBus->put(queues[cid].bits /*double wert*/); // absolute bits
-		sizeProbeBus->put((double)queues[cid].bits / (double)maxSize); // relative (0..100%)
-	}
-
-	return pdu;
+    assure(false, "The SegmentingQueue does not support getHeadOfLinePDU");
 }
 
 int
 SegmentingQueue::getHeadOfLinePDUbits(ConnectionID cid)
 {
-	assure(queueHasPDUs(cid), "getHeadOfLinePDUbits called for CID without PDUs or non-existent CID");
-	return queues[cid].pduQueue.front()->getLengthInBits();
+    std::map<ConnectionID, Queue>::const_iterator iter = queues.find(cid);
+    assure(iter != queues.end(),"cannot find queue for cid="<<cid);
+    assure(queueHasPDUs(cid), "getHeadOfLinePDUbits called for CID without PDUs or non-existent CID");
+
+    Bit remainingBits = iter->second.pduQueue.front()->getLengthInBits() - iter->second.frontSegmentSentBits;
+    
+    return remainingBits + fixedHeaderSize;
 }
 
 wns::ldk::CompoundPtr
-SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int bits)
+SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
 {
 	assure(queueHasPDUs(cid), "getHeadOfLinePDUSegments called for CID without PDUs or non-existent CID");
-	wns::ldk::CompoundPtr pdu = queues[cid].pduQueue.front();
-	queues[cid].pduQueue.pop();
-	int pdulength = pdu->getLengthInBits();
-	queues[cid].bits -= pdulength; // adapt this
 
-	// TODO: Segmentation of pdu
+    assure(requestedBits>fixedHeaderSize, "The segment size " << requestedBits << " must be larger than the fixedHeaderSize of " << fixedHeaderSize);
 
-	assure(pdulength<=bits,"pdulength="<<pdulength<<" > bits="<<bits);
+    wns::ldk::CompoundPtr pdu(queues[cid].pduQueue.front()->copy());
+
+    segmentHeaderReader->activateCommand(pdu->getCommandPool());
+
+    ISegmentationCommand* header = segmentHeaderReader->readCommand<ISegmentationCommand>(pdu->getCommandPool());
+
+    header->increaseHeaderSize(fixedHeaderSize);
+
+    header->setSequenceNumber(currentSegmentNumber);
+    currentSegmentNumber += 1;
+
+    (queues[cid].frontSegmentSentBits == 0) ? header->setBeginFlag():header->clearBeginFlag();
+
+    while (header->totalSize() < requestedBits)
+    {
+        wns::ldk::CompoundPtr c = queues[cid].pduQueue.front();
+        Bit length = c->getLengthInBits() - queues[cid].frontSegmentSentBits;
+
+        Bit capacity = requestedBits - header->totalSize();
+        if (capacity >= length)
+        {
+            header->addSDU(c->copy());
+            header->increaseDataSize(length);
+            queues[cid].pduQueue.pop_front();
+            queues[cid].frontSegmentSentBits = 0;
+
+            if ( (header->totalSize() + extensionHeaderSize < requestedBits) &&
+                 (queues[cid].pduQueue.size() > 0))
+            {
+                header->increaseHeaderSize(extensionHeaderSize);
+            }
+            else
+            {
+                break;
+            }
+        }
+        else
+        {
+            header->addSDU(c->copy());
+            header->increaseDataSize(capacity);
+            queues[cid].frontSegmentSentBits += capacity;
+            assure(queues[cid].frontSegmentSentBits < queues[cid].pduQueue.front()->getLengthInBits(), "frontSegmentSentBits is larger than the front PDU size!");
+        }
+    }
 
 	if (probeContextProviderForCid && probeContextProviderForPriority && sizeProbeBus) {
 		probeContextProviderForCid->set(cid /*int context*/);
@@ -302,7 +329,14 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int bits)
 		//sizeProbeBus->put(queues[cid].bits /*double wert*/); // absolute bits
 		sizeProbeBus->put((double)queues[cid].bits / (double)maxSize); // relative (0..100%)
 	}
-	return pdu;
+
+    (queues[cid].frontSegmentSentBits == 0) ? header->setEndFlag():header->clearEndFlag();
+
+    // Rest is padding
+    header->increasePaddingSize(requestedBits - header->totalSize());
+
+    assure(header->totalSize()<=requestedBits,"pdulength="<<header->totalSize()<<" > bits="<<requestedBits);
+    return pdu;
 }
 
 bool

@@ -150,7 +150,7 @@ namespace wns { namespace ldk {
 	private:
 		virtual Command* createCommand() const = 0;
 		virtual Command* copyCommand(const Command* src) const = 0;
-		virtual CommandReaderInterface* getCommandReader(const CommandProxy*) const = 0;
+		virtual CommandReaderInterface* getCommandReader(CommandProxy*) = 0;
 
 		unsigned long id;
 		static const unsigned long invalidID;

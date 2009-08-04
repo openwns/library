@@ -30,13 +30,14 @@
 
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/scheduler/queue/QueueInterface.hpp>
+#include <WNS/scheduler/queue/ISegmentationCommand.hpp>
 #include <WNS/StaticFactory.hpp>
 #include <WNS/ldk/CommandTypeSpecifier.hpp>
 
 #include <WNS/probe/bus/ContextCollector.hpp>
 
 #include <map>
-#include <queue>
+#include <list>
 
 namespace wns { namespace scheduler { namespace queue {
 
@@ -102,12 +103,14 @@ namespace wns { namespace scheduler { namespace queue {
 		struct Queue {
 			Queue()
 				: bits(0),
-				  user(0)
+				  user(0),
+                  frontSegmentSentBits(0)
 				{}
 			Bits bits;
 			UserID user; // ?needed?
 			unsigned int priority; // [mba], for probe context
-			std::queue<wns::ldk::CompoundPtr> pduQueue;
+			std::list<wns::ldk::CompoundPtr> pduQueue;
+            Bits frontSegmentSentBits;
 		};
 
 		long int maxSize;
@@ -123,6 +126,12 @@ namespace wns { namespace scheduler { namespace queue {
 		wns::logger::Logger logger;
 		wns::pyconfig::View config;
 		wns::ldk::fun::FUN* myFUN;
+
+        wns::ldk::CommandReaderInterface* segmentHeaderReader;
+
+        Bit fixedHeaderSize;
+        Bit extensionHeaderSize;
+        long currentSegmentNumber; 
 	};
 
 

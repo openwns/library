@@ -152,6 +152,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 {
 	assure(subChannel>=0,"need a valid subChannel");
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
+	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
 	int numberOfBeams = schedulerState->currentState->strategyInput->getMaxBeams();
 	bool ok;
 	for ( int beam = 0; beam < numberOfBeams; ++beam )
@@ -216,6 +217,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
 	assure(beam>=0,"need a valid beam");
 	assure(beam<schedulerState->currentState->strategyInput->getMaxBeams(),"invalid beam="<<beam);
+	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
 	// TODO: should we introduce
 	// bool allBeamsUsedByOneUserOnly
 	PhysicalResourceBlock& prbDescriptor =

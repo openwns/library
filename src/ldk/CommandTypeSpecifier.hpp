@@ -257,9 +257,9 @@ namespace wns { namespace ldk {
 			virtual public CommandReaderInterface
 		{
 			const unsigned long int id;
-			const CommandProxy* proxy;
+			CommandProxy* proxy;
 
-			virtual const CommandProxy*
+			virtual CommandProxy*
 			getProxy() const
 			{
 				return proxy;
@@ -272,7 +272,7 @@ namespace wns { namespace ldk {
 			}
 
 		public:
-			CommandReader(const unsigned long int _id, const CommandProxy* _proxy) :
+			CommandReader(const unsigned long int _id, CommandProxy* _proxy) :
 				id(_id),
 				proxy(_proxy)
 			{}
@@ -290,7 +290,7 @@ namespace wns { namespace ldk {
 		};
 
 		virtual CommandReaderInterface*
-		getCommandReader(const CommandProxy* proxy) const
+		getCommandReader(CommandProxy* proxy)
 		{
 			return new CommandReader(this->getPCIID(), proxy);
 		}

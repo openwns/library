@@ -25,49 +25,58 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_LDK_COMMANDREADERINTERFACE_HPP
-#define WNS_LDK_COMMANDREADERINTERFACE_HPP
+#ifndef WNS_SCHEDULER_QUEUE_ISEGMENTATIONCOMMAND_HPP
+#define WNS_SCHEDULER_QUEUE_ISEGMENTATIONCOMMAND_HPP
 
-#include <WNS/ldk/CommandProxy.hpp>
+#include <WNS/ldk/Command.hpp>
 
-namespace wns { namespace ldk {
+namespace wns { namespace scheduler { namespace queue {
+class ISegmentationCommand:
+    public wns::ldk::Command
+{
+public:
+    virtual void
+    setBeginFlag() = 0;
 
-	class Command;
+    virtual bool
+    getBeginFlag() = 0;
 
-	class CommandReaderInterface
-	{
-		virtual CommandProxy*
-		getProxy() const = 0;
+    virtual void
+    clearBeginFlag() = 0;
 
-		virtual const unsigned long int
-		getPCIID() const = 0;
-	public:
-		virtual
-		~CommandReaderInterface(){};
+    virtual void
+    setEndFlag() = 0;
 
-		template<typename COMMANDTYPE>
-		COMMANDTYPE*
-		readCommand(const CommandPool* commandPool) const
-		{
-			Command* theCommand = getProxy()->getCommand(commandPool, getPCIID());
-			assureType(theCommand, COMMANDTYPE*);
-			return dynamic_cast<COMMANDTYPE*>(theCommand);
-		}
+    virtual bool
+    getEndFlag() = 0;
 
-        Command*
-        activateCommand(CommandPool* commandPool)
-        {
-            return getProxy()->activateCommand(commandPool, getPCIID());
-        }
+    virtual void
+    clearEndFlag() = 0;
 
-		virtual bool
-		commandIsActivated(const CommandPool* commandPool) const = 0;
+    virtual void
+    setSequenceNumber(long) = 0;
 
-	};
+    virtual long
+    getSequenceNumber() = 0;
 
-} // ldk
+    virtual void
+    increaseHeaderSize(Bit size) = 0;
+
+    virtual void
+    increaseDataSize(Bit size) = 0;
+
+    virtual void
+    increasePaddingSize(Bit size) = 0;
+
+    virtual Bit
+    totalSize() = 0;
+
+    virtual void
+    addSDU(wns::ldk::CompoundPtr) = 0;
+};
+
+} // queue
+} // scheduler
 } // wns
 
-#endif // NOT defined WNS_LDK_COMMANDTYPESPECIFIERINTERFACE_HPP
-
-
+#endif // WNS_SCHEDULER_QUEUE_ISEGMENTATIONCOMMAND_HPP

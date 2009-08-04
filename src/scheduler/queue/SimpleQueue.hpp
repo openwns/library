@@ -40,90 +40,90 @@
 
 namespace wns { namespace scheduler { namespace queue {
 
-	/** @brief the queues handled by this class all use a FIFO strategy
-	 the queues are organized by ConnectionID cid (several per user) */
-	class SimpleQueue :
-		public QueueInterface
-	{
-	public:
-		SimpleQueue(const wns::pyconfig::View& config);
-		virtual ~SimpleQueue();
+            /** @brief the queues handled by this class all use a FIFO strategy
+                the queues are organized by ConnectionID cid (several per user) */
+            class SimpleQueue :
+            public QueueInterface
+            {
+            public:
+                SimpleQueue(const wns::pyconfig::View& config);
+                virtual ~SimpleQueue();
 
-		bool isAccepting(const wns::ldk::CompoundPtr& compound) const;
-		/** @brief compound in */
-		void put(const wns::ldk::CompoundPtr& compound);
+                bool isAccepting(const wns::ldk::CompoundPtr& compound) const;
+                /** @brief compound in */
+                void put(const wns::ldk::CompoundPtr& compound);
 
-		UserSet getQueuedUsers() const;
-		ConnectionSet getActiveConnections() const;
-		ConnectionSet getActiveConnectionsForPriority(unsigned int priority) const;
+                UserSet getQueuedUsers() const;
+                ConnectionSet getActiveConnections() const;
+                ConnectionSet getActiveConnectionsForPriority(unsigned int priority) const;
 
-		uint32_t numCompoundsForUser(UserID user) const; // obsolete; only used in old schedulers
-		uint32_t numBitsForUser(UserID user) const; // obsolete; only used in old schedulers
-		uint32_t numCompoundsForCid(ConnectionID cid) const;
-		uint32_t numBitsForCid(ConnectionID cid) const;
+                uint32_t numCompoundsForUser(UserID user) const; // obsolete; only used in old schedulers
+                uint32_t numBitsForUser(UserID user) const; // obsolete; only used in old schedulers
+                uint32_t numCompoundsForCid(ConnectionID cid) const;
+                uint32_t numBitsForCid(ConnectionID cid) const;
 
-		QueueStatusContainer getQueueStatus() const;
+                QueueStatusContainer getQueueStatus() const;
 
-		/** @brief compound out */
-		wns::ldk::CompoundPtr getHeadOfLinePDU(ConnectionID cid);
-		int getHeadOfLinePDUbits(ConnectionID cid);
+                /** @brief compound out */
+                wns::ldk::CompoundPtr getHeadOfLinePDU(ConnectionID cid);
+                int getHeadOfLinePDUbits(ConnectionID cid);
 
-		bool hasQueue(ConnectionID cid);
-		bool queueHasPDUs(ConnectionID cid);
-		ConnectionSet filterQueuedCids(ConnectionSet connections);
+                bool hasQueue(ConnectionID cid);
+                bool queueHasPDUs(ConnectionID cid);
+                ConnectionSet filterQueuedCids(ConnectionSet connections);
 
-		void setColleagues(RegistryProxyInterface* _registry);
-		/** @brief needed for probes */
-		void setFUN(wns::ldk::fun::FUN* fun);
+                void setColleagues(RegistryProxyInterface* _registry);
+                /** @brief needed for probes */
+                void setFUN(wns::ldk::fun::FUN* fun);
 
-		std::string printAllQueues();
+                std::string printAllQueues();
 
-		ProbeOutput resetAllQueues();
-		ProbeOutput resetQueues(UserID user);
-		ProbeOutput resetQueue(ConnectionID cid);
+                ProbeOutput resetAllQueues();
+                ProbeOutput resetQueues(UserID user);
+                ProbeOutput resetQueue(ConnectionID cid);
 
-		/** @brief true if getHeadOfLinePDUSegment() is supported */
-		bool supportsDynamicSegmentation() const { return false; }
-		/** @brief get compound out and do segmentation into #bits (gross) */
-		wns::ldk::CompoundPtr getHeadOfLinePDUSegment(ConnectionID cid, int bits) { throw wns::Exception("getHeadOfLinePDUSegment() is unsupported"); return wns::ldk::CompoundPtr(); }
-		/** @brief if supportsDynamicSegmentation, this is the minimum size of a segment in bits */
-		int getMinimumSegmentSize() const { throw wns::Exception("getHeadOfLinePDUSegment() is unsupported"); return 0; };
+                /** @brief true if getHeadOfLinePDUSegment() is supported */
+                bool supportsDynamicSegmentation() const { return false; }
+                /** @brief get compound out and do segmentation into #bits (gross) */
+                wns::ldk::CompoundPtr getHeadOfLinePDUSegment(ConnectionID cid, int bits) { throw wns::Exception("getHeadOfLinePDUSegment() is unsupported"); return wns::ldk::CompoundPtr(); }
+                /** @brief if supportsDynamicSegmentation, this is the minimum size of a segment in bits */
+                int getMinimumSegmentSize() const { throw wns::Exception("getHeadOfLinePDUSegment() is unsupported"); return 0; };
 
-	protected:
-		void
-		probe();
+            protected:
+                void
+                probe();
 
-	private:
-		wns::probe::bus::contextprovider::Variable* probeContextProviderForCid;
-		wns::probe::bus::contextprovider::Variable* probeContextProviderForPriority;
-		wns::probe::bus::ContextCollectorPtr sizeProbeBus;
-		// Every CID has its own queue. A user might have multiple CIDs
-		// associated with it. Queue length counters exist for every queue/CID.
-		struct Queue {
-			Queue()
-				: bits(0),
-				  user(0),
-				  priority(0)
-				{}
-			Bits bits;
-			UserID user;
-			unsigned int priority;
-			std::queue<wns::ldk::CompoundPtr> pduQueue;
-		};
+            private:
+                wns::probe::bus::contextprovider::Variable* probeContextProviderForCid;
+                wns::probe::bus::contextprovider::Variable* probeContextProviderForPriority;
+                wns::probe::bus::ContextCollectorPtr sizeProbeBus;
+                // Every CID has its own queue. A user might have multiple CIDs
+                // associated with it. Queue length counters exist for every queue/CID.
+                struct Queue {
+                    Queue()
+                        : bits(0),
+                          user(0),
+                          priority(0)
+                    {}
+                    Bits bits;
+                    UserID user;
+                    unsigned int priority;
+                    std::queue<wns::ldk::CompoundPtr> pduQueue;
+                };
 
-		long int maxSize;
+                long int maxSize;
 
-		typedef std::map<ConnectionID, Queue> QueueContainer;
-		QueueContainer queues;
+                typedef std::map<ConnectionID, Queue> QueueContainer;
+                QueueContainer queues;
 
-		struct Colleagues {
-			Colleagues() : registry(NULL) {}
-			RegistryProxyInterface* registry;
-		} colleagues;
+                struct Colleagues {
+                    Colleagues() : registry(NULL) {}
+                    RegistryProxyInterface* registry;
+                } colleagues;
 
-		wns::logger::Logger logger;
-		wns::pyconfig::View config;
-		wns::ldk::fun::FUN* myFUN;
-	};
-}}} // namespace wns::scheduler::queue
+                wns::logger::Logger logger;
+                wns::pyconfig::View config;
+                wns::ldk::fun::FUN* myFUN;
+            };
+        }}} // namespace wns::scheduler::queue
 #endif // WNS_SCHEDULER_QUEUE_SIMPLEQUEUE_HPP

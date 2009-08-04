@@ -312,6 +312,7 @@ srcFiles = [
     'src/scheduler/grouper/tests/GrouperStub.cpp',
     'src/scheduler/strategy/tests/ResultsContainer.cpp',
     'src/scheduler/queue/tests/SimpleQueueTest.cpp',
+    'src/scheduler/queue/tests/SegmentingQueueTest.cpp',
     'src/scheduler/tests/ClassifierPolicyDropIn.cpp',
 
     'src/distribution/tests/FixedTest.cpp',
@@ -904,6 +905,7 @@ hppFiles = [
 'src/scheduler/queue/SimpleQueue.hpp',
 'src/scheduler/queue/SegmentingQueue.hpp',
 'src/scheduler/queue/tests/SimpleQueueTest.hpp',
+'src/scheduler/queue/ISegmentationCommand.hpp',
 'src/scheduler/RegistryProxyInterface.hpp',
 'src/scheduler/strategy/StaticPriority.hpp',
 'src/scheduler/SchedulingMap.hpp',
