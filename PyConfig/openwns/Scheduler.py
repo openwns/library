@@ -29,7 +29,6 @@ from openwns.pyconfig import attrsetter
 import openwns.logger
 import openwns.scheduler.APCStrategy
 import openwns.scheduler.DSAStrategy
-import openwns.qos
 import copy
 
 class PowerCapabilities(object):
@@ -199,18 +198,14 @@ class StaticPriority(Strategy):
         self.nameInStrategyFactory = "StaticPriority"
         self.subStrategies = []
         self.logger = openwns.logger.Logger("WNS", "SP", True, parentLogger)
-        self.numberOfPriorities = len(subStrategies) # 0..6 => 7
-        priority = openwns.qos.priorityBest # ==0
+        # priority here is only used for the logger name
+        priority = 0
         for subStrategy in subStrategies:
             mySubStrategy = copy.deepcopy(subStrategy) # original object shares logger instance
-            #print "subStrategy[%s]=%s"%(priority,mySubStrategy.__plugin__)
             logger = openwns.logger.Logger("WNS", "SP[%d]"%priority, True, self.logger)
             mySubStrategy.setParentLogger(logger)
             self.subStrategies.append(mySubStrategy)
             priority = priority+1
-        # test whether all priority levels are specified:
-        priority = priority-1
-        assert priority == openwns.qos.priorityWorst, "highest priority=%d != priorityWorst=%d"%(priority,openwns.qos.priorityWorst)
 
 class SubStrategy:
     logger = None
