@@ -184,6 +184,7 @@ StrategyResult::getNumberOfCompoundsInBursts() const
     return count;
 }
 
+// this is called by the UL master scheduler, because there are no "real" compounds (just fakes).
 void
 StrategyResult::deleteCompoundsInBursts()
 {
@@ -192,6 +193,7 @@ StrategyResult::deleteCompoundsInBursts()
     {
         (*iterBurst)->compounds.clear();
     }
+    schedulingMap->deleteCompounds();
 }
 
 std::string
@@ -199,16 +201,17 @@ StrategyResult::toString() const
 {
     std::stringstream s;
     s << "StrategyResult():";
+    s << schedulingMap->doToString();
     return s.str();
-};
+}
 
 float
 StrategyResult::getResourceUsage() const
 {
-    return 0.0;
-    // TODO: implement a simple iteration over the bursts
+    return schedulingMap->getResourceUsage();
 }
 
+/**************************************************************/
 
 /* old interface (wrapper to support; soon obsolete) */
 // perform master scheduling

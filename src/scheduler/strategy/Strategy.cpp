@@ -317,14 +317,16 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
     { // master scheduling on freshly created empty resources
         MESSAGE_SINGLE(NORMAL, logger, "inputSchedulingMap is empty");
         // the fresh Scheduling Map (empty and free) is prepared in the RevolvingStatePtr() constructor
-    } else { // slave scheduling or preallocated SchedulingMap
-        MESSAGE_SINGLE(NORMAL, logger, "inputSchedulingMap is nonempty: "<<strategyInput.inputSchedulingMap->toString());
+    } else { // slave scheduling or preallocated SchedulingMap (default for new WinProSt)
+        MESSAGE_SINGLE(NORMAL, logger, "inputSchedulingMap exists: "<<strategyInput.inputSchedulingMap->toString());
         assure(schedulerState->currentState->schedulingMap != wns::scheduler::SchedulingMapPtr(),"schedulingMap initialization failed");
         assure(schedulerState->currentState->schedulingMap == strategyInput.inputSchedulingMap,"schedulingMap must be set in revolveSchedulerState()");
     }
     wns::scheduler::SchedulingMapPtr schedulingMap = schedulerState->currentState->schedulingMap; // alias
-    if (strategyInput.mapInfoEntryFromMaster == MapInfoEntryPtr()) // empty
+    //if (strategyInput.mapInfoEntryFromMaster == MapInfoEntryPtr()) // empty
+    if (schedulerState->schedulerSpot != wns::scheduler::SchedulerSpot::ULSlave())
     { // master scheduling
+        assure(strategyInput.mapInfoEntryFromMaster == MapInfoEntryPtr(),"mapInfoEntryFromMaster must be NULL");
         MESSAGE_BEGIN(NORMAL, logger, m, "startScheduling(master): ");
         if (strategyInput.frameNrIsValid())
             m << "frameNr=" << strategyInput.frameNr << ", ";
@@ -336,6 +338,7 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
         schedulerState->setDefaultPhyMode(strategyInput.defaultPhyModePtr); // may be undefined (NULL) in most cases
         schedulerState->setDefaultTxPower(strategyInput.defaultTxPower); // may be undefined (0.0) in most cases
     } else { // slave scheduling
+        assure(strategyInput.mapInfoEntryFromMaster != MapInfoEntryPtr(),"mapInfoEntryFromMaster must be non-NULL");
         MESSAGE_SINGLE(NORMAL, logger,"startScheduling(slave): fChannels="<<strategyInput.fChannels<<", subBand="<<strategyInput.mapInfoEntryFromMaster->subBand);
         MESSAGE_SINGLE(NORMAL, logger,"PhyMode="<<*(strategyInput.mapInfoEntryFromMaster->phyModePtr)<<", txPower="<<strategyInput.mapInfoEntryFromMaster->txPower);
         schedulerState->setDefaultPhyMode(strategyInput.mapInfoEntryFromMaster->phyModePtr);
@@ -863,10 +866,17 @@ Strategy::getTxPower() const
 float
 Strategy::getResourceUsage() const
 {
+    assure(schedulerState!=SchedulerStatePtr(),"schedulerState must be valid");
+    assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
+    assure(schedulerState->currentState->schedulingMap!=wns::scheduler::SchedulingMapPtr(),"schedulingMap must be valid");
     // This is the default implementation. Overload in your desired strategy
     // if you want information about the resource usage.
-    return 0.0;
-    // TODO: implement a simple iteration over the bursts
+    // In general it is better to call schedulingMap->getResourceUsage() in the system specific methods after scheduling
+    if (schedulerState->currentState->schedulingMap!=SchedulingMapPtr()) {
+        return schedulerState->currentState->schedulingMap->getResourceUsage();
+    } else {
+        return 0.0;
+    }
 }
 
 bool

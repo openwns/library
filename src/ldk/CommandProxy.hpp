@@ -249,9 +249,9 @@ namespace wns { namespace ldk {
 		 */
 		template <typename COMMANDTYPE>
 		COMMANDTYPE*
-		getCommand(const CommandPool* commandPool, const std::string& role) const
+                getCommand(const CommandPool* commandPool, const std::string& role) const
 		{
-			assure(this->getCommandIDRegistry().knows(role), "Argument for unknown role requested.");
+			assure(this->getCommandIDRegistry().knows(role), "Argument for unknown role="<<role<<" requested.");
 			Command* theCommand = this->getCommand(commandPool, this->getCommandIDRegistry().find(role));
 			assureType(theCommand, COMMANDTYPE*);
 			return dynamic_cast<COMMANDTYPE*>(theCommand);
@@ -262,13 +262,7 @@ namespace wns { namespace ldk {
 		 *
 		 */
 		CommandReaderInterface*
-		getCommandReader(const std::string& role) const
-		{
-			assure(this->getCommandIDRegistry().knows(role), "ID for unknown role requested.");
-			unsigned long int id = this->getCommandIDRegistry().find(role);
-			assure(this->getCommandReaderRegistry().knows(id), "CommandReader for unknown ID requested.");
-			return this->getCommandReaderRegistry().find(id);
-		} // getCommand
+                getCommandReader(const std::string& role) const;
 
 		/**
 		 * @brief Activate and return a Command.
@@ -352,6 +346,15 @@ namespace wns { namespace ldk {
 		 */
 		static void
 		clearRegistries();
+
+            /**
+             * @brief Show list of all known command names.
+             */
+            std::string
+            printCommandIDRegistryKeys()
+            {
+                return dumpCommandIDRegistry();
+            }
 
 #ifndef NDEBUG
 		size_t

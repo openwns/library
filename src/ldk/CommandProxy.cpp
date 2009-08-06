@@ -204,6 +204,14 @@ CommandProxy::getCommand(
 	return command;
 } // getCommand
 
+CommandReaderInterface*
+CommandProxy::getCommandReader(const std::string& role) const
+{
+    assure(this->getCommandIDRegistry().knows(role), "ID for unknown role="<<role<<" requested. Available="<<dumpCommandIDRegistry());
+    unsigned long int id = this->getCommandIDRegistry().find(role);
+    assure(this->getCommandReaderRegistry().knows(id), "CommandReader for unknown ID="<<id<<" requested.");
+    return this->getCommandReaderRegistry().find(id);
+} // getCommandReader
 
 bool
 CommandProxy::commandIsActivated(

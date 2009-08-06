@@ -157,6 +157,13 @@ PhysicalResourceBlock::toString() const
 } // toString
 
 simTimeType
+PhysicalResourceBlock::getUsedTime() const
+{
+    assure(slotLength-freeTime-nextPosition<wns::scheduler::slotLengthRoundingTolerance,"slotLength mismatch");
+    return slotLength-freeTime;
+}
+
+simTimeType
 PhysicalResourceBlock::getFreeTime() const
 {
     assure(slotLength-freeTime-nextPosition<wns::scheduler::slotLengthRoundingTolerance,"slotLength mismatch");
@@ -293,6 +300,16 @@ PhysicalResourceBlock::isEmpty() const
     return (nextPosition==0.0);
 }
 
+void
+PhysicalResourceBlock::deleteCompounds()
+{
+    for ( ScheduledCompoundsList::iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+    {
+        //if (iter->compoundPtr != wns::ldk::compoundPtr())
+        iter->compoundPtr = wns::ldk::CompoundPtr(); // make empty
+    }
+} // deleteCompounds
+
 /**************************************************************/
 
 SchedulingSubChannel::SchedulingSubChannel()
@@ -333,15 +350,27 @@ SchedulingSubChannel::toString() const
             s << physicalResources[beamIndex].toString();
         }
     } else {
-        s << "SubChannel(#"<<subChannelIndex<<"): locked/unusable";
+        s << "SubChannel(#"<<subChannelIndex<<"): locked/unusable" << std::endl;
     }
     return s.str();
 }
 
 simTimeType
+SchedulingSubChannel::getUsedTime() const
+{
+    if (!subChannelIsUsable) return 0.0; // must be different result than getFreeTime()
+    simTimeType usedTime = 0.0;
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        usedTime += physicalResources[beamIndex].getUsedTime();
+    }
+    return usedTime;
+}
+
+simTimeType
 SchedulingSubChannel::getFreeTime() const
 {
-    if (!subChannelIsUsable) return 0.0;
+    if (!subChannelIsUsable) return 0.0; // must be different result than getUsedTime()
     simTimeType freeTime = 0.0;
     for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
     {
@@ -382,6 +411,15 @@ SchedulingSubChannel::isEmpty() const
         if (!physicalResources[beamIndex].isEmpty()) return false;
     }
     return true;
+}
+
+void
+SchedulingSubChannel::deleteCompounds()
+{
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        physicalResources[beamIndex].deleteCompounds();
+    }
 }
 
 /**************************************************************/
@@ -497,19 +535,35 @@ SchedulingMap::isEmpty() const
 double
 SchedulingMap::getResourceUsage()
 {
-    if (resourceUsage > 0.0) return resourceUsage; // was already precalculated
-    simTimeType leftoverTime = getFreeTime();
+    //if (resourceUsage > 0.0) return resourceUsage; // was already precalculated
+    //simTimeType leftoverTime = getFreeTime();
+    simTimeType totalUsedTime = getUsedTime();
     simTimeType totalTimeResources = slotLength * numberOfSubChannels * numberOfBeams;
-    double result = (totalTimeResources - leftoverTime) / totalTimeResources;
+    double result = totalUsedTime / totalTimeResources;
     assure(numberOfSubChannels==subChannels.size(),"mismatch in numberOfSubChannels: "<<numberOfSubChannels<<" != "<<subChannels.size());
-    assure(result >= -0.01/*tolerance*/, "Percentage of used resources must not be negative!"
-           <<" leftTime="<<leftoverTime
+    assure((result >= -0.01)/*tolerance*/
+           &&(result <= 1.01)
+           , "Percentage of used resources="<<result<<" must be within [0..1] !"
+           <<" totalUsedTime="<<totalUsedTime
            <<", totalTime="<<totalTimeResources
            <<", subChannels.size="<<subChannels.size());
     if (result<0.0) result=0.0;
+    if (result>1.0) result=1.0;
     resourceUsage = result; // store result in member
     return result;
 } // getResourceUsage
+
+simTimeType
+SchedulingMap::getUsedTime() const
+{
+    simTimeType usedTime = 0;
+    assure(numberOfSubChannels==subChannels.size(),"mismatch in numberOfSubChannels: "<<numberOfSubChannels<<" != "<<subChannels.size());
+    for ( unsigned int subChannelIndex = 0; subChannelIndex < subChannels.size(); ++subChannelIndex )
+    {
+        usedTime += subChannels[subChannelIndex].getUsedTime();
+    }
+    return usedTime;
+} // getUsedTime
 
 simTimeType
 SchedulingMap::getFreeTime() const
@@ -556,6 +610,16 @@ SchedulingMap::maskOutSubChannels(const UsableSubChannelVector& usableSubChannel
         subChannels[subChannelIndex].subChannelIsUsable = after;
     }
 } // maskOutSubChannels
+
+// this is called by the UL master scheduler, because there are no "real" compounds (just fakes).
+void
+SchedulingMap::deleteCompounds()
+{
+    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+    {
+        subChannels[subChannelIndex].deleteCompounds();
+    }
+}
 
 void
 SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/)

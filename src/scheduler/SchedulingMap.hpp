@@ -95,6 +95,9 @@ namespace wns { namespace scheduler {
             PhysicalResourceBlock(int _subChannelIndex, int _beam, simTimeType _slotLength);
             ~PhysicalResourceBlock();
             std::string toString() const;
+            /** @brief total used time in this PhysicalResourceBlock */
+            simTimeType getUsedTime() const;
+            /** @brief total free time on this PhysicalResourceBlock */
             simTimeType getFreeTime() const;
             void setNextPosition(simTimeType _nextPosition);
 
@@ -129,8 +132,14 @@ namespace wns { namespace scheduler {
                              wns::ldk::CompoundPtr compoundPtr
                 );
 
-            /** @brief true if there is nothing scheduled in this block */
+            /** @brief true if there is nothing scheduled in this block.
+                This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
+
+            /** @brief Delete all compounds. But keep all other info (PhyMode, usedTime).
+                This is called by the UL master scheduler,
+                because there are no "real" compounds (just fakes). */
+            void deleteCompounds();
 
         public:
             /** @brief my own subChannelIndex as seen from outside (container) */
@@ -171,6 +180,9 @@ namespace wns { namespace scheduler {
             SchedulingSubChannel(int _subChannelIndex, int _numberOfBeams, simTimeType _slotLength);
             ~SchedulingSubChannel();
             std::string toString() const;
+            /** @brief total used time in this subchannel */
+            simTimeType getUsedTime() const;
+            /** @brief total free time on this subchannel */
             simTimeType getFreeTime() const;
             void setNextPosition(simTimeType _nextPosition);
 
@@ -185,8 +197,14 @@ namespace wns { namespace scheduler {
                 Depends on PhyMode provided by mapInfoEntry. */
             int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
 
-            /** @brief true if there is nothing scheduled in this block */
+            /** @brief true if there is nothing scheduled in this block.
+                This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
+
+            /** @brief Delete all compounds. But keep all other info (PhyMode, usedTime).
+                This is called by the UL master scheduler,
+                because there are no "real" compounds (just fakes). */
+            void deleteCompounds();
 
         public:
             /** @brief my own subChannelIndex as seen from outside (container) */
@@ -260,9 +278,17 @@ namespace wns { namespace scheduler {
             /** @brief collection of all subChannels */
             SubChannelVector subChannels;
 
-            /** @brief statistics for the percentage of resources used (correcly counts partially filled subChannels) */
+            /** @brief statistics for the percentage of resources used.
+                (correcly counts partially filled subChannels).
+                Result is in interval [0..1]. Multiply with 100.0 for Percent.
+                Expensive operation, iterates over all resource blocks.
+                Please do this only once (for probing); or in dbg mode (in MESSAGE). */
             double
             getResourceUsage();
+
+            /** @brief total used time (up to numberOfSubChannels*slotLength) */
+            simTimeType
+            getUsedTime() const;
 
             /** @brief total leftover time (initially numberOfSubChannels*slotLength) */
             simTimeType
@@ -283,7 +309,12 @@ namespace wns { namespace scheduler {
             /** @brief make MapInfoCollection structure from myself */
             void convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/);
 
-            /** @brief true if there is nothing scheduled in this block */
+            /** @brief Delete all compounds from the map. But keep all other info (PhyMode, usedTime).
+                This is called by the UL master scheduler,
+                because there are no "real" compounds (just fakes). */
+            void deleteCompounds();
+
+            /** @brief true if there is nothing scheduled in the whole schedulingMap. */
             bool isEmpty() const;
 
             /** @brief output structure (structured text) */
