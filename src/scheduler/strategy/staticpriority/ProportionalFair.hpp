@@ -26,83 +26,84 @@
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
 
-	/**
-	 * @brief Proportional Fair subscheduler.
-	 *
-	 */
+                /**
+                 * @brief Proportional Fair subscheduler.
+                 *
+                 */
 
-	class ProportionalFair
-	  : public SubStrategy
-	{
-	public:
-	  ProportionalFair(const wns::pyconfig::View& config);
+                class ProportionalFair
+                    : public SubStrategy
+                {
+                public:
+                    ProportionalFair(const wns::pyconfig::View& config);
 
-	  ~ProportionalFair();
+                    ~ProportionalFair();
 
-	  /** @brief holds the userID and its corresponding preference weight,
-	      which is a float value */
-	  typedef std::pair<float, UserID> UserPreference;
+                    /** @brief holds the userID and its corresponding preference weight,
+                        which is a float value */
+                    typedef std::pair<float, UserID> UserPreference;
 
-	  virtual void
-	  initialize();
+                    virtual void
+                    initialize();
 
-	  /** @brief provides the preference parameter for every user
-	      in function of the past data rates they have reached */
-	  std::priority_queue<UserPreference>
-	  calculateUserPreferences(UserSet activeUsers, bool txStrategy) const;
+                    /** @brief provides the preference parameter for every user
+                        in function of the past data rates they have reached */
+                    std::priority_queue<UserPreference>
+                    calculateUserPreferences(UserSet activeUsers, bool txStrategy) const;
 
-	  /** @brief calculates the number of bits scheduled per frame for all connections */
-	  std::map<UserID, float>
-	  calculateBitsForConnections(const ConnectionSet& currentConnections);
+                    /** @brief calculates the number of bits scheduled per frame for all connections */
+                    std::map<UserID, float>
+                    calculateBitsForConnections(const ConnectionSet& currentConnections);
 
-	  /** @brief gives the next cid to schedule according to the users preference values */
-	  virtual wns::scheduler::ConnectionID
-	  getNextConnection(SchedulerStatePtr schedulerState, std::priority_queue<UserPreference> preferences);
+                    /** @brief gives the next cid to schedule according to the users preference values */
+                    virtual wns::scheduler::ConnectionID
+                    getNextConnection(SchedulerStatePtr schedulerState, std::priority_queue<UserPreference> preferences);
 
-	  /** @brief updates pastDataRates=90%*pastDataRates + 10%*currentRate=(bitsThisFrame/phaseLength) */
-	  void
-	  updatePastDataRates(std::map<UserID, float> bitsBeforeThisFrame,
-			      std::map<UserID, float> bitsAfterThisFrame,
-			      simTimeType phaseLength);
+                    /** @brief updates pastDataRates=90%*pastDataRates + 10%*currentRate=(bitsThisFrame/phaseLength) */
+                    void
+                    updatePastDataRates(std::map<UserID, float> bitsBeforeThisFrame,
+                                        std::map<UserID, float> bitsAfterThisFrame,
+                                        simTimeType phaseLength);
 
-	  virtual wns::scheduler::MapInfoCollectionPtr
-	  doStartSubScheduling(SchedulerStatePtr schedulerState,
-			       wns::scheduler::SchedulingMapPtr schedulingMap);
+                    virtual wns::scheduler::MapInfoCollectionPtr
+                    doStartSubScheduling(SchedulerStatePtr schedulerState,
+                                         wns::scheduler::SchedulingMapPtr schedulingMap);
 
-	protected:
-	  /** @brief Number of packets to schedule of the same cid before proceeding to the next one */
-	  int blockSize;
-	  /** @brief exponential window sliding average; p_i=(1-h)*c_i + h*i_{i-1} */
-	  float historyWeight;
-	  /** @brief used for the user preference calculation; 0.0=MaxThroughput; 1.0=ProportionalFair */
-	  float scalingBetweenMaxTPandPFair;
-	  float maxRateOfSubchannel;
-	  UserSet allUsers;
-	  std::map<UserID, float> bitsForUsers;
-	  std::map<UserID, float> bitsThisFrame;
-	  std::map<UserID, float> pastDataRates;
-	  std::map<UserID, wns::CandI> sinrs;
-	  /** @brief distribution for random numbers used to variate the preference a little bit */
-	  wns::distribution::Uniform* preferenceVariationDistribution;
-	};
-      }}}}
+                protected:
+                    /** @brief Number of packets to schedule of the same cid before proceeding to the next one */
+                    int blockSize;
+                    /** @brief exponential window sliding average; p_i=(1-h)*c_i + h*i_{i-1} */
+                    float historyWeight;
+                    /** @brief used for the user preference calculation; 0.0=MaxThroughput; 1.0=ProportionalFair */
+                    float scalingBetweenMaxTPandPFair;
+                    /** @brief indicates whether goal is rate (true) or resource (false) fairness */
+                    bool rateFairness;
+                    float maxRateOfSubchannel;
+                    UserSet allUsers;
+                    std::map<UserID, float> bitsForUsers;
+                    std::map<UserID, float> bitsThisFrame;
+                    std::map<UserID, float> pastDataRates;
+                    std::map<UserID, wns::CandI> sinrs;
+                    /** @brief distribution for random numbers used to variate the preference a little bit */
+                    wns::distribution::Uniform* preferenceVariationDistribution;
+                };
+            }}}}
 namespace std {
-  template <>
-  struct less<wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference>:
-    public binary_function<wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference,
-			   wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference,
-			   bool>{
-    /** @brief these pointers are used for sorting users preferences: in case they got the same
-	preference value the first UserID is taken */
-    bool operator()(const wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference & lhs,
-		    const wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference & rhs) const
-    {
-      if(lhs.first == rhs.first) {
-	return lhs.second->getName() < rhs.second->getName();
-      }
-      return lhs.first < rhs.first;
-    }
-  };
+    template <>
+    struct less<wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference>:
+        public binary_function<wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference,
+                               wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference,
+                               bool>{
+        /** @brief these pointers are used for sorting users preferences: in case they got the same
+            preference value the first UserID is taken */
+        bool operator()(const wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference & lhs,
+                        const wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference & rhs) const
+        {
+            if(lhs.first == rhs.first) {
+                return lhs.second->getName() < rhs.second->getName();
+            }
+            return lhs.first < rhs.first;
+        }
+    };
 }
 #endif
-

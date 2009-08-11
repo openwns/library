@@ -240,6 +240,8 @@ class ProportionalFair(SubStrategy):
     historyWeight = 0.9
     # 0.0=MaxThroughput; 1.0=ProportionalFair
     scalingBetweenMaxTPandPFair = 1.0
+    # indicates whether goal is rate (True) or resource (False) fairness
+    rateFairness = True
     def __init__(self, parentLogger = None, **kw):
         self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
         attrsetter(self, kw)
