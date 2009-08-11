@@ -171,18 +171,6 @@ namespace wns { namespace node {
 } // node
 } // wns
 
-namespace std {
-
-	template <>
-	struct less<wns::node::Interface*>:
-	public binary_function<wns::node::Interface*, wns::node::Interface*, bool>{
-		bool operator()(wns::node::Interface* const& lhs, wns::node::Interface* const& rhs) const
-		{
-			return lhs->getNodeID() < rhs->getNodeID();
-		}
-	};
-}
-
 /**
  * @namespace wns::node
  * @brief Basic building blocks for a simulation : The Node

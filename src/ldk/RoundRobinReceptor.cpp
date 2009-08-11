@@ -33,13 +33,11 @@ using namespace wns::ldk;
 void
 RoundRobinReceptor::wakeup()
 {
-	fus.startRound();
-	while(fus.hasNext()) {
-		FunctionalUnit* it = fus.next();
-		it->wakeup();
-	}
-	fus.endRound();
+    recs.startRound();
+    while(recs.hasNext()) {
+        IReceptorReceptacle* it = recs.next();
+        it->wakeup();
+    }
+    recs.endRound();
 }
-
-
 

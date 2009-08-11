@@ -102,7 +102,7 @@ Dropping::Dropping(fun::FUN* fuNet, const wns::pyconfig::View& config) :
 } // Dropping
 
 Dropping::Dropping(const Dropping& other) :
-	CompoundHandlerInterface(other),
+    CompoundHandlerInterface<FunctionalUnit>(other),
 	CommandTypeSpecifierInterface(other),
 	HasReceptorInterface(other),
 	HasConnectorInterface(other),

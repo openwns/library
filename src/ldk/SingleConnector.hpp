@@ -33,49 +33,47 @@
 #include <WNS/ldk/SingleLink.hpp>
 
 namespace wns { namespace ldk {
-	class FunctionalUnit;
 
-	/**
-	 * @brief Provides and restricts the connecting aspect of the FU to
-	 * exactly one link.
-	 * @ingroup hasconnector
-	 * @author Marc Schinnenburg <msg@comnets.rwth-aachen.de>
-	 *
-	 * This class
-	 * @li implements the Connector interface,
-	 * @li may be used as parameter to HasConnector.
-	 *
-	 */
-	class SingleConnector :
-		virtual public Connector,
-		public SingleLink
-	{
-	public:
-		SingleConnector();
+        /**
+         * @brief Provides and restricts the connecting aspect of the FU to
+         * exactly one link.
+         * @ingroup hasconnector
+         * @author Marc Schinnenburg <msg@comnets.rwth-aachen.de>
+         *
+         * This class
+         * @li implements the Connector interface,
+         * @li may be used as parameter to HasConnector.
+         *
+         */
+        class SingleConnector
+            : virtual public Connector,
+              public SingleLink<IConnectorReceptacle>
+        {
+        public:
+            SingleConnector();
 
-		virtual
-		~SingleConnector();
+            virtual
+            ~SingleConnector();
 
-		/**
-		 * @name Connector interface
-		 */
-		//{@
-		virtual bool
-		hasAcceptor(const CompoundPtr& compound);
+            /**
+             * @name Connector interface
+             */
+            //{@
+            virtual bool
+            hasAcceptor(const CompoundPtr& compound);
 
-		/**
-		 * @brief Retrieve acceptor for a give compound
-		 *
-		 * @pre hasAcceptor must have returned true for this compound
-		 */
-		virtual CompoundHandlerInterface*
-		getAcceptor(const CompoundPtr& compound);
-		//@}
-	};
-} // ldk
+            /**
+             * @brief Retrieve acceptor for a give compound
+             *
+             * @pre hasAcceptor must have returned true for this compound
+             */
+            virtual IConnectorReceptacle*
+            getAcceptor(const CompoundPtr& compound);
+            //@}
+        };
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_SINGLECONNECTOR_HPP
-
 

@@ -31,43 +31,38 @@
 using namespace wns::ldk;
 
 
-
 bool
 FirstServeConnector::hasAcceptor(const wns::ldk::CompoundPtr& compound)
 {
-	assure(!fus_.empty(),
-		   "FirstServeConnector::hasAcceptor: Is called, even though no FU is available!");
+    assure(!recs.empty(),
+           "FirstServeConnector::hasAcceptor: Is called, even though no FU is available!");
 
-	for(ExchangeContainer::const_iterator it = fus_.begin();
-		it != fus_.end(); ++it)
-	{
-			if((*it)->isAccepting(compound))
-				return true;
-	}
+    for(ExchangeContainer::const_iterator it = recs.begin();
+        it != recs.end(); ++it)
+    {
+        if((*it)->isAccepting(compound))
+            return true;
+    }
 
-	return false;
+    return false;
 } //hasAcceptor
 
 
-
-
-CompoundHandlerInterface*
+IConnectorReceptacle*
 FirstServeConnector::getAcceptor(const wns::ldk::CompoundPtr& compound)
 {
-	assure(!fus_.empty(),
-		   "FirstServeConnector::getAcceptor: Called getAccptor even though no FU available!");
+    assure(!recs.empty(),
+           "FirstServeConnector::getAcceptor: Called getAccptor even though no FU available!");
 
-	for(ExchangeContainer::const_iterator it = fus_.begin();
-		it != fus_.end(); ++it)
-	{
-			if((*it)->isAccepting(compound))
-				return (*it);
-	}
+    for(ExchangeContainer::const_iterator it = recs.begin();
+        it != recs.end(); ++it)
+    {
+        if((*it)->isAccepting(compound))
+            return (*it);
+    }
 
-	assure(0,
-		   "FirstServeConnector::getAcceptor: Is called,  but there is no accepting FUs!");
-	return NULL;
+    assure(0,
+           "FirstServeConnector::getAcceptor: Is called,  but there is no accepting FUs!");
+    return NULL;
 } // getAcceptor
-
-
 

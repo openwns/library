@@ -191,15 +191,15 @@ class FunctionalUnit(object):
 
     def connect(self, other):
         self.fun.connect(self, other)
-        self.__connect(other)
+#        self.__connect(other)
 
     def downConnect(self, other):
         self.fun.downConnect(self, other)
-        self.__downConnect(other)
+#        self.__downConnect(other)
 
     def upConnect(self, other):
         self.fun.upConnect(self, other)
-        self.__upConnect(other)
+#        self.__upConnect(other)
 
     def __connect(self, other):
         self.__downConnect(other)
@@ -218,13 +218,25 @@ class Node(FunctionalUnit):
         super(Node,self).__init__(funame, commandname)
         self.config = config
 
-class Connection(object):
-    __slots__ = ("type", "src", "dst")
 
-    def __init__(self, type, src, dst):
+class Port(object):
+    __slots__ = ('name')
+    name = None
+
+
+class SinglePort(Port):
+    name = 'SinglePort'
+
+
+class Connection(object):
+    __slots__ = ("type", "src", "srcPort", "dst", "dstPort")
+
+    def __init__(self, type, src, srcPort, dst, dstPort):
         self.type = type
         self.src = src
+        self.srcPort = srcPort
         self.dst = dst
+        self.dstPort = dstPort
 
 
 class CommandProxy(object):
@@ -247,14 +259,38 @@ class FUN(object):
         self.logger = Logger('WNS', 'FUN', True, parentLogger)
         self.commandProxy = CommandProxy(parentLogger)
 
-    def connect(self, src, dst):
-        self.connects.append(Connection(0, src, dst))
+    def __resolveParams(self, param1, param2, param3, param4):
+        if isinstance(param1, FunctionalUnit) and \
+                isinstance(param2, FunctionalUnit) and \
+                param3 is None and \
+                param4 is None:
+            return param1, SinglePort, param2, SinglePort
+        elif isinstance(param1, FunctionalUnit) and \
+                issubclass(param2, Port) and \
+                isinstance(param3, FunctionalUnit) and \
+                param4 is None:
+            return param1, param2, param3, SinglePort
+        elif isinstance(param1, FunctionalUnit) and \
+                isinstance(param2, FunctionalUnit) and \
+                issubclass(param3, Port) and \
+                param4 is None:
+            return param1, SinglePort, param2, param3
+        elif isinstance(param1, FunctionalUnit) and \
+                issubclass(param2, Port) and \
+                isinstance(param3, FunctionalUnit) and \
+                issubclass(param4, Port):
+            return param1, param2, param3, param4
+        else:
+            raise 'Connection of FUs failed!'
 
-    def downConnect(self, src, dst):
-        self.connects.append(Connection(1, src, dst))
+    def connect(self, param1, param2, param3 = None, param4 = None):
+        self.connects.append(Connection(0, *self.__resolveParams(param1, param2, param3, param4)))
 
-    def upConnect(self, src, dst):
-        self.connects.append(Connection(2, src, dst))
+    def downConnect(self, param1, param2, param3 = None, param4 = None):
+        self.connects.append(Connection(1, *self.__resolveParams(param1, param2, param3, param4)))
+
+    def upConnect(self, param1, param2, param3 = None, param4 = None):
+        self.connects.append(Connection(2, *self.__resolveParams(param1, param2, param3, param4)))
 
     def setFunctionalUnits(self, *functionalUnit):
         assert len(self.functionalUnit) == 0

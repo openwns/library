@@ -32,7 +32,7 @@
 #include <WNS/ldk/HasConnector.hpp>
 #include <WNS/ldk/HasDeliverer.hpp>
 #include <WNS/ldk/Forwarding.hpp>
-#include <WNS/ldk/fun/FUN.hpp>
+#include <WNS/ldk/fun/Main.hpp>
 
 
 namespace wns { namespace ldk { namespace tools {
@@ -47,7 +47,7 @@ namespace wns { namespace ldk { namespace tools {
 		public HasReceptor<>,
 		public HasConnector<>,
 		public HasDeliverer<>,
-		public Forwarding<FakeFU>,
+		public FunctionalUnit,
 		public Cloneable<FakeFU>
 	{
 	public:
@@ -55,14 +55,69 @@ namespace wns { namespace ldk { namespace tools {
 			HasReceptor<>(),
 			HasConnector<>(),
 			HasDeliverer<>(),
-			Forwarding<FakeFU>(),
-			Cloneable<FakeFU>()
+                        //			Forwarding<FakeFU>(),
+                        Cloneable<FakeFU>(),
+                        fun(new fun::Main(NULL))
 		{}
+
+            virtual
+            ~FakeFU()
+            {
+                delete fun;
+            }
+
+            virtual bool
+            doIsAccepting(const CompoundPtr& compound) const
+            {
+                return isAcceptingForwarded(compound);
+            }
+
+            virtual bool
+            isAcceptingForwarded(const CompoundPtr& compound) const
+            {
+                return getConnector()->hasAcceptor(compound);
+            }
+
+            virtual void
+            doSendData(const CompoundPtr& compound)
+            {
+                sendDataForwarded(compound);
+            }
+
+            virtual void
+            sendDataForwarded(const CompoundPtr& compound)
+            {
+                getConnector()->getAcceptor(compound)->sendData(compound);
+            }
+
+            virtual void
+            doWakeup()
+            {
+                wakeupForwarded();
+            }
+
+            virtual void
+            wakeupForwarded()
+            {
+                getReceptor()->wakeup();
+            }
+
+            virtual void
+            doOnData(const CompoundPtr& compound)
+            {
+                onDataForwarded(compound);
+            }
+
+            virtual void
+            onDataForwarded(const CompoundPtr& compound)
+            {
+                getDeliverer()->getAcceptor(compound)->onData(compound);
+            }
 
 		virtual fun::FUN*
 		getFUN() const
 		{
-			return NULL;
+			return fun;
 		}
 
 		virtual wns::ldk::Command*
@@ -126,6 +181,8 @@ namespace wns { namespace ldk { namespace tools {
 			return 0;
 		}
 #endif
+        private:
+            fun::Main* fun;
 	};
 
 }

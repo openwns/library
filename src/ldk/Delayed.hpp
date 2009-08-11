@@ -190,7 +190,7 @@ namespace wns { namespace ldk {
 			if(!getConnector()->hasAcceptor(compound))
 				return false;
 
-			CompoundHandlerInterface* target = getConnector()->getAcceptor(compound);
+			IConnectorReceptacle* target = getConnector()->getAcceptor(compound);
 			target->sendData(getSomethingToSend());
 
 			return true;

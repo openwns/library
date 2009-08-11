@@ -42,7 +42,7 @@ namespace wns { namespace ldk { namespace tools {
 	 */
 	class UpUnconnectable :
 		public virtual FunctionalUnit,
-		public virtual CompoundHandlerInterface,
+                public virtual CompoundHandlerInterface<FunctionalUnit>,
 		public virtual HasDelivererInterface
 	{
 		virtual Deliverer*

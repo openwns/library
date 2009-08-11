@@ -198,9 +198,9 @@ PhysicalResourceBlock::getFreeBitsOnPhysicalResourceBlock(MapInfoEntryPtr mapInf
 {
   wns::service::phy::phymode::PhyModeInterfacePtr mapPhyModePtr = mapInfoEntry->phyModePtr;
   assure(mapPhyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyModePtr==NULL");
-  assure(scheduledCompounds.empty()
-	 || (*mapPhyModePtr == *phyModePtr),
-	 "all PhyModes must match on a (used) PhysicalResourceBlock: "<<*phyModePtr<<" != "<<*mapPhyModePtr);
+//   assure(scheduledCompounds.empty()
+// 	 || (*mapPhyModePtr == *phyModePtr),
+// 	 "all PhyModes must match on a (used) PhysicalResourceBlock: "<<*phyModePtr<<" != "<<*mapPhyModePtr);
   double dataRate = mapPhyModePtr->getDataRate();
   return (freeTime+wns::scheduler::slotLengthRoundingTolerance) * dataRate;
 } // getFreeBitsOnPhysicalResourceBlock
@@ -225,8 +225,8 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
 	assure((predecessors==0)||(txPower == _txPower),
 	       "mismatch: txPower="<<txPower<<"!="<<_txPower<<" please use DSAStrategy.oneUserOnOneSubChannel=True");
 	txPower = _txPower; // all compounds must have the same power
-	assure((predecessors==0)||(phyModePtr == _phyModePtr),
-	       "phyModePtr mismatch: "<<*phyModePtr<<"!="<<*_phyModePtr);
+        //assure((predecessors==0)||(phyModePtr == _phyModePtr),
+        //       "phyModePtr mismatch: "<<*phyModePtr<<"!="<<*_phyModePtr);
 	phyModePtr = _phyModePtr; // all compounds should have the same phyMode
 	antennaPattern = _pattern; // all compounds should have the same antenna pattern
 	SchedulingCompound newScheduledCompound(this->subChannelIndex,

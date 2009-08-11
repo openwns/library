@@ -212,7 +212,6 @@ namespace wns { namespace scheduler { namespace strategy {
 		/** @brief Logger */
 		wns::logger::Logger logger;
 
-	protected:
 		/** @brief default implementation to support the old scheduler strategies.
 		    Please overload in all new strategies. */
 		virtual StrategyResult

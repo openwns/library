@@ -64,19 +64,19 @@ Group::Group(
 
 
 Group::Group(const Group& other) :
-	CompoundHandlerInterface(other),
+    CompoundHandlerInterface<FunctionalUnit>(other),
 	CommandTypeSpecifierInterface(other),
-	HasReceptorInterface(other),
 	HasConnectorInterface(other),
+	HasReceptorInterface(other),
 	HasDelivererInterface(other),
 	CloneableInterface(other),
 	IOutputStreamable(other),
 	PythonicOutput(other),
 	FunctionalUnit(other),
-	CommandTypeSpecifier<>(other),
 	HasReceptor<>(other),
 	HasConnector<>(other),
 	HasDeliverer<>(other),
+	CommandTypeSpecifier<>(other),
 	Cloneable<Group>(other),
 
 	config(other.config),

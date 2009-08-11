@@ -29,58 +29,59 @@
 #define WNS_LDK_LINKHANDLERINTERFACE_HPP
 
 #include <WNS/ldk/Compound.hpp>
-#include <WNS/ldk/FunctionalUnit.hpp>
+#include <WNS/ldk/IConnectorReceptacle.hpp>
+#include <WNS/ldk/IReceptorReceptacle.hpp>
+#include <WNS/ldk/IDelivererReceptacle.hpp>
 
 namespace wns { namespace ldk {
 
-	class LinkHandlerInterface
-	{
-	public:
-		virtual bool
-		isAcceptingForwarded(FunctionalUnit* fu, const CompoundPtr& compound) = 0;
+        class LinkHandlerInterface
+        {
+        public:
+            virtual bool
+            isAccepting(IConnectorReceptacle* cr, const CompoundPtr& compound) = 0;
 
-		virtual void
-		sendDataForwarded(FunctionalUnit* fu, const CompoundPtr& compound) = 0;
+            virtual void
+            sendData(IConnectorReceptacle* cr, const CompoundPtr& compound) = 0;
 
-		virtual void
-		wakeupForwarded(FunctionalUnit* fu) = 0;
+            virtual void
+            wakeup(IReceptorReceptacle* rr) = 0;
 
-		virtual void
-		onDataForwarded(FunctionalUnit* fu, const CompoundPtr& compound) = 0;
+            virtual void
+            onData(IDelivererReceptacle* dr, const CompoundPtr& compound) = 0;
 
-		virtual
-		~LinkHandlerInterface()
-		{}
+            virtual
+            ~LinkHandlerInterface()
+            {}
 
-	protected:
-		virtual bool
-		doIsAccepting(FunctionalUnit* fu, const CompoundPtr& compound)
-		{
-			return fu->doIsAccepting(compound);
-		}
+        protected:
+            virtual bool
+            doIsAccepting(IConnectorReceptacle* cr, const CompoundPtr& compound)
+            {
+                return cr->doIsAccepting(compound);
+            }
 
-		virtual void
-		doSendData(FunctionalUnit* fu, const CompoundPtr& compound)
-		{
-			fu->doSendData(compound);
-		}
+            virtual void
+            doSendData(IConnectorReceptacle* cr, const CompoundPtr& compound)
+            {
+                cr->doSendData(compound);
+            }
 
-		virtual void
-		doWakeup(FunctionalUnit* fu)
-		{
-			fu->doWakeup();
-		}
+            virtual void
+            doWakeup(IReceptorReceptacle* rr)
+            {
+                rr->doWakeup();
+            }
 
-		virtual void
-		doOnData(FunctionalUnit* fu, const CompoundPtr& compound)
-		{
-			fu->doOnData(compound);
-		}
-	};
+            virtual void
+            doOnData(IDelivererReceptacle* dr, const CompoundPtr& compound)
+            {
+                dr->doOnData(compound);
+            }
+        };
 
-} // ldk
+    } // ldk
 } // wns
 
 #endif // NOT defined WNS_LDK_LINKHANDLERINTERFACE_HPP
-
 
