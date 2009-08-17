@@ -65,6 +65,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief constructor for master scheduling */
                 StrategyInput(int _fChannels,
                               double _slotLength,
+                              int _numberOfTimeSlots,
                               int _maxBeams,
                               CallBackInterface* _callBackObject);
                 /** @brief constructor for slave scheduling */
@@ -73,6 +74,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief generic constructor for both types of scheduling */
                 StrategyInput(int _fChannels,
                               double _slotLength,
+                              int _numberOfTimeSlots,
                               int _maxBeams,
                               MapInfoEntryPtr _mapInfoEntryFromMaster,
                               CallBackInterface* _callBackObject);
@@ -83,6 +85,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 virtual int getFrameNr() const { return frameNr; };
                 virtual int getFChannels() const { return fChannels; };
                 virtual double getSlotLength() const { return slotLength; };
+                virtual int getNumberOfTimeSlots() const { return numberOfTimeSlots; };
                 virtual int getMaxBeams() const { return maxBeams; };
                 virtual bool frameNrIsValid() const;
                 /** @brief set (optional!) parameter defaultPhyMode
@@ -106,6 +109,8 @@ namespace wns { namespace scheduler { namespace strategy {
                 int fChannels;
                 /** @brief size of resources in time-direction */
                 double slotLength;
+                /** @brief number of resource blocks in time-direction */
+                int numberOfTimeSlots;
                 /** @brief true: use beamforming if(maxBeams>1).
                     false: use MIMO if(maxBeams>1) */
                 bool beamforming;
@@ -118,6 +123,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 CallBackInterface* callBackObject;
                 /** @brief A slave scheduler gets this masterBurst from the masterScheduler
                     via maps (DL signaling).
+                    Old method. The new method uses an inputSchedulingMap.
                     Is a SmartPtr. */
                 MapInfoEntryPtr mapInfoEntryFromMaster;
                 /** @brief Any scheduler can get a preassigned schedulingMap.
@@ -153,7 +159,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 virtual std::string toString() const;
                 /** @brief obtain percentage of resources allocated during last round. */
                 virtual float getResourceUsage() const;
-                /** @brief count number of compounds in bursts */
+                /** @brief count number of compounds in bursts (MapInfoCollection) */
                 virtual int getNumberOfCompoundsInBursts() const;
                 /** @brief delete all compounds in bursts */
                 virtual void deleteCompoundsInBursts();
@@ -218,6 +224,7 @@ namespace wns { namespace scheduler { namespace strategy {
                     calls doStartScheduling() of derived class. */
                 virtual void
                 startScheduling(int fChannels,
+                                //int numberOfTimeSlots,
                                 int maxBeams,
                                 double slotLength,
                                 CallBackInterface* parent);

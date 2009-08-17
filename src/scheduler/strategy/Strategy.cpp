@@ -201,6 +201,8 @@ Strategy::setFriends(wns::service::phy::ofdma::BFInterface* _ofdmaProvider)
         throw wns::Exception("invalid case for schedulerSpot");
     }
     schedulerState->schedulerSpot = schedulerSpot;
+    //UserID myUserID = colleagues.registry->getMyUserID();
+    //schedulerState->myUserID = myUserID;
     MESSAGE_SINGLE(NORMAL, logger,"Strategy::setFriends(): isDL="<<isDL<<", isTx="<<schedulerState->isTx
                    <<", schedulerSpot="<<wns::scheduler::SchedulerSpot::toString(schedulerSpot)
                    <<", useCQI="<<schedulerState->useCQI);
@@ -270,13 +272,20 @@ Strategy::getPowerCapabilities(const UserID user) const
         break;
     }
     case PowerControlULSlave:
-    { // don't use powerCapabilities but masterBurst instead
-        //schedulerState->powerCapabilities = colleagues.registry->getPowerCapabilities(); // my own power
-        assure(schedulerState->defaultTxPower!=wns::Power(),"undefined defaultTxPower");
-        schedulerState->powerCapabilities.nominalPerSubband = schedulerState->defaultTxPower;
-        schedulerState->powerCapabilities.maxPerSubband = schedulerState->defaultTxPower;
-        schedulerState->powerCapabilities.maxOverall = schedulerState->defaultTxPower * 1000.0; // limit not used for slave
-        //schedulerState->powerCapabilities.maxOverall = schedulerState->defaultTxPower * #subCh (N/A here);
+    {
+        if (schedulerState->defaultTxPower!=wns::Power()) {
+            // don't use powerCapabilities but masterBurst instead
+            assure(schedulerState->defaultTxPower!=wns::Power(),"undefined defaultTxPower");
+            schedulerState->powerCapabilities.nominalPerSubband = schedulerState->defaultTxPower;
+            schedulerState->powerCapabilities.maxPerSubband = schedulerState->defaultTxPower;
+            schedulerState->powerCapabilities.maxOverall = schedulerState->defaultTxPower * 1000.0; // limit not used for slave
+            //schedulerState->powerCapabilities.maxOverall = schedulerState->defaultTxPower * #subCh (N/A here);
+        } else { // not given (by masterBurst) because there is an InputSchedulingMap (new method)
+            assure(schedulerState->currentState->strategyInput->inputSchedulingMap != wns::scheduler::SchedulingMapPtr(), "need inputSchedulingMap with txPower information");
+            // the power settings in inputSchedulingMap can be overwritten
+            // if APC strategy is changed to use nominal power. Therefore we need these values:
+            schedulerState->powerCapabilities = colleagues.registry->getPowerCapabilities(); // my own power
+        }
         break;
     }
     default:
@@ -297,10 +306,11 @@ Strategy::getPowerCapabilities(const UserID user) const
 StrategyResult // copy result and arguments (very lightweight datastructures)
 Strategy::startScheduling(const StrategyInput& strategyInput)
 {
-    if (strategyInput.fChannels  < 1)   throw wns::Exception("Need at least one subBand");
-    if (strategyInput.slotLength < 0.0) throw wns::Exception("Invalid slotLength");
+    if (strategyInput.fChannels  < 1)          throw wns::Exception("Need at least one subBand");
+    if (strategyInput.slotLength < 0.0)        throw wns::Exception("Invalid slotLength");
     if (strategyInput.slotLength < schedulerState->symbolDuration)    throw wns::Exception("Can't schedule on slot shorter than OFDM symbol");
-    if (strategyInput.maxBeams   < 1)   throw wns::Exception("Need at least one beam");
+    if (strategyInput.numberOfTimeSlots < 1)   throw wns::Exception("Need at least one TimeSlot");
+    if (strategyInput.maxBeams   < 1)          throw wns::Exception("Need at least one beam");
     // ^ strategyInput.maxBeams>1 means beamforming or MIMO
     assure(isNewStrategy()
            || strategyInput.beamforming
@@ -338,11 +348,26 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
         schedulerState->setDefaultPhyMode(strategyInput.defaultPhyModePtr); // may be undefined (NULL) in most cases
         schedulerState->setDefaultTxPower(strategyInput.defaultTxPower); // may be undefined (0.0) in most cases
     } else { // slave scheduling
-        assure(strategyInput.mapInfoEntryFromMaster != MapInfoEntryPtr(),"mapInfoEntryFromMaster must be non-NULL");
-        MESSAGE_SINGLE(NORMAL, logger,"startScheduling(slave): fChannels="<<strategyInput.fChannels<<", subBand="<<strategyInput.mapInfoEntryFromMaster->subBand);
-        MESSAGE_SINGLE(NORMAL, logger,"PhyMode="<<*(strategyInput.mapInfoEntryFromMaster->phyModePtr)<<", txPower="<<strategyInput.mapInfoEntryFromMaster->txPower);
-        schedulerState->setDefaultPhyMode(strategyInput.mapInfoEntryFromMaster->phyModePtr);
-        schedulerState->setDefaultTxPower(strategyInput.mapInfoEntryFromMaster->txPower);
+        // two ways of master input:
+        // 1. old way: mapInfoEntryFromMaster
+        // 2. new way: inputSchedulingMap
+        if (strategyInput.mapInfoEntryFromMaster != MapInfoEntryPtr()) {
+            assure(strategyInput.mapInfoEntryFromMaster != MapInfoEntryPtr(),"mapInfoEntryFromMaster must be non-NULL");
+            MESSAGE_SINGLE(NORMAL, logger,"startScheduling(slave): fChannels="<<strategyInput.fChannels<<", subBand="<<strategyInput.mapInfoEntryFromMaster->subBand);
+            MESSAGE_SINGLE(NORMAL, logger,"PhyMode="<<*(strategyInput.mapInfoEntryFromMaster->phyModePtr)<<", txPower="<<strategyInput.mapInfoEntryFromMaster->txPower);
+            schedulerState->setDefaultPhyMode(strategyInput.mapInfoEntryFromMaster->phyModePtr);
+            schedulerState->setDefaultTxPower(strategyInput.mapInfoEntryFromMaster->txPower);
+        } else {
+            assure(strategyInput.inputSchedulingMap != wns::scheduler::SchedulingMapPtr(), "slave scheduling requires inputSchedulingMap");
+            MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with given inputSchedulingMap...");
+            // all PhyModes and TxPower are written in the inputSchedulingMap
+            // I may only use those resources (subchannels,slots) where my userID is written into
+            assure(schedulerState->currentState->schedulingMap == strategyInput.inputSchedulingMap,"schedulingMap must be set in revolveSchedulerState()");
+            // set empty all resources but keep userID, PhyMode, TxPower
+            MESSAGE_SINGLE(NORMAL, logger, "inputSchedulingMap->processMasterMap()");
+            schedulerState->currentState->schedulingMap->processMasterMap();
+            MESSAGE_SINGLE(NORMAL, logger, "prepared master schedulingMap="<<schedulerState->currentState->schedulingMap->toString());
+        }
     }
     schedulerState->clearMap(); // empty bursts result datastructure MapInfoCollection (not schedulingMap)
     // prepare CQI
@@ -554,32 +579,45 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 
     // The slave RS-TX in the UT does not need to and cannot do AdaptiveResourceScheduling:
     if (schedulerState->powerControlType==PowerControlULSlave)
-    { // don't do anything. Just return the known=given masterBurst
+    {
+        assure(schedulerState->schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave(),
+               "PowerControlULSlave requires SchedulerSpot::ULSlave");
         assure(schedulerState->currentState->strategyInput!=NULL,"need strategyInput");
-        assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
-        MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry(*(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster))); // copy and new SmartPtr to carry the result
-        assure(mapInfoEntry != MapInfoEntryPtr(),"need masterBurst");
-        assure(mapInfoEntry->user != NULL,"need user in masterBurst");
-        MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): using masterBurst in slave mode: user="<<mapInfoEntry->user->getName()<<" -> request.user="<<request.user->getName());
-        mapInfoEntry->user = request.user; // switch to new receiver (RAP)
-        assure(mapInfoEntry->phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyMode must be defined in masterBurst"<<mapInfoEntry->toString());
-        request.phyModePtr=mapInfoEntry->phyModePtr; // needed later
-        if (!schedulingMap->pduFitsIntoSubChannel(request,mapInfoEntry)) // no space
-            return resultMapInfoEntry; // empty means no result
-        return mapInfoEntry;
+        if (schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr())
+        { // don't do anything. Just return the known=given masterBurst
+            assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
+            MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry(*(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster))); // copy and new SmartPtr to carry the result
+            assure(mapInfoEntry != MapInfoEntryPtr(),"need masterBurst");
+            assure(mapInfoEntry->user != NULL,"need user in masterBurst");
+            MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): using masterBurst in slave mode: user="<<mapInfoEntry->user->getName()<<" -> request.user="<<request.user->getName()<<" (destination peer)");
+            mapInfoEntry->user = request.user; // switch to new receiver (RAP)
+            assure(mapInfoEntry->phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyMode must be defined in masterBurst"<<mapInfoEntry->toString());
+            request.phyModePtr=mapInfoEntry->phyModePtr; // needed later
+            if (!schedulingMap->pduFitsIntoSubChannel(request,mapInfoEntry)) // no space
+                return resultMapInfoEntry; // empty means no result
+            return mapInfoEntry;
+        } else {
+            MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): using inputSchedulingMap. request.user="<<request.user->getName()<<" (destination peer)");
+            assure(schedulerState->currentState->strategyInput->inputSchedulingMap != wns::scheduler::SchedulingMapPtr(), "slave scheduling requires inputSchedulingMap");
+            assure(!colleagues.dsastrategy->requiresCQI(),"SlaveScheduler DSAStrategy must not require CQI");
+            // go on with standard algorithm...
+        }
     }
-    assure(schedulerState->powerControlType!=PowerControlULSlave,"cannot doAdaptiveResourceScheduling in slave scheduler");
-    assure(schedulerState->schedulerSpot!=wns::scheduler::SchedulerSpot::ULSlave(),
-           "cannot doAdaptiveResourceScheduling in slave scheduler. Please switch powerControlSlave=True");
+    //assure(schedulerState->powerControlType!=PowerControlULSlave,"cannot doAdaptiveResourceScheduling in slave scheduler");
+    //assure(schedulerState->schedulerSpot!=wns::scheduler::SchedulerSpot::ULSlave(),
+    //       "cannot doAdaptiveResourceScheduling in slave scheduler. Please switch powerControlSlave=True");
 
     ChannelQualitiesOnAllSubBandsPtr cqiForUser; // SmartPtr (allocated in CQI)
     wns::CandI estimatedCandI;
     // phyMode may be given by master to slave:
-    if (schedulerState->defaultPhyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr())
-        request.phyModePtr = schedulerState->defaultPhyModePtr;
+    //if (schedulerState->defaultPhyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr())
+    //    request.phyModePtr = schedulerState->defaultPhyModePtr;
+    assure(schedulerState->defaultPhyModePtr == wns::service::phy::phymode::PhyModeInterfacePtr(),
+           "defaultPhyModePtr must not be set at this point (either master scheduler or inputSchedulingMap method)");
 
     if (schedulerState->useCQI)
     {
+        assure (schedulerState->powerControlType!=PowerControlULSlave,"slave must not use CQI");
         // is the CQI state already available in our state?
         if (!schedulerState->currentState->channelQualitiesOfAllUsers->knowsUser(request.user))
         { // NO -> get current CQI state
@@ -610,6 +648,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 
     dsastrategy::DSAResult dsaResult;
     int subChannel = dsastrategy::DSAsubChannelNotFound;
+    int timeSlot = 0; // TDMA
     int beam = 0; // MIMO
     bool CQIrequired = colleagues.dsastrategy->requiresCQI();
     bool CQIavailable = (cqiForUser!=ChannelQualitiesOnAllSubBandsPtr())
@@ -623,10 +662,12 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     // with or without CQI information?
     if (schedulerState->useCQI && CQIrequired && CQIavailable)
     {
+        assure (schedulerState->powerControlType!=PowerControlULSlave,"slave must not use CQI");
         MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): calling dsastrategy");
         // start dynamic subchannel assignment
         dsaResult = colleagues.dsastrategy->getSubChannelWithDSA(request, schedulerState, schedulingMap);
         subChannel = dsaResult.subChannel;
+        timeSlot   = dsaResult.timeSlot;
         beam       = dsaResult.beam;
         if (subChannel==dsastrategy::DSAsubChannelNotFound)
             return resultMapInfoEntry; // empty means no result
@@ -646,6 +687,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
             dsaResult = colleagues.dsafbstrategy->getSubChannelWithDSA(request, schedulerState, schedulingMap);
         }
         subChannel = dsaResult.subChannel;
+        timeSlot   = dsaResult.timeSlot;
         beam       = dsaResult.beam;
         if (subChannel==dsastrategy::DSAsubChannelNotFound)
             return resultMapInfoEntry; // empty means no result
@@ -661,7 +703,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     } // with|without CQI information
     // Tell result of DSA: subChannel
     MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"):"
-                   <<" subChannel="<<subChannel<<"."<<beam);
+                   <<" subChannel.tSlot.beam="<<subChannel<<"."<<timeSlot<<"."<<beam);
 
     if (subChannel==dsastrategy::DSAsubChannelNotFound)
         return resultMapInfoEntry; // empty means no result
@@ -670,46 +712,54 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 
     // fix the proposed subChannel value:
     request.subChannel = subChannel;
-    request.beam = beam;
+    request.timeSlot   = timeSlot;
+    request.beam       = beam;
 
-    // do adaptive power allocation
-    apcstrategy::APCResult apcResult =
-        colleagues.apcstrategy->doStartAPC(request, schedulerState, schedulingMap);
-    // not (yet) possible: if (?==apcstrategy::APCNotFound) return resultMapInfoEntry; // empty means no result
-
-    // fix the proposed phyMode value:
-    request.phyModePtr = apcResult.phyModePtr;
-
-    // process result:
-    estimatedCandI.C = apcResult.txPower / cqiOnSubChannel.pathloss.get_factor(); // "- in dB" = "/ in Power"
-    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): txP="<<apcResult.txPower<<", pl="<<cqiOnSubChannel.pathloss<<", sinr="<<estimatedCandI.toSINR()<<", PhyMode="<<*(apcResult.phyModePtr));
-    assure(std::fabs(estimatedCandI.C.get_dBm()-apcResult.estimatedCandI.C.get_dBm())<1e-6,"estimatedCandI mismatch: C="<<estimatedCandI.C<<" != "<<apcResult.estimatedCandI.C);
-    assure(std::fabs(estimatedCandI.I.get_dBm()-apcResult.estimatedCandI.I.get_dBm())<1e-6,"estimatedCandI mismatch: I="<<estimatedCandI.I<<" != "<<apcResult.estimatedCandI.I);
-    assure(std::fabs(estimatedCandI.toSINR().get_dB()-apcResult.sinr.get_dB())<1e-6,"sinr mismatch: sinr="<<estimatedCandI.toSINR()<<" != "<<apcResult.sinr);
-    // estimatedCandI (calculated here) and apcResult.estimatedCandI should be the same
-    double minSINRforPhyMode = colleagues.registry->getPhyModeMapper()->getMinimumSINR();
-    if (schedulerState->excludeTooLowSINR && (apcResult.sinr.get_dB() < minSINRforPhyMode))
-    { // this could mean "APC failed"
-        MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): too low SINR! sinr="<<estimatedCandI.toSINR()<<", PhyMode="<<*(apcResult.phyModePtr)<<" requires "<<minSINRforPhyMode<<"dB");
-        // ^ this may happen in the early milliseconds of a simulation / after association,
-        // when there is no realistic estimatedCandI and CQI.
-        // If we would break here in this case, there will never be a transmission.
-        // which criterion? cqiOnSubChannel.pathloss.get_dB() > 150 ?
-        // (solved in RegistryProxy::estimateRxSINROf()), so "blind case" should not happen here.
-        assure(estimatedCandI.C.get_dBm() > -190,
-               "sinr="<<apcResult.sinr.get_dB()<<" but minSINRforPhyMode="<<minSINRforPhyMode<<" not reached. Estimation was: C="<<estimatedCandI.C<<", I="<<estimatedCandI.I<<" (blind)");
-        return resultMapInfoEntry; // empty means no result
+    wns::Power txPower;
+    apcstrategy::APCResult apcResult;
+    if (schedulerState->powerControlType!=PowerControlULSlave)
+    { // Master
+        // do adaptive power allocation
+        apcResult = colleagues.apcstrategy->doStartAPC(request, schedulerState, schedulingMap);
+        // not (yet) possible: if (?==apcstrategy::APCNotFound) return resultMapInfoEntry; // empty means no result
+        // fix the proposed phyMode value:
+        request.phyModePtr = apcResult.phyModePtr;
+        txPower = apcResult.txPower;
+        // process result:
+        estimatedCandI.C = apcResult.txPower / cqiOnSubChannel.pathloss.get_factor(); // "- in dB" = "/ in Power"
+        MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): txP="<<apcResult.txPower<<", pl="<<cqiOnSubChannel.pathloss<<", sinr="<<estimatedCandI.toSINR()<<", PhyMode="<<*(apcResult.phyModePtr));
+        assure(std::fabs(estimatedCandI.C.get_dBm()-apcResult.estimatedCandI.C.get_dBm())<1e-6,"estimatedCandI mismatch: C="<<estimatedCandI.C<<" != "<<apcResult.estimatedCandI.C);
+        assure(std::fabs(estimatedCandI.I.get_dBm()-apcResult.estimatedCandI.I.get_dBm())<1e-6,"estimatedCandI mismatch: I="<<estimatedCandI.I<<" != "<<apcResult.estimatedCandI.I);
+        assure(std::fabs(estimatedCandI.toSINR().get_dB()-apcResult.sinr.get_dB())<1e-6,"sinr mismatch: sinr="<<estimatedCandI.toSINR()<<" != "<<apcResult.sinr);
+        // estimatedCandI (calculated here) and apcResult.estimatedCandI should be the same
+        double minSINRforPhyMode = colleagues.registry->getPhyModeMapper()->getMinimumSINR();
+        if (schedulerState->excludeTooLowSINR && (apcResult.sinr.get_dB() < minSINRforPhyMode))
+        { // this could mean "APC failed"
+            MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): too low SINR! sinr="<<estimatedCandI.toSINR()<<", PhyMode="<<*(apcResult.phyModePtr)<<" requires "<<minSINRforPhyMode<<"dB");
+            // ^ this may happen in the early milliseconds of a simulation / after association,
+            // when there is no realistic estimatedCandI and CQI.
+            // If we would break here in this case, there will never be a transmission.
+            // which criterion? cqiOnSubChannel.pathloss.get_dB() > 150 ?
+            // (solved in RegistryProxy::estimateRxSINROf()), so "blind case" should not happen here.
+            assure(estimatedCandI.C.get_dBm() > -190,
+                   "sinr="<<apcResult.sinr.get_dB()<<" but minSINRforPhyMode="<<minSINRforPhyMode<<" not reached. Estimation was: C="<<estimatedCandI.C<<", I="<<estimatedCandI.I<<" (blind)");
+            return resultMapInfoEntry; // empty means no result
+        }
+    } else { // slave scheduling (PowerControlULSlave)
+        request.phyModePtr = schedulingMap->getPhyModeUsedInResource(subChannel,timeSlot,beam);
+        txPower = schedulingMap->getTxPowerUsedInResource(subChannel,timeSlot,beam);
     }
 
     // This really fixes the proposed values of DSA and APC.
     resultMapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
     resultMapInfoEntry->frameNr    = frameNr;
     resultMapInfoEntry->subBand    = subChannel;
+    resultMapInfoEntry->timeSlot   = timeSlot;
     resultMapInfoEntry->beam       = beam;
     resultMapInfoEntry->user       = request.user;
-    resultMapInfoEntry->txPower    = apcResult.txPower;
-    resultMapInfoEntry->phyModePtr = apcResult.phyModePtr;
-    resultMapInfoEntry->estimatedCandI = apcResult.estimatedCandI;
+    resultMapInfoEntry->txPower    = txPower; // apcResult.txPower;
+    resultMapInfoEntry->phyModePtr = request.phyModePtr; // = apcResult.phyModePtr
+    resultMapInfoEntry->estimatedCandI = estimatedCandI; // ?= apcResult.estimatedCandI;
     // Set antennaPattern according to grouping result
     if (groupingRequired()) {
         assure(schedulerState->currentState->getGrouping() != GroupingPtr(),"invalid grouping");

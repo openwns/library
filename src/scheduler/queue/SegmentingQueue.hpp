@@ -56,10 +56,7 @@ namespace wns { namespace scheduler { namespace queue {
 
                 UserSet getQueuedUsers() const;
                 ConnectionSet getActiveConnections() const;
-                ConnectionSet getActiveConnectionsForPriority(unsigned int priority) const;
 
-                uint32_t numCompoundsForUser(UserID user) const;
-                uint32_t numBitsForUser(UserID user) const;
                 uint32_t numCompoundsForCid(ConnectionID cid) const;
                 uint32_t numBitsForCid(ConnectionID cid) const;
 
@@ -69,6 +66,7 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::ldk::CompoundPtr getHeadOfLinePDU(ConnectionID cid);
                 int getHeadOfLinePDUbits(ConnectionID cid);
 
+                bool isEmpty() const;
                 bool hasQueue(ConnectionID cid);
                 bool queueHasPDUs(ConnectionID cid);
                 ConnectionSet filterQueuedCids(ConnectionSet connections);
@@ -98,19 +96,24 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::probe::bus::contextprovider::Variable* probeContextProviderForCid;
                 wns::probe::bus::contextprovider::Variable* probeContextProviderForPriority;
                 wns::probe::bus::ContextCollectorPtr sizeProbeBus;
+                wns::ldk::CommandReaderInterface* segmentHeaderReader;
+                wns::logger::Logger logger;
+                wns::pyconfig::View config;
+                wns::ldk::fun::FUN* myFUN;
                 // Every CID has its own queue. A user might have multiple CIDs
                 // associated with it. Queue length counters exist for every queue/CID.
                 struct Queue {
                     Queue()
-                        : bits(0),
-                          user(0),
-                          frontSegmentSentBits(0)
+                        : bitsNetto(0),
+                          bitsBrutto(0),
+                          frontSegmentSentBits(0),
+                          currentSegmentNumber(0)
                     {}
-                    Bits bits;
-                    UserID user; // ?needed?
-                    unsigned int priority; // [mba], for probe context
+                    Bits bitsNetto; // current contents (raw original sizes)
+                    Bits bitsBrutto; // current contents (including headers)
+                    Bits frontSegmentSentBits; // fraction of the first segment sent so far
+                    long currentSegmentNumber;
                     std::list<wns::ldk::CompoundPtr> pduQueue;
-                    Bits frontSegmentSentBits;
                 };
 
                 long int maxSize;
@@ -123,15 +126,9 @@ namespace wns { namespace scheduler { namespace queue {
                     RegistryProxyInterface* registry;
                 } colleagues;
 
-                wns::logger::Logger logger;
-                wns::pyconfig::View config;
-                wns::ldk::fun::FUN* myFUN;
-
-                wns::ldk::CommandReaderInterface* segmentHeaderReader;
-
                 Bit fixedHeaderSize;
                 Bit extensionHeaderSize;
-                long currentSegmentNumber;
+                bool usePadding;
             };
 
 

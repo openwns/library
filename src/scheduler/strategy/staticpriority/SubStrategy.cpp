@@ -65,7 +65,6 @@ SubStrategy::setColleagues(wns::scheduler::strategy::Strategy* _strategy,
     assure(dynamic_cast<RegistryProxyInterface*>(colleagues.registry), "Need access to the registry");
     useDynamicSegmentation = colleagues.queue->supportsDynamicSegmentation();
     if (useDynamicSegmentation) {
-        MESSAGE_SINGLE(NORMAL, logger, "WARNING: NEW useDynamicSegmentation="<<useDynamicSegmentation);
         minimumSegmentSize = colleagues.queue->getMinimumSegmentSize();
     }
     this->initialize();
@@ -85,7 +84,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     int queuedBits = colleagues.queue->getHeadOfLinePDUbits(cid);
     int requestedBits =
         (useDynamicSegmentation && (queuedBits>minimumSegmentSize)) ?
-        minimumSegmentSize // ask for any free space of at least this size
+        minimumSegmentSize // ask for any free space of at least this size (so that there is always a chance of space; the real request is extended later after we know the PhyMode)
         :
         queuedBits;
     MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<",#"<<pduCounter<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested");
@@ -98,7 +97,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
         return false;
     // ^ maybe it could make sense to try other connections here instead of aborting?
     // ^ they could have smaller PDUs, better PhyMode or oneUserOnOneSubChannel=true
-
+    // Answer: which connection to choose is responsibility of the PacketScheduler (SubStrategy)
     int subChannel = mapInfoEntry->subBand; // DSA result
     int beam = mapInfoEntry->beam; // DSA result
     simTimeType compoundStartTime = schedulingMap->getNextPosition(subChannel, beam);
@@ -107,21 +106,30 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     mapInfoEntry->start = compoundStartTime;
     // ^ all the above is constant even if we schedule another compound of the same cid
     // this depends on phyMode and subChannel used so far:
-    int freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry);
+    int freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry); // how much fits into the selected subChannel?
     // ^ can be used with DynamicSegmentation
-    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free(sc="<<mapInfoEntry->subBand<<")");
+    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free on sc="<<mapInfoEntry->subBand);
     if (freeBits<=0) return false; // can be =0 if !subChannelIsUsable
     if (useDynamicSegmentation) {
         // modify to maximum possible value in order to fill the whole subchannel if possible
         request.bits = (freeBits<queuedBits) ? freeBits:queuedBits; // minimum
+        MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free, get="<<request.bits);
         // for UpLink:
         //if (request.bits<minimumSegmentSize) request.bits=minimumSegmentSize; // maximum
-        wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDUSegment(cid,freeBits);
+        wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDUSegment(cid,request.bits);
+        // ^ beware if SegmentingQueue returns "padded" compounds. They contain "freeBits" bits instead of "queuedBits"
+        simTimeType compoundDuration = request.getDuration();
+        if (compoundPtr != wns::ldk::CompoundPtr()) { // no fake
+            int compoundBits = compoundPtr->getLengthInBits();
+            assure(compoundBits<=request.bits,"compoundLengthInBits="<<compoundBits<<" vs request.bits="<<request.bits);
+            MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): getHeadOfLinePDUSegment("<<request.bits<<") => "<<compoundBits<<" bits dequeued, d="<<compoundDuration*1e6<<"us");
+        }
         bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr);
         assure(ok,"schedulingMap->addCompound("<<request.toString()<<") failed. mapInfoEntry="<<mapInfoEntry->toString());
         mapInfoEntry->compounds.push_back(compoundPtr); // (currentBurst)
-        allCompoundsEndTime += request.getDuration();
+        allCompoundsEndTime += compoundDuration;
         pduCounter++;
+        freeBits -= request.bits;
     } else { // normal pre-segmented PDUs
         //while(schedulingMap->pduFitsIntoSubChannel(request, mapInfoEntry))
         if (request.bits > freeBits) {
@@ -152,6 +160,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     } // no DynamicSegmentation
     mapInfoEntry->end = allCompoundsEndTime;
     mapInfoCollection->push_back(mapInfoEntry);
+    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): start..end[us]="<<mapInfoEntry->start*1e6<<".."<<mapInfoEntry->end*1e6);
     MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): next PDU on next subChannel...?");
     return true; // true means success
 } // scheduleCid

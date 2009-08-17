@@ -384,6 +384,7 @@ class SegmentingQueue(object):
     TxRx = None
     localIDs = None
     minimumSegmentSize = None # used to ask for resources of at least this size
+    usePadding = False
 
     def setLocalIDs(self, localIDs):
         self.localIDs = localIDs

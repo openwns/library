@@ -83,8 +83,10 @@ namespace wns { namespace scheduler {
                 /** @brief proposed subChannel.
                     Never set in the original request, but written after DSA strategy. */
                 int subChannel;
+                /** @brief index of time slot (TDMA component) */
+                int timeSlot;
                 /** @brief spatial channel (either beamforming or MIMO) */
-                int beam;
+                int beam; // also called "stream" or better "spacialIndex"
                 /** @brief channel state (CQI) on the proposed subChannel.
                     Contains values even if CQI is not available (uses CandI estimateTxSINRAt in this case)
                     The values are set after DSA is finished.
@@ -159,6 +161,7 @@ namespace wns { namespace scheduler {
                     powerControlType(PowerControlDLMaster),
                     //schedulerSpot(wns::scheduler::SchedulerSpot::DLMaster()),
                     schedulerSpot(-1), // initialized to good value in setFriends
+                    myUserID(NULL),
                     excludeTooLowSINR(true),
                     keepResultHistory(false),
                     symbolDuration(0.0),
@@ -213,6 +216,8 @@ namespace wns { namespace scheduler {
                 PowerControlType powerControlType;
                 /** @brief there are three positions for the scheduler... */
                 SchedulerSpotType schedulerSpot;
+                /** @brief userID of my own station/terminal myself */
+                UserID myUserID;
                 /** @brief PyConfig Attribute:
                     flag to determine whether doAdaptiveResourceScheduling cares for too low SINR */
                 bool excludeTooLowSINR;

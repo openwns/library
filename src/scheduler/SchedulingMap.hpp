@@ -39,7 +39,7 @@
 
 namespace wns { namespace scheduler {
         namespace strategy {
-            class RequestForResource;
+            class RequestForResource; /** @see SchedulerState.hpp */
         }
         /** @brief class to describe the contents of a SchedulingSubChannel */
         class SchedulingCompound
@@ -47,6 +47,7 @@ namespace wns { namespace scheduler {
         public:
             SchedulingCompound();
             SchedulingCompound(int _subChannel,
+                               int _timeSlot,
                                int _beam,
                                simTimeType _startTime,
                                simTimeType _endTime,
@@ -61,12 +62,16 @@ namespace wns { namespace scheduler {
             simTimeType getCompoundDuration() { return endTime-startTime; };
             std::string toString() const;
         public:
+            /** @brief index of subChannel (FDMA component) */
             int subChannel;
+            /** @brief index of time slot (TDMA component) */
+            int timeSlot;
             /** @brief for MIMO; in [0..(maxBeams-1)] */
             int beam;
             simTimeType startTime;
             simTimeType endTime;
             wns::scheduler::ConnectionID connectionID;
+            /** @brief usually all compounds in a PRB must have the same user */
             wns::scheduler::UserID userID;
             wns::ldk::CompoundPtr compoundPtr;
             /** @brief usually all compounds in a subChannel must have the same phyMode */
@@ -92,9 +97,8 @@ namespace wns { namespace scheduler {
         {
         public:
             PhysicalResourceBlock();
-            PhysicalResourceBlock(int _subChannelIndex, int _beam, simTimeType _slotLength);
+            PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _beam, simTimeType _slotLength);
             ~PhysicalResourceBlock();
-            std::string toString() const;
             /** @brief total used time in this PhysicalResourceBlock */
             simTimeType getUsedTime() const;
             /** @brief total free time on this PhysicalResourceBlock */
@@ -132,18 +136,36 @@ namespace wns { namespace scheduler {
                              wns::ldk::CompoundPtr compoundPtr
                 );
 
+            /** @brief doToString(): human-readable format */
+            std::string toString() const;
+            /** @brief output structure (machine readable table for Matlab,Gnuplot,etc) */
+            std::string dumpContents(const std::string& prefix) const;
+
             /** @brief true if there is nothing scheduled in this block.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
+            /** @brief get userID this resource has been reserved for or NULL if empty */
+            wns::scheduler::UserID getUserID() const;
 
             /** @brief Delete all compounds. But keep all other info (PhyMode, usedTime).
                 This is called by the UL master scheduler,
-                because there are no "real" compounds (just fakes). */
+                because there are no "real" compounds (just fakes).
+                Only useful for UL scheduling. */
             void deleteCompounds();
+            /** @brief extent the usage of each resource to 100% so that UL master map doesn't waste resources.
+                Only useful for UL scheduling. */
+            void grantFullResources();
+            /** @brief perform modifications to use this as MasterMap (called in uplink slave scheduler).
+                Only useful for UL scheduling. */
+            void processMasterMap();
+            /** @brief checks if there are UL resources available for given user */
+            bool hasResourcesForUser(wns::scheduler::UserID user) const;
 
         public:
             /** @brief my own subChannelIndex as seen from outside (container) */
             int subChannelIndex;
+            /** @brief index of time slot (TDMA component) */
+            int timeSlotIndex;
             /** @brief my own beamIndex as seen from outside (container).
                 For MIMO; in [0..(maxBeams-1)] */
             int beamIndex;
@@ -155,18 +177,74 @@ namespace wns { namespace scheduler {
             simTimeType nextPosition;
             /** @brief list of all compound together with their attributes */
             ScheduledCompoundsList scheduledCompounds;
+            /** @brief usually all compounds in a PRB must have the same user */
+            wns::scheduler::UserID userID;
             /** @brief phyMode used in this subChannel (all compounds should have the same) */
             wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
-            //usedTxPowerOnOneChannel usedTxPower; // std::vector<TxPower4PDU> is very bad
             /** @brief transmit power used in this subChannel (e.g. when APC is used) */
             wns::Power txPower;
+            //wns::CandI estimatedCandI; // not supported yet
             /** @brief Antenna pattern for beamforming; else empty.
                 Yet unclear if this is constant over all subchannels or not. */
             wns::service::phy::ofdma::PatternPtr antennaPattern;
         }; // PhysicalResourceBlock
 
-        /** @brief collection of all subChannels and all (MIMO) beams */
+        /** @brief collection of and all spatial resources = MIMO streams or SDMA beams */
         typedef std::vector<PhysicalResourceBlock> PhysicalResourceBlockVector;
+
+        /** @brief class to describe one SchedulingTimeSlot.
+            There is one of this object in the subChannel for each timeSlot.
+         */
+        class SchedulingTimeSlot
+                : virtual public wns::RefCountable // for SmartPtr
+        {
+        public:
+            SchedulingTimeSlot();
+            SchedulingTimeSlot(int _subChannel, int _timeSlot, int _numberOfBeams, simTimeType _slotLength);
+            ~SchedulingTimeSlot();
+            /** @brief output structure (machine readable table for Matlab,Gnuplot,etc) */
+            std::string dumpContents(const std::string& prefix) const;
+            /** @brief doToString(): human-readable format */
+            std::string toString() const;
+            /** @brief true if there is nothing scheduled in this block.
+                This question is NOT enough to allow it to be used. see subChannelIsUsable. */
+            bool isEmpty() const;
+            /** @brief Delete all compounds. But keep all other info (PhyMode, usedTime).
+                This is called by the UL master scheduler,
+                because there are no "real" compounds (just fakes). */
+            void deleteCompounds();
+            /** @brief extent the usage of each resource to 100% so that UL master map doesn't waste resources. */
+            void grantFullResources();
+            /** @brief perform modifications to use this as MasterMap (called in uplink slave scheduler) */
+            void processMasterMap();
+            /** @brief checks if there are UL resources available for given user */
+            bool hasResourcesForUser(wns::scheduler::UserID user) const;
+        public:
+            /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
+            PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
+            /** @brief my own subChannelIndex as seen from outside (container) */
+            int subChannelIndex;
+            /** @brief number of resource blocks in time-direction */
+            int timeSlotIndex;
+            /** @brief size of resources in spatial direction.
+                This can be beamforming beams (available for WiMAC)
+                or MIMO paths. */
+            int numberOfBeams;
+            /** @brief fixed frame/slot length given from outside */
+            simTimeType slotLength;
+            /** @brief fixed frame/slot length given from outside */
+            simTimeType timeSlotStartTime;
+            /** @brief isUsable = flag to exclude certain resources from DSA */
+            bool timeSlotIsUsable;
+         }; // SchedulingTimeSlot
+
+        /** @brief can be used to send via an container compound to emulate one complete resource unit (chunk) */
+        typedef SmartPtr<SchedulingTimeSlot> SchedulingTimeSlotPtr;
+
+        /** @brief collection of and all temporal resources = TDMA slots */
+        //typedef std::vector<SchedulingTimeSlot> SchedulingTimeSlotVector;
+        /** @brief collection of and all temporal resources = TDMA slots. SmartPtr inside. */
+        typedef std::vector<SchedulingTimeSlotPtr> SchedulingTimeSlotPtrVector;
 
         /** @brief class to describe one SchedulingSubChannel.
             There is one of this object in the SchedulingMap for each subChannel.
@@ -177,9 +255,12 @@ namespace wns { namespace scheduler {
         {
         public:
             SchedulingSubChannel();
-            SchedulingSubChannel(int _subChannelIndex, int _numberOfBeams, simTimeType _slotLength);
+            SchedulingSubChannel(int _subChannelIndex, int _numberOfTimeSlots, int _numberOfBeams, simTimeType _slotLength);
             ~SchedulingSubChannel();
+            /** @brief doToString(): human-readable format */
             std::string toString() const;
+            /** @brief output structure (machine readable table for Matlab,Gnuplot,etc) */
+            std::string dumpContents(const std::string& prefix) const;
             /** @brief total used time in this subchannel */
             simTimeType getUsedTime() const;
             /** @brief total free time on this subchannel */
@@ -197,6 +278,11 @@ namespace wns { namespace scheduler {
                 Depends on PhyMode provided by mapInfoEntry. */
             int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
 
+            wns::service::phy::phymode::PhyModeInterfacePtr
+            getPhyModeUsedInResource(int timeSlot, int beam) const;
+            wns::Power
+            getTxPowerUsedInResource(int timeSlot, int beam) const;
+
             /** @brief true if there is nothing scheduled in this block.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
@@ -205,10 +291,18 @@ namespace wns { namespace scheduler {
                 This is called by the UL master scheduler,
                 because there are no "real" compounds (just fakes). */
             void deleteCompounds();
+            /** @brief extent the usage of each resource to 100% so that UL master map doesn't waste resources. */
+            void grantFullResources();
+            /** @brief perform modifications to use this as MasterMap (calles in uplink slave scheduler) */
+            void processMasterMap();
+            /** @brief checks if there are UL resources available for given user */
+            bool hasResourcesForUser(wns::scheduler::UserID user) const;
 
         public:
             /** @brief my own subChannelIndex as seen from outside (container) */
             int subChannelIndex;
+            /** @brief number of resource blocks in time-direction */
+            int numberOfTimeSlots;
             /** @brief size of resources in spatial direction.
                 This can be beamforming beams (available for WiMAC)
                 or MIMO paths. */
@@ -219,6 +313,8 @@ namespace wns { namespace scheduler {
             bool subChannelIsUsable;
             /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
             PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
+            /** @brief collection of and all temporal resources = TDMA slots. SmartPtr inside. */
+            SchedulingTimeSlotPtrVector temporalResources;
         }; // SchedulingSubChannel
 
         /** @brief can be used to send via an container compound to emulate one complete resource unit (chunk) */
@@ -226,7 +322,8 @@ namespace wns { namespace scheduler {
 
         /** @brief collection of all subChannels */
         typedef std::vector<SchedulingSubChannel> SubChannelVector;
-        //typedef std::vector<SchedulingSubChannelPtr> SubChannelVector; // TODO?
+        /** @brief collection of all subChannels. SmartPtr inside. */
+        //typedef std::vector<SchedulingSubChannelPtr> SubChannelPtrVector; // TODO?
 
         /** @brief this class contains the results over all subChannels */
         class SchedulingMap :
@@ -237,7 +334,7 @@ namespace wns { namespace scheduler {
             SchedulingMap() {};
 
             /** @brief construct a new empty SchedulingMap which contains a number of SchedulingSubChannel's */
-            SchedulingMap(simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams, int _frameNr);
+            SchedulingMap(simTimeType _slotLength, int _numberOfSubChannels, int _numberOfTimeSlots, int _numberOfBeams, int _frameNr);
 
             ~SchedulingMap();
 
@@ -253,6 +350,7 @@ namespace wns { namespace scheduler {
                 @return true if successful, false if not enough space.
             */
             bool addCompound(int subChannelIndex,
+                             int timeSlot,
                              int beam,
                              simTimeType compoundDuration,
                              wns::scheduler::ConnectionID connectionID,
@@ -274,9 +372,6 @@ namespace wns { namespace scheduler {
                 );
 
             simTimeType getNextPosition(int subChannel, int beam) const;
-
-            /** @brief collection of all subChannels */
-            SubChannelVector subChannels;
 
             /** @brief statistics for the percentage of resources used.
                 (correcly counts partially filled subChannels).
@@ -303,19 +398,34 @@ namespace wns { namespace scheduler {
             int getNumberOfBeams()       const { return numberOfBeams; }
             int getNumberOfCompounds()   const { return numberOfCompounds; }
 
+            wns::service::phy::phymode::PhyModeInterfacePtr
+            getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int beam) const;
+            wns::Power
+            getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int beam) const;
+
             /** @brief mask out certain subChannels (e.g. for resource partitioning) */
             void maskOutSubChannels(const UsableSubChannelVector& usableSubChannels);
 
             /** @brief make MapInfoCollection structure from myself */
             void convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/);
 
+            /** @brief true if there is nothing scheduled in the whole schedulingMap. */
+            bool isEmpty() const;
+
             /** @brief Delete all compounds from the map. But keep all other info (PhyMode, usedTime).
                 This is called by the UL master scheduler,
                 because there are no "real" compounds (just fakes). */
             void deleteCompounds();
+            /** @brief extent the usage of each resource to 100% so that UL master map doesn't waste resources. */
+            void grantFullResources();
+            /** @brief perform modifications to use this as MasterMap (called in uplink slave scheduler) */
+            void processMasterMap();
+            /** @brief checks if there are UL resources available for given user */
+            bool hasResourcesForUser(wns::scheduler::UserID user) const;
 
-            /** @brief true if there is nothing scheduled in the whole schedulingMap. */
-            bool isEmpty() const;
+            /** @brief output structure (machine readable table for Matlab,Gnuplot,etc) */
+            std::string
+            dumpContents(const std::string& prefix) const;
 
             /** @brief output structure (structured text) */
             std::string
@@ -325,11 +435,18 @@ namespace wns { namespace scheduler {
             virtual std::string
             doToString() const;
 
-            void writeToFile(std::ofstream& f) const;
+            /** @brief output SchedulingMap table header into already opened file. */
+            static void writeHeaderToFile(std::ofstream& f);
 
-            /** @brief output structure (table file) */
+            /** @brief output SchedulingMap structure (table file) into already opened file. */
+            void writeToFile(std::ofstream& f, const std::string& prefix) const;
+
+            /** @brief output SchedulingMap structure (table file). open/append+close. */
             void writeFile(std::string fileName) const;
 
+        public:
+            /** @brief collection of all subChannels */
+            SubChannelVector subChannels;
         private:
             /** @brief index of the frame this map is for (system dependent) */
             int frameNr;
@@ -337,6 +454,8 @@ namespace wns { namespace scheduler {
             simTimeType slotLength;
             /** @brief size of resources in frequency-direction */
             int numberOfSubChannels;
+            /** @brief number of resource blocks in time-direction (TDMA component) */
+            int numberOfTimeSlots;
             /** @brief size of resources in spatial direction.
                 This can be beamforming beams (available for WiMAC)
                 or MIMO paths (not yet available). */

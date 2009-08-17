@@ -38,6 +38,7 @@ using namespace wns::scheduler;
 
 SchedulingCompound::SchedulingCompound()
   : subChannel(0),
+    timeSlot(0),
     beam(0),
     startTime(0.0),
     endTime(0.0),
@@ -50,6 +51,7 @@ SchedulingCompound::SchedulingCompound()
 };
 
 SchedulingCompound::SchedulingCompound(int _subChannel,
+                                       int _timeSlot,
                                        int _beam,
                                        simTimeType _startTime,
                                        simTimeType _endTime,
@@ -61,6 +63,7 @@ SchedulingCompound::SchedulingCompound(int _subChannel,
                                        wns::service::phy::ofdma::PatternPtr _pattern
     )
     : subChannel(_subChannel),
+      timeSlot(_timeSlot),
       beam(_beam),
       startTime(_startTime),
       endTime(_endTime),
@@ -100,6 +103,7 @@ SchedulingCompound::toString() const
 /**************************************************************/
 PhysicalResourceBlock::PhysicalResourceBlock()
     : subChannelIndex(0),
+      timeSlotIndex(0),
       beamIndex(0),
       slotLength(0.0),
       freeTime(0.0),
@@ -111,50 +115,24 @@ PhysicalResourceBlock::PhysicalResourceBlock()
 {
 }
 
-PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _beam, simTimeType _slotLength)
+PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _beam, simTimeType _slotLength)
     : subChannelIndex(_subChannelIndex),
+      timeSlotIndex(_timeSlotIndex),
       beamIndex(_beam),
       slotLength(_slotLength),
       freeTime(_slotLength),
       nextPosition(0.0),
       scheduledCompounds(),
+      userID(NULL),
       phyModePtr(),
-      txPower()
+      txPower(),
+      antennaPattern()
 {
 }
 
 PhysicalResourceBlock::~PhysicalResourceBlock()
 {
 }
-
-std::string
-PhysicalResourceBlock::toString() const
-{
-    std::stringstream s;
-    s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
-    s.precision(1);
-    s << "PhysicalResourceBlock(";
-    s << "#"<<subChannelIndex<<"."<<beamIndex;
-    if ( scheduledCompounds.size() > 0 ) {
-        s << ", freetime=" << freeTime*1e6 << "us";
-        s << ", nextPos=" << nextPosition*1e6 << "us";
-        s << ", used=" << 100.0*nextPosition/slotLength << "%";
-        s << ", compounds=" << scheduledCompounds.size();
-        s << ")";
-        if (scheduledCompounds.size()>0)
-        {
-            s << ":"<<std::endl;
-            for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
-            {
-                s << "  " << iter->toString() << std::endl;
-            }
-        }
-    } else {
-        s << ", unused)";
-    }
-    s << std::endl;
-    return s.str();
-} // toString
 
 simTimeType
 PhysicalResourceBlock::getUsedTime() const
@@ -216,7 +194,7 @@ PhysicalResourceBlock::getFreeBitsOnPhysicalResourceBlock(MapInfoEntryPtr mapInf
 bool
 PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
                                    wns::scheduler::ConnectionID connectionID,
-                                   wns::scheduler::UserID userID,
+                                   wns::scheduler::UserID _userID,
                                    wns::ldk::CompoundPtr compoundPtr,
                                    wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr,
                                    wns::Power _txPower,
@@ -233,16 +211,32 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
     assure((predecessors==0)||(txPower == _txPower),
            "mismatch: txPower="<<txPower<<"!="<<_txPower<<" please use DSAStrategy.oneUserOnOneSubChannel=True");
     txPower = _txPower; // all compounds must have the same power
+    // check if users match (need oneUserOnOneSubChannel for that)
+    // we cannot do this here, because in the UL SchedulingMap done by UT.RS-TX the userID is myself
+    //if (userID!=NULL) { // && oneUserOnOneSubChannel) {
+    //    assure(_userID==userID,
+    //           "user mismatch: "<<_userID->getName()<<" != "<<userID->getName());
+    //}
+    if (predecessors>0) { // && oneUserOnOneSubChannel) {
+        wns::scheduler::UserID otherUserID = scheduledCompounds.begin()->userID;
+        assure(_userID==otherUserID,
+               "user mismatch: "<<_userID->getName()<<" != "<<userID->getName());
+    }
+    if (userID==NULL)
+    { // master schedulers set this; slave schedulers get this already set.
+        userID = _userID; // all compounds must have the same user; oneUserOnOneSubChannel = True ?
+    }
     assure((predecessors==0)||(phyModePtr == _phyModePtr),
            "phyModePtr mismatch: "<<*phyModePtr<<"!="<<*_phyModePtr);
     phyModePtr = _phyModePtr; // all compounds should have the same phyMode
     antennaPattern = _pattern; // all compounds should have the same antenna pattern
     SchedulingCompound newScheduledCompound(this->subChannelIndex,
+                                            this->timeSlotIndex,
                                             this->beamIndex,
                                             startTime,
                                             endTime,
                                             connectionID,
-                                            userID,
+                                            _userID,
                                             compoundPtr,
                                             phyModePtr,
                                             txPower,
@@ -274,19 +268,25 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
     wns::service::phy::phymode::PhyModeInterfacePtr mapPhyModePtr = mapInfoEntry->phyModePtr;
     double dataRate = mapPhyModePtr->getDataRate();
     simTimeType compoundDuration = request.bits / dataRate;
-    wns::node::Interface* userID = mapInfoEntry->user;
-    // assure(userID==request.user) sometimes fails even with RN2 != RN2
+    wns::node::Interface* compoundUserID = mapInfoEntry->user;
+    // check if users match (need oneUserOnOneSubChannel for that)
+    // we cannot do this here, because in the UL SchedulingMap done by UT.RS-TX the userID is myself
+    //if (userID!=NULL) { // && oneUserOnOneSubChannel) {
+    //    assure(compoundUserID==userID,
+    //           "user mismatch: "<<compoundUserID->getName()<<" != "<<userID->getName());
+    //}
+    // assure(compoundUserID==request.user) sometimes fails even with RN2 != RN2
     // Reason: user mismatch: RN2 != RN2, 7 != 5
     // in this case make a string comparison :-(
-    assure(userID->isEqual(request.user) || userID->getName().compare(mapInfoEntry->user->getName())==0,
-           "user mismatch: "<<userID->getName()<<" != "<<mapInfoEntry->user->getName()<<", "<<userID->getNodeID()<<" != "<<request.user->getNodeID());
+    //assure(compoundUserID->isEqual(request.user) || compoundUserID->getName().compare(mapInfoEntry->user->getName())==0,
+    //       "user mismatch: "<<compoundUserID->getName()<<" != "<<mapInfoEntry->user->getName()<<", "<<compoundUserID->getNodeID()<<" != "<<request.user->getNodeID());
     wns::Power txPowerInMap = mapInfoEntry->txPower;
     wns::scheduler::ConnectionID connectionID = request.cid;
     wns::service::phy::ofdma::PatternPtr patternInMap = mapInfoEntry->pattern; // antenna pattern (grouping)
 
     return addCompound(compoundDuration,
                        connectionID,
-                       userID,
+                       compoundUserID,
                        compoundPtr,
                        mapPhyModePtr,
                        txPowerInMap,
@@ -294,21 +294,242 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
         );
 } // addCompound
 
+// dumpContents(): machine-readable format (table for Matlab,Gnuplot,etc)
+std::string
+PhysicalResourceBlock::dumpContents(const std::string& prefix) const
+{
+    std::stringstream s;
+    s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
+    s.precision(4);
+    //s << prefix << subChannelIndex << "\t" << beamIndex;
+    s << prefix
+        // << PhyModeIndex phyModePtr->getBitsPerSymbol() or phyModeMapper->getIndexForPhyMode(*phyModePtr);
+        // << estimatedCandI.toSINR()
+      << txPower.get_dBm() << "\t"
+      << nextPosition/slotLength << "\t";
+    if ( nextPosition>0.0 ) // not empty
+    {
+        s << scheduledCompounds.begin()->userID << "\t";
+        for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+        {
+            s << iter->connectionID << ",";
+        }
+    } else {
+        s << "0\t0";
+    }
+    s << std::endl;
+    return s.str();
+} // dumpContents
+
+// doToString(): human-readable format
+std::string
+PhysicalResourceBlock::toString() const
+{
+    std::stringstream s;
+    s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
+    s.precision(1);
+    s << "PhysicalResourceBlock(";
+    s << "#"<<subChannelIndex<<"."<<timeSlotIndex<<"."<<beamIndex;
+    if ( nextPosition>0.0 ) { // not empty
+        if (userID!=NULL)
+            s << ", user="<<userID->getName();
+        s << ", free=" << freeTime*1e6 << "us";
+        s << ", next=" << nextPosition*1e6 << "us";
+        s << ", used=" << 100.0*nextPosition/slotLength << "%";
+        s << ", compounds=" << scheduledCompounds.size();
+        s << ")";
+        if (scheduledCompounds.size()>0)
+        {
+            s << ":"<<std::endl;
+            for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+            {
+                s << "  " << iter->toString();
+                if (iter!=scheduledCompounds.end()) s << std::endl;
+            }
+        }
+    } else if (phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr()) {
+        // this is a master schedulingMap (from BS to UT). Compounds have been deleted, values reset
+        if (userID!=NULL)
+            s << ", user="<<userID->getName();
+        s << ", phyMode="<<*phyModePtr;
+        s << ", txPower="<<txPower;
+        s << ")";
+    } else {
+        s << ", unused)";
+    }
+    s << std::endl;
+    return s.str();
+} // toString
+
 bool
 PhysicalResourceBlock::isEmpty() const
 {
-    return (nextPosition==0.0);
+    // nextPosition can be 0.0 in a master schedulingMap, although phyMode and user is set
+    // so this && check is necessary in the master schedulers
+    return ((nextPosition==0.0) &&
+            (phyModePtr==wns::service::phy::phymode::PhyModeInterfacePtr()));
 }
+
+wns::scheduler::UserID
+PhysicalResourceBlock::getUserID() const
+{
+    // In UL slave scheduler, the userIDs are different! (UT vs BS)
+    //assure(userID==NULL || scheduledCompounds.size()==0 || (scheduledCompounds.begin()->userID == userID),
+    //       "userID mismatch: userID="<<userID->getName());
+    return userID;
+    //return scheduledCompounds.begin()->userID;
+}
+
 
 void
 PhysicalResourceBlock::deleteCompounds()
 {
+    /*
     for ( ScheduledCompoundsList::iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
     {
-        //if (iter->compoundPtr != wns::ldk::compoundPtr())
         iter->compoundPtr = wns::ldk::CompoundPtr(); // make empty
     }
+    */
+    scheduledCompounds.clear();
 } // deleteCompounds
+
+void
+PhysicalResourceBlock::grantFullResources()
+{
+    // extend UL resource size to full length, so that UT can make use of it.
+    if (!isEmpty())
+    {
+        // with these values the resourceUsage statistics counts the full resource:
+        nextPosition = slotLength;
+        freeTime = 0.0;
+    }
+}
+
+void
+PhysicalResourceBlock::processMasterMap()
+{
+    // extend UL resource size to full length, so that UT can make use of it.
+    if (!isEmpty())
+    {
+        scheduledCompounds.clear();
+        // with these values the DSASlave strategy can put new UL packets into it:
+        nextPosition = 0.0;
+        freeTime = slotLength;
+    }
+    assure(scheduledCompounds.size() == 0,"scheduledCompounds is not empty but must be");
+}
+
+bool PhysicalResourceBlock::hasResourcesForUser(wns::scheduler::UserID user) const
+{
+    return (user == userID);
+}
+
+/**************************************************************/
+SchedulingTimeSlot::SchedulingTimeSlot()
+    : subChannelIndex(0),
+      timeSlotIndex(0),
+      numberOfBeams(0),
+      slotLength(0.0),
+      timeSlotStartTime(0.0)
+{
+}
+
+SchedulingTimeSlot::SchedulingTimeSlot(int _subChannel,
+                                       int _timeSlot,
+                                       int _numberOfBeams,
+                                       simTimeType _slotLength
+    )
+    : subChannelIndex(_subChannel),
+      timeSlotIndex(_timeSlot),
+      numberOfBeams(_numberOfBeams),
+      slotLength(_slotLength),
+      timeSlotStartTime(_slotLength*_timeSlot),
+      timeSlotIsUsable(true)
+{
+    for ( int beamIndex = 0; beamIndex < numberOfBeams; ++beamIndex )
+    {
+        // create one PhysicalResourceBlock object per beam (MIMO channel)
+        PhysicalResourceBlock emptyPRB(subChannelIndex,timeSlotIndex,beamIndex,slotLength);
+        // available as physicalResources[beamIndex]
+        physicalResources.push_back(emptyPRB); // object copied
+    }
+}
+
+SchedulingTimeSlot::~SchedulingTimeSlot()
+{
+}
+
+// dumpContents(): machine-readable format (table for Matlab,Gnuplot,etc)
+std::string
+SchedulingTimeSlot::dumpContents(const std::string& prefix) const
+{
+    std::stringstream s;
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        std::stringstream p;
+        p << prefix << beamIndex << "\t";
+        if (timeSlotIsUsable) {
+            s << physicalResources[beamIndex].dumpContents(p.str());
+        } else {
+            s << prefix << beamIndex << "\t" << "LOCKED" << std::endl;
+        }
+    }
+    return s.str();
+}
+
+// doToString(): human-readable format
+std::string
+SchedulingTimeSlot::toString() const
+{
+    std::stringstream s;
+    if (timeSlotIsUsable) {
+        for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+        {
+            s << physicalResources[beamIndex].toString();
+        }
+    } else {
+        s << "TimeSlot(#"<<timeSlotIndex<<"): locked/unusable" << std::endl;
+    }
+    return s.str();
+}
+
+void
+SchedulingTimeSlot::deleteCompounds()
+{
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        physicalResources[beamIndex].deleteCompounds();
+    }
+}
+
+void
+SchedulingTimeSlot::grantFullResources()
+{
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        physicalResources[beamIndex].grantFullResources();
+    }
+}
+
+void
+SchedulingTimeSlot::processMasterMap()
+{
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        physicalResources[beamIndex].processMasterMap();
+    }
+}
+
+bool
+SchedulingTimeSlot::hasResourcesForUser(wns::scheduler::UserID user) const
+{
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        if (physicalResources[beamIndex].hasResourcesForUser(user))
+            return true;
+    }
+    return false;
+}
 
 /**************************************************************/
 
@@ -320,16 +541,25 @@ SchedulingSubChannel::SchedulingSubChannel()
 {
 }
 
-SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfBeams, simTimeType _slotLength)
+SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfTimeSlots, int _numberOfBeams, simTimeType _slotLength)
     : subChannelIndex(_subChannelIndex),
+      numberOfTimeSlots(_numberOfTimeSlots),
       numberOfBeams(_numberOfBeams),
       slotLength(_slotLength),
       subChannelIsUsable(true)
 {
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    {
+        SchedulingTimeSlotPtr emptyTimeSlotPtr // SmartPtr...
+            = SchedulingTimeSlotPtr(new SchedulingTimeSlot(subChannelIndex,timeSlotIndex,numberOfBeams,slotLength));
+        temporalResources.push_back(emptyTimeSlotPtr); // SmartPtr copied
+    }
+    // OLD:
     for ( int beamIndex = 0; beamIndex < numberOfBeams; ++beamIndex )
     {
+        int timeSlotIndex = 0; // short-term workaround
         // create one PhysicalResourceBlock object per beam (MIMO channel)
-        PhysicalResourceBlock emptyPRB(subChannelIndex,beamIndex,slotLength);
+        PhysicalResourceBlock emptyPRB(subChannelIndex,timeSlotIndex,beamIndex,slotLength);
         // available as physicalResources[beamIndex]
         physicalResources.push_back(emptyPRB); // object copied
     }
@@ -338,13 +568,49 @@ SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfBe
 SchedulingSubChannel::~SchedulingSubChannel()
 {
     physicalResources.clear();
+    temporalResources.clear();
 }
 
+// dumpContents(): machine-readable format (table for Matlab,Gnuplot,etc)
+std::string
+SchedulingSubChannel::dumpContents(const std::string& prefix) const
+{
+    std::stringstream s;
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    {
+        std::stringstream p;
+        p << prefix << timeSlotIndex << "\t";
+        if (subChannelIsUsable) {
+            temporalResources[timeSlotIndex]->dumpContents(p.str());
+        } else {
+            s << prefix << timeSlotIndex << "\t" << "LOCKED" << std::endl;
+        }
+    }
+    // OLD:
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        std::stringstream p;
+        p << prefix << beamIndex << "\t";
+        if (subChannelIsUsable) {
+            s << physicalResources[beamIndex].dumpContents(p.str());
+        } else {
+            s << prefix << beamIndex << "\t" << "LOCKED" << std::endl;
+        }
+    }
+    return s.str();
+}
+
+// doToString(): human-readable format
 std::string
 SchedulingSubChannel::toString() const
 {
     std::stringstream s;
     if (subChannelIsUsable) {
+        //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+        //{
+        //    s << temporalResources[timeSlotIndex]->toString();
+        //}
+        // OLD:
         for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
         {
             s << physicalResources[beamIndex].toString();
@@ -360,6 +626,11 @@ SchedulingSubChannel::getUsedTime() const
 {
     if (!subChannelIsUsable) return 0.0; // must be different result than getFreeTime()
     simTimeType usedTime = 0.0;
+    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    //{
+    //    usedTime += temporalResources[timeSlotIndex].getUsedTime();
+    //}
+    // OLD:
     for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
     {
         usedTime += physicalResources[beamIndex].getUsedTime();
@@ -372,6 +643,11 @@ SchedulingSubChannel::getFreeTime() const
 {
     if (!subChannelIsUsable) return 0.0; // must be different result than getUsedTime()
     simTimeType freeTime = 0.0;
+    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    //{
+    //    freeTime += temporalResources[timeSlotIndex].getFreeTime();
+    //}
+    // OLD:
     for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
     {
         freeTime += physicalResources[beamIndex].getFreeTime();
@@ -385,27 +661,56 @@ SchedulingSubChannel::pduFitsIntoSubChannel(strategy::RequestForResource& reques
     ) const
 {
     if (!subChannelIsUsable) return false;
+    int timeSlot = mapInfoEntry->timeSlot;
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" is out of bounds");
     // is it correct to ask like this?
     // or do we have to loop over all beams?
     int beam = mapInfoEntry->beam;
     assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
     return physicalResources[beam].pduFitsIntoPhysicalResourceBlock(request,mapInfoEntry);
+    //return temporalResources[timeSlot]->pduFitsIntoResourceBlock(request,mapInfoEntry);
 } // pduFitsIntoSubChannel
 
 int
 SchedulingSubChannel::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const
 {
     if (!subChannelIsUsable) return 0;
+    int timeSlot = mapInfoEntry->timeSlot;
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" is out of bounds");
     // is it correct to ask like this?
     // or do we have to loop over all beams?
     int beam = mapInfoEntry->beam;
     assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
     return physicalResources[beam].getFreeBitsOnPhysicalResourceBlock(mapInfoEntry);
+    //return temporalResources[timeSlot]->getFreeBitsOnPhysicalResourceBlock(mapInfoEntry);
 } // getFreeBitsOnSubChannel
+
+wns::service::phy::phymode::PhyModeInterfacePtr
+SchedulingSubChannel::getPhyModeUsedInResource(int timeSlot, int beam) const
+{
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
+    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
+    return physicalResources[beam].phyModePtr;
+    //return temporalResources[timeSlot]->getPhyModeOfResource(beam);
+}
+
+wns::Power
+SchedulingSubChannel::getTxPowerUsedInResource(int timeSlot, int beam) const
+{
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
+    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
+    return physicalResources[beam].txPower;
+    //return temporalResources[timeSlot]->getTxPowerUsedInResource(beam);
+}
 
 bool
 SchedulingSubChannel::isEmpty() const
 {
+    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    //{
+    //    if (!temporalResources[timeSlotIndex]->isEmpty()) return false;
+    //}
+    // OLD:
     for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
     {
         if (!physicalResources[beamIndex].isEmpty()) return false;
@@ -416,18 +721,68 @@ SchedulingSubChannel::isEmpty() const
 void
 SchedulingSubChannel::deleteCompounds()
 {
+    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    //{
+    //    if (!temporalResources[timeSlotIndex]->deleteCompounds();
+    //}
+    // OLD:
     for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
     {
         physicalResources[beamIndex].deleteCompounds();
     }
 }
 
+void
+SchedulingSubChannel::grantFullResources()
+{
+    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    //{
+    //    if (!temporalResources[timeSlotIndex]->grantFullResources();
+    //}
+    // OLD:
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        physicalResources[beamIndex].grantFullResources();
+    }
+}
+
+void
+SchedulingSubChannel::processMasterMap()
+{
+    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    //{
+    //    temporalResources[timeSlotIndex]->processMasterMap();
+    //}
+    // OLD:
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        physicalResources[beamIndex].processMasterMap();
+    }
+}
+
+bool SchedulingSubChannel::hasResourcesForUser(wns::scheduler::UserID user) const
+{
+    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    //{
+    //    if (temporalResources[timeSlotIndex]->hasResourcesForUser(user))
+    //    return true;
+    //}
+    // OLD:
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        if(physicalResources[beamIndex].hasResourcesForUser(user))
+            return true;
+    }
+    return false;
+}
+
 /**************************************************************/
 
-SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfBeams, int _frameNr )
+SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfTimeSlots, int _numberOfBeams, int _frameNr )
     : frameNr(_frameNr),
       slotLength(_slotLength),
       numberOfSubChannels(_numberOfSubChannels),
+      numberOfTimeSlots(_numberOfTimeSlots),
       numberOfBeams(_numberOfBeams),
       numberOfCompounds(0),
       resourceUsage(0.0)
@@ -436,9 +791,11 @@ SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels,
     assure(slotLength>0.0,"slotLength="<<slotLength);
     for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
     {
-        SchedulingSubChannel subChannel(subChannelIndex,numberOfBeams,slotLength);
+        SchedulingSubChannel subChannel(subChannelIndex,numberOfTimeSlots,numberOfBeams,slotLength);
         subChannels.push_back(subChannel); // object copied
     }
+    //#include <WNS/logger/Logger.hpp>
+    //wns::logger::Logger logger("WNS", "SchedulingMap");
 } // SchedulingMap::SchedulingMap
 
 SchedulingMap::~SchedulingMap()
@@ -470,6 +827,7 @@ SchedulingMap::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const
 
 bool
 SchedulingMap::addCompound(int subChannelIndex,
+                           int timeSlot,
                            int beam,
                            simTimeType compoundDuration,
                            wns::scheduler::ConnectionID connectionID,
@@ -599,6 +957,24 @@ SchedulingMap::getRemainingPower(wns::Power totalPower) const
     return remainingPower;
 } // getRemainingPower
 
+wns::service::phy::phymode::PhyModeInterfacePtr
+SchedulingMap::getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int beam) const
+{
+    assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
+    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
+    return subChannels[subChannelIndex].getPhyModeUsedInResource(timeSlot,beam);
+}
+
+wns::Power
+SchedulingMap::getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int beam) const
+{
+    assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
+    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
+    return subChannels[subChannelIndex].getTxPowerUsedInResource(timeSlot,beam);
+}
+
 void
 SchedulingMap::maskOutSubChannels(const UsableSubChannelVector& usableSubChannels)
 {
@@ -610,16 +986,6 @@ SchedulingMap::maskOutSubChannels(const UsableSubChannelVector& usableSubChannel
         subChannels[subChannelIndex].subChannelIsUsable = after;
     }
 } // maskOutSubChannels
-
-// this is called by the UL master scheduler, because there are no "real" compounds (just fakes).
-void
-SchedulingMap::deleteCompounds()
-{
-    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
-    {
-        subChannels[subChannelIndex].deleteCompounds();
-    }
-}
 
 void
 SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/)
@@ -669,6 +1035,47 @@ SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*retu
     } // end for ( SubChannels )
 } // convertToMapInfoCollection
 
+// this is called by the UL master scheduler, because there are no "real" compounds (just fakes).
+void
+SchedulingMap::deleteCompounds()
+{
+    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+    {
+        subChannels[subChannelIndex].deleteCompounds();
+    }
+    numberOfCompounds = 0;
+}
+
+void
+SchedulingMap::grantFullResources()
+{
+    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+    {
+        subChannels[subChannelIndex].grantFullResources();
+    }
+}
+
+void
+SchedulingMap::processMasterMap()
+{
+    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+    {
+        subChannels[subChannelIndex].processMasterMap();
+    }
+}
+
+bool
+SchedulingMap::hasResourcesForUser(wns::scheduler::UserID user) const
+{
+    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+    {
+        if (subChannels[subChannelIndex].hasResourcesForUser(user))
+            return true;
+    }
+    return false;
+}
+
+// toString(): human-readable format (incuding resourceUsage)
 std::string
 SchedulingMap::toString()
 {
@@ -676,7 +1083,6 @@ SchedulingMap::toString()
     s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
     s.precision(1);
     assure(numberOfSubChannels==subChannels.size(),"numberOfSubChannels="<<numberOfSubChannels<<" != subChannels.size()="<<subChannels.size());
-    assure(std::fabs(slotLength-subChannels[0].slotLength)<1e-6,"mismatch in slotLength="<<slotLength);
     if (frameNr>=0) { // valid frameNr
         s << "SchedulingMap(frame="<<frameNr<<": "<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
     } else {
@@ -695,6 +1101,7 @@ SchedulingMap::toString()
     return s.str();
 } // toString
 
+// doToString(): human-readable format
 std::string
 SchedulingMap::doToString() const
 {
@@ -702,7 +1109,6 @@ SchedulingMap::doToString() const
     s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
     s.precision(1);
     assure(numberOfSubChannels==subChannels.size(),"numberOfSubChannels="<<numberOfSubChannels<<" != subChannels.size()="<<subChannels.size());
-    assure(std::fabs(slotLength-subChannels[0].slotLength)<1e-6,"mismatch in slotLength="<<slotLength);
     if (frameNr>=0) { // valid frameNr
         s << "SchedulingMap(frame="<<frameNr<<": "<<numberOfSubChannels<<"x"<<slotLength*1e6<<"us): ";
     } else {
@@ -719,11 +1125,44 @@ SchedulingMap::doToString() const
     return s.str();
 } // doToString
 
+// dumpContents(): machine-readable format (table for Matlab,Gnuplot,etc)
+std::string
+SchedulingMap::dumpContents(const std::string& prefix) const
+{
+    std::stringstream s;
+    //s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
+    //s.precision(1);
+    assure(numberOfSubChannels==subChannels.size(),"numberOfSubChannels="<<numberOfSubChannels<<" != subChannels.size()="<<subChannels.size());
+    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+    {
+        std::stringstream p;
+        p << prefix << frameNr << "\t" << subChannelIndex << "\t";
+        s << subChannels[subChannelIndex].dumpContents(p.str());
+    }
+    return s.str();
+} // dumpContents
+
+// static (does not need an object of this class)
 void
-SchedulingMap::writeToFile(std::ofstream& f) const
+SchedulingMap::writeHeaderToFile(std::ofstream& f)
 {
     if (f.is_open()) {
-        f << doToString();
+        f << "##### SchedulingMap over time #####" << std::endl;
+        //f << "# numberOfSubChannels="<<numberOfSubChannels << std::endl;
+        //f << "# numberOfTimeSlots="<<numberOfTimeSlots << std::endl;
+        //f << "# numberOfBeams="<<numberOfBeams << std::endl;
+        //f << "# slotLength="<<slotLength << std::endl;
+        f << "# (time[s]) frameNr subChannel timeSlot stream/beam PhyModeIndex estimatedSINR[dB] txPower[dBm] filled% userID cidList" << std::endl;
+    } else {
+        throw wns::Exception("cannot write to file");
+    }
+}
+
+void
+SchedulingMap::writeToFile(std::ofstream& f, const std::string& prefix) const
+{
+    if (f.is_open()) {
+        f << dumpContents(prefix);
     } else {
         throw wns::Exception("cannot write to file");
     }
@@ -738,7 +1177,7 @@ SchedulingMap::writeFile(std::string fileName) const
     std::ofstream file(fileName.c_str(),std::ios_base::app); // append
     if (file.is_open())
     {
-        file << doToString();
+        writeToFile(file,"");
         file.close();
     } else {
         throw wns::Exception("cannot open file "+fileName);

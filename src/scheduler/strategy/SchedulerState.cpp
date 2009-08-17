@@ -57,6 +57,7 @@ RequestForResource::RequestForResource(ConnectionID _cid, UserID _user, Bits _bi
       bits(_bits),
       phyModePtr(), // empty means undefined, still open, freely selectable
       subChannel(wns::scheduler::subChannelNotFound),
+      timeSlot(0),
       beam(0),
       cqiOnSubChannel()
 {
@@ -73,6 +74,8 @@ RequestForResource::toString() const
   s << "Req(cid="<<cid<<","<<user->getName()<<","<<int(bits)<<"bits";
   if (phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr()) {
     s << "," << *phyModePtr; }
+  if (timeSlot>0) {
+    s << ",slot=" << timeSlot; }
   if (subChannel!=wns::scheduler::subChannelNotFound) {
     s << ",sc=" << subChannel; }
   s <<")";
@@ -86,6 +89,8 @@ RequestForResource::getDuration() const
   double dataRate = phyModePtr->getDataRate();
   return bits / dataRate;
 }
+
+//////////////////////////////////////////////////////////////////////
 
 RevolvingState::RevolvingState(const strategy::StrategyInput* _strategyInput)
     : strategyInput(_strategyInput),

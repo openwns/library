@@ -124,6 +124,7 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
     // user selection
     UserSet allUsers;
     //if ( !(schedulerState->isDL) && !schedulerState->isTx )
+    /*
     if ( schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster() )
     {       // I am master scheduler for uplink (RS-RX)
         allUsers = colleagues.registry->getActiveULUsers();
@@ -134,18 +135,22 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
         allUsers = colleagues.queue->getQueuedUsers();
         MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Slave UL-Scheduling or Master DL-Scheduling...");
     }
-
-    MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): allUsers.size()="<<allUsers.size()<<": Users="<<printUserSet(allUsers));
+    */
+    // the same for UL/DL:
+    //allUsers = colleagues.queue->getQueuedUsers();
+    //MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): allUsers.size()="<<allUsers.size()<<": Users="<<printUserSet(allUsers));
     // filter reachable users
-    UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
-    MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): activeUsers.size()="<<activeUsers.size()<<": Users="<<printUserSet(activeUsers));
+    //UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
+    //MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): activeUsers.size()="<<activeUsers.size()<<": Users="<<printUserSet(activeUsers));
 
     // prepare grouping here before going into priorities (subschedulers).
     // This code block could also be moved into the base class Strategy::startScheduling()
-    if ( !activeUsers.empty() && groupingRequired() ) // only if (maxBeams>1)
+    if ( !colleagues.queue->isEmpty() && groupingRequired() ) // only if (maxBeams>1)
     {   // grouping needed for beamforming & its antenna pattern
         GroupingPtr sdmaGrouping = schedulerState->currentState->getNewGrouping(); // also stored in schedulerState
         int maxBeams = schedulerState->currentState->strategyInput->maxBeams;
+        allUsers = colleagues.queue->getQueuedUsers();
+        UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
         if ( schedulerState->isTx ) // transmitter grouping
             sdmaGrouping = colleagues.grouper->getTxGroupingPtr(activeUsers, maxBeams);
         else // receiver grouping

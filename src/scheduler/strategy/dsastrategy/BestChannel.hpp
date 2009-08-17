@@ -61,11 +61,14 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
 			UserInfo(int numOfSubChannels)
 				: usedSubChannels(numOfSubChannels)
 			{
-				lastUsedSubChannel=DSAsubChannelNotFound;toggleOffset=+1;
+				lastUsedSubChannel=DSAsubChannelNotFound;
+				lastUsedTimeSlot=0;
+				toggleOffset=+1;
 			};
 			~UserInfo() {};
 			/** @brief remember position of last used subChannel */
 			int lastUsedSubChannel;
+			int lastUsedTimeSlot;
 			/** @brief for the UL SC-FDMA search */
 			int toggleOffset;
 			/** @brief SmartPtr created in the CQI; no need for memory tracking later */

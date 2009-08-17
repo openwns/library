@@ -55,10 +55,7 @@ namespace wns { namespace scheduler { namespace queue {
 
                 UserSet getQueuedUsers() const;
                 ConnectionSet getActiveConnections() const;
-                ConnectionSet getActiveConnectionsForPriority(unsigned int priority) const;
 
-                uint32_t numCompoundsForUser(UserID user) const; // obsolete; only used in old schedulers
-                uint32_t numBitsForUser(UserID user) const; // obsolete; only used in old schedulers
                 uint32_t numCompoundsForCid(ConnectionID cid) const;
                 uint32_t numBitsForCid(ConnectionID cid) const;
 
@@ -68,6 +65,7 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::ldk::CompoundPtr getHeadOfLinePDU(ConnectionID cid);
                 int getHeadOfLinePDUbits(ConnectionID cid);
 
+                bool isEmpty() const;
                 bool hasQueue(ConnectionID cid);
                 bool queueHasPDUs(ConnectionID cid);
                 ConnectionSet filterQueuedCids(ConnectionSet connections);
@@ -101,13 +99,9 @@ namespace wns { namespace scheduler { namespace queue {
                 // associated with it. Queue length counters exist for every queue/CID.
                 struct Queue {
                     Queue()
-                        : bits(0),
-                          user(0),
-                          priority(0)
+                        : bits(0)
                     {}
                     Bits bits;
-                    UserID user;
-                    unsigned int priority;
                     std::queue<wns::ldk::CompoundPtr> pduQueue;
                 };
 

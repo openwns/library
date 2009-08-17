@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include <WNS/scheduler/strategy/dsastrategy/LinearFFirst.hpp>
+#include <WNS/scheduler/strategy/dsastrategy/DSASlave.hpp>
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategy.hpp>
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
@@ -37,50 +37,41 @@ using namespace wns::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::dsastrategy;
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(LinearFFirst,
+STATIC_FACTORY_REGISTER_WITH_CREATOR(DSASlave,
                                      DSAStrategyInterface,
-                                     "LinearFFirst",
+                                     "DSASlave",
                                      wns::PyConfigViewCreator);
 
-LinearFFirst::LinearFFirst(const wns::pyconfig::View& config)
+DSASlave::DSASlave(const wns::pyconfig::View& config)
     : DSAStrategy(config),
-      randomDist(NULL),
-      useRandomChannelAtBeginning(false),
       lastUsedSubChannel(0),
       lastUsedTimeSlot(0),
       lastUsedBeam(0)
 {
-    useRandomChannelAtBeginning = config.get<bool>("useRandomChannelAtBeginning");
-    if (useRandomChannelAtBeginning)
-        randomDist = new wns::distribution::StandardUniform();
 }
 
-LinearFFirst::~LinearFFirst()
+DSASlave::~DSASlave()
 {
-    if (randomDist!=NULL) delete randomDist;
 }
 
 // call this before each timeSlot/frame
 void
-LinearFFirst::initialize(SchedulerStatePtr schedulerState,
-                         SchedulingMapPtr schedulingMap)
+DSASlave::initialize(SchedulerStatePtr schedulerState,
+                     SchedulingMapPtr schedulingMap)
 {
+    assure(schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave(),
+           "this DSASlave strategy can only be used as slave scheduler (RS-Tx, uplink)");
     DSAStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
     lastUsedSubChannel = 0;
-    // with beamforming/grouping it might be useful to remember lastUsedSubChannel[userID] separately
-    // ^ this would form a new strategy "BFOptimizedLinearFFirst" or "LinearFFirstForBeamForming"
-    if (useRandomChannelAtBeginning)
-    {
-        int maxSubChannel = schedulingMap->subChannels.size();
-        double random = (*randomDist)();
-        lastUsedSubChannel = random*maxSubChannel;
-    }
+    lastUsedTimeSlot = 0;
+    lastUsedBeam = 0;
+    // schedulingMap is an inputSchedulingMap
 }
 
 DSAResult
-LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
-                                   SchedulerStatePtr schedulerState,
-                                   SchedulingMapPtr schedulingMap)
+DSASlave::getSubChannelWithDSA(RequestForResource& request,
+                               SchedulerStatePtr schedulerState,
+                               SchedulingMapPtr schedulingMap)
 {
     DSAResult dsaResult;
     //simTimeType requestedCompoundDuration = getCompoundDuration(request);
@@ -92,9 +83,12 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
     int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
     int maxBeams = schedulerState->currentState->strategyInput->getMaxBeams();
     assure(subChannel<maxSubChannel,"invalid subChannel="<<subChannel);
+    assure(timeSlot<numberOfTimeSlots,"invalid timeSlot="<<timeSlot);
+    assure(beam<maxBeams,"invalid beam="<<beam);
     MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel);
     bool found  = false;
     bool giveUp = false;
+    // TODO:
     while(!found && !giveUp) {
         if (channelIsUsable(subChannel, timeSlot, beam, request, schedulerState, schedulingMap))
         { // PDU fits in
@@ -121,7 +115,7 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): no free subchannel");
         return dsaResult; // empty with subChannel=DSAsubChannelNotFound
     } else {
-        MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel<<"."<<beam);
+        MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel<<"."<<timeSlot<<"."<<beam);
         lastUsedSubChannel = subChannel;
         lastUsedTimeSlot = timeSlot;
         lastUsedBeam = beam;

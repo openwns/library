@@ -34,10 +34,12 @@ using namespace wns::scheduler::strategy;
 // interface for master scheduling (old interface)
 StrategyInput::StrategyInput(int _fChannels,
                              double _slotLength,
+                             int _numberOfTimeSlots,
                              int _maxBeams,
                              CallBackInterface* _callBackObject)
     : fChannels(_fChannels),
       slotLength(_slotLength),
+      numberOfTimeSlots(_numberOfTimeSlots), // TODO
       beamforming(_maxBeams>1), // in the old strategies we assume "beamforming" if maxBeams>1.
       maxBeams(_maxBeams),
       callBackObject(_callBackObject),
@@ -55,6 +57,7 @@ StrategyInput::StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
     : fChannels(1),
       slotLength(_mapInfoEntryFromMaster->end - _mapInfoEntryFromMaster->start),
       beamforming(false),
+      numberOfTimeSlots(1),
       maxBeams(1),
       callBackObject(_callBackObject),
       mapInfoEntryFromMaster(_mapInfoEntryFromMaster), // SmartPtr
@@ -69,11 +72,13 @@ StrategyInput::StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
 // generic interface for master or slave scheduling
 StrategyInput::StrategyInput(int _fChannels,
                              double _slotLength,
+                             int _numberOfTimeSlots,
                              int _maxBeams,
                              MapInfoEntryPtr _mapInfoEntryFromMaster,
                              CallBackInterface* _callBackObject)
     : fChannels(_fChannels),
       slotLength(_slotLength),
+      numberOfTimeSlots(_numberOfTimeSlots),
       beamforming(_maxBeams>1), // in the old strategies we assume "beamforming" if maxBeams>1.
       maxBeams(_maxBeams),
       callBackObject(_callBackObject),
@@ -119,6 +124,7 @@ StrategyInput::toString() const
     s << "StrategyInput():";
     s << "\tfChannels="<<fChannels<<std::endl;
     s << "\tslotLength="<<slotLength<<std::endl;
+    s << "\ttimeSlots="<<numberOfTimeSlots<<std::endl;
     s << "\tmaxBeams="<<maxBeams<<std::endl;
     s << "\tcallBackObject="<<callBackObject<<std::endl;
     //s << "\t"<<std::endl;
@@ -130,7 +136,7 @@ StrategyInput::getEmptySchedulingMap() const
 {
     // make SmartPtr here
     SchedulingMapPtr schedulingMap = wns::scheduler::SchedulingMapPtr(
-        new wns::scheduler::SchedulingMap(slotLength, fChannels, maxBeams, frameNr));
+        new wns::scheduler::SchedulingMap(slotLength, fChannels, numberOfTimeSlots, maxBeams, frameNr));
     return schedulingMap;
 }
 
@@ -217,11 +223,13 @@ StrategyResult::getResourceUsage() const
 // perform master scheduling
 void
 StrategyInterface::startScheduling(int fChannels,
+                                   //int numberOfTimeSlots,
                                    int maxBeams,
                                    double slotLength,
                                    CallBackInterface* parent)
 {
-    StrategyInput strategyInput(fChannels, slotLength, maxBeams, MapInfoEntryPtr(), parent);
+    int numberOfTimeSlots=1; // old strategies don't support (more) numberOfTimeSlots
+    StrategyInput strategyInput(fChannels, slotLength, numberOfTimeSlots, maxBeams, MapInfoEntryPtr(), parent);
     startScheduling(strategyInput);
 }
 
@@ -231,7 +239,7 @@ StrategyInterface::startScheduling(MapInfoEntryPtr burst,
                                    CallBackInterface* parent)
 {
     double slotLength = burst->end - burst->start;
-    StrategyInput strategyInput(1, slotLength, 1, burst, parent);
+    StrategyInput strategyInput(1, slotLength, 1, 1, burst, parent);
     startScheduling(strategyInput);
 }
 

@@ -120,12 +120,6 @@ SimpleQueue::put(const wns::ldk::CompoundPtr& compound) {
     // needs a 'map' to do so.
     (queues[cid].pduQueue).push(compound);
     queues[cid].bits += compound->getLengthInBits();
-    queues[cid].user = colleagues.registry->getUserForCID(cid);
-    // ^ future: get rid of this element.
-    // only use cids here and in the scheduler
-    // do not provide any user information any more
-    queues[cid].priority = priority;
-    // ^ only needed for getActiveConnectionsForPriority(prio)
 
     if (probeContextProviderForCid && probeContextProviderForPriority && sizeProbeBus) {
         probeContextProviderForCid->set(cid /*int context*/);
@@ -141,11 +135,15 @@ SimpleQueue::put(const wns::ldk::CompoundPtr& compound) {
 UserSet
 SimpleQueue::getQueuedUsers() const {
     UserSet users;
-
     for (QueueContainer::const_iterator iter = queues.begin(); iter != queues.end(); ++iter)
+    {
         if ((*iter).second.pduQueue.size() != 0)
-            users.insert((*iter).second.user);
-
+        {
+            ConnectionID cid = iter->first;
+            UserID user = colleagues.registry->getUserForCID(cid);
+            users.insert(user);
+        }
+    }
     return users;
 }
 
@@ -161,56 +159,10 @@ SimpleQueue::getActiveConnections() const
     return result;
 }
 
-// This code should be in the scheduler or registryproxy. MBA-Code
-ConnectionSet
-SimpleQueue::getActiveConnectionsForPriority(unsigned int priority) const
-{
-    ConnectionSet result;
-
-    for (QueueContainer::const_iterator iter = queues.begin(); iter != queues.end(); ++iter)
-        if ((*iter).second.pduQueue.size() != 0 && (*iter).second.priority == priority )
-            result.insert((*iter).first);
-
-    return result;
-}
-
-// [rs]: obsolete? Better use cid-related questions
-uint32_t
-SimpleQueue::numCompoundsForUser(UserID user) const
-{
-    uint32_t counter = 0;
-    // Find all queues that belong to this user
-    for (std::map<ConnectionID, Queue>::const_iterator iter = queues.begin();
-         iter != queues.end();
-         ++iter)
-    {
-        if (iter->second.user == user) counter += iter->second.pduQueue.size();
-    }
-    return counter;
-}
-
-// [rs]: obsolete? Better use cid-related questions
-uint32_t
-SimpleQueue::numBitsForUser(UserID user) const
-{
-    uint32_t counter = 0;
-    // Find all queues that belong to this user
-    for (std::map<ConnectionID, Queue>::const_iterator iter = queues.begin();
-         iter != queues.end();
-         ++iter)
-    {
-        if (iter->second.user == user)
-        {
-            counter = counter + iter->second.bits;
-        }
-    }
-    return counter;
-}
-
 uint32_t
 SimpleQueue::numCompoundsForCid(ConnectionID cid) const
 {
-    std::map<ConnectionID, Queue>::const_iterator iter = queues.find(cid);
+    QueueContainer::const_iterator iter = queues.find(cid);
     assure(iter != queues.end(),"cannot find queue for cid="<<cid);
     return iter->second.pduQueue.size();
 }
@@ -218,7 +170,7 @@ SimpleQueue::numCompoundsForCid(ConnectionID cid) const
 uint32_t
 SimpleQueue::numBitsForCid(ConnectionID cid) const
 {
-    std::map<ConnectionID, Queue>::const_iterator iter = queues.find(cid);
+    QueueContainer::const_iterator iter = queues.find(cid);
     assure(iter != queues.end(),"cannot find queue for cid="<<cid);
     return iter->second.bits;
 }
@@ -231,7 +183,7 @@ SimpleQueue::getQueueStatus() const
 
     // Find all queues that belong to this user (obsolete)
     // Find all queues
-    for (std::map<ConnectionID, Queue>::const_iterator iter = queues.begin(); iter != queues.end(); ++iter)
+    for (QueueContainer::const_iterator iter = queues.begin(); iter != queues.end(); ++iter)
     {
         ConnectionID cid = iter->first;
         QueueStatus queueStatus;
@@ -256,7 +208,7 @@ SimpleQueue::getHeadOfLinePDU(ConnectionID cid) {
 
     if (probeContextProviderForCid && probeContextProviderForPriority && sizeProbeBus) {
         probeContextProviderForCid->set(cid /*int context*/);
-        int priority = queues[cid].priority;
+        int priority = colleagues.registry->getPriorityForConnection(cid);
         probeContextProviderForPriority->set(priority);
         sizeProbeBus->put((double)queues[cid].bits / (double)maxSize); // relative (0..100%)
     }
@@ -271,6 +223,16 @@ SimpleQueue::getHeadOfLinePDUbits(ConnectionID cid)
     return queues[cid].pduQueue.front()->getLengthInBits();
 }
 
+bool
+SimpleQueue::isEmpty() const
+{
+    for (QueueContainer::const_iterator iter = queues.begin(); iter != queues.end(); ++iter)
+    {
+        if ((*iter).second.pduQueue.size() != 0)
+            return false;
+    }
+    return true;
+}
 bool
 SimpleQueue::hasQueue(ConnectionID cid)
 {
@@ -307,7 +269,7 @@ SimpleQueue::resetAllQueues()
 {
     // Store number of bits and compounds for Probe which will be deleted
     ProbeOutput probeOutput;
-    for (std::map<ConnectionID, Queue>::iterator iter = queues.begin();
+    for (QueueContainer::iterator iter = queues.begin();
          iter != queues.end(); ++iter)
     {
         ConnectionID cid = iter->first;
@@ -315,8 +277,7 @@ SimpleQueue::resetAllQueues()
         probeOutput.compounds += iter->second.pduQueue.size();
         if (probeContextProviderForCid && probeContextProviderForPriority && sizeProbeBus) {
             probeContextProviderForCid->set(cid);
-            //int priority = colleagues.registry->getPriorityForConnection(cid);
-            int priority = iter->second.priority;
+            int priority = colleagues.registry->getPriorityForConnection(cid);
             probeContextProviderForCid->set(priority);
             sizeProbeBus->put(0.0 /*double wert*/);
         }
@@ -333,7 +294,7 @@ SimpleQueue::resetAllQueues()
 
 // [rs]: obsolete? Better use cid-related questions
 QueueInterface::ProbeOutput
-SimpleQueue::resetQueues(UserID user)
+SimpleQueue::resetQueues(UserID _user)
 {
     // MESSAGE_SINGLE(NORMAL, logger, "SimpleQueue::resetQueues(): obsolete"); // TODO [rs]; not supported by [aoz]
     // Store number of bits and compounds for Probe which will be deleted
@@ -342,17 +303,18 @@ SimpleQueue::resetQueues(UserID user)
     // Find all queues that belong to this user and delete them.  This one is a
     // little bit tricky, see section 6.6.2 of Josutti's STL book: we have to be
     // careful when deleting the current iterator position
-    for (std::map<ConnectionID, Queue>::iterator iter = queues.begin();
-         iter != queues.end(); )
-        if (iter->second.user == user)
+    for (QueueContainer::iterator iter = queues.begin(); iter != queues.end(); )
+    {
+        ConnectionID cid = iter->first;
+        UserID user = colleagues.registry->getUserForCID(cid);
+        if (user == _user)
         {
             ConnectionID cid = iter->first;
             probeOutput.bits += iter->second.bits;
             probeOutput.compounds += iter->second.pduQueue.size();
             if (probeContextProviderForCid && probeContextProviderForPriority && sizeProbeBus) {
                 probeContextProviderForCid->set(cid);
-                //int priority = colleagues.registry->getPriorityForConnection(cid);
-                int priority = iter->second.priority;
+                int priority = colleagues.registry->getPriorityForConnection(cid);
                 probeContextProviderForCid->set(priority);
                 sizeProbeBus->put(0.0 /*double wert*/);
             }
@@ -360,7 +322,7 @@ SimpleQueue::resetQueues(UserID user)
         }
         else
             ++iter;
-
+    }
     return probeOutput;
 }
 
@@ -373,7 +335,7 @@ SimpleQueue::resetQueue(ConnectionID cid)
     probeOutput.compounds += queues[cid].pduQueue.size();
     if (probeContextProviderForCid && probeContextProviderForPriority && sizeProbeBus) {
         probeContextProviderForCid->set(cid /*int context*/);
-        int priority = queues[cid].priority;
+        int priority = colleagues.registry->getPriorityForConnection(cid);
         probeContextProviderForCid->set(priority);
         sizeProbeBus->put(0.0 /*double wert*/);
     }
@@ -391,7 +353,7 @@ std::string
 SimpleQueue::printAllQueues()
 {
     std::stringstream s;
-    for (std::map<ConnectionID, Queue>::iterator iter = queues.begin();
+    for (QueueContainer::iterator iter = queues.begin();
          iter != queues.end(); ++iter)
     {
         ConnectionID cid = iter->first;
