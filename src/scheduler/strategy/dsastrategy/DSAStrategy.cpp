@@ -102,22 +102,27 @@ DSAStrategy::getCompoundDuration(RequestForResource& request) const
 
 int
 DSAStrategy::getBeamForSubChannel(int subChannel,
+				  int timeSlot,
 				  RequestForResource& request,
 				  SchedulerStatePtr schedulerState,
 				  SchedulingMapPtr schedulingMap) const
 {
 	assure(subChannel>=0,"need a valid subChannel");
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
+	assure(timeSlot>=0,"need a valid timeSlot");
+	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
 	int numberOfBeams = schedulerState->currentState->strategyInput->getMaxBeams();
 	int getBeam = 0;
 	bool ok;
 	for ( int beam = 0; beam < numberOfBeams; ++beam )
 	{ // only for MIMO. For SISO simply beam=0
 		PhysicalResourceBlock& prbDescriptor =
-			schedulingMap->subChannels[subChannel].physicalResources[beam];
+			schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam];
 		// can be different if "sort" has been applied:
 		assure(subChannel==prbDescriptor.subChannelIndex,
 		       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
+		assure(timeSlot==prbDescriptor.timeSlotIndex,
+		       "timeSlot="<<timeSlot<<" !=timeSlotIndex="<<prbDescriptor.timeSlotIndex);
 		assure(beam==prbDescriptor.beamIndex,
 		       "beam="<<beam<<" != beamIndex="<<prbDescriptor.beamIndex);
 		// an empty subChannel can always be used:
@@ -150,23 +155,26 @@ DSAStrategy::getBeamForSubChannel(int subChannel,
 
 bool
 DSAStrategy::channelIsUsable(int subChannel,
+			     int timeSlot,
 			     RequestForResource& request,
 			     SchedulerStatePtr schedulerState,
 			     SchedulingMapPtr schedulingMap) const
 {
 	assure(subChannel>=0,"need a valid subChannel");
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
+	assure(timeSlot>=0,"need a valid timeSlot");
+	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
 	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
 	//int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
 	int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
 	int numberOfBeams = schedulerState->currentState->strategyInput->getMaxBeams();
 	bool ok;
-	for ( int timeSlot = 0; timeSlot < numberOfTimeSlots; ++timeSlot )
-	{
+	//for ( int timeSlot = 0; timeSlot < numberOfTimeSlots; ++timeSlot )
+	//{
 		for ( int beam = 0; beam < numberOfBeams; ++beam )
 		{ // only for MIMO. For SISO simply beam=0
 			PhysicalResourceBlock& prbDescriptor =
-				schedulingMap->subChannels[subChannel].physicalResources[beam];
+				schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam];
 			// can be different if "sort" has been applied:
 			assure(subChannel==prbDescriptor.subChannelIndex,
 			       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
@@ -215,7 +223,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 			MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): d="<<compoundDuration*1e6<<"us <= "<<remainingTimeOnthisChannel*1e6<<"us remaining: ok="<<ok);
 			if (ok) break;
 		} // forall beams/streams of this subChannel
-	} // forall timeSlots of this subChannel
+	//} // forall timeSlots of this subChannel
 	return ok;
 } // channelIsUsable
 
@@ -237,7 +245,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 	// TODO: should we introduce
 	// bool allBeamsUsedByOneUserOnly
 	PhysicalResourceBlock& prbDescriptor =
-		schedulingMap->subChannels[subChannel].physicalResources[beam];
+		schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam];
 	// can be different if "sort" has been applied:
 	assure(subChannel==prbDescriptor.subChannelIndex,
 	       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);

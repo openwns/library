@@ -65,11 +65,12 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
                     /** @brief true if requested PDU can be scheduled on that subChannel */
                     int
                     getBeamForSubChannel(int subChannel,
+                                         int timeSlot,
                                          RequestForResource& request,
                                          SchedulerStatePtr schedulerState,
                                          SchedulingMapPtr schedulingMap) const;
 
-                    /** @brief true if requested PDU can be scheduled on that subChannel&beam */
+                    /** @brief true if requested PDU can be scheduled on that subChannel&timeSlot&beam */
                     virtual bool
                     channelIsUsable(int subChannel,
                                     int timeSlot,
@@ -78,9 +79,10 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
                                     SchedulerStatePtr schedulerState,
                                     SchedulingMapPtr schedulingMap) const;
 
-                    /** @brief true if requested PDU can be scheduled on that subChannel */
+                    /** @brief true if requested PDU can be scheduled on that resource block */
                     virtual bool
                     channelIsUsable(int subChannel,
+                                    int timeSlot,
                                     RequestForResource& request,
                                     SchedulerStatePtr schedulerState,
                                     SchedulingMapPtr schedulingMap) const;

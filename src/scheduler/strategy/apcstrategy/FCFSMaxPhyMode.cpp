@@ -38,12 +38,12 @@ using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::apcstrategy;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(FCFSMaxPhyMode,
-									 APCStrategyInterface,
-									 "FCFSMaxPhyMode",
-									 wns::PyConfigViewCreator);
+                                     APCStrategyInterface,
+                                     "FCFSMaxPhyMode",
+                                     wns::PyConfigViewCreator);
 
 FCFSMaxPhyMode::FCFSMaxPhyMode(const wns::pyconfig::View& config)
-	: APCStrategy(config)
+    : APCStrategy(config)
 {
 }
 
@@ -54,101 +54,56 @@ FCFSMaxPhyMode::~FCFSMaxPhyMode()
 // called before each timeSlot/frame
 void
 FCFSMaxPhyMode::initialize(SchedulerStatePtr schedulerState,
-			   SchedulingMapPtr schedulingMap)
+                           SchedulingMapPtr schedulingMap)
 {
-	APCStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
-	MESSAGE_SINGLE(NORMAL, logger, "UseNominalTxPower::initialize("<<apcstrategyName<<")");
+    APCStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
+    MESSAGE_SINGLE(NORMAL, logger, "UseNominalTxPower::initialize("<<apcstrategyName<<")");
 } // initialize
 
 APCResult
 FCFSMaxPhyMode::doStartAPC(RequestForResource& request,
-			   SchedulerStatePtr schedulerState,
-			   SchedulingMapPtr schedulingMap)
+                           SchedulerStatePtr schedulerState,
+                           SchedulingMapPtr schedulingMap)
 {
-	APCResult apcResult;
-	wns::scheduler::PowerCapabilities powerCapabilities =
-		schedulerState->strategy->getPowerCapabilities(request.user);
+    APCResult apcResult;
+    wns::scheduler::PowerCapabilities powerCapabilities =
+        schedulerState->strategy->getPowerCapabilities(request.user);
 
-	wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
-	wns::Power interference = request.cqiOnSubChannel.interference;
+    wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
+    wns::Power interference = request.cqiOnSubChannel.interference;
 
-	assure(request.subChannel>=0,"need a valid subChannel");
+    assure(request.subChannel>=0,"need a valid subChannel");
+    assure(request.timeSlot  >=0,"need a valid timeSlot");
 
-	if (schedulerState->defaultTxPower!=wns::Power())
-	{ // predefined, e.g. in slave mode
-		apcResult.txPower = schedulerState->defaultTxPower;
-		apcResult.sinr = apcResult.txPower/(interference*pathloss);
-		apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
-		apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
-	} else {
-		wns::Power totalPower = powerCapabilities.maxOverall;
-		wns::Power remainingTxPowerOnAllSubChannels = schedulingMap->getRemainingPower(totalPower);
+    if (schedulerState->defaultTxPower!=wns::Power())
+    { // predefined, e.g. in slave mode
+        apcResult.txPower = schedulerState->defaultTxPower;
+        apcResult.sinr = apcResult.txPower/(interference*pathloss);
+        apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+        apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
+    } else {
+        wns::Power totalPower = powerCapabilities.maxOverall;
+        wns::Power remainingTxPowerOnAllSubChannels = schedulingMap->getRemainingPower(totalPower,request.timeSlot);
 
-		if (remainingTxPowerOnAllSubChannels == wns::Power())
-		{
-			apcResult.txPower = wns::Power();
-			return apcResult;
-		}
+        if (remainingTxPowerOnAllSubChannels == wns::Power())
+        { // no more power left
+            apcResult.txPower = wns::Power();
+            return apcResult;
+        }
 
-		wns::Power maxPowerPerSubChannel = powerCapabilities.maxPerSubband;
-		wns::Power maxTxPower =  (maxPowerPerSubChannel > remainingTxPowerOnAllSubChannels ? remainingTxPowerOnAllSubChannels :maxPowerPerSubChannel);
-		wns::Ratio maxSINR = maxTxPower/(interference * pathloss);
-		apcResult.phyModePtr = phyModeMapper->getBestPhyMode(maxSINR);
+        wns::Power maxPowerPerSubChannel = powerCapabilities.maxPerSubband;
+        wns::Power maxTxPower =  (maxPowerPerSubChannel > remainingTxPowerOnAllSubChannels ? remainingTxPowerOnAllSubChannels : maxPowerPerSubChannel);
+        wns::Ratio maxSINR = maxTxPower/(interference * pathloss);
+        apcResult.phyModePtr = phyModeMapper->getBestPhyMode(maxSINR);
 
-		//we always try to use the minimal tx power for ceratin phymode to save power
-		wns::Ratio minSINR = phyModeMapper->getMinSINRRatio(apcResult.phyModePtr);
-		apcResult.txPower = wns::Power::from_mW(minSINR.get_factor() * pathloss.get_factor() * interference.get_mW() ) ;
-		apcResult.sinr = minSINR;
+        // we always try to use the minimal txPower for certain phymode to save power
+        wns::Ratio minSINR = phyModeMapper->getMinSINRRatio(apcResult.phyModePtr);
+        apcResult.txPower = wns::Power::from_mW(minSINR.get_factor() * pathloss.get_factor() * interference.get_mW() ) ;
+        apcResult.sinr = minSINR;
 
-	}
-	MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
-				   <<"SINR="<<apcResult.sinr<<", PhyMode="<<*(apcResult.phyModePtr));
-
-	/*
-	wns::Power maxPowerPerSubChannel = powerCapabilities.maxPerSubband;
-	wns::Power maxSummedPowerOnAllChannels = powerCapabilities.maxOverall;
-	wns::Power nominalPowerPerSubChannel = powerCapabilities.nominalPerSubband;
-
-	if(schedulingPar.channelQualities.size() > 0)
-	{
-		assure(dynamic_cast<RegistryProxyInterface*>(colleagues.registry), "Need access to the registry");
-
-		// perform power control here...
-		wns::Power remainingTxPowerOnAllChannels = colleagues.registry->getRemainingTxPower(schedulingMap,schedulingPar);
-
-		if (remainingTxPowerOnAllChannels == wns::Power())
-		{
-			connectionChr.txPower = wns::Power();
-			return;
-		}
-		wns::Power maxTxPower = (maxPowerPerSubChannel > remainingTxPowerOnAllChannels ? remainingTxPowerOnAllChannels :maxPowerPerSubChannel);
-		wns::Ratio maxSINR = maxTxPower/(schedulingPar.channelQualityOnBestChannel.Interference * schedulingPar.channelQualityOnBestChannel.Pathloss.get_factor());
-		connectionChr.phyModePtr = phyModeMapper->getBestPhyMode(maxSINR);
-
-		//we always try to use the minimal tx power for ceratin phymode to save power
-		wns::Ratio minSINR = phyModeMapper->getMinSINRRatio(*(connectionChr.phyModePtr));
-
-		connectionChr.txPower = wns::Power::from_mW(minSINR.get_factor() * schedulingPar.channelQualityOnBestChannel.Pathloss.get_factor() * schedulingPar.channelQualityOnBestChannel.Interference.get_mW() ) ;
-		connectionChr.sinr = minSINR;
-	}
-	else
-	{
-		assure(dynamic_cast<RegistryProxyInterface*>(colleagues.registry), "Need access to the registry");
-
-		// adapt TxPower of each stream of the group
-		wns::Power txPowerPerStream = getTxPower4OneOfGroup(schedulingPar.grouping, schedulingPar.group);
-
-		// perform power control here...
-		wns::Power remainingTxPowerOnAllChannels = colleagues.registry->getRemainingTxPower(schedulingMap,schedulingPar);
-
-		connectionChr.txPower = (txPowerPerStream > remainingTxPowerOnAllChannels ? remainingTxPowerOnAllChannels : txPowerPerStream );
-
-		wns::Ratio sinr(connectionChr.estimatedCandI.C / connectionChr.estimatedCandI.I);
-
-		connectionChr.sinr = sinr;
-		connectionChr.phyModePtr = phyModeMapper->getBestPhyMode(sinr);
-	}
-*/
-	return apcResult; // TODO
+    }
+    MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
+                   <<"SINR="<<apcResult.sinr<<", PhyMode="<<*(apcResult.phyModePtr)<<", txPower="<<apcResult.txPower);
+    return apcResult;
 }
 

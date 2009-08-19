@@ -455,30 +455,36 @@ Strategy::schedulingMapReady(StrategyResult& strategyResult)
               iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
         {
             SchedulingSubChannel& subChannel = *iterSubChannel;
-            for ( PhysicalResourceBlockVector::iterator iterPRB = subChannel.physicalResources.begin();
-                  iterPRB != subChannel.physicalResources.end(); ++iterPRB)
+            for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
             {
-                while ( !iterPRB->scheduledCompounds.empty() )
-                { // for every compound in subchannel:
-                    SchedulingCompound schedulingCompound = iterPRB->scheduledCompounds.front();
-                    iterPRB->scheduledCompounds.pop_front(); // remove from map
-                    assure(schedulingCompound.endTime<=schedulerState->currentState->strategyInput->slotLength,"endTime="<<schedulingCompound.endTime<<" > slotLength="<<schedulerState->currentState->strategyInput->slotLength<<" is an ERROR");
-                    MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
-                    // fill mapInfoEntry
-                    mapInfoEntry->start      = schedulingCompound.startTime;
-                    mapInfoEntry->end        = schedulingCompound.endTime;
-                    mapInfoEntry->user       = schedulingCompound.userID;
-                    mapInfoEntry->subBand    = schedulingCompound.subChannel;
-                    mapInfoEntry->beam       = schedulingCompound.beam;
-                    mapInfoEntry->txPower    = schedulingCompound.txPower;
-                    mapInfoEntry->phyModePtr = schedulingCompound.phyModePtr;
-                    //mapInfoEntry->pattern = schedulingCompound.pattern; // for beamforming. TODO
-                    //mapInfoEntry->estimatedCandI = schedulingCompound.estimatedCandI; // for statistics in WiMAC. TODO?
-                    //mapInfoEntry->compounds; // leave empty
-                    schedulerState->currentState->strategyInput->callBackObject->
-                        callBack(mapInfoEntry);
-                } // while (all scheduledCompounds)
-            } // forall beams
+                SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+                for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
+                      iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
+                {
+                    while ( !iterPRB->scheduledCompounds.empty() )
+                    { // for every compound in subchannel:
+                        SchedulingCompound schedulingCompound = iterPRB->scheduledCompounds.front();
+                        iterPRB->scheduledCompounds.pop_front(); // remove from map
+                        assure(schedulingCompound.endTime<=schedulerState->currentState->strategyInput->slotLength,"endTime="<<schedulingCompound.endTime<<" > slotLength="<<schedulerState->currentState->strategyInput->slotLength<<" is an ERROR");
+                        MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
+                        // fill mapInfoEntry
+                        mapInfoEntry->start      = schedulingCompound.startTime;
+                        mapInfoEntry->end        = schedulingCompound.endTime;
+                        mapInfoEntry->user       = schedulingCompound.userID;
+                        mapInfoEntry->subBand    = schedulingCompound.subChannel;
+                        mapInfoEntry->timeSlot   = schedulingCompound.timeSlot;
+                        mapInfoEntry->beam       = schedulingCompound.beam;
+                        mapInfoEntry->txPower    = schedulingCompound.txPower;
+                        mapInfoEntry->phyModePtr = schedulingCompound.phyModePtr;
+                        //mapInfoEntry->pattern = schedulingCompound.pattern; // for beamforming. TODO
+                        //mapInfoEntry->estimatedCandI = schedulingCompound.estimatedCandI; // for statistics in WiMAC. TODO?
+                        //mapInfoEntry->compounds; // leave empty
+                        schedulerState->currentState->strategyInput->callBackObject->
+                            callBack(mapInfoEntry);
+                    } // while (all scheduledCompounds)
+                } // forall beams
+            } // end for ( timeSlots )
         } // forall subChannels
     } else { // method 2: iterate through MapInfoCollectionPtr
         //MapInfoCollectionPtr bursts = strategyResult.bursts;
@@ -556,13 +562,15 @@ Strategy::schedulingMapReady(StrategyResult& strategyResult)
     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): done ("<<strategyResult.bursts->size()<<" callbacks/mapInfoEntries/bursts).");
 } // schedulingMapReady
 
+/*
 // Attention: RemainingTxPower depends on user in case of RS-RX
 wns::Power
-Strategy::getRemainingTxPower(const wns::scheduler::SchedulingMapPtr schedulingMap) const
+Strategy::getRemainingTxPower(const wns::scheduler::SchedulingMapPtr schedulingMap, int timeSlot) const
 {
     wns::Power totalPower = schedulerState->powerCapabilities.maxOverall;
-    return schedulingMap->getRemainingPower(totalPower);
+    return schedulingMap->getRemainingPower(totalPower,timeSlot);
 } // getRemainingTxPower
+*/
 
 MapInfoEntryPtr
 Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
@@ -593,7 +601,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
             mapInfoEntry->user = request.user; // switch to new receiver (RAP)
             assure(mapInfoEntry->phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyMode must be defined in masterBurst"<<mapInfoEntry->toString());
             request.phyModePtr=mapInfoEntry->phyModePtr; // needed later
-            if (!schedulingMap->pduFitsIntoSubChannel(request,mapInfoEntry)) // no space
+            if (!schedulingMap->pduFitsInto(request,mapInfoEntry)) // no space
                 return resultMapInfoEntry; // empty means no result
             return mapInfoEntry;
         } else {

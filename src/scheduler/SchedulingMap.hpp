@@ -103,14 +103,15 @@ namespace wns { namespace scheduler {
             simTimeType getUsedTime() const;
             /** @brief total free time on this PhysicalResourceBlock */
             simTimeType getFreeTime() const;
-            void setNextPosition(simTimeType _nextPosition);
+            /** @brief mark t=[0..nextPosition] as used by compounds. The rest is free. */
+            //void setNextPosition(simTimeType _nextPosition);
 
             /** @brief get "offset for new compounds" == used time for already scheduled compounds. Zero for empty subChannel */
             simTimeType getNextPosition() const;
 
             /** @brief true if compound can be put into the PhysicalResourceBlock */
-            bool pduFitsIntoPhysicalResourceBlock(strategy::RequestForResource& request,
-                                                  MapInfoEntryPtr mapInfoEntry) const;
+            bool pduFitsInto(strategy::RequestForResource& request,
+                             MapInfoEntryPtr mapInfoEntry) const;
 
             /** @brief returns number of bits that fit into the PhysicalResourceBlock.
                 Depends on PhyMode provided by mapInfoEntry. */
@@ -146,6 +147,9 @@ namespace wns { namespace scheduler {
             bool isEmpty() const;
             /** @brief get userID this resource has been reserved for or NULL if empty */
             wns::scheduler::UserID getUserID() const;
+            /** @brief get txPower assigned to this resource.
+                Assumes that all contents are for ONE user only and have all equal power. */
+            wns::Power getTxPower() const;
 
             /** @brief Delete all compounds. But keep all other info (PhyMode, usedTime).
                 This is called by the UL master scheduler,
@@ -202,13 +206,26 @@ namespace wns { namespace scheduler {
             SchedulingTimeSlot();
             SchedulingTimeSlot(int _subChannel, int _timeSlot, int _numberOfBeams, simTimeType _slotLength);
             ~SchedulingTimeSlot();
+            /** @brief total used time in this SchedulingTimeSlot */
+            simTimeType getUsedTime() const;
+            /** @brief total free time on this SchedulingTimeSlot */
+            simTimeType getFreeTime() const;
+            /** @brief true if there is nothing scheduled in this block.
+                This question is NOT enough to allow it to be used. see subChannelIsUsable. */
+            bool isEmpty() const;
+            /** @brief get userID this resource has been reserved for or NULL if empty.
+                Assumes that all contents are for ONE user only. */
+            wns::scheduler::UserID getUserID() const;
+            /** @brief get txPower assigned to this resource.
+                Assumes that all contents are for ONE user only and have all equal power. */
+            wns::Power getTxPower() const;
+            /** @brief true if compound can be put into the ResourceBlock */
+            bool pduFitsInto(strategy::RequestForResource& request,
+                             MapInfoEntryPtr mapInfoEntry) const;
             /** @brief output structure (machine readable table for Matlab,Gnuplot,etc) */
             std::string dumpContents(const std::string& prefix) const;
             /** @brief doToString(): human-readable format */
             std::string toString() const;
-            /** @brief true if there is nothing scheduled in this block.
-                This question is NOT enough to allow it to be used. see subChannelIsUsable. */
-            bool isEmpty() const;
             /** @brief Delete all compounds. But keep all other info (PhyMode, usedTime).
                 This is called by the UL master scheduler,
                 because there are no "real" compounds (just fakes). */
@@ -265,23 +282,23 @@ namespace wns { namespace scheduler {
             simTimeType getUsedTime() const;
             /** @brief total free time on this subchannel */
             simTimeType getFreeTime() const;
-            void setNextPosition(simTimeType _nextPosition);
+            //void setNextPosition(simTimeType _nextPosition);
 
             /** @brief get "offset for new compounds" == used time for already scheduled compounds. Zero for empty subChannel */
-            simTimeType getNextPosition() const;
+            //simTimeType getNextPosition() const;
 
             /** @brief true if compound can be put into the SchedulingSubChannel */
-            bool pduFitsIntoSubChannel(strategy::RequestForResource& request,
-                                       MapInfoEntryPtr mapInfoEntry) const;
+            bool pduFitsInto(strategy::RequestForResource& request,
+                             MapInfoEntryPtr mapInfoEntry) const;
 
             /** @brief returns number of bits that fit into the SchedulingSubChannel.
                 Depends on PhyMode provided by mapInfoEntry. */
             int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
 
-            wns::service::phy::phymode::PhyModeInterfacePtr
-            getPhyModeUsedInResource(int timeSlot, int beam) const;
-            wns::Power
-            getTxPowerUsedInResource(int timeSlot, int beam) const;
+            //wns::service::phy::phymode::PhyModeInterfacePtr
+            //getPhyModeUsedInResource(int timeSlot, int beam) const;
+            //wns::Power
+            //getTxPowerUsedInResource(int timeSlot, int beam) const;
 
             /** @brief true if there is nothing scheduled in this block.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
@@ -312,7 +329,7 @@ namespace wns { namespace scheduler {
             /** @brief isUsable = flag to exclude certain subchannels from DSA */
             bool subChannelIsUsable;
             /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
-            PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
+            //PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
             /** @brief collection of and all temporal resources = TDMA slots. SmartPtr inside. */
             SchedulingTimeSlotPtrVector temporalResources;
         }; // SchedulingSubChannel
@@ -339,12 +356,12 @@ namespace wns { namespace scheduler {
             ~SchedulingMap();
 
             /** @brief true if compound can be put into the SchedulingSubChannel */
-            bool pduFitsIntoSubChannel(strategy::RequestForResource& request,
-                                       MapInfoEntryPtr mapInfoEntry) const;
+            bool pduFitsInto(strategy::RequestForResource& request,
+                             MapInfoEntryPtr mapInfoEntry) const;
 
             /** @brief returns number of bits that fit into the SchedulingSubChannel.
-                Depends on PhyMode provided by mapInfoEntry. */
-            int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
+                Depends on PhyMode provided by mapInfoEntry. */ 
+           int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
 
             /** @brief put scheduled compound (one after another) into the SchedulingMap
                 @return true if successful, false if not enough space.
@@ -371,7 +388,8 @@ namespace wns { namespace scheduler {
                              wns::ldk::CompoundPtr compoundPtr
                 );
 
-            simTimeType getNextPosition(int subChannel, int beam) const;
+            /** @brief get "offset for new compounds" == used time for already scheduled compounds. Zero for empty subChannel */
+            simTimeType getNextPosition(int subChannel, int timeSlot, int beam) const;
 
             /** @brief statistics for the percentage of resources used.
                 (correcly counts partially filled subChannels).
@@ -389,9 +407,10 @@ namespace wns { namespace scheduler {
             simTimeType
             getFreeTime() const;
 
-            /** @brief total leftover power */
+            /** @brief total leftover power.
+                (limitation over frequency=subChannel, but not over time) */
             wns::Power
-            getRemainingPower(wns::Power totalPower) const;
+            getRemainingPower(wns::Power totalPower, int timeSlot) const;
 
             simTimeType getSlotLength()  const { return slotLength; }
             int getNumberOfSubChannels() const { return numberOfSubChannels; }

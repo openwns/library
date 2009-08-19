@@ -160,8 +160,8 @@ namespace wns { namespace scheduler { namespace strategy {
                 startScheduling(const StrategyInput& StrategyInput);
 
                 /** @brief determines how moch power is still available assuming that the total transmit power can be freely distributed onto the subChannels. */
-                virtual wns::Power
-                getRemainingTxPower(SchedulingMapPtr schedulingMap) const;
+                //virtual wns::Power
+                //getRemainingTxPower(SchedulingMapPtr schedulingMap) const;
 
                 /** @brief return decision of the Link Adaptation algorithm or
                  * the fixed, predefined phymode */

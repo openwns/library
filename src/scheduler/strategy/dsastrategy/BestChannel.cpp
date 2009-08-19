@@ -86,6 +86,7 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
     int lastUsedSubChannel = userInfo.lastUsedSubChannel;
     int subChannel = lastUsedSubChannel;
     int maxSubChannel = schedulingMap->subChannels.size();
+    int maxTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
     int lastUsedTimeSlot = userInfo.lastUsedTimeSlot;
     int timeSlot = lastUsedTimeSlot;
 
@@ -118,19 +119,21 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
             // try same old subChannel again:
             subChannel = lastUsedSubChannel;
             if (!userInfo.usedSubChannels[subChannel]
-                && channelIsUsable(subChannel, request, schedulerState, schedulingMap))
+                && channelIsUsable(subChannel, timeSlot, request, schedulerState, schedulingMap))
             { // PDU fits in
                 found=true; break;
             } else { // mark unusable
                 userInfo.usedSubChannels[subChannel] = true;
             }
+            // TODO: consider timeSlots !!!
+
             // try +/-1 +/-2 and so on
             for (int tryThisSubChannelOffset=0; tryThisSubChannelOffset<maxSubChannel/2; tryThisSubChannelOffset++)
             {
                 subChannel = (lastUsedSubChannel + tryThisSubChannelOffset*userInfo.toggleOffset);
                 if ((subChannel>=0) && !userInfo.usedSubChannels[subChannel]
                     && (subChannel<maxSubChannel)
-                    && channelIsUsable(subChannel, request, schedulerState, schedulingMap))
+                    && channelIsUsable(subChannel, timeSlot, request, schedulerState, schedulingMap))
                 { // PDU fits in
                     found=true; break;
                 } else { // mark unusable
@@ -139,7 +142,7 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
                 subChannel = (lastUsedSubChannel - tryThisSubChannelOffset*userInfo.toggleOffset);
                 if ((subChannel>=0) && !userInfo.usedSubChannels[subChannel]
                     && (subChannel<maxSubChannel)
-                    && channelIsUsable(subChannel, request, schedulerState, schedulingMap))
+                    && channelIsUsable(subChannel, timeSlot, request, schedulerState, schedulingMap))
                 { // PDU fits in
                     found=true; break;
                 } else { // mark unusable
@@ -159,21 +162,26 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
             // find best of the remaining subChannels:
             for (int tryThisSubChannel=0; tryThisSubChannel<maxSubChannel; tryThisSubChannel++)
             {
-                if (!userInfo.usedSubChannels[tryThisSubChannel]) { // could be free (at least not checked before)
-                    ChannelQualityOnOneSubChannel channelQuality
-                        = (*channelQualitiesOnAllSubBands)[tryThisSubChannel];
-                    if (comparator(channelQuality, bestChannelQuality)) {
-                        bestChannelQuality = channelQuality;
-                        subChannel = tryThisSubChannel;
-                    }
-                } // if unused
+                for (int tryThisTimeSlot=0; tryThisTimeSlot<maxTimeSlots; tryThisTimeSlot++)
+                {
+                    // TODO: userInfo.usedSubChannels[tryThisSubChannel][tryThisTimeSlot]
+                    if (!userInfo.usedSubChannels[tryThisSubChannel]) { // could be free (at least not checked before)
+                        ChannelQualityOnOneSubChannel channelQuality
+                            = (*channelQualitiesOnAllSubBands)[tryThisSubChannel];
+                        if (comparator(channelQuality, bestChannelQuality)) {
+                            bestChannelQuality = channelQuality;
+                            subChannel = tryThisSubChannel;
+                            timeSlot = tryThisTimeSlot;
+                        }
+                    } // if unused
+                } // forall tryThisTimeSlot
             } // forall tryThisSubChannel
             if (subChannel==DSAsubChannelNotFound)
             { // one complete round already done
                 giveUp=true; break;
             }
             // best subChannel found; now check if usable:
-            if (channelIsUsable(subChannel, request, schedulerState, schedulingMap))
+            if (channelIsUsable(subChannel, timeSlot, request, schedulerState, schedulingMap))
             { // PDU fits in
                 found=true; break;
             } else { // mark unusable
@@ -187,7 +195,7 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
         return dsaResult; // empty with subChannel=DSAsubChannelNotFound
     } else {
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel);
-        beam = getBeamForSubChannel(subChannel, request, schedulerState, schedulingMap);
+        beam = getBeamForSubChannel(subChannel, timeSlot, request, schedulerState, schedulingMap);
         userInfo.lastUsedSubChannel = subChannel;
         dsaResult.subChannel = subChannel;
         dsaResult.beam = beam;

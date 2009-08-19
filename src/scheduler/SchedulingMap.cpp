@@ -148,12 +148,6 @@ PhysicalResourceBlock::getFreeTime() const
     return freeTime;
 }
 
-void
-PhysicalResourceBlock::setNextPosition(simTimeType _nextPosition)
-{
-    nextPosition = _nextPosition;
-}
-
 simTimeType
 PhysicalResourceBlock::getNextPosition() const
 {
@@ -161,8 +155,8 @@ PhysicalResourceBlock::getNextPosition() const
 }
 
 bool
-PhysicalResourceBlock::pduFitsIntoPhysicalResourceBlock(strategy::RequestForResource& request,
-                                                        MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
+PhysicalResourceBlock::pduFitsInto(strategy::RequestForResource& request,
+                                   MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
     ) const
 {
     // mapInfoEntry can contain compounds when in while loop:
@@ -177,7 +171,7 @@ PhysicalResourceBlock::pduFitsIntoPhysicalResourceBlock(strategy::RequestForReso
     simTimeType startTime = this->nextPosition;
     simTimeType endTime = startTime + compoundDuration;
     return (endTime <= slotLength+wns::scheduler::slotLengthRoundingTolerance);
-} // pduFitsIntoPhysicalResourceBlock
+} // pduFitsInto (PhysicalResourceBlock)
 
 int
 PhysicalResourceBlock::getFreeBitsOnPhysicalResourceBlock(MapInfoEntryPtr mapInfoEntry) const
@@ -380,16 +374,15 @@ PhysicalResourceBlock::getUserID() const
     //return scheduledCompounds.begin()->userID;
 }
 
+wns::Power
+PhysicalResourceBlock::getTxPower() const
+{
+    return txPower;
+}
 
 void
 PhysicalResourceBlock::deleteCompounds()
 {
-    /*
-    for ( ScheduledCompoundsList::iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
-    {
-        iter->compoundPtr = wns::ldk::CompoundPtr(); // make empty
-    }
-    */
     scheduledCompounds.clear();
 } // deleteCompounds
 
@@ -457,6 +450,78 @@ SchedulingTimeSlot::SchedulingTimeSlot(int _subChannel,
 
 SchedulingTimeSlot::~SchedulingTimeSlot()
 {
+}
+
+simTimeType
+SchedulingTimeSlot::getUsedTime() const
+{
+    //if (!IsUsable) return 0.0; // must be different result than getFreeTime()
+    simTimeType usedTime = 0.0;
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        usedTime += physicalResources[beamIndex].getUsedTime();
+    }
+    return usedTime;
+}
+
+simTimeType
+SchedulingTimeSlot::getFreeTime() const
+{
+    //if (!IsUsable) return 0.0; // must be different result than getUsedTime()
+    simTimeType freeTime = 0.0;
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        freeTime += physicalResources[beamIndex].getFreeTime();
+    }
+    return freeTime;
+}
+
+bool
+SchedulingTimeSlot::isEmpty() const
+{
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        if (!physicalResources[beamIndex].isEmpty()) return false;
+    }
+    return true;
+}
+
+bool
+SchedulingTimeSlot::pduFitsInto(strategy::RequestForResource& request,
+                                MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
+    ) const
+{
+    //if (!IsUsable) return false;
+    // is it correct to ask like this?
+    // or do we have to loop over all beams?
+    int beam = mapInfoEntry->beam;
+    assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
+    return physicalResources[beam].pduFitsInto(request,mapInfoEntry);
+} // pduFitsInto (ResourceBlock)
+
+wns::scheduler::UserID
+SchedulingTimeSlot::getUserID() const
+{
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        wns::scheduler::UserID userID = physicalResources[beamIndex].getUserID();
+        if (userID!=NULL)
+            return userID;
+    }
+    return NULL;
+}
+
+wns::Power
+SchedulingTimeSlot::getTxPower() const
+{
+    wns::Power txPower;
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        txPower = physicalResources[beamIndex].getTxPower();
+        if (txPower!=wns::Power())
+            return txPower;
+    }
+    return txPower;
 }
 
 // dumpContents(): machine-readable format (table for Matlab,Gnuplot,etc)
@@ -554,20 +619,10 @@ SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfTi
             = SchedulingTimeSlotPtr(new SchedulingTimeSlot(subChannelIndex,timeSlotIndex,numberOfBeams,slotLength));
         temporalResources.push_back(emptyTimeSlotPtr); // SmartPtr copied
     }
-    // OLD:
-    for ( int beamIndex = 0; beamIndex < numberOfBeams; ++beamIndex )
-    {
-        int timeSlotIndex = 0; // short-term workaround
-        // create one PhysicalResourceBlock object per beam (MIMO channel)
-        PhysicalResourceBlock emptyPRB(subChannelIndex,timeSlotIndex,beamIndex,slotLength);
-        // available as physicalResources[beamIndex]
-        physicalResources.push_back(emptyPRB); // object copied
-    }
 }
 
 SchedulingSubChannel::~SchedulingSubChannel()
 {
-    physicalResources.clear();
     temporalResources.clear();
 }
 
@@ -586,17 +641,6 @@ SchedulingSubChannel::dumpContents(const std::string& prefix) const
             s << prefix << timeSlotIndex << "\t" << "LOCKED" << std::endl;
         }
     }
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
-    {
-        std::stringstream p;
-        p << prefix << beamIndex << "\t";
-        if (subChannelIsUsable) {
-            s << physicalResources[beamIndex].dumpContents(p.str());
-        } else {
-            s << prefix << beamIndex << "\t" << "LOCKED" << std::endl;
-        }
-    }
     return s.str();
 }
 
@@ -606,14 +650,9 @@ SchedulingSubChannel::toString() const
 {
     std::stringstream s;
     if (subChannelIsUsable) {
-        //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-        //{
-        //    s << temporalResources[timeSlotIndex]->toString();
-        //}
-        // OLD:
-        for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+        for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
         {
-            s << physicalResources[beamIndex].toString();
+            s << temporalResources[timeSlotIndex]->toString();
         }
     } else {
         s << "SubChannel(#"<<subChannelIndex<<"): locked/unusable" << std::endl;
@@ -626,14 +665,9 @@ SchedulingSubChannel::getUsedTime() const
 {
     if (!subChannelIsUsable) return 0.0; // must be different result than getFreeTime()
     simTimeType usedTime = 0.0;
-    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-    //{
-    //    usedTime += temporalResources[timeSlotIndex].getUsedTime();
-    //}
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
     {
-        usedTime += physicalResources[beamIndex].getUsedTime();
+        usedTime += temporalResources[timeSlotIndex]->getUsedTime();
     }
     return usedTime;
 }
@@ -643,21 +677,16 @@ SchedulingSubChannel::getFreeTime() const
 {
     if (!subChannelIsUsable) return 0.0; // must be different result than getUsedTime()
     simTimeType freeTime = 0.0;
-    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-    //{
-    //    freeTime += temporalResources[timeSlotIndex].getFreeTime();
-    //}
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
     {
-        freeTime += physicalResources[beamIndex].getFreeTime();
+        freeTime += temporalResources[timeSlotIndex]->getFreeTime();
     }
     return freeTime;
 }
 
 bool
-SchedulingSubChannel::pduFitsIntoSubChannel(strategy::RequestForResource& request,
-                                            MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
+SchedulingSubChannel::pduFitsInto(strategy::RequestForResource& request,
+                                  MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
     ) const
 {
     if (!subChannelIsUsable) return false;
@@ -667,9 +696,8 @@ SchedulingSubChannel::pduFitsIntoSubChannel(strategy::RequestForResource& reques
     // or do we have to loop over all beams?
     int beam = mapInfoEntry->beam;
     assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
-    return physicalResources[beam].pduFitsIntoPhysicalResourceBlock(request,mapInfoEntry);
-    //return temporalResources[timeSlot]->pduFitsIntoResourceBlock(request,mapInfoEntry);
-} // pduFitsIntoSubChannel
+    return temporalResources[timeSlot]->pduFitsInto(request,mapInfoEntry);
+} // pduFitsInto (SubChannel)
 
 int
 SchedulingSubChannel::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const
@@ -681,39 +709,15 @@ SchedulingSubChannel::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) cons
     // or do we have to loop over all beams?
     int beam = mapInfoEntry->beam;
     assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
-    return physicalResources[beam].getFreeBitsOnPhysicalResourceBlock(mapInfoEntry);
-    //return temporalResources[timeSlot]->getFreeBitsOnPhysicalResourceBlock(mapInfoEntry);
+    return temporalResources[timeSlot]->physicalResources[beam].getFreeBitsOnPhysicalResourceBlock(mapInfoEntry);
 } // getFreeBitsOnSubChannel
-
-wns::service::phy::phymode::PhyModeInterfacePtr
-SchedulingSubChannel::getPhyModeUsedInResource(int timeSlot, int beam) const
-{
-    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
-    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
-    return physicalResources[beam].phyModePtr;
-    //return temporalResources[timeSlot]->getPhyModeOfResource(beam);
-}
-
-wns::Power
-SchedulingSubChannel::getTxPowerUsedInResource(int timeSlot, int beam) const
-{
-    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
-    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
-    return physicalResources[beam].txPower;
-    //return temporalResources[timeSlot]->getTxPowerUsedInResource(beam);
-}
 
 bool
 SchedulingSubChannel::isEmpty() const
 {
-    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-    //{
-    //    if (!temporalResources[timeSlotIndex]->isEmpty()) return false;
-    //}
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for (int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex)
     {
-        if (!physicalResources[beamIndex].isEmpty()) return false;
+        if (!temporalResources[timeSlotIndex]->isEmpty()) return false;
     }
     return true;
 }
@@ -721,57 +725,36 @@ SchedulingSubChannel::isEmpty() const
 void
 SchedulingSubChannel::deleteCompounds()
 {
-    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-    //{
-    //    if (!temporalResources[timeSlotIndex]->deleteCompounds();
-    //}
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
     {
-        physicalResources[beamIndex].deleteCompounds();
+        temporalResources[timeSlotIndex]->deleteCompounds();
     }
 }
 
 void
 SchedulingSubChannel::grantFullResources()
 {
-    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-    //{
-    //    if (!temporalResources[timeSlotIndex]->grantFullResources();
-    //}
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
     {
-        physicalResources[beamIndex].grantFullResources();
+        temporalResources[timeSlotIndex]->grantFullResources();
     }
 }
 
 void
 SchedulingSubChannel::processMasterMap()
 {
-    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-    //{
-    //    temporalResources[timeSlotIndex]->processMasterMap();
-    //}
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
     {
-        physicalResources[beamIndex].processMasterMap();
+        temporalResources[timeSlotIndex]->processMasterMap();
     }
 }
 
 bool SchedulingSubChannel::hasResourcesForUser(wns::scheduler::UserID user) const
 {
-    //for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
-    //{
-    //    if (temporalResources[timeSlotIndex]->hasResourcesForUser(user))
-    //    return true;
-    //}
-    // OLD:
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
     {
-        if(physicalResources[beamIndex].hasResourcesForUser(user))
-            return true;
+        if (temporalResources[timeSlotIndex]->hasResourcesForUser(user))
+        return true;
     }
     return false;
 }
@@ -804,16 +787,18 @@ SchedulingMap::~SchedulingMap()
 }
 
 bool
-SchedulingMap::pduFitsIntoSubChannel(strategy::RequestForResource& request,
-                                     MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
+SchedulingMap::pduFitsInto(strategy::RequestForResource& request,
+                           MapInfoEntryPtr mapInfoEntry // <- must not contain compounds yet
     ) const
 {
     // mapInfoEntry can contain compounds when in while loop:
     //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
     int subChannelIndex = mapInfoEntry->subBand;
+    //int timeSlot = mapInfoEntry->timeSlot;
     //int beam = mapInfoEntry->beam;
-    return subChannels[subChannelIndex].pduFitsIntoSubChannel(request,mapInfoEntry);
-} // pduFitsIntoSubChannel
+    return subChannels[subChannelIndex].pduFitsInto(request,mapInfoEntry);
+    //return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].pduFitsInto(request,mapInfoEntry);
+} // pduFitsInto (SubChannel)
 
 int
 SchedulingMap::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const
@@ -821,6 +806,7 @@ SchedulingMap::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const
     // mapInfoEntry can contain compounds when in while loop:
     //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
     int subChannelIndex = mapInfoEntry->subBand;
+    //int timeSlot = mapInfoEntry->timeSlot;
     //int beam = mapInfoEntry->beam;
     return subChannels[subChannelIndex].getFreeBitsOnSubChannel(mapInfoEntry);
 }
@@ -839,7 +825,7 @@ SchedulingMap::addCompound(int subChannelIndex,
     )
 {
     bool ok =
-        subChannels[subChannelIndex].physicalResources[beam].addCompound(
+        subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].addCompound(
             compoundDuration,
             connectionID,
             userID,
@@ -861,9 +847,10 @@ SchedulingMap::addCompound(strategy::RequestForResource& request,
     // mapInfoEntry can contain compounds when in while loop:
     //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
     int subChannelIndex = mapInfoEntry->subBand;
+    int timeSlot = mapInfoEntry->timeSlot;
     int beam = mapInfoEntry->beam;
     bool ok =
-        subChannels[subChannelIndex].physicalResources[beam].addCompound(
+        subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].addCompound(
             request,
             mapInfoEntry,
             compoundPtr
@@ -873,11 +860,12 @@ SchedulingMap::addCompound(strategy::RequestForResource& request,
 } // addCompound
 
 simTimeType
-SchedulingMap::getNextPosition(int subChannel, int beam) const
+SchedulingMap::getNextPosition(int subChannel, int timeSlot, int beam) const
 {
     assure(subChannel<numberOfSubChannels,"subChannel="<<subChannel<<" >= numberOfSubChannels="<<numberOfSubChannels);
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
     assure(beam<numberOfBeams,"beam="<<beam<<" >= numberOfBeams="<<numberOfBeams);
-    return subChannels[subChannel].physicalResources[beam].getNextPosition();
+    return subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam].getNextPosition();
 }
 
 bool
@@ -893,8 +881,6 @@ SchedulingMap::isEmpty() const
 double
 SchedulingMap::getResourceUsage()
 {
-    //if (resourceUsage > 0.0) return resourceUsage; // was already precalculated
-    //simTimeType leftoverTime = getFreeTime();
     simTimeType totalUsedTime = getUsedTime();
     simTimeType totalTimeResources = slotLength * numberOfSubChannels * numberOfBeams;
     double result = totalUsedTime / totalTimeResources;
@@ -936,7 +922,7 @@ SchedulingMap::getFreeTime() const
 } // getFreeTime
 
 wns::Power
-SchedulingMap::getRemainingPower(wns::Power totalPower) const
+SchedulingMap::getRemainingPower(wns::Power totalPower, int timeSlot) const
 {
     wns::Power remainingPower = totalPower;
     for(unsigned int subChannelIndex=0; subChannelIndex<numberOfSubChannels; subChannelIndex++)
@@ -944,7 +930,7 @@ SchedulingMap::getRemainingPower(wns::Power totalPower) const
         // what is the right handling of MIMO? Do we count=add txPower per beam or do we assume this is all "one" power?
         //wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].txPower;
         // we assume that txPower is the same on all PRBs, so reading the first is sufficient:
-        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].physicalResources[0/*first beam*/].txPower;
+        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first beam*/].txPower;
         // if we have no PDU allocated on this channel, just skip it.
         if (usedTxPowerOnThisChannel == wns::Power())
             continue;
@@ -963,7 +949,7 @@ SchedulingMap::getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int b
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
     assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
-    return subChannels[subChannelIndex].getPhyModeUsedInResource(timeSlot,beam);
+    return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].phyModePtr;
 }
 
 wns::Power
@@ -972,7 +958,7 @@ SchedulingMap::getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int b
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
     assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
-    return subChannels[subChannelIndex].getTxPowerUsedInResource(timeSlot,beam);
+    return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].txPower;
 }
 
 void
@@ -995,43 +981,49 @@ SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*retu
           iterSubChannel != subChannels.end(); ++iterSubChannel)
     {
         SchedulingSubChannel& subChannel = *iterSubChannel;
-        for ( PhysicalResourceBlockVector::iterator iterPRB = subChannel.physicalResources.begin();
-              iterPRB != subChannel.physicalResources.end(); ++iterPRB)
+        for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+              iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
         {
-            UserID lastScheduledUserID = NULL;
-            MapInfoEntryPtr currentBurst;
-            double currentBurstStartTime = 0.0;
-            while ( !iterPRB->scheduledCompounds.empty() )
+            SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+            for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
+                  iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
             {
-                SchedulingCompound compound = iterPRB->scheduledCompounds.front(); // .front()
-                iterPRB->scheduledCompounds.pop_front(); // pop_front()
-                if ( compound.userID != lastScheduledUserID ) // new User, starts new Burst
+                UserID lastScheduledUserID = NULL;
+                MapInfoEntryPtr currentBurst;
+                double currentBurstStartTime = 0.0;
+                while ( !iterPRB->scheduledCompounds.empty() )
                 {
-                    //MESSAGE_SINGLE(NORMAL, logger, "New compund of cid=" << iterCompound.userID->getName());
-                    // new user -> new newburst=new map entry
-                    currentBurst = MapInfoEntryPtr(new MapInfoEntry());
-                    currentBurst->start          = compound.startTime;
-                    currentBurst->end            = compound.startTime; // intentionally not endTime;
-                    currentBurst->user           = compound.userID;
-                    currentBurst->subBand        = compound.subChannel;
-                    currentBurst->beam           = compound.beam;
-                    currentBurst->txPower        = compound.txPower;
-                    currentBurst->phyModePtr     = compound.phyModePtr;
-                    //currentBurst->estimatedCandI = ? how to get it here?
-                    collection->push_back(currentBurst);
-                }
-                //bursts.back()->end += iterCompound.compoundDuration;
-                simTimeType compoundDuration = compound.getCompoundDuration();
-                currentBurst->end     += compoundDuration;
-                currentBurstStartTime += compoundDuration;
-                //compound gehort zum selben connection fuege hinten ein
-                collection->back()->compounds.push_back(compound.compoundPtr);
+                    SchedulingCompound compound = iterPRB->scheduledCompounds.front(); // .front()
+                    iterPRB->scheduledCompounds.pop_front(); // pop_front()
+                    if ( compound.userID != lastScheduledUserID ) // new User, starts new Burst
+                    {
+                        //MESSAGE_SINGLE(NORMAL, logger, "New compund of cid=" << iterCompound.userID->getName());
+                        // new user -> new newburst=new map entry
+                        currentBurst = MapInfoEntryPtr(new MapInfoEntry());
+                        currentBurst->start          = compound.startTime;
+                        currentBurst->end            = compound.startTime; // intentionally not endTime;
+                        currentBurst->user           = compound.userID;
+                        currentBurst->subBand        = compound.subChannel;
+                        currentBurst->timeSlot       = compound.timeSlot;
+                        currentBurst->beam           = compound.beam;
+                        currentBurst->txPower        = compound.txPower;
+                        currentBurst->phyModePtr     = compound.phyModePtr;
+                        //currentBurst->estimatedCandI = ? how to get it here?
+                        collection->push_back(currentBurst);
+                    }
+                    //bursts.back()->end += iterCompound.compoundDuration;
+                    simTimeType compoundDuration = compound.getCompoundDuration();
+                    currentBurst->end     += compoundDuration;
+                    currentBurstStartTime += compoundDuration;
+                    //compound gehort zum selben connection fuege hinten ein
+                    collection->back()->compounds.push_back(compound.compoundPtr);
 
-                // inherited from Strategy.cpp; calls callback():
-                // compoundReady() // cannot do this here.
-                lastScheduledUserID = compound.userID;
-            } // end while ( !iterSubChannel->scheduledCompounds.empty() )
-        } // end for ( beams )
+                    // inherited from Strategy.cpp; calls callback():
+                    // compoundReady() // cannot do this here.
+                    lastScheduledUserID = compound.userID;
+                } // end while ( !iterSubChannel->scheduledCompounds.empty() )
+            } // end for ( beams )
+        } // end for ( timeSlots )
     } // end for ( SubChannels )
 } // convertToMapInfoCollection
 
