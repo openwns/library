@@ -34,44 +34,43 @@
 
 namespace wns { namespace ldk {
 
-	/**
-	 * @brief Round robin scheduling strategy, picking only accepting
-	 * functional units
-	 * @ingroup hasconnector
-	 *
-	 * This class
-	 * @li implements the Connector interface,
-	 * @li may be used as parameter to HasConnector.
-	 *
-	 */
-	class RoundRobinConnector :
-		public Connector,
-		public RoundRobinLink
-	{
-	public:
-		/**
-		 * @name Connector interface
-		 */
-		//{@
-		/**
-		 * @brief Checks if an acceptor for the given compound is available
-		 */
-		virtual bool
-		hasAcceptor(const CompoundPtr& compound);
+        /**
+         * @brief Round robin scheduling strategy, picking only accepting
+         * functional units
+         * @ingroup hasconnector
+         *
+         * This class
+         * @li implements the Connector interface,
+         * @li may be used as parameter to HasConnector.
+         *
+         */
+        class RoundRobinConnector
+            : public Connector,
+              public RoundRobinLink<IConnectorReceptacle>
+        {
+        public:
+            /**
+             * @name Connector interface
+             */
+            //{@
+            /**
+             * @brief Checks if an acceptor for the given compound is available
+             */
+            virtual bool
+            hasAcceptor(const CompoundPtr& compound);
 
-		/**
-		 * @brief Retrieve acceptor for a give compound
-		 *
-		 * @pre hasAcceptor must have returned true for this compound
-		 */
-		virtual CompoundHandlerInterface*
-		getAcceptor(const CompoundPtr& compound);
-		//@}
-	};
-} // ldk
+            /**
+             * @brief Retrieve acceptor for a give compound
+             *
+             * @pre hasAcceptor must have returned true for this compound
+             */
+            virtual IConnectorReceptacle*
+            getAcceptor(const CompoundPtr& compound);
+            //@}
+        };
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_ROUNDROBINCONNECTOR_HPP
-
 

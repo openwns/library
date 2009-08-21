@@ -65,7 +65,7 @@ namespace wns { namespace ldk { namespace tests {
                 fun::FUN* fuNet;
                 FunctionalUnit* fu1;
                 FunctionalUnit* fu2;
-                MultiLink* ml;
+            MultiLink<IConnectorReceptacle>* ml;
 	};
 
 }}}

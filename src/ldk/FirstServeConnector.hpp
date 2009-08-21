@@ -32,34 +32,27 @@
 #include <WNS/ldk/Connector.hpp>
 #include <WNS/ldk/MultiLink.hpp>
 
-
-
 namespace wns { namespace ldk {
 
-	class FunctionalUnit;
+        class FirstServeConnector
+            : public Connector,
+              public MultiLink<IConnectorReceptacle>
+        {
+        public:
 
+            /// Connector interface implementation
+            virtual bool
+            hasAcceptor(const wns::ldk::CompoundPtr& compound);
 
-	class FirstServeConnector :
-		public Connector,
-		public MultiLink
-	{
-	public:
+            /// Connector interface implementation
+            virtual IConnectorReceptacle*
+            getAcceptor(const wns::ldk::CompoundPtr& compound);
 
-        /// Connector interface implementation
-		virtual bool
-		hasAcceptor(const wns::ldk::CompoundPtr& compound);
+        };
 
-        /// Connector interface implementation
-		virtual wns::ldk::CompoundHandlerInterface*
-		getAcceptor(const wns::ldk::CompoundPtr& compound);
-
-	};
-
-}} // ldk // wns
-
+    } // ldk
+} // wns
 
 
 #endif // NOT defined  WNS_LDK_FIRSTSERVECONNECTOR_HPP
-
-
 

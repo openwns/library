@@ -34,6 +34,7 @@ ARQ.CumulativeACK - As defined in 802.16
 ARQ.SelectiveRepeat - Operating with selective repeats
 """
 import math
+import FUN
 
 from pyconfig import attrsetter
 from logger import Logger
@@ -111,6 +112,25 @@ class StopAndWait(ARQ):
         self.logger = Logger('WNS', 'SNW-ARQ', True, parentLogger)
         self.arqStatusCollector = statusCollector(self.logger)
         attrsetter(self, kw)
+
+class StopAndWaitRC(ARQ):
+    __plugin__ = 'wns.arq.StopAndWaitRC'
+    name = "StopAndWaitRC"
+
+    bitsPerIFrame = 2
+    bitsPerRRFrame = 2
+
+    class Ack(FUN.Port):
+        name = 'Ack'
+
+    class Data(FUN.Port):
+        name = 'Data'
+
+    def __init__(self, parentLogger = None, statusCollector=NoStatusCollection, **kw):
+      super(StopAndWaitRC,self).__init__()
+      self.logger = Logger('WNS', 'SNW-ARQ', True, parentLogger)
+      #self.arqStatusCollector = statusCollector(self.logger)
+      attrsetter(self, kw)
 
 class GoBackN(ARQ):
     __plugin__ = 'wns.arq.GoBackN'

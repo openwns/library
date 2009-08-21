@@ -32,36 +32,74 @@
 
 namespace wns { namespace ldk {
 
-	class RandomAccessLink :
-		virtual public Link
-	{
-		typedef std::vector<FunctionalUnit*> FunctionalUnitContainer;
+        template <typename RECEPTACLETYPE>
+        class RandomAccessLink
+            : virtual public Link<RECEPTACLETYPE>
+        {
+            typedef std::vector<RECEPTACLETYPE*> RecContainer;
 
-	public:
-		RandomAccessLink();
+        public:
+            RandomAccessLink()
+                : recs()
+            {}
 
-		virtual void
-		add(FunctionalUnit* fu);
+            virtual
+            ~RandomAccessLink()
+            {}
 
-		virtual void
-		clear();
+            virtual void
+            add(RECEPTACLETYPE* it)
+            {
+                assureNotNull(it);
+                recs.push_back(it);
+            }
 
-		virtual uint32_t
-		size() const;
+            virtual void
+            clear()
+            {
+                recs.clear();
+            }
 
-		virtual const
-		Link::ExchangeContainer get() const;
+            virtual uint32_t
+            size() const
+            {
+                return recs.size();
+            }
 
-		virtual void
-		set(const Link::ExchangeContainer&);
+            virtual const
+            typename Link<RECEPTACLETYPE>::ExchangeContainer get() const
+            {
+                typename Link<RECEPTACLETYPE>::ExchangeContainer result;
 
-	protected:
- 		FunctionalUnitContainer fus;
-	};
+                for(typename Link<RECEPTACLETYPE>::ExchangeContainer::const_iterator it = recs.begin();
+                    it != recs.end();
+                    ++it) {
+                    assureNotNull(*it);
+                    result.push_back(*it);
+                }
 
-} // ldk
+                return result;
+            }
+
+            virtual void
+            set(const typename Link<RECEPTACLETYPE>::ExchangeContainer& src)
+            {
+                recs.clear();
+
+                for(typename Link<RECEPTACLETYPE>::ExchangeContainer::const_iterator it = src.begin();
+                    it != src.end();
+                    ++it) {
+                    assureNotNull(*it);
+                    recs.push_back(*it);
+                }
+            }
+
+        protected:
+            RecContainer recs;
+        };
+
+    } // ldk
 } // wns
 
 #endif // NOT defined WNS_LDK_RANDOMACCESSLINK_HPP
-
 

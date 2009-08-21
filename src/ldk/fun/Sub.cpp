@@ -152,41 +152,44 @@ Sub::knowsFunctionalUnit(const std::string& name) const
 
 
 void
-Sub::connectFunctionalUnit(const std::string& upperName, const std::string& lowerName)
+Sub::connectFunctionalUnit(const std::string& upperName, const std::string& lowerName,
+                           const std::string& srcPort, const std::string& dstPort)
 {
         FunctionalUnit* upper = this->getFunctionalUnit(upperName);
         FunctionalUnit* lower = this->getFunctionalUnit(lowerName);
 
-        upper->connect(lower);
+        upper->connect(lower, srcPort, dstPort);
 } // connectFunctionalUnit
 
 
 void
-Sub::upConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName)
+Sub::upConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName,
+                             const std::string& srcPort, const std::string& dstPort)
 {
         FunctionalUnit* upper = this->getFunctionalUnit(upperName);
         FunctionalUnit* lower = this->getFunctionalUnit(lowerName);
 
-        upper->upConnect(lower);
+        upper->upConnect(lower, srcPort, dstPort);
 } // connectFunctionalUnit
 
 
 void
-Sub::downConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName)
+Sub::downConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName,
+                               const std::string& srcPort, const std::string& dstPort)
 {
         FunctionalUnit* upper = this->getFunctionalUnit(upperName);
         FunctionalUnit* lower = this->getFunctionalUnit(lowerName);
 
-        upper->downConnect(lower);
+        upper->downConnect(lower, srcPort, dstPort);
 } // connectFunctionalUnit
 
-
+/*
 void
 Sub::reconfigureFUN(const wns::pyconfig::View&)
 {
 	throw wns::Exception("Reconfiguration of SubFUNs is not supported yet.");
 } // reconfigureFUN
-
+*/
 
 void
 Sub::removeFUsFromCommandPool()
@@ -199,11 +202,11 @@ Sub::removeFUsFromCommandPool()
 	}
 } // removeFUsFromCommandPool
 
-
-typedef std::map<FunctionalUnit*, FunctionalUnit*> TranslationMap;
-
-static void
-translateLink(Link* link, const TranslationMap& translate)
+/*
+template <RECEPTACLETYPE>
+void
+translateLink(Link<RECEPTACLETYPE>* link,
+                          const std::map<RECEPTACLETYPE*,RECEPTACLETYPE*>& translate)
 {
 	Link::ExchangeContainer src = link->get();
 	Link::ExchangeContainer dst;
@@ -225,7 +228,6 @@ translateLink(Link* link, const TranslationMap& translate)
 Sub*
 Sub::clone() const
 {
-	TranslationMap translate;
 	fun::Sub* sub = new Sub(parent);
 
 	for(FunctionalUnitMap::const_iterator it = fuMap.begin();
@@ -248,7 +250,7 @@ Sub::clone() const
 
 	return sub;
 } // clone
-
+*/
 
 //
 // Layer delegations

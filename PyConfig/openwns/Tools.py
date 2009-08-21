@@ -139,3 +139,16 @@ class ConstantDelay(openwns.FUN.FunctionalUnit):
         openwns.pyconfig.attrsetter(self, kw)
 
         
+class Compressor(openwns.FUN.FunctionalUnit):
+    __plugin__ = 'wns.ldk.tools.Compressor'
+
+    reduction = None
+    name = None
+    logger = None
+
+    def __init__(self, reduction, commandName = 'EmptyCommand', parentLogger = None, name = "Compressor", **kw):
+        super(Compressor, self).__init__(commandName = commandName)
+        self.name = name
+        self.logger = openwns.logger.Logger("WNS", self.name, True, parentLogger)
+        self.reduction = reduction
+        openwns.pyconfig.attrsetter(self, kw)

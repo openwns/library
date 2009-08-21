@@ -25,18 +25,7 @@
 #
 ###############################################################################
 
-# QoS classes
-# corresponds to C++ file QoS/QoSClasses.hpp
 from openwns.pyconfig import attrsetter
-
-numberOfQoSClasses = 8
-undefinedQosClass = "UNDEFINED"
-conversationalQosClass = "CONVERSATIONAL"
-streamingQosClass ="STREAMING"
-interactiveQosClass = "INTERACTIVE"
-backgroundQosClass = "BACKGROUND"
-priorityBest  = 0
-priorityWorst = 6
 
 # one element of the classes:
 class QoSClass:
@@ -48,21 +37,14 @@ class QoSClass:
         self.number = number
         attrsetter(self, kw)
 
+undefinedQosClass = QoSClass("UNDEFINED",0,priority=0)
+
 class QoSClasses:
     mapEntries = None
 
     def __init__(self, **kw):
         self.mapEntries = []
-        # this list must be consistent with C++ code in service/qos/QoSClasses.hpp
-        # uppercase is important!
-        self.mapEntries.append(QoSClass("UNDEFINED",0,priority=6))
-        self.mapEntries.append(QoSClass("PCCH",1,priority=0))
-        self.mapEntries.append(QoSClass("PHICH",2,priority=1))
-        self.mapEntries.append(QoSClass("DCCH",3,priority=2))
-        self.mapEntries.append(QoSClass("CONVERSATIONAL",4,priority=3))
-        self.mapEntries.append(QoSClass("STREAMING",5,priority=4))
-        self.mapEntries.append(QoSClass("INTERACTIVE",6,priority=5))
-        self.mapEntries.append(QoSClass("BACKGROUND",7,priority=6))
+        self.mapEntries.append(undefinedQosClass)
         attrsetter(self, kw)
     
     def addQoSClass(self, name, number):
@@ -70,7 +52,7 @@ class QoSClasses:
         self.mapEntries.append(tmp)
 
     def getNumberOfQosClasses(self):
-        return self.mapEntries.size()
+        return len(self.mapEntries)
 
     def getMaxPriority(self):
         maxprio = 0

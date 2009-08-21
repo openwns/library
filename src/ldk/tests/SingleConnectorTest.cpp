@@ -59,7 +59,7 @@ namespace wns { namespace ldk { namespace tests {
 			}
 
 			virtual bool
-			isAcceptingForwarded(const CompoundPtr&)
+			isAcceptingForwarded(const CompoundPtr&) const
 			{
 				return accepting;
 			}

@@ -43,6 +43,7 @@
 
 namespace wns { namespace ldk { namespace tools {
 
+    // begin example "wns.ldk.tools.PERProviderCommand.example"
 	/**
 	 * @brief Provide a fixed PER for use by other layers
 	 *
@@ -63,11 +64,14 @@ namespace wns { namespace ldk { namespace tools {
 	private:
 		double PER;
 	}; // PERProviderPCI
+    // end example
 
+    // begin example "wns.ldk.tools.PERProviderStub.example"
 	class PERProviderStub :
 		public StubBase,
 		public CommandTypeSpecifier<PERProviderPCI>,
 		public Cloneable<PERProviderStub>
+    // end example
 	{
 	public:
 		/**
@@ -76,13 +80,14 @@ namespace wns { namespace ldk { namespace tools {
 		 */
 		PERProviderStub(fun::FUN* fuNet, const pyconfig::View& config);
 
+        // begin example "wns.ldk.tools.PERProviderStub.calculateSizes.example"
 		// we need a unique overrider
 		virtual void
 		calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const
 		{
 			StubBase::calculateSizes(commandPool, commandPoolSize, dataSize);
 		} // calculateSizes
-
+        // end example
 	private:
 		virtual void
 		doOnData(const CompoundPtr& compound);

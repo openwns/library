@@ -47,7 +47,7 @@ MultiLinkTest::prepare()
         fuNet = new fun::Main(layer);
         fu1 = new tools::Stub(fuNet, emptyConfig);
         fu2 = new tools::Stub(fuNet, emptyConfig);
-        ml = new MultiLink();
+        ml = new MultiLink<IConnectorReceptacle>();
 } // setUp
 
 
@@ -91,7 +91,7 @@ void
 MultiLinkTest::testGet()
 {
         ml->add(fu1);
-        Link::ExchangeContainer exchange = ml->get();
+        Link<IConnectorReceptacle>::ExchangeContainer exchange = ml->get();
         CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), exchange.size());
         CPPUNIT_ASSERT(exchange[0] == fu1);
 } // testGet
@@ -101,7 +101,7 @@ MultiLinkTest::testGet()
 void
 MultiLinkTest::testSet()
 {
-        Link::ExchangeContainer exchange;
+        Link<IConnectorReceptacle>::ExchangeContainer exchange;
         exchange.push_back(fu1);
 
         ml->set(exchange);

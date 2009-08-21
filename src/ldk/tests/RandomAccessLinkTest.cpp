@@ -61,7 +61,7 @@ namespace wns { namespace ldk { namespace tests {
                 fun::FUN* fuNet;
                 FunctionalUnit* fu1;
                 FunctionalUnit* fu2;
-                RandomAccessLink* candidate;
+                RandomAccessLink<IConnectorReceptacle>* candidate;
 	};
 
 }
@@ -84,7 +84,7 @@ RandomAccessLinkTest::prepare()
         fuNet = new fun::Main(layer);
         fu1 = new tools::Stub(fuNet, emptyConfig);
         fu2 = new tools::Stub(fuNet, emptyConfig);
-        candidate = new RandomAccessLink();
+        candidate = new RandomAccessLink<IConnectorReceptacle>();
 } // setUp
 
 
@@ -124,7 +124,7 @@ void
 RandomAccessLinkTest::testGet()
 {
         candidate->add(fu1);
-        Link::ExchangeContainer exchange = candidate->get();
+        Link<IConnectorReceptacle>::ExchangeContainer exchange = candidate->get();
         CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), exchange.size());
         CPPUNIT_ASSERT(exchange[0] == fu1);
 } // testGet
@@ -133,7 +133,7 @@ RandomAccessLinkTest::testGet()
 void
 RandomAccessLinkTest::testSet()
 {
-        Link::ExchangeContainer exchange;
+        Link<IConnectorReceptacle>::ExchangeContainer exchange;
         exchange.push_back(fu1);
 
         candidate->set(exchange);

@@ -37,6 +37,9 @@
 #include <WNS/ldk/Receptor.hpp>
 #include <WNS/ldk/Connector.hpp>
 #include <WNS/ldk/Deliverer.hpp>
+#include <WNS/ldk/ConnectorRegistry.hpp>
+#include <WNS/ldk/ReceptorRegistry.hpp>
+#include <WNS/ldk/DelivererRegistry.hpp>
 
 #include <WNS/Cloneable.hpp>
 #include <WNS/StaticFactory.hpp>
@@ -58,11 +61,14 @@ namespace wns { namespace ldk {
 	 * has to be implemented somewhere in the derivation hierarchy.
 	 */
 	class FunctionalUnit :
-		public virtual CompoundHandlerInterface,
+        public virtual CompoundHandlerInterface<FunctionalUnit>,
+        public virtual HasConnectorInterface,
+        public virtual HasReceptorInterface,
+        public virtual HasDelivererInterface,
+        public virtual ConnectorRegistry,
+        public virtual ReceptorRegistry,
+        public virtual DelivererRegistry,
 		public virtual CommandTypeSpecifierInterface,
-		public virtual HasReceptorInterface,
-		public virtual HasConnectorInterface,
-		public virtual HasDelivererInterface,
 		public virtual CloneableInterface,
 		public virtual PythonicOutput
 	{
@@ -140,10 +146,10 @@ namespace wns { namespace ldk {
 		 * @see wns::ldk::Connector, wns::ldk::Receptor and wns::ldk::Deliverer.
 		 */
 		template <typename T>
-		T* connect(T* that)
+                T* connect(T* that, const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort")
 		{
 			FunctionalUnit* connectee = that->whenConnecting();
-			doConnect(connectee);
+                        doConnect(connectee, srcPort, dstPort);
 			return that;
 		}
 
@@ -156,10 +162,10 @@ namespace wns { namespace ldk {
 		 * @see connect for a description of FU interconnections.
 		 */
 		template <typename T>
-		T* downConnect(T* that)
+		T* downConnect(T* that, const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort")
 		{
 			FunctionalUnit* connectee = that->whenConnecting();
-			doDownConnect(connectee);
+			doDownConnect(connectee, srcPort, dstPort);
 			return that;
 		}
 
@@ -172,10 +178,10 @@ namespace wns { namespace ldk {
 		 * @see connect for a description of FU interconnections.
 		 */
 		template <typename T>
-		T* upConnect(T* that)
+		T* upConnect(T* that, const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort")
 		{
 			FunctionalUnit* connectee = that->whenConnecting();
-			doUpConnect(connectee);
+			doUpConnect(connectee, srcPort, dstPort);
 			return that;
 		}
 
@@ -296,7 +302,7 @@ namespace wns { namespace ldk {
 		 * @see connect for a description of FU interconnections.
 		 */
 		virtual void
-		doConnect(FunctionalUnit* that);
+		doConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort);
 
 		/**
 		 * @brief Connect functional units in the outgoing data flow only. Virtual backend.
@@ -312,7 +318,7 @@ namespace wns { namespace ldk {
 		 * @see connect for a description of FU interconnections.
 		 */
 		virtual void
-		doDownConnect(FunctionalUnit* that);
+		doDownConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort);
 
 		/**
 		 * @brief Connect functional units in the incoming data flow only. Virtual backend.
@@ -328,19 +334,7 @@ namespace wns { namespace ldk {
 		 * @see connect for a description of FU interconnections.
 		 */
 		virtual void
-		doUpConnect(FunctionalUnit* that);
-
-		bool
-		isAcceptingForwarded(const CompoundPtr& compound);
-
-		void
-		sendDataForwarded(const CompoundPtr& compound);
-
-		void
-		wakeupForwarded();
-
-		void
-		onDataForwarded(const CompoundPtr& compound);
+		doUpConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort);
 
 		std::string name;
 	};

@@ -196,35 +196,39 @@ Main::knowsFunctionalUnit(const std::string& name) const
 
 
 void
-Main::connectFunctionalUnit(const std::string& upperName, const std::string& lowerName)
+Main::connectFunctionalUnit(const std::string& upperName, const std::string& lowerName,
+                            const std::string& srcPort, const std::string& dstPort)
+
 {
 	FunctionalUnit* upper = this->getFunctionalUnit(upperName);
 	FunctionalUnit* lower = this->getFunctionalUnit(lowerName);
 
-	upper->connect(lower);
+        upper->connect(lower, srcPort, dstPort);
 } // connectFunctionalUnit
 
 
 void
-Main::upConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName)
+Main::upConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName,
+                              const std::string& srcPort, const std::string& dstPort)
 {
 	FunctionalUnit* upper = this->getFunctionalUnit(upperName);
 	FunctionalUnit* lower = this->getFunctionalUnit(lowerName);
 
-	upper->upConnect(lower);
+        upper->upConnect(lower, srcPort, dstPort);
 } // connectFunctionalUnit
 
 
 void
-Main::downConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName)
+Main::downConnectFunctionalUnit(const std::string& upperName, const std::string& lowerName,
+                                const std::string& srcPort, const std::string& dstPort)
 {
 	FunctionalUnit* upper = this->getFunctionalUnit(upperName);
 	FunctionalUnit* lower = this->getFunctionalUnit(lowerName);
 
-	upper->downConnect(lower);
+        upper->downConnect(lower, srcPort, dstPort);
 } // connectFunctionalUnit
 
-
+/*
 void
 Main::reconfigureFUN(const wns::pyconfig::View& reconfig)
 {
@@ -306,7 +310,7 @@ Main::reconfigureFUN(const wns::pyconfig::View& reconfig)
 	// find new friends
 	onFUNCreated();
 } // reconfigureFUN
-
+*/
 
 //
 // Layer delegations

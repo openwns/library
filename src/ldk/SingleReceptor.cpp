@@ -30,7 +30,8 @@
 
 using namespace wns::ldk;
 
-SingleReceptor::SingleReceptor()
+SingleReceptor::SingleReceptor() :
+    SingleLink<IReceptorReceptacle>()
 {
 }
 
@@ -41,15 +42,13 @@ SingleReceptor::~SingleReceptor()
 void
 SingleReceptor::wakeup()
 {
-	if(this->getFU() != NULL)
-	{
-		this->getFU()->wakeup();
-	}
-	else
-	{
-		// nothing to wakeup
-	}
+    if(getRec() != NULL)
+    {
+        getRec()->wakeup();
+    }
+    else
+    {
+        // nothing to wakeup
+    }
 }
-
-
 

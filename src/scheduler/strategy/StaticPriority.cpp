@@ -50,28 +50,11 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(StaticPriority,
 
 StaticPriority::StaticPriority(const wns::pyconfig::View& config):
     Strategy(config),
-    numberOfPriorities(config.get<int>("numberOfPriorities")),
+    numberOfPriorities(0),
     subStrategies(),
     resourceUsage(0.0)
 {
-    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority() instance created. numberOfPriorities="<<numberOfPriorities);
-    // loop over all priorities and initialize subStrategies
-    assure(numberOfPriorities == config.len("subStrategies"),"numberOfPriorities="<<numberOfPriorities<<" != "<<config.len("subStrategies"));
-    for (int priority=0; priority<numberOfPriorities; ++priority) {
-        wns::pyconfig::View substrategyView = config.getView("subStrategies",priority);
-        std::string substrategyName = substrategyView.get<std::string>("__plugin__");
-        MESSAGE_SINGLE(NORMAL, logger, "subStrategy["<<priority<<"]="<<substrategyName);
-        wns::scheduler::strategy::staticpriority::SubStrategyInterface* substrategy = NULL;
-        if (substrategyName.compare("NONE")!=0) {
-            // create the subscheduling strategy for this priority:
-            wns::scheduler::strategy::staticpriority::SubStrategyCreator* subStrategyCreator = wns::scheduler::strategy::staticpriority::SubStrategyFactory::creator(substrategyName);
-            substrategy = subStrategyCreator->create(substrategyView);
-        } else {
-            substrategy = NULL;
-        }
-        subStrategies.push_back(substrategy);
-        //subStrategies[priority] = substrategy;
-    } // for all priorities
+    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority() instance created.");
 }
 
 StaticPriority::~StaticPriority()
@@ -92,8 +75,26 @@ void
 StaticPriority::onColleaguesKnown()
 {
     Strategy::onColleaguesKnown(); // must be done in every derived method
-    MESSAGE_SINGLE(NORMAL, logger,"StaticPriority::onColleaguesKnown():");
-    assure(numberOfPriorities==colleagues.registry->getNumberOfPriorities(),"numberOfPriorities="<<numberOfPriorities<<" but registry->getNumberOfPriorities()="<<colleagues.registry->getNumberOfPriorities());
+    numberOfPriorities = colleagues.registry->getNumberOfPriorities();
+
+    // loop over all priorities and initialize subStrategies
+    assure(numberOfPriorities == pyConfig.len("subStrategies"),"numberOfPriorities="<<numberOfPriorities<<" != "<<pyConfig.len("subStrategies"));
+    MESSAGE_SINGLE(NORMAL, logger,"StaticPriority::onColleaguesKnown(), numberOfPriorities="<<numberOfPriorities);
+    for (int priority=0; priority<numberOfPriorities; ++priority) {
+        wns::pyconfig::View substrategyView = pyConfig.getView("subStrategies",priority);
+        std::string substrategyName = substrategyView.get<std::string>("__plugin__");
+        MESSAGE_SINGLE(NORMAL, logger, "subStrategy["<<priority<<"]="<<substrategyName);
+        wns::scheduler::strategy::staticpriority::SubStrategyInterface* substrategy = NULL;
+        if (substrategyName.compare("NONE")!=0) {
+            // create the subscheduling strategy for this priority:
+            wns::scheduler::strategy::staticpriority::SubStrategyCreator* subStrategyCreator = wns::scheduler::strategy::staticpriority::SubStrategyFactory::creator(substrategyName);
+            substrategy = subStrategyCreator->create(substrategyView);
+        } else {
+            substrategy = NULL;
+        }
+        subStrategies.push_back(substrategy);
+    } // for all priorities
+
     SchedulerStatePtr schedulerState = getSchedulerState();
     // priority is out of [0..MaxPriority-1]:
     for (int priority=0; priority<numberOfPriorities; ++priority) {

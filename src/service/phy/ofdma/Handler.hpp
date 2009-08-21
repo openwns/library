@@ -36,7 +36,7 @@
 
 namespace wns { namespace service { namespace phy { namespace ofdma {
 
-	/**
+    /**
 	 * @brief OFDMA Phy Notification Handler
 	 * Class from which the subscriber must inherit from. Defines onData().
 	 */
@@ -52,6 +52,21 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
 		onData(wns::osi::PDUPtr sdu, wns::service::phy::power::PowerMeasurementPtr rxPowerMeasurement) = 0;
 		// using: class PowerMeasurement from WNS/service/phy/power/PowerMeasurement.hpp
 	};
+
+    /**
+     * @brief RSS Notification Handler
+     */
+    class RSSHandler
+    {
+    public:
+        virtual
+        ~RSSHandler()
+            {};
+
+        virtual void
+        onRSSChange(wns::Power newRSSIndicator) = 0;
+    };
+
 } // ofdma
 } // phy
 } // service

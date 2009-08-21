@@ -39,12 +39,12 @@ OpcodeDeliverer::setOpcodeProvider(FunctionalUnit* opcodeProvider)
 	friends.opcodeProvider = opcodeProvider;
 }
 
-FunctionalUnit*
+IDelivererReceptacle*
 OpcodeDeliverer::getAcceptor(const CompoundPtr& compound)
 {
 	OpcodeCommand* command = dynamic_cast<OpcodeCommand*>(friends.opcodeProvider->getCommand(compound->getCommandPool()));
 
-	return fus.at(command->peer.opcode);
+	return recs.at(command->peer.opcode);
 }
 
 

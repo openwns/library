@@ -26,8 +26,6 @@ using namespace wns::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::staticpriority;
 
-typedef std::pair<float, UserID> UserPreference;
-
 STATIC_FACTORY_REGISTER_WITH_CREATOR(ProportionalFair,
                                      SubStrategyInterface,
                                      "ProportionalFair",
@@ -38,6 +36,7 @@ ProportionalFair::ProportionalFair(const wns::pyconfig::View& config)
       blockSize(config.get<int>("blockSize")),
       historyWeight(config.get<float>("historyWeight")),
       scalingBetweenMaxTPandPFair(config.get<float>("scalingBetweenMaxTPandPFair")),
+      rateFairness(config.get<bool>("rateFairness")),
       maxRateOfSubchannel(0.0),
       allUsers(),
       preferenceVariationDistribution(NULL)
@@ -47,6 +46,11 @@ ProportionalFair::ProportionalFair(const wns::pyconfig::View& config)
     pastDataRates.clear();
     allUsers.clear();
     preferenceVariationDistribution = new wns::distribution::Uniform(-1.0, 1.0);
+    // historyWeight:
+    // if 0 no history is taken into account -> maxThroughput Scheduler
+    assure(scalingBetweenMaxTPandPFair>=0.0, "scalingBetweenMaxTPandPFair="<<scalingBetweenMaxTPandPFair<<" is out of bounds");
+    assure(scalingBetweenMaxTPandPFair<=1.0, "scalingBetweenMaxTPandPFair="<<scalingBetweenMaxTPandPFair<<" is out of bounds");
+    assure((historyWeight>=0.0)&&(historyWeight<1.0), "historyWeight="<<historyWeight<<" is out of bounds");
 }
 
 ProportionalFair::~ProportionalFair()
@@ -57,22 +61,14 @@ ProportionalFair::~ProportionalFair()
 void
 ProportionalFair::initialize()
 {
-    MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair(): initialized");
-}
-
-void
-ProportionalFair::onColleaguesKnown()
-{
-    MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair(): initialized");
-    wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> phyMode = colleagues.registry->getPhyModeMapper()->getHighestPhyMode();
-    MESSAGE_SINGLE(NORMAL, logger, "Message number 1");
+    MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair::initialize()");
+    wns::service::phy::phymode::PhyModeInterfacePtr phyMode = colleagues.registry->getPhyModeMapper()->getHighestPhyMode();
     maxRateOfSubchannel = phyMode->getDataRate();
-    MESSAGE_SINGLE(NORMAL, logger, "Message number 2");
     MESSAGE_SINGLE(NORMAL, logger, "ProportionalFair: maxRateOfSubchannel="<<maxRateOfSubchannel<<" bit/s");
     assure(maxRateOfSubchannel>0.0, "unknown maxRateOfSubchannel");
 }
 
-std::priority_queue<UserPreference>
+std::priority_queue<ProportionalFair::UserPreference>
 ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy) const
 {
     std::map<UserID, wns::CandI> sinrs;
@@ -99,12 +95,13 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
 
         // calculate PhyModeRate for available users
         wns::Ratio sinr(sinrs[user].C / sinrs[user].I);
-        wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> phyMode = colleagues.registry->getPhyModeMapper()->getBestPhyMode(sinr);
+        wns::service::phy::phymode::PhyModeInterfacePtr phyMode = colleagues.registry->getPhyModeMapper()->getBestPhyMode(sinr);
         assure(phyMode->isValid(),"invalid PhyMode");
 
         // calculate userRate, which is the maximum possible data rate
         // for one subChannel for the best PhyMode available here
-        double phyModeRate = phyMode->getDataRate(); // rate [b/s] of one subChannel
+        float phyModeRate = phyMode->getDataRate(); // rate [b/s] of one subChannel
+        float referenceRate;
         float pastDataRate = 1.0;
 
         // get the past data rate for this user:
@@ -133,16 +130,21 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
         // preference is achievable current user rate divided by a history
         // factor that takes the past throughput of this user into account
 
-        // historyWeight:
-        // if 0 no history is taken into account -> maxThroughput Scheduler
+        assure(maxRateOfSubchannel>0.0, "unknown maxRateOfSubchannel");
 
-        assure(scalingBetweenMaxTPandPFair>=0.0, "scalingBetweenMaxTPandPFair is out of bounds");
-        assure(scalingBetweenMaxTPandPFair<=1.0, "scalingBetweenMaxTPandPFair is out of bounds");
-        assure((historyWeight>=0.0)&&(historyWeight<1.0), "historyWeight is out of bounds");
+        // goal is either rate (true) or resource (false) fairness
+        if (rateFairness == true)
+        {
+            referenceRate = maxRateOfSubchannel;
+        }
+        else
+        {
+            referenceRate = phyModeRate;
+        }
 
         // maxRateOfSubchannel is constant, with range [0..1][bit/s]
-        float resultMaxThroughput = phyModeRate / maxRateOfSubchannel;
-        float resultPropFair      = phyModeRate / pastDataRate; // can be any range
+        float resultMaxThroughput = referenceRate / maxRateOfSubchannel;
+        float resultPropFair      = referenceRate / pastDataRate; // can be any range
         if (scalingBetweenMaxTPandPFair <= 0.5) {
             // variate the preference for each user, so that they differ a little bit (1%)
             // and the automatic sorting does not always give the same order
@@ -267,11 +269,9 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
 {
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
-    ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
-    // TODO: maybe it's more efficient to get activeUsers by currentConnections or via schedulerState
-    int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
     UserSet allUsersInQueue = colleagues.queue->getQueuedUsers();
-    UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue,frameNr);
+    UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue);
+    ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
 
     MESSAGE_SINGLE(NORMAL, logger, "activeUsers= "<< activeUsers.size()<<" , currentConnections= "<<printConnectionSet(currentConnections)<<" ");
 
@@ -290,7 +290,6 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     bool spaceLeft= true;
     int pduCounter = 0;
-    int blockSize = INT_MAX;
     // static const noCID and then check for (currentConnection != noCID)
     while(spaceLeft && (currentConnection >= 0))
     {

@@ -29,44 +29,42 @@
 #define WNS_LDK_RECEPTOR_HPP
 
 #include <WNS/ldk/Link.hpp>
+#include <WNS/ldk/IReceptorReceptacle.hpp>
 
 namespace wns { namespace ldk {
-	class FunctionalUnit;
 
-	/**
-	 * @brief Receptor scheduling strategy implementation.
-	 * @ingroup hasreceptor
-	 *
-	 * Receptor is one of the 5 aspects of a FU (see @ref ldkaspects.) <br>
-	 *
-	 * Receptor is the default implementation for strategies to wake up FUs
-	 * during compound delivery in the outgoing data flow. A FU does not call
-	 * the wakeup method of upper FUs directly. Instead it delegates the task to
-	 * its Receptor strategy. Besides the strategy for FU selection, the
-	 * Receptor holds the set of FUs the FU is connected to from above for
-	 * outgoing data flows. <br>
-	 *
-	 * In combination with the Connector, Receptor implements the inter-FU flow
-	 * control.  Given a FU A having FU B in its connector set. FU B alwas has
-	 * FU in its receptor set (see wns::ldk::Connector.)<br>
-	 *
-	 */
-	class Receptor :
-		public virtual Link
-	{
-	public:
-		virtual
-		~Receptor()
-		{}
+        /**
+         * @brief Receptor scheduling strategy implementation.
+         * @ingroup hasreceptor
+         *
+         * Receptor is one of the 5 aspects of a FU (see @ref ldkaspects.) <br>
+         *
+         * Receptor is the default implementation for strategies to wake up FUs
+         * during compound delivery in the outgoing data flow. A FU does not call
+         * the wakeup method of upper FUs directly. Instead it delegates the task to
+         * its Receptor strategy. Besides the strategy for FU selection, the
+         * Receptor holds the set of FUs the FU is connected to from above for
+         * outgoing data flows. <br>
+         *
+         * In combination with the Connector, Receptor implements the inter-FU flow
+         * control.  Given a FU A having FU B in its connector set. FU B alwas has
+         * FU in its receptor set (see wns::ldk::Connector.)<br>
+         *
+         */
+        class Receptor
+            : public virtual Link<IReceptorReceptacle>
+        {
+        public:
+            virtual
+            ~Receptor()
+            {}
 
-		virtual void
-		wakeup() = 0;
-	};
-} // ldk
+            virtual void
+            wakeup() = 0;
+        };
+    } // ldk
 } // wns
 
 
 #endif // NOT defined WNS_LDK_UPPERFUNCTIONALUNITLINK_HPP
-
-
 
