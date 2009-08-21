@@ -67,7 +67,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
         virtual void
         cleanup();
 
-        Layer* layer;
+        ILayer* layer;
         fun::Main* fun;
 
         tools::Stub* upperStub;
