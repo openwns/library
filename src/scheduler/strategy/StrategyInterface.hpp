@@ -201,7 +201,9 @@ namespace wns { namespace scheduler { namespace strategy {
                     strategy,queues,spatialGrouper,registryProxy */
                 virtual void setColleagues(queue::QueueInterface* _queue,
                                            grouper::GroupingProviderInterface* _grouper,
-                                           RegistryProxyInterface* _registry) = 0;
+                                           RegistryProxyInterface* _registry
+                                           //wns::ldk::harq::HARQ* _harq
+                    ) = 0;
 
                 /** @brief can be overloaded by derived classes to perform initialization code.
                     The derived class should call this base class method first. */

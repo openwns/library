@@ -109,6 +109,16 @@ namespace wns { namespace scheduler {
         typedef std::vector<bool>         UsableSubChannelVector;
 
         inline std::string
+        printBoolVector(const std::vector<bool>& boolVector) {
+            std::stringstream s;
+            for (std::vector<bool>::const_iterator iter = boolVector.begin(); iter != boolVector.end(); ++iter)
+            {
+                s << (*iter) ? 1:0;
+            }
+            return s.str();
+        }
+
+        inline std::string
         printGroup(const wns::scheduler::Group& group) {
             std::stringstream s;
             s << "Group(";

@@ -70,14 +70,14 @@ namespace wns { namespace ldk { namespace harq {
 
     };
 
-    class HARQ :
-        public fu::Plain<HARQ, HARQCommand>,
-        public Delayed<HARQ>
+    class HARQFU :
+        public fu::Plain<HARQFU, HARQCommand>,
+        public Delayed<HARQFU>
     {
     public:
-        HARQ(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        HARQFU(fun::FUN* fuNet, const wns::pyconfig::View& config);
 
-        ~HARQ();
+        ~HARQFU();
 
         virtual void
         onFUNCreated();
@@ -94,7 +94,7 @@ namespace wns { namespace ldk { namespace harq {
         {
         public:
 
-            HARQSenderProcess(int processID, int numRVs, HARQ* entity, wns::logger::Logger logger);
+            HARQSenderProcess(int processID, int numRVs, HARQFU* entity, wns::logger::Logger logger);
 
             bool
             hasCapacity() const;
@@ -113,7 +113,7 @@ namespace wns { namespace ldk { namespace harq {
 
             int numRVs_;
 
-            HARQ* entity_;
+            HARQFU* entity_;
 
             wns::logger::Logger logger_;
 
@@ -128,7 +128,7 @@ namespace wns { namespace ldk { namespace harq {
         class HARQReceiverProcess
         {
         public:
-            HARQReceiverProcess(wns::pyconfig::View config, int processID, HARQ* entity);
+            HARQReceiverProcess(wns::pyconfig::View config, int processID, HARQFU* entity);
 
             void
             receive(const wns::ldk::CompoundPtr&);
@@ -141,7 +141,7 @@ namespace wns { namespace ldk { namespace harq {
 
             int numRVs_;
 
-            HARQ* entity_;
+            HARQFU* entity_;
 
             wns::logger::Logger logger_;
 
@@ -178,7 +178,7 @@ namespace wns { namespace ldk { namespace harq {
 
         std::vector<HARQSenderProcess> senderProcesses_;
 
-        std::vector<HARQ::HARQReceiverProcess> receiverProcesses_;
+        std::vector<HARQFU::HARQReceiverProcess> receiverProcesses_;
 
         std::list<wns::ldk::CompoundPtr> sendQueue_;
     };

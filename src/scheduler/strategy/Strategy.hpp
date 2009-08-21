@@ -95,7 +95,9 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief Colleagues are required to communicate with the environment */
                 virtual void setColleagues(queue::QueueInterface* _queue,
                                            grouper::GroupingProviderInterface* _grouper,
-                                           RegistryProxyInterface* _registry);
+                                           RegistryProxyInterface* _registry
+                                           //wns::ldk::harq::HARQ* _harq
+                    );
 
                 /** @brief can be overloaded by derived classes to perform initialization code.
                     The derived method MUST call this base class method first. */
@@ -185,10 +187,12 @@ namespace wns { namespace scheduler { namespace strategy {
                 //bool txMode;           // Python parameter
 
                 struct Colleagues {
-                    Colleagues() {queue=NULL;grouper=NULL;registry=NULL;dsastrategy=NULL;dsafbstrategy=NULL;apcstrategy=NULL;};
+                    Colleagues() {queue=NULL;grouper=NULL;registry=NULL;dsastrategy=NULL;dsafbstrategy=NULL;apcstrategy=NULL;harq=NULL;};
                     queue::QueueInterface* queue;
                     grouper::GroupingProviderInterface* grouper;
                     RegistryProxyInterface* registry;
+                    //wns::ldk::harq::HARQ* harq;
+                    void* harq; // dummy until HARQ is ready
                     dsastrategy::DSAStrategyInterface* dsastrategy;
                     dsastrategy::DSAStrategyInterface* dsafbstrategy;
                     apcstrategy::APCStrategyInterface* apcstrategy;

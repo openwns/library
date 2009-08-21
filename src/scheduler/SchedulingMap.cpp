@@ -964,6 +964,8 @@ SchedulingMap::getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int b
 void
 SchedulingMap::maskOutSubChannels(const UsableSubChannelVector& usableSubChannels)
 {
+    //std::cout <<"maskOutSubChannels(#="<<usableSubChannels.size()<<"): usable="<<printBoolVector(usableSubChannels)<<std::endl;
+    assure(usableSubChannels.size()>=numberOfSubChannels,"#usableSubChannels="<<usableSubChannels.size());
     for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
     {
         bool before = subChannels[subChannelIndex].subChannelIsUsable;
