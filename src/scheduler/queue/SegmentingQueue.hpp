@@ -46,7 +46,7 @@ namespace wns { namespace scheduler { namespace queue {
 		public QueueInterface
 	{
 	public:
-		SegmentingQueue(const wns::pyconfig::View& config);
+            SegmentingQueue(wns::ldk::HasReceptorInterface*, const wns::pyconfig::View& config);
 		virtual ~SegmentingQueue();
 
 		bool isAccepting(const wns::ldk::CompoundPtr& compound) const;

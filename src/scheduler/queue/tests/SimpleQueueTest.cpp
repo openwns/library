@@ -81,7 +81,7 @@ void SimpleQueueTest::setUp() {
 	queueConfig.loadString(ss.str());
 	pyconfig::View pcv = queueConfig.getView("queue");
 
-	queue = new SimpleQueue(pcv);
+        queue = new SimpleQueue(0, pcv);
 	registry->setFriends(dynamic_cast<wns::ldk::CommandTypeSpecifier<wns::ldk::ClassifierCommand>* >(classifier));
 	queue->setColleagues(dynamic_cast<RegistryProxyInterface*>(registry));
 

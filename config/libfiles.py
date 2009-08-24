@@ -805,6 +805,7 @@ hppFiles = [
 'src/Functor.hpp',
 'src/IOutputStreamable.hpp',
 'src/PyConfigViewCreator.hpp',
+'src/HasReceptorConfigCreator.hpp',
 'src/markovchain/ARMA.hpp',
 'src/markovchain/MarkovBase.hpp',
 'src/markovchain/MarkovContinuousTime.hpp',
