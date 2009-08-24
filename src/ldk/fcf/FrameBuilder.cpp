@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * This file is part of openWNS (open Wireless Network Simulator)
  * _____________________________________________________________________________
@@ -58,6 +59,15 @@ FrameBuilder::FrameBuilder( wns::ldk::fun::FUN* fun, const wns::pyconfig::View& 
 	wns::pyconfig::View timingControlConfig( config, "timingControl");
 	std::string name = timingControlConfig.get<std::string>("name");
 	timingControl_ =  TimingControlFactory::creator(name)->create( this , timingControlConfig);
+	
+	// Create the phase descriptors 
+	for(int i = 0; i < config.len("phaseDescriptor"); i++) {
+		wns::pyconfig::View pDesc(config.get("phaseDescriptor", i));
+		std::string plugin = pDesc.get<std::string>("__plugin__");
+		PhaseDescriptorCreator* pCreator = PhaseDescriptorFactory::creator(plugin);
+		PhaseDescriptorPtr pDescPtr(pCreator->create(this, pDesc));
+		descriptors_.push_back(pDescPtr);
+	}
 }
 
 FrameBuilder::~FrameBuilder()
@@ -67,6 +77,12 @@ FrameBuilder::~FrameBuilder()
 
 void FrameBuilder::onFUNCreated()
 {
+    for(FrameBuilder::Descriptors::const_iterator it = descriptors_.begin(); 
+		it != descriptors_.end(); 
+		++it) {
+		(*it)->onFUNCreated();
+	}
+	
 	// timing node must be configured after phase descriptors
 	timingControl_->configure();
 }

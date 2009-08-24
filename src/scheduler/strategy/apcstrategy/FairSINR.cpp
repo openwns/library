@@ -130,6 +130,7 @@ FairSINR::doStartAPC(RequestForResource& request,
 				apcResult.sinr = fair_sinr;
 			}
 		}
+		apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
 
 		apcResult.phyModePtr = phyModeMapper->getBestPhyMode(apcResult.sinr);
 
