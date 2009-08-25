@@ -30,7 +30,7 @@
 
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
-#include <WNS/PyConfigViewCreator.hpp>
+#include <WNS/HasReceptorConfigCreator.hpp>
 
 namespace wns { namespace scheduler { namespace queue {
 
@@ -213,7 +213,8 @@ namespace wns { namespace scheduler { namespace queue {
                 virtual std::string printAllQueues() = 0;
 
             };
-            typedef wns::PyConfigViewCreator<QueueInterface, QueueInterface> QueueCreator;
+            //typedef wns::PyConfigViewCreator<QueueInterface, QueueInterface> QueueCreator;
+            typedef wns::HasReceptorConfigCreator<QueueInterface, QueueInterface> QueueCreator;
             typedef wns::StaticFactory<QueueCreator> QueueFactory;
 
 

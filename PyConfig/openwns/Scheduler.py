@@ -119,6 +119,7 @@ class CQIEnabledExhaustiveRR(Strategy):
         self.useRandomChannelAtBeginning = useRandomChannel
 
 class ProportionalFairUL(Strategy):
+    __plugin__ = 'ProportionalFairUL'
     historyWeight = None
     maxBursts = None
     allowReGrouping = None
@@ -133,6 +134,7 @@ class ProportionalFairUL(Strategy):
         self.allowReGrouping = False
 
 class ProportionalFairDL(Strategy):
+    __plugin__ = 'ProportionalFairDL'
     historyWeight = None # 0.0 = no history; 0.9 = factor of older pastDataRates to keep
     maxBursts = None
     allowReGrouping = None

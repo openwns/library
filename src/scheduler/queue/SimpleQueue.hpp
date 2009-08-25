@@ -38,6 +38,10 @@
 #include <map>
 #include <queue>
 
+namespace wns { namespace ldk {
+    class HasReceptorInterface;
+    }}
+
 namespace wns { namespace scheduler { namespace queue {
 
             /** @brief the queues handled by this class all use a FIFO strategy
@@ -46,7 +50,7 @@ namespace wns { namespace scheduler { namespace queue {
             public QueueInterface
             {
             public:
-                SimpleQueue(const wns::pyconfig::View& config);
+                SimpleQueue(wns::ldk::HasReceptorInterface*, const wns::pyconfig::View& config);
                 virtual ~SimpleQueue();
 
                 bool isAccepting(const wns::ldk::CompoundPtr& compound) const;

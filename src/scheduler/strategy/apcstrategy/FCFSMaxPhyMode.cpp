@@ -100,7 +100,7 @@ FCFSMaxPhyMode::doStartAPC(RequestForResource& request,
         wns::Ratio minSINR = phyModeMapper->getMinSINRRatio(apcResult.phyModePtr);
         apcResult.txPower = wns::Power::from_mW(minSINR.get_factor() * pathloss.get_factor() * interference.get_mW() ) ;
         apcResult.sinr = minSINR;
-
+		apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
     }
     MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
                    <<"SINR="<<apcResult.sinr<<", PhyMode="<<*(apcResult.phyModePtr)<<", txPower="<<apcResult.txPower);

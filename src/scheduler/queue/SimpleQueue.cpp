@@ -34,9 +34,12 @@ using namespace wns::scheduler;
 using namespace wns::scheduler::queue;
 
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR(SimpleQueue, QueueInterface, "SimpleQueue", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(SimpleQueue,
+                                     QueueInterface,
+                                     "SimpleQueue",
+                                     wns::HasReceptorConfigCreator);
 
-SimpleQueue::SimpleQueue(const wns::pyconfig::View& _config)
+SimpleQueue::SimpleQueue(wns::ldk::HasReceptorInterface*, const wns::pyconfig::View& _config)
     : probeContextProviderForCid(NULL),
       probeContextProviderForPriority(NULL),
       maxSize(0),

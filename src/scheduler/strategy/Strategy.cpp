@@ -733,6 +733,8 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         // do adaptive power allocation
         apcResult = colleagues.apcstrategy->doStartAPC(request, schedulerState, schedulingMap);
         // not (yet) possible: if (?==apcstrategy::APCNotFound) return resultMapInfoEntry; // empty means no result
+	    if(apcResult.txPower == wns::Power())
+		    return resultMapInfoEntry; // empty means no result
         // fix the proposed phyMode value:
         request.phyModePtr = apcResult.phyModePtr;
         txPower = apcResult.txPower;
