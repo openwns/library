@@ -329,7 +329,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 
 		LaLayer* leftLayer = new LaLayer;
 		fun::FUN* leftFUN = new fun::Main(leftLayer);
-		Layer* rightLayer = new wns::ldk::tests::LayerStub();
+		ILayer* rightLayer = new wns::ldk::tests::LayerStub();
 		fun::FUN* rightFUN = new fun::Main(rightLayer);
 
 		wns::pyconfig::Parser all;
@@ -414,7 +414,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 
 		LaLayer *leftLayer = new LaLayer;
 		fun::FUN* leftFUN = new fun::Main(leftLayer);
-		Layer *rightLayer = new wns::ldk::tests::LayerStub();
+		ILayer *rightLayer = new wns::ldk::tests::LayerStub();
 		fun::FUN* rightFUN = new fun::Main(rightLayer);
 
 		wns::pyconfig::Parser all;

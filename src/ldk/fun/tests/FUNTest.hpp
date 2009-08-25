@@ -86,14 +86,14 @@ namespace wns { namespace ldk { namespace fun {
 		getFUN();
 
 	protected:
-		virtual wns::ldk::fun::FUN* newCandidate(wns::ldk::Layer* layer) = 0;
+		virtual wns::ldk::fun::FUN* newCandidate(wns::ldk::ILayer* layer) = 0;
 		virtual void deleteCandidate(wns::ldk::fun::FUN* fun) = 0;
 
 		FunctionalUnit* fu1;
 		FunctionalUnit* fu2;
 
 	private:
-		Layer* layer;
+		ILayer* layer;
 		wns::ldk::fun::FUN* fuNet;
 	};
 

@@ -61,7 +61,7 @@ namespace wns { namespace ldk { namespace tests {
                 void testSet();
 
 	private:
-                Layer* layer;
+                ILayer* layer;
                 fun::FUN* fuNet;
                 FunctionalUnit* fu1;
                 FunctionalUnit* fu2;

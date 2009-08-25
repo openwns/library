@@ -36,7 +36,7 @@ namespace wns { namespace ldk {
 
 	class CommandReaderInterface
 	{
-		virtual const CommandProxy*
+		virtual CommandProxy*
 		getProxy() const = 0;
 
 		virtual const unsigned long int
@@ -53,6 +53,12 @@ namespace wns { namespace ldk {
 			assureType(theCommand, COMMANDTYPE*);
 			return dynamic_cast<COMMANDTYPE*>(theCommand);
 		}
+
+        Command*
+        activateCommand(CommandPool* commandPool)
+        {
+            return getProxy()->activateCommand(commandPool, getPCIID());
+        }
 
 		virtual bool
 		commandIsActivated(const CommandPool* commandPool) const = 0;

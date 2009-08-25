@@ -39,96 +39,97 @@
 
 namespace wns { namespace scheduler { namespace tests {
 
-	/** @brief this class is used for tests only */
-	class RegistryProxyStub
-		: public RegistryProxyInterface {
-	public:
-		RegistryProxyStub();
-		~RegistryProxyStub();
+            /** @brief this class is used for tests only */
+            class RegistryProxyStub
+                    : public RegistryProxyInterface {
+            public:
+                RegistryProxyStub();
+                ~RegistryProxyStub();
 
-		// The Interface:
-		UserID getUserForCID(ConnectionID cid);
-		wns::service::dll::UnicastAddress getPeerAddressForCID(wns::scheduler::ConnectionID cid);
-		ConnectionVector getConnectionsForUser(const UserID user);
-		ConnectionID getCIDforPDU(const wns::ldk::CompoundPtr& compound);
-		void setFriends(const wns::ldk::CommandTypeSpecifierInterface* _classifier);
-		void setFUN(const wns::ldk::fun::FUN* fun);
-		std::string getNameForUser(const UserID user);
-		wns::service::phy::phymode::PhyModeMapperInterface* getPhyModeMapper() const;
-		wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> getBestPhyMode(const wns::Ratio& sinr);
-		UserID getMyUserID();
-		simTimeType getOverhead(int numBursts);
-		wns::CandI estimateTxSINRAt(const UserID user);
-		wns::CandI estimateRxSINROf(const UserID user);
-		wns::Power estimateInterferenceAt(const UserID user);
-		wns::Power estimateInterferenceStdDeviation(const UserID user);
-		Bits getQueueSizeLimitPerConnection();
-		void setQueueSizeLimitPerConnection(Bits bits);
-		wns::service::dll::StationType getStationType(const UserID user);
-		UserSet filterReachable(UserSet users);
-		wns::scheduler::ConnectionSet filterReachable(wns::scheduler::ConnectionSet connections);
-		wns::scheduler::PowerMap calcULResources(const wns::scheduler::UserSet&, uint32_t) const;
-		wns::scheduler::UserSet getActiveULUsers() const;
-		int getTotalNumberOfUsers(const wns::scheduler::UserID user) const;
+                // The Interface:
+                UserID getUserForCID(ConnectionID cid);
+                wns::service::dll::UnicastAddress getPeerAddressForCID(wns::scheduler::ConnectionID cid);
+                ConnectionVector getConnectionsForUser(const UserID user);
+                ConnectionID getCIDforPDU(const wns::ldk::CompoundPtr& compound);
+                void setFriends(const wns::ldk::CommandTypeSpecifierInterface* _classifier);
+                void setFUN(const wns::ldk::fun::FUN* fun);
+                std::string getNameForUser(const UserID user);
+                wns::service::phy::phymode::PhyModeMapperInterface* getPhyModeMapper() const;
+                wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> getBestPhyMode(const wns::Ratio& sinr);
+                UserID getMyUserID();
+                simTimeType getOverhead(int numBursts);
+                wns::CandI estimateTxSINRAt(const UserID user);
+                wns::CandI estimateRxSINROf(const UserID user);
+                wns::Power estimateInterferenceAt(const UserID user);
+                wns::Power estimateInterferenceStdDeviation(const UserID user);
+                Bits getQueueSizeLimitPerConnection();
+                void setQueueSizeLimitPerConnection(Bits bits);
+                wns::service::dll::StationType getStationType(const UserID user);
+                UserSet filterReachable(UserSet users); // soon obsolete
+                UserSet filterReachable(UserSet users, const int frameNr);
+                wns::scheduler::ConnectionSet filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr);
+                wns::scheduler::PowerMap calcULResources(const wns::scheduler::UserSet&, uint32_t) const;
+                wns::scheduler::UserSet getActiveULUsers() const;
+                int getTotalNumberOfUsers(const wns::scheduler::UserID user) const;
 
-		virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnUplink(UserID user, int frameNr);
-		virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnDownlink(UserID user, int frameNr);
+                virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnUplink(UserID user, int frameNr);
+                virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnDownlink(UserID user, int frameNr);
 
-		virtual wns::scheduler::PowerCapabilities
-		getPowerCapabilities(const UserID user) const;
+                virtual wns::scheduler::PowerCapabilities
+                getPowerCapabilities(const UserID user) const;
 
-		virtual wns::scheduler::PowerCapabilities
-		getPowerCapabilities() const;
+                virtual wns::scheduler::PowerCapabilities
+                getPowerCapabilities() const;
 
-		int
-		getNumberOfPriorities();
+                int
+                getNumberOfPriorities();
 
-		virtual void
-		registerCID(wns::scheduler::ConnectionID cid, wns::scheduler::UserID userID/*nextHop!*/) {};
+                virtual void
+                registerCID(wns::scheduler::ConnectionID cid, wns::scheduler::UserID userID/*nextHop!*/) {};
 
-		virtual void
-		deregisterCID(wns::scheduler::ConnectionID cid, const wns::scheduler::UserID userID) {};
+                virtual void
+                deregisterCID(wns::scheduler::ConnectionID cid, const wns::scheduler::UserID userID) {};
 
-		virtual void
-		deregisterUser(const wns::scheduler::UserID userID) {};
+                virtual void
+                deregisterUser(const wns::scheduler::UserID userID) {};
 
-		wns::scheduler::ConnectionList&
-		getCIDListForPriority(int priority);
+                wns::scheduler::ConnectionList&
+                getCIDListForPriority(int priority);
 
-		wns::scheduler::ConnectionSet
-		getConnectionsForPriority(int /*priority*/) {};
+                wns::scheduler::ConnectionSet
+                getConnectionsForPriority(int /*priority*/) {};
 
-		std::string
-		compoundInfo(const wns::ldk::CompoundPtr& compound);
+                std::string
+                compoundInfo(const wns::ldk::CompoundPtr& compound);
 
-		const wns::service::phy::phymode::PhyModeInterfacePtr
-		getPhyMode(ConnectionID /*cid*/);
+                const wns::service::phy::phymode::PhyModeInterfacePtr
+                getPhyMode(ConnectionID /*cid*/);
 
-		int
-		getPriorityForConnection(wns::scheduler::ConnectionID /*cid*/);
+                int
+                getPriorityForConnection(wns::scheduler::ConnectionID /*cid*/);
 
-		bool
-		getDL() const;
+                bool
+                getDL() const;
 
-		virtual bool
-		getCQIAvailable() const;
+                virtual bool
+                getCQIAvailable() const;
 
-		// The functions to modify the stub's state and define the return values
-		void setCIDforPDU(const wns::ldk::CompoundPtr& compound, ConnectionID cid);
-		void associateCIDandUser(ConnectionID cid, UserID user);
+                // The functions to modify the stub's state and define the return values
+                void setCIDforPDU(const wns::ldk::CompoundPtr& compound, ConnectionID cid);
+                void associateCIDandUser(ConnectionID cid, UserID user);
 
-	private:
-		std::map<wns::ldk::CompoundPtr, ConnectionID> compound2CIDmap;
-		std::map<UserID, ConnectionVector> User2CID;
-		std::map<ConnectionID, UserID> CID2User;
-		wns::ldk::CommandTypeSpecifierInterface* classifier;
-		wns::service::phy::phymode::PhyModeInterfacePtr phyMode;
-		wns::service::phy::phymode::PhyModeMapperInterface *phyModeMapper;
-		UserID myUserID;
-		Bits queueSizeLimit;
-	};
-} // tests
-} // scheduler
+            private:
+                std::map<wns::ldk::CompoundPtr, ConnectionID> compound2CIDmap;
+                std::map<UserID, ConnectionVector> User2CID;
+                std::map<ConnectionID, UserID> CID2User;
+                wns::ldk::CommandTypeSpecifierInterface* classifier;
+                wns::service::phy::phymode::PhyModeInterfacePtr phyMode;
+                wns::service::phy::phymode::PhyModeMapperInterface *phyModeMapper;
+                UserID myUserID;
+                Bits queueSizeLimit;
+            };
+        } // tests
+    } // scheduler
 } // wns
 #endif // WNS_SCHEDULER_TESTS_REGISTRYPROXYSTUB_HPP
 

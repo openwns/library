@@ -117,8 +117,8 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
                 // a RN must get a better share of the bandwidth
                 // here: proportional to its number of users:
                 int weight = colleagues.registry->getTotalNumberOfUsers(iter->first);
-                //MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<colleagues.registry->getNameForUser(iter->first)<<"): weight="<<weight);
-                dataRate /= static_cast<float>(weight);
+                MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user<<"): dataRate("<<colleagues.registry->getNameForUser(iter->first)<<")="<<dataRate<<" with weight="<<weight);
+                dataRate /= static_cast<double>(weight);
                 // dataRate now has the meaning of a weight.
                 pastDataRate = dataRate;
             }
@@ -155,7 +155,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
             (1.0-scalingBetweenMaxTPandPFair) * resultMaxThroughput
             +scalingBetweenMaxTPandPFair  * resultPropFair;
 
-        MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user->getName()<<"): pastDataRate= "<<pastDataRate<<" bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
+        MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user->getName()<<"): pastDataRate= "<<pastDataRate<<"bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
 
         // calculate preferences for users and order them
         preferences.push(UserPreference(UserPref, user));

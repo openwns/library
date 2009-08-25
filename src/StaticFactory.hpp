@@ -89,7 +89,7 @@ namespace wns {
 	 * Creators are named loosely after their signature by convention. For example
 	 * LongCreator for interfaces that require the constructor to have one
 	 * argument of type long, LayerConfigCreator for constructors with
-	 * the signature (Layer*, pyconfig::View*).
+	 * the signature (ILayer*, pyconfig::View*).
 	 *
 	 * Assuming a FunkFactory, that requires its plugin implementations
 	 * to have a constructor with a long as single argument, an implementation

@@ -110,6 +110,51 @@ namespace wns { namespace ldk {
 	 * Now the layer is ready to use.
 	 */
 
+    class ILayer :
+        public virtual wns::node::component::Interface
+        {
+        public:
+            virtual std::string
+            getNodeName() const = 0;
+
+            virtual ControlServiceRegistry*
+            getCSR() = 0;
+
+            virtual void
+            addControlService(const std::string& name, ControlServiceInterface* csi) = 0;
+
+            virtual ManagementServiceRegistry*
+            getMSR() = 0;
+
+            virtual void
+            addManagementService(const std::string& name, ManagementServiceInterface* msi) = 0;
+
+            virtual ManagementServiceInterface*
+            findManagementService(std::string) const = 0;
+
+            virtual ControlServiceInterface*
+            findControlServiceInterface(std::string) const = 0;
+
+            template <typename MANAGEMENTSERVICE>
+            MANAGEMENTSERVICE*
+            getManagementService(const std::string& name) const
+            {
+                ManagementServiceInterface* msi = findManagementService(name);
+                assureType(msi, MANAGEMENTSERVICE*);
+                // we can't use C-Style downcasts here!
+                return dynamic_cast<MANAGEMENTSERVICE*>(msi);
+            }
+
+            template <typename CONTROLSERVICE>
+            CONTROLSERVICE*
+            getControlService(const std::string& name) const
+            {
+                ControlServiceInterface* csi = findControlServiceInterface(name);
+                assureType(csi, CONTROLSERVICE*);
+                // we can't use C-Style downcasts here!
+                return dynamic_cast<CONTROLSERVICE*>(csi);
+            }
+        };
 
 	/**
 	 * @brief The Layer is the base class of all Layers implemented into the
@@ -119,6 +164,7 @@ namespace wns { namespace ldk {
 	 *
 	 */
 	class Layer :
+                virtual public ILayer,
 		public virtual wns::node::component::Interface
 	{
 	public:
@@ -154,27 +200,17 @@ namespace wns { namespace ldk {
 			managementServices.insert(name, msi);
 		}
 
-		template <typename MANAGEMENTSERVICE>
-		MANAGEMENTSERVICE*
-		getManagementService(const std::string& name) const
-		{
-			ManagementServiceInterface* msi = managementServices.find(name);
-			assureType(msi, MANAGEMENTSERVICE*);
-			// we can't use C-Style downcasts here!
-			return dynamic_cast<MANAGEMENTSERVICE*>(msi);
+                virtual ManagementServiceInterface*
+                findManagementService(std::string name) const
+                {
+                    return managementServices.find(name);
+                }
 
-		}
-
-		template <typename CONTROLSERVICE>
-		CONTROLSERVICE*
-		getControlService(const std::string& name) const
-		{
-			ControlServiceInterface* csi = controlServices.find(name);
-			assureType(csi, CONTROLSERVICE*);
-			// we can't use C-Style downcasts here!
-			return dynamic_cast<CONTROLSERVICE*>(csi);
-
-		}
+                virtual ControlServiceInterface*
+                findControlServiceInterface(std::string name) const
+                {
+                    return controlServices.find(name);
+                }
 
 	private:
 		ManagementServiceRegistry managementServices;

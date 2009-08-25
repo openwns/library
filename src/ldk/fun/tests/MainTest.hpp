@@ -48,7 +48,7 @@ namespace wns { namespace ldk { namespace fun {
 
 	protected:
 		virtual wns::ldk::fun::FUN*
-		newCandidate(wns::ldk::Layer* layer)
+		newCandidate(wns::ldk::ILayer* layer)
 		{
 			return new Main(layer);
 		} // newCandidate

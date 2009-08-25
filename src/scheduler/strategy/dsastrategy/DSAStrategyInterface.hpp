@@ -46,10 +46,12 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
 
 	struct DSAResult
 	{
-		DSAResult() {subChannel=DSAsubChannelNotFound; beam=0;};
+		DSAResult() {subChannel=DSAsubChannelNotFound; timeSlot=0; beam=0;};
 		~DSAResult() {};
 		/** @brief result of Dynamic Subcarrier Assignment (DSA) */
 		int subChannel;
+		/** @brief result of Dynamic Subcarrier Assignment (DSA) */
+		int timeSlot;
 		/** @brief result of Dynamic Subcarrier Assignment (DSA) */
 		int beam;
 	};

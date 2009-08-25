@@ -55,6 +55,10 @@
 #include <WNS/SmartPtrBase.hpp>
 #endif
 
+#ifdef WNS_SMARTPTR_DEBUGGING
+#include <WNS/SmartPtrBase.hpp>
+#endif
+
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/TestResult.h>

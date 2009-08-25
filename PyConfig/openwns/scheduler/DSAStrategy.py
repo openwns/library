@@ -45,12 +45,23 @@ class DSAStrategy(object):
         self.logger = openwns.logger.Logger("WNS", ".".join(["DSAStrategy",self.nameInDSAStrategyFactory]), True, parentLogger)
         self.logger.enabled = parentLogger.enabled
 
+# default if DSA is not required (e.g. for old strategies)
 class DoNotUseDSA(DSAStrategy):
     requiresCQI = False
     def __init__(self, **kw):
         self.nameInDSAStrategyFactory = "DoNotUseDSA"
         super(DoNotUseDSA,self).__init__(**kw)
 
+# the only DSA strategy useful for the UL slave scheduler (UT.RSTX)
+class DSASlave(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInDSAStrategyFactory = "DSASlave"
+        super(DSASlave,self).__init__(**kw)
+        oneUserOnOneSubChannel = True # must be enforced
+
+# The most simple DSA strategy.
+# Just start with subChannel 0 and go up linearly, no matter how the CQI is
 class LinearFFirst(DSAStrategy):
     requiresCQI = False
     useRandomChannelAtBeginning = None
@@ -59,6 +70,7 @@ class LinearFFirst(DSAStrategy):
         super(LinearFFirst,self).__init__(**kw)
         self.useRandomChannelAtBeginning = useRandomChannel
 
+# CQI-aware subchannel assignment
 class BestChannel(DSAStrategy):
     requiresCQI = True
     useRandomChannelAtBeginning = None
@@ -67,7 +79,7 @@ class BestChannel(DSAStrategy):
         super(BestChannel,self).__init__(**kw)
         self.useRandomChannelAtBeginning = useRandomChannel
 
-
+# CQI-aware subchannel assignment
 class BestCapacity(DSAStrategy):
     requiresCQI = True
     useRandomChannelAtBeginning = None

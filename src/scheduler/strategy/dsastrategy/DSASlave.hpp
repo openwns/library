@@ -25,21 +25,21 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_LINEARFFIRST_HPP
-#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_LINEARFFIRST_HPP
+#ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_DSASLAVE_HPP
+#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_DSASLAVE_HPP
 
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategy.hpp>
 #include <vector>
 
 namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy {
 
-                // Linear Frequenz First strategy
-                class LinearFFirst :
+                /** @brief DSA strategy to be used in slave scheduler (UT-RS-TX, uplink) */
+                class DSASlave :
             public DSAStrategy {
                 public:
-                    LinearFFirst(const wns::pyconfig::View& config);
+                    DSASlave(const wns::pyconfig::View& config);
 
-                    ~LinearFFirst();
+                    ~DSASlave();
 
                     virtual void initialize(SchedulerStatePtr schedulerState,
                                             SchedulingMapPtr schedulingMap);
@@ -52,9 +52,6 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
                     bool requiresCQI() const { return false; };
 
                 private:
-                    wns::distribution::StandardUniform* randomDist;
-                    /** @brief randomly distribute the channels to user */
-                    bool useRandomChannelAtBeginning;
                     /** @brief remember position of last used subChannel */
                     int lastUsedSubChannel;
                     int lastUsedTimeSlot;
@@ -62,4 +59,4 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
                 };
 
             }}}} // namespace wns::scheduler::strategy::dsastrategy
-#endif // WNS_SCHEDULER_DSASTRATEGY_LINEARFFIRST_HPP
+#endif // WNS_SCHEDULER_DSASTRATEGY_DSASLAVE_HPP

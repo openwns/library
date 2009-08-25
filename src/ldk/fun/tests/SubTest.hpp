@@ -48,7 +48,7 @@ namespace wns { namespace ldk { namespace fun {
 
 	protected:
 		virtual FUN*
-		newCandidate(Layer* layer)
+		newCandidate(ILayer* layer)
 		{
 			return new Sub(new Main(layer));
 		} // newCandidate
@@ -98,7 +98,7 @@ namespace wns { namespace ldk { namespace fun {
 		void testCloneConnections();
 		void testCommand();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		Main* mainNet;
 		Sub* subNet;
 

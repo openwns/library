@@ -46,7 +46,7 @@ namespace wns { namespace ldk { namespace tests	{
 		CPPUNIT_TEST( testIncoming );
 		CPPUNIT_TEST_SUITE_END();
 
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		tools::Stub* upper;

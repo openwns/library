@@ -96,6 +96,7 @@ namespace wns
 
 		// Default destructor
 		~CandI(){}
+
 		wns::Power C;
 		wns::Power I;
 

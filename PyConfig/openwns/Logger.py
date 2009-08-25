@@ -112,6 +112,8 @@ class Logger(object):
         self.showFunction = False
         openwns.pyconfig.attrsetter(self, kw)
         globalRegistry.addLogger("all", self)
+        globalRegistry.addLogger(moduleName, self)
+        globalRegistry.addLogger("%s.%s" % (moduleName, name), self)
 
     def __levelGetter(self):
         if self.__level is not None:

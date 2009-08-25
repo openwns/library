@@ -86,7 +86,7 @@ namespace wns { namespace ldk { namespace fun {
 
 		// getter
 		virtual CommandProxy* getProxy() const;
-		virtual Layer* getLayer() const;
+		virtual ILayer* getLayer() const;
 		virtual std::string getName() const;
 		virtual LinkHandlerInterface* getLinkHandler() const;
 		virtual CommandReaderInterface* getCommandReader(const std::string& commandName) const;
@@ -116,7 +116,7 @@ namespace wns { namespace ldk { namespace fun {
                           const std::map<RECEPTACLETYPE*,RECEPTACLETYPE*>& translate);
             */
 		fun::FUN* parent;
-		Layer* layer;
+		ILayer* layer;
 		CommandProxy* proxy;
 		FunctionalUnitMap fuMap;
 		LinkHandlerInterface* linkHandler;

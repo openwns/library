@@ -27,6 +27,7 @@
 
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/scheduler/strategy/SchedulerState.hpp>
+#include <WNS/scheduler/strategy/StrategyInterface.hpp>
 #include <WNS/service/dll/StationTypes.hpp>
 #include <WNS/service/phy/ofdma/Pattern.hpp>
 #include <WNS/service/phy/phymode/PhyModeInterface.hpp>
@@ -49,6 +50,23 @@
 using namespace wns::scheduler;
 using namespace wns::scheduler::strategy;
 
+
+RequestForResource::RequestForResource(ConnectionID _cid, UserID _user, Bits _bits)
+    : cid(_cid),
+      user(_user),
+      bits(_bits),
+      phyModePtr(), // empty means undefined, still open, freely selectable
+      subChannel(wns::scheduler::subChannelNotFound),
+      timeSlot(0),
+      beam(0),
+      cqiOnSubChannel()
+{
+}
+
+RequestForResource::~RequestForResource()
+{
+}
+
 std::string
 RequestForResource::toString() const
 {
@@ -56,6 +74,8 @@ RequestForResource::toString() const
   s << "Req(cid="<<cid<<","<<user->getName()<<","<<int(bits)<<"bits";
   if (phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr()) {
     s << "," << *phyModePtr; }
+  if (timeSlot>0) {
+    s << ",slot=" << timeSlot; }
   if (subChannel!=wns::scheduler::subChannelNotFound) {
     s << ",sc=" << subChannel; }
   s <<")";
@@ -68,4 +88,81 @@ RequestForResource::getDuration() const
   assure(phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyMode must be defined for getDuration()");
   double dataRate = phyModePtr->getDataRate();
   return bits / dataRate;
+}
+
+//////////////////////////////////////////////////////////////////////
+
+RevolvingState::RevolvingState(const strategy::StrategyInput* _strategyInput)
+    : strategyInput(_strategyInput),
+      bursts(),
+      schedulingMap(),
+      activeConnections(),
+      grouping(),
+      currentPriority(0)
+{
+    assure(strategyInput!=NULL,"strategyInput==NULL");
+    if (strategyInput->inputSchedulingMap != wns::scheduler::SchedulingMapPtr())
+    {
+        assure(schedulingMap == wns::scheduler::SchedulingMapPtr(),"schedulingMap must be empty before overwriting it");
+        // initialize working datastructure with an nonempty schedulingMap
+        schedulingMap = strategyInput->inputSchedulingMap;
+    } else { // empty inputSchedulingMap
+        schedulingMap = strategyInput->getEmptySchedulingMap();
+    }
+}
+
+RevolvingState::~RevolvingState()
+{
+    strategyInput=NULL;
+}
+
+std::string
+RevolvingState::toString() const
+{
+    return "(RevolvingState)";
+}
+
+GroupingPtr
+RevolvingState::getNewGrouping()
+{
+    grouping = GroupingPtr(new Grouping()); // set member
+    return grouping;
+}
+
+bool
+RevolvingState::groupingIsValid() const
+{
+    return (grouping!=GroupingPtr());
+}
+
+GroupingPtr
+RevolvingState::getGrouping() const
+{
+    assure(grouping!=GroupingPtr(),"invalid grouping");
+    return grouping;
+}
+
+void
+RevolvingState::setGrouping(GroupingPtr groupingPtr)
+{
+    assure(groupingPtr!=GroupingPtr(),"invalid grouping");
+    grouping=groupingPtr; // set member
+}
+
+void
+RevolvingState::setCurrentPriority(int priority)
+{
+    currentPriority=priority;
+}
+
+int
+RevolvingState::getCurrentPriority() const
+{
+    return currentPriority;
+}
+
+void
+RevolvingState::clearMap()
+{
+    bursts = MapInfoCollectionPtr();
 }

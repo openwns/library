@@ -283,9 +283,9 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 	{
 		const long maxIterations = 75;
 
-		Layer* leftLayer = new wns::ldk::tests::LayerStub();
+		ILayer* leftLayer = new wns::ldk::tests::LayerStub();
 		fun::FUN* leftFUN = new fun::Main(leftLayer);
-		Layer* rightLayer = new wns::ldk::tests::LayerStub();
+		ILayer* rightLayer = new wns::ldk::tests::LayerStub();
 		fun::FUN* rightFUN = new fun::Main(rightLayer);
 		wns::pyconfig::Parser arqConfig;
 

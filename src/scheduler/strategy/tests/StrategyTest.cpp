@@ -158,7 +158,7 @@ void StrategyTest::prepare()
 	   << "queue = SimpleQueue()\n";
 	queueConfig.loadString(ss.str());
 
-	queue = queueCreator->create(queueConfig.getView("queue"));
+        queue = queueCreator->create(0, queueConfig.getView("queue"));
 	assure(queue, "Queue creation failed");
 
 	// create ResultsContainer to store scheduled compounds

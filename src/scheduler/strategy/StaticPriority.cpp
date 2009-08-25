@@ -111,8 +111,8 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
                                   SchedulingMapPtr schedulingMap)
 {
     assure(numberOfPriorities>0,"illegal numberOfPriorities="<<numberOfPriorities);
-
-    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority::doStartScheduling():"
+    int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
+    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority::doStartScheduling(frame="<<frameNr<<"):"
                    << " numberOfPriorities="<<numberOfPriorities);
 
     // prepare result datastructure:
@@ -123,8 +123,9 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
     MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): userSelection. getDL=" << schedulerState->isDL << ", isTX=" << schedulerState->isTx << ", schedulerSpot="<<wns::scheduler::SchedulerSpot::toString(schedulerState->schedulerSpot));
 
     // user selection
-    UserSet	allUsers;
+    UserSet allUsers;
     //if ( !(schedulerState->isDL) && !schedulerState->isTx )
+    /*
     if ( schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster() )
     {       // I am master scheduler for uplink (RS-RX)
         allUsers = colleagues.registry->getActiveULUsers();
@@ -135,26 +136,31 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
         allUsers = colleagues.queue->getQueuedUsers();
         MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Slave UL-Scheduling or Master DL-Scheduling...");
     }
-
-    MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): allUsers.size()="<<allUsers.size()<<": Users="<<printUserSet(allUsers));
+    */
+    // the same for UL/DL:
+    //allUsers = colleagues.queue->getQueuedUsers();
+    //MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): allUsers.size()="<<allUsers.size()<<": Users="<<printUserSet(allUsers));
     // filter reachable users
-    UserSet activeUsers = colleagues.registry->filterReachable(allUsers);
-    MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): activeUsers.size()="<<activeUsers.size()<<": Users="<<printUserSet(activeUsers));
+    //UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
+    //MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): activeUsers.size()="<<activeUsers.size()<<": Users="<<printUserSet(activeUsers));
 
     // prepare grouping here before going into priorities (subschedulers).
     // This code block could also be moved into the base class Strategy::startScheduling()
-    if ( !activeUsers.empty() && groupingRequired() ) // only if (maxBeams>1)
-    {// grouping needed for beamforming & its antenna pattern
-        GroupingPtr grouping = schedulerState->currentState->getNewGrouping(); // also stored in schedulerState
+    if ( !colleagues.queue->isEmpty() && groupingRequired() ) // only if (maxBeams>1)
+    {   // grouping needed for beamforming & its antenna pattern
+        GroupingPtr sdmaGrouping = schedulerState->currentState->getNewGrouping(); // also stored in schedulerState
         int maxBeams = schedulerState->currentState->strategyInput->maxBeams;
+        allUsers = colleagues.queue->getQueuedUsers();
+        UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
         if ( schedulerState->isTx ) // transmitter grouping
-            grouping = colleagues.grouper->getTxGroupingPtr(activeUsers, maxBeams);
+            sdmaGrouping = colleagues.grouper->getTxGroupingPtr(activeUsers, maxBeams);
         else // receiver grouping
-            grouping = colleagues.grouper->getRxGroupingPtr(activeUsers, maxBeams);
-        assure(schedulerState->currentState->getGrouping() == grouping,"invalid grouping");
+            sdmaGrouping = colleagues.grouper->getRxGroupingPtr(activeUsers, maxBeams);
+        assure(schedulerState->currentState->getGrouping() == sdmaGrouping,"invalid grouping");
         // ^ otherwise we have to set it here.
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Number of Groups = " << grouping->groups.size());
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): grouping.getDebugOutput = " << grouping->getDebugOutput());
+        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Number of Groups = " << sdmaGrouping->groups.size());
+        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): grouping.getDebugOutput = " << sdmaGrouping->getDebugOutput());
+        strategyResult.sdmaGrouping = sdmaGrouping; // set grouping into result output (needed later to set antennaPatterns)
     } else {
         MESSAGE_SINGLE(VERBOSE, logger, "doStartScheduling(): no grouping required.");
     }
@@ -174,7 +180,7 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
         // get all registered connections for the current priority
         ConnectionSet allConnections = colleagues.registry->getConnectionsForPriority(priority); // all
         MESSAGE_SINGLE(NORMAL, logger, "allConnections      = "<<printConnectionSet(allConnections));
-        ConnectionSet reachableConnections = colleagues.registry->filterReachable(allConnections);
+        ConnectionSet reachableConnections = colleagues.registry->filterReachable(allConnections,frameNr);
         MESSAGE_SINGLE(NORMAL, logger, "reachableConnections= "<<printConnectionSet(reachableConnections));
         // don't filter out unqueued cids since the subStrategy may want to update the state for every cid
         //ConnectionSet activeConnections = colleagues.queue->filterQueuedCids(reachableConnections);

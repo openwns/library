@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2004-2007
  * Chair of Communication Networks (ComNets)
- * Kopernikusstr. 5, D-52074 Aachen, Germany
+ * Kopernikusstr. 16, D-52074 Aachen, Germany
  * phone: ++49-241-80-27910,
  * fax: ++49-241-80-22242
  * email: info@openwns.org
@@ -24,46 +24,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+#ifndef WNS_HASRECEPTORCONFIGCREATOR_HPP
+#define WNS_HASRECEPTORCONFIGCREATOR_HPP
 
-#ifndef WNS_LDK_SIZECALCULATION_TEST_HPP
-#define WNS_LDK_SIZECALCULATION_TEST_HPP
-
-#include <WNS/ldk/Layer.hpp>
-#include <WNS/ldk/tools/Stub.hpp>
-#include <WNS/Exception.hpp>
-
-#include <cppunit/extensions/HelperMacros.h>
-#include <stdexcept>
+#include <WNS/StaticFactory.hpp>
+#include <WNS/pyconfig/View.hpp>
 
 namespace wns { namespace ldk {
-
-	class SizeCalculationTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( SizeCalculationTest );
-		CPPUNIT_TEST( testEmpty );
-		CPPUNIT_TEST( testVanilla );
-#ifdef WNS_ASSURE_THROWS_EXCEPTION
-		CPPUNIT_TEST_EXCEPTION( testInPath, Assure::Exception );
-#endif // WNS_ASSURE_THROWS_EXCEPTION
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
-
-		void testEmpty();
-		void testVanilla();
-		void testInPath();
-
-	private:
-		ILayer* layer;
-		fun::FUN* fuNet;
-
-		tools::Stub* upper;
-		tools::Stub* lower;
-	};
-
+    class HasReceptorInterface;
 }}
 
+namespace wns {
 
-#endif // NOT defined WNS_LDK_SIZECALCULATION_TEST_HPP
+template <typename T, typename KIND = T>
+struct HasReceptorConfigCreator :
+        public HasReceptorConfigCreator<KIND, KIND>
+{
+    virtual KIND*
+    create(wns::ldk::HasReceptorInterface* hRec, const wns::pyconfig::View& config)
+    {
+        return new T(hRec, config);
+    }
+};
 
+template <typename KIND>
+struct HasReceptorConfigCreator<KIND, KIND>
+{
+    virtual KIND*
+    create(wns::ldk::HasReceptorInterface* hRec, const wns::pyconfig::View& config) = 0;
+};
 
+}
+
+#endif

@@ -58,21 +58,23 @@ class FrameBuilderNode(object):
         
 class FrameBuilder(openwns.Multiplexer.FrameDispatcher):
     __plugin__ = "wns.ldk.fcf.FrameBuilder"
-    #phaseDescriptor = None
+    phaseDescriptor = None
     frameDuration = None
     symbolDuration = None
     timingControl = None
     
     def __init__(self, opcodeSize, timingControl = TimingControl(), **kw):
         super(FrameBuilder, self).__init__(opcodeSize)
-        #self.phaseDescriptor = []
+        self.phaseDescriptor = []
         self.timingControl = timingControl
         attrsetter(self, kw)
 
-    #def add(self, descriptor):
+    def add(self, descriptor):
     #    descriptor.frameBuilder = self
-    #    self.phaseDescriptor.append( descriptor )
+    
+        self.phaseDescriptor.append( descriptor )
     #    return descriptor
+    
 
 #class FrameBuilderPutter(Sealed):
 #    __plugin__ = "wns.ldk.fcf.FrameBuilderPutter"

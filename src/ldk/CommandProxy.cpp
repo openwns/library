@@ -204,6 +204,14 @@ CommandProxy::getCommand(
 	return command;
 } // getCommand
 
+CommandReaderInterface*
+CommandProxy::getCommandReader(const std::string& role) const
+{
+    assure(this->getCommandIDRegistry().knows(role), "ID for unknown role="<<role<<" requested. Available="<<dumpCommandIDRegistry());
+    unsigned long int id = this->getCommandIDRegistry().find(role);
+    assure(this->getCommandReaderRegistry().knows(id), "CommandReader for unknown ID="<<id<<" requested.");
+    return this->getCommandReaderRegistry().find(id);
+} // getCommandReader
 
 bool
 CommandProxy::commandIsActivated(
@@ -250,6 +258,16 @@ CommandProxy::activateCommand(
 	return command;
 } // activateCommand
 
+Command*
+CommandProxy::activateCommand(
+                 CommandPool* commandPool,
+                 const CommandIDType& id)
+{
+    assure(commandPool != NULL, "Invalid argument.");
+    assure(id < commandTypeSpecifiers.size(), "Invalid ID");
+
+    activateCommand(commandPool, commandTypeSpecifiers.at(id));
+}
 
 CommandPool*
 CommandProxy::createCommandPool(const fun::FUN* origin) const
@@ -373,7 +391,7 @@ CommandProxy::commitSizes(
 
 			MESSAGE_BEGIN(VERBOSE, logger,m,"End of recursion - beginning of non-commited Path (");
 			m << dynamic_cast<const wns::ldk::FunctionalUnit*>(next)->getName() << ")"
-			  << " - commandPoolSize: " << command->getCommandPoolSize() 
+			  << " - commandPoolSize: " << command->getCommandPoolSize()
 			  << " dataSize: " << command->getPayloadSize();
 			MESSAGE_END();
 
@@ -389,7 +407,7 @@ CommandProxy::commitSizes(
 
 			MESSAGE_BEGIN(VERBOSE, logger,m,"Sizes after: ");
 			m << dynamic_cast<const wns::ldk::FunctionalUnit*>(commiter)->getName()
-			  << " - commandPoolSize: " << command->getCommandPoolSize() 
+			  << " - commandPoolSize: " << command->getCommandPoolSize()
 			  << " dataSize: " << command->getPayloadSize();
 			MESSAGE_END();
 			return;
@@ -402,7 +420,7 @@ CommandProxy::commitSizes(
 
 	MESSAGE_BEGIN(VERBOSE, logger,m,"End of recursion - beginning of activation Path (");
 	m << dynamic_cast<const wns::ldk::FunctionalUnit*>(commiter)->getName() << ")"
-	  << " - commandPoolSize: " << command->getCommandPoolSize() 
+	  << " - commandPoolSize: " << command->getCommandPoolSize()
 	  << " dataSize: " << command->getPayloadSize();
 	MESSAGE_END();
 } // calculateSizes
@@ -468,13 +486,16 @@ CommandProxy::partialCopy(
 const CommandTypeSpecifierInterface*
 CommandProxy::getCommandTypeSpecifier(CommandIDType id) const
 {
-	if (!this->commandTypeSpecifiers.at(id))
-	{
-		std::stringstream ss;
-		ss << id;
-		throw wns::Exception("Invalid CommandTypeSpecifier instance with id "+ss.str()+" requested.");
-	}
-	return this->commandTypeSpecifiers.at(id);
+    if (!this->commandTypeSpecifiers.at(id))
+    {
+        //std::stringstream ss;
+        //ss << id;
+        //throw wns::Exception("Invalid CommandTypeSpecifier instance with id="+ss.str()+" requested.");
+        // @todo: find a better way to cope with the lack of information here.
+        MESSAGE_SINGLE(NORMAL, logger, "WARNING: Invalid CommandTypeSpecifier instance with id="<<(int)id<<" requested.");
+        return NULL;
+    }
+    return this->commandTypeSpecifiers.at(id);
 } // getCommandTypeSpecifier
 
 
@@ -525,7 +546,13 @@ CommandProxy::clearRegistries()
 size_t
 CommandProxy::getCommandObjSize(const CommandIDType& id) const
 {
-	return this->getCommandTypeSpecifier(id)->getCommandObjSize();
+    const CommandTypeSpecifierInterface* commandTypeSpecifier
+        = this->getCommandTypeSpecifier(id);
+    if (commandTypeSpecifier != NULL) {
+        return this->getCommandTypeSpecifier(id)->getCommandObjSize();
+    } else {
+        return 0;
+    }
 }
 #endif
 

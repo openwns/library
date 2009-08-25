@@ -33,15 +33,15 @@
 using namespace wns::ldk::harq;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-    HARQ,
+    HARQFU,
     wns::ldk::FunctionalUnit,
     "wns.harq.HARQ",
     wns::ldk::FUNConfigCreator);
 
-HARQ::HARQSenderProcess::HARQSenderProcess(int processID,
-                                           int numRVs,
-                                           HARQ* entity,
-                                           wns::logger::Logger logger):
+HARQFU::HARQSenderProcess::HARQSenderProcess(int processID,
+                                             int numRVs,
+                                             HARQFU* entity,
+                                             wns::logger::Logger logger):
     processID_(processID),
     numRVs_(numRVs),
     entity_(entity),
@@ -58,7 +58,7 @@ HARQ::HARQSenderProcess::HARQSenderProcess(int processID,
 }
 
 bool
-HARQ::HARQSenderProcess::hasCapacity() const
+HARQFU::HARQSenderProcess::hasCapacity() const
 {
 
     if (buffer_ == NULL)
@@ -70,7 +70,7 @@ HARQ::HARQSenderProcess::hasCapacity() const
 }
 
 void
-HARQ::HARQSenderProcess::enqueueTransmission(const wns::ldk::CompoundPtr& compound)
+HARQFU::HARQSenderProcess::enqueueTransmission(const wns::ldk::CompoundPtr& compound)
 {
     assure(entity_!=NULL, "No HARQ entity available. This should not have happened");
     HARQCommand* command = entity_->getCommand(compound->getCommandPool());
@@ -83,7 +83,7 @@ HARQ::HARQSenderProcess::enqueueTransmission(const wns::ldk::CompoundPtr& compou
 }
 
 void
-HARQ::HARQSenderProcess::ackReceived()
+HARQFU::HARQSenderProcess::ackReceived()
 {
     buffer_ = wns::ldk::CompoundPtr();
     waitingForFeedback_ = false;
@@ -95,7 +95,7 @@ HARQ::HARQSenderProcess::ackReceived()
 }
 
 void
-HARQ::HARQSenderProcess::nackReceived()
+HARQFU::HARQSenderProcess::nackReceived()
 {
     waitingForFeedback_ = false;
     retransmissionCounter_++;
@@ -113,9 +113,9 @@ HARQ::HARQSenderProcess::nackReceived()
     MESSAGE_END();
 }
 
-HARQ::HARQReceiverProcess::HARQReceiverProcess(wns::pyconfig::View config,
+HARQFU::HARQReceiverProcess::HARQReceiverProcess(wns::pyconfig::View config,
                                                int processID,
-                                               HARQ* entity):
+                                               HARQFU* entity):
     processID_(processID),
     numRVs_(config.get<int>("numRVs")),
     entity_(entity),
@@ -135,13 +135,13 @@ HARQ::HARQReceiverProcess::HARQReceiverProcess(wns::pyconfig::View config,
 }
 
 void
-HARQ::HARQReceiverProcess::onFUNCreated()
+HARQFU::HARQReceiverProcess::onFUNCreated()
 {
     decoder_->onFUNCreated();
 }
 
 void
-HARQ::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
+HARQFU::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
 {
     assure(entity_ != NULL, "No HARQ entity available. This should not have happened");
 
@@ -178,8 +178,8 @@ HARQ::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
     }
 }
 
-HARQ::HARQ(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
-    fu::Plain<HARQ, HARQCommand>(fuNet),
+HARQFU::HARQFU(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
+    fu::Plain<HARQFU, HARQCommand>(fuNet),
     numSenderProcesses_(config.get<int>("numSenderProcesses")),
     numReceiverProcesses_(config.len("receiverProcesses")),
     numRVs_(config.get<int>("numRVs")),
@@ -193,16 +193,16 @@ HARQ::HARQ(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
     for (int ii=0; ii < numReceiverProcesses_; ++ii)
     {
         receiverProcesses_.push_back(
-            HARQ::HARQReceiverProcess(config.get("receiverProcesses", ii), ii, this));
+            HARQFU::HARQReceiverProcess(config.get("receiverProcesses", ii), ii, this));
     }
 }
 
-HARQ::~HARQ()
+HARQFU::~HARQFU()
 {
 }
 
 void
-HARQ::onFUNCreated()
+HARQFU::onFUNCreated()
 {
     for (int ii=0; ii < numReceiverProcesses_; ++ii)
     {
@@ -211,7 +211,7 @@ HARQ::onFUNCreated()
 }  // onFUNCreated
 
 bool
-HARQ::hasCapacity() const
+HARQFU::hasCapacity() const
 {
     for (int ii=0; ii < numSenderProcesses_; ++ii)
     {
@@ -227,7 +227,7 @@ HARQ::hasCapacity() const
 }
 
 const wns::ldk::CompoundPtr
-HARQ::hasSomethingToSend() const
+HARQFU::hasSomethingToSend() const
 {
     if (!sendQueue_.empty())
     {
@@ -238,7 +238,7 @@ HARQ::hasSomethingToSend() const
 }
 
 wns::ldk::CompoundPtr
-HARQ::getSomethingToSend()
+HARQFU::getSomethingToSend()
 {
     if (!sendQueue_.empty())
     {
@@ -252,7 +252,7 @@ HARQ::getSomethingToSend()
 }
 
 void
-HARQ::processOutgoing(const wns::ldk::CompoundPtr& compound)
+HARQFU::processOutgoing(const wns::ldk::CompoundPtr& compound)
 {
     activateCommand(compound->getCommandPool());
 
@@ -275,7 +275,7 @@ HARQ::processOutgoing(const wns::ldk::CompoundPtr& compound)
 }
 
 void
-HARQ::processIncoming(const wns::ldk::CompoundPtr& compound)
+HARQFU::processIncoming(const wns::ldk::CompoundPtr& compound)
 {
     HARQCommand* command = getCommand(compound->getCommandPool());
 
@@ -325,7 +325,7 @@ HARQ::processIncoming(const wns::ldk::CompoundPtr& compound)
 }
 
 void
-HARQ::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
+HARQFU::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
 {
     //What are the sizes in the upper Layers
     getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
@@ -334,7 +334,7 @@ HARQ::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& 
 } // calculateSizes
 
 void
-HARQ::addToSendQueue(wns::ldk::CompoundPtr compound)
+HARQFU::addToSendQueue(wns::ldk::CompoundPtr compound)
 {
     sendQueue_.push_back(compound);
 }

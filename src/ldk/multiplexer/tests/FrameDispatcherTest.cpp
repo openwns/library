@@ -186,7 +186,7 @@ FrameDispatcherTest::testPyConfig()
 		);
 
 	pyconfig::View funConfig(config, "fuNet");
-	Layer* l = new tests::LayerStub();
+	ILayer* l = new tests::LayerStub();
 	fun::Main* fuNet = new fun::Main(l);
 
 	configureFUN(fuNet, funConfig);

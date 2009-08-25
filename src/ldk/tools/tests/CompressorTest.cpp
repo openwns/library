@@ -80,7 +80,7 @@ namespace wns { namespace ldk { namespace tools { namespace tests {
                     void cleanup() {}
 
                 private:
-                    std::auto_ptr<Layer> layer;
+                    std::auto_ptr<ILayer> layer;
                     std::auto_ptr<fun::FUN> fuNet;
 
                     Stub* upper;

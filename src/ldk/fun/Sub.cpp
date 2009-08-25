@@ -257,7 +257,7 @@ Sub::clone() const
 //
 
 
-Layer*
+ILayer*
 Sub::getLayer() const
 {
 	return this->layer;

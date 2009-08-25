@@ -55,7 +55,7 @@ namespace wns { namespace ldk { namespace tests {
 		void testIncoming();
 		void testOutgoing();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::FUN* fuNet;
 
 		multiplexer::OpcodeProvider* opcode;

@@ -48,7 +48,7 @@ namespace wns {
 		void testControlService();
 
 	private:
-		wns::ldk::Layer* layer;
+		wns::ldk::ILayer* layer;
 	};
 }
 

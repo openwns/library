@@ -50,7 +50,7 @@
 #include <string>
 
 namespace wns { namespace ldk {
-	class Layer;
+	class ILayer;
 
 	/**
 	 * @brief Abstract base class for functional units.

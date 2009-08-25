@@ -127,7 +127,7 @@ CommandProxyTest::prepare()
 {
 	CommandProxy::clearRegistries();
 
-	wns::ldk::Layer* layer = new wns::ldk::tests::LayerStub();
+	wns::ldk::ILayer* layer = new wns::ldk::tests::LayerStub();
 	wns::pyconfig::Parser FUNPyCo;
 	FUNPyCo.loadString("import openwns.logger\n"
 			   "class LinkHandler:\n"

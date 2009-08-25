@@ -38,15 +38,15 @@ using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::apcstrategy;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(FairSINR,
-									 APCStrategyInterface,
-									 "FairSINR",
-									 wns::PyConfigViewCreator);
+                                     APCStrategyInterface,
+                                     "FairSINR",
+                                     wns::PyConfigViewCreator);
 
 FairSINR::FairSINR(const wns::pyconfig::View& config)
-	: APCStrategy(config),
-	  fair_sinr(wns::Ratio()),
-	  fair_sinrdl(config.get<double>("fair_sinrdl")),
-	  fair_sinrul(config.get<double>("fair_sinrul"))
+    : APCStrategy(config),
+      fair_sinr(wns::Ratio()),
+      fair_sinrdl(config.get<double>("fair_sinrdl")),
+      fair_sinrul(config.get<double>("fair_sinrul"))
 {
 }
 
@@ -57,164 +57,85 @@ FairSINR::~FairSINR()
 // called before each timeSlot/frame
 void
 FairSINR::initialize(SchedulerStatePtr schedulerState,
-					 SchedulingMapPtr schedulingMap)
+                     SchedulingMapPtr schedulingMap)
 {
-	APCStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
-	MESSAGE_SINGLE(NORMAL, logger, "FairSINR::initialize("<<apcstrategyName<<")");
+    APCStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
+    MESSAGE_SINGLE(NORMAL, logger, "FairSINR::initialize("<<apcstrategyName<<")");
 } // initialize
 
 
 APCResult
 FairSINR::doStartAPC(RequestForResource& request,
-					 SchedulerStatePtr schedulerState,
-					 SchedulingMapPtr schedulingMap)
+                     SchedulerStatePtr schedulerState,
+                     SchedulingMapPtr schedulingMap)
 {
-	APCResult apcResult;
-	wns::scheduler::PowerCapabilities powerCapabilities =
-		schedulerState->strategy->getPowerCapabilities(request.user);
+    APCResult apcResult;
+    wns::scheduler::PowerCapabilities powerCapabilities =
+        schedulerState->strategy->getPowerCapabilities(request.user);
 
-	wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
-	wns::Power interference = request.cqiOnSubChannel.interference;
+    wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
+    wns::Power interference = request.cqiOnSubChannel.interference;
 
-	assure(request.subChannel>=0,"need a valid subChannel");
+    assure(request.subChannel>=0,"need a valid subChannel");
+    assure(request.timeSlot  >=0,"need a valid timeSlot");
 
-	if (schedulerState->defaultTxPower!=wns::Power())
-	{ // predefined, e.g. in slave mode
-		apcResult.txPower = schedulerState->defaultTxPower;
-		apcResult.sinr = apcResult.txPower/(interference*pathloss);
+    if (schedulerState->defaultTxPower!=wns::Power())
+    { // predefined, e.g. in slave mode
+        apcResult.txPower = schedulerState->defaultTxPower;
+        apcResult.sinr = apcResult.txPower/(interference*pathloss);
+        apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+        apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
+    } else {
+        if (schedulerState->isTx)
+        {
+            fair_sinr.set_dB(fair_sinrdl);
+        }
+        else
+        {
+            fair_sinr.set_dB(fair_sinrul);
+        }
+        wns::Power fairTxPower = wns::Power::from_mW(fair_sinr.get_factor() * pathloss.get_factor() * interference.get_mW());
+        wns::Power totalPower = powerCapabilities.maxOverall;
+        wns::Power remainingTxPowerOnAllSubChannels = schedulingMap->getRemainingPower(totalPower,request.timeSlot);
+
+        if ( remainingTxPowerOnAllSubChannels == wns::Power())
+        {
+            apcResult.txPower = wns::Power();
+            return apcResult;
+        }
+
+        if (fairTxPower > powerCapabilities.maxPerSubband)
+        {
+            fairTxPower = powerCapabilities.maxPerSubband;
+
+            if (fairTxPower > remainingTxPowerOnAllSubChannels)
+            {
+                apcResult.txPower = remainingTxPowerOnAllSubChannels;
+            }
+            else
+            {
+                apcResult.txPower = fairTxPower;
+            }
+            apcResult.sinr =  apcResult.txPower/(interference * pathloss);
+        }
+        else
+        {
+            if (fairTxPower > remainingTxPowerOnAllSubChannels)
+            {
+                apcResult.txPower = remainingTxPowerOnAllSubChannels;
+                apcResult.sinr =  apcResult.txPower/(interference * pathloss);
+            }
+            else
+            {
+                apcResult.txPower = fairTxPower;
+                apcResult.sinr = fair_sinr;
+            }
+        }
 		apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
-		apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
-	} else {
-		if (schedulerState->isTx)
-		{
-			fair_sinr.set_dB(fair_sinrdl);
-		}
-		else
-		{
-			fair_sinr.set_dB(fair_sinrul);
-		}
-		wns::Power fairTxPower = wns::Power::from_mW(fair_sinr.get_factor() * pathloss.get_factor() * interference.get_mW());
-		wns::Power totalPower = powerCapabilities.maxOverall;
-		wns::Power remainingTxPowerOnAllSubChannels = schedulingMap->getRemainingPower(totalPower);
-
-		if ( remainingTxPowerOnAllSubChannels == wns::Power())
-		{
-			apcResult.txPower = wns::Power();
-			return apcResult;
-		}
-
-		if (fairTxPower > powerCapabilities.maxPerSubband)
-		{
-			fairTxPower = powerCapabilities.maxPerSubband;
-
-			if (fairTxPower > remainingTxPowerOnAllSubChannels)
-			{
-				apcResult.txPower = remainingTxPowerOnAllSubChannels;
-			}
-			else
-			{
-				apcResult.txPower = fairTxPower;
-			}
-			apcResult.sinr =  apcResult.txPower/(interference * pathloss);
-		}
-		else
-		{
-			if (fairTxPower > remainingTxPowerOnAllSubChannels)
-			{
-				apcResult.txPower = remainingTxPowerOnAllSubChannels;
-				apcResult.sinr =  apcResult.txPower/(interference * pathloss);
-			}
-			else
-			{
-				apcResult.txPower = fairTxPower;
-				apcResult.sinr = fair_sinr;
-			}
-		}
-
-		apcResult.phyModePtr = phyModeMapper->getBestPhyMode(apcResult.sinr);
-
-	}
-
-	MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
-				   <<"SINR="<<apcResult.sinr<<", PhyMode="<<*(apcResult.phyModePtr));
-
-	/*
-	wns::Power maxPowerPerSubChannel = powerCapabilities.maxPerSubband;
-	wns::Power maxSummedPowerOnAllChannels = powerCapabilities.maxOverall;
-	wns::Power nominalPowerPerSubChannel = powerCapabilities.nominalPerSubband;
-
-	if (schedulingPar.isTx)
-	{
-		fair_sinr.set_dB(fair_sinrdl);
-	}
-	else
-	{
-		fair_sinr.set_dB(fair_sinrul);
-	}
-
-	if(schedulingPar.channelQualities.size() > 0)
-	{
-		wns::Power fairTxPower = wns::Power::from_mW(fair_sinr.get_factor() * schedulingPar.channelQualityOnBestChannel.Pathloss.get_factor() * schedulingPar.channelQualityOnBestChannel.Interference.get_mW());
-		wns::Power remainingTxPowerOnAllChannels = colleagues.registry->getRemainingTxPower(schedulingMap,schedulingPar);
-
-		if ( remainingTxPowerOnAllChannels == wns::Power())
-		{
-			connectionChr.txPower = wns::Power();
-			return;
-		}
-
-		if (fairTxPower > maxPowerPerSubChannel)
-		{
-			fairTxPower = maxPowerPerSubChannel;
-
-			if (fairTxPower > remainingTxPowerOnAllChannels)
-			{
-				connectionChr.txPower = remainingTxPowerOnAllChannels;
-			}
-			else
-			{
-				connectionChr.txPower = fairTxPower;
-			}
-			connectionChr.sinr =  connectionChr.txPower/(schedulingPar.channelQualityOnBestChannel.Interference * schedulingPar.channelQualityOnBestChannel.Pathloss.get_factor());
-		}
-		else
-		{
-			if (fairTxPower > remainingTxPowerOnAllChannels)
-			{
-				connectionChr.txPower = remainingTxPowerOnAllChannels;
-				connectionChr.sinr =  connectionChr.txPower/(schedulingPar.channelQualityOnBestChannel.Interference * schedulingPar.channelQualityOnBestChannel.Pathloss.get_factor());
-			}
-			else
-			{
-				connectionChr.txPower = fairTxPower;
-				connectionChr.sinr = fair_sinr;
-			}
-		}
-		//if (connectionChr.sinr.get_dB() < phyModeMapper->getMinimumSINR())
-		//{
-		//	connectionChr.txPower = wns::Power();
-		//	return;
-		//}
-		connectionChr.phyModePtr = phyModeMapper->getBestPhyMode(connectionChr.sinr);
-	}
-	else
-	{
-		assure(dynamic_cast<RegistryProxyInterface*>(colleagues.registry), "Need access to the registry");
-
-		// adapt TxPower of each stream of the group
-		wns::Power txPowerPerStream = getTxPower4OneOfGroup(schedulingPar.grouping, schedulingPar.group);
-
-		// perform power control here...
-		wns::Power remainingTxPowerOnAllChannels = colleagues.registry->getRemainingTxPower(schedulingMap,schedulingPar);
-
-		connectionChr.txPower = (txPowerPerStream > remainingTxPowerOnAllChannels ? remainingTxPowerOnAllChannels : txPowerPerStream );
-
-		wns::Ratio sinr(connectionChr.estimatedCandI.C / connectionChr.estimatedCandI.I);
-
-		connectionChr.sinr = sinr;
-		connectionChr.phyModePtr = phyModeMapper->getBestPhyMode(sinr);
-	}
-	*/
-	return apcResult; // TODO
+        apcResult.phyModePtr = phyModeMapper->getBestPhyMode(apcResult.sinr);
+    }
+    MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
+                   <<"SINR="<<apcResult.sinr<<", PhyMode="<<*(apcResult.phyModePtr)<<", txPower="<<apcResult.txPower);
+    return apcResult;
 }
 

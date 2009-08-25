@@ -62,10 +62,10 @@ SpeedTest::testSpeed()
 
 	const long speedIterations = 10; // 1000000;
 
-	Layer* leftLayer = new tests::LayerStub();
+	ILayer* leftLayer = new tests::LayerStub();
 	fun::FUN* leftFUN = new fun::Main(leftLayer);
 
-	Layer* rightLayer = new tests::LayerStub();
+	ILayer* rightLayer = new tests::LayerStub();
 	fun::FUN* rightFUN = new fun::Main(rightLayer);
 
 	wns::pyconfig::Parser arqConfig;
@@ -139,9 +139,9 @@ SpeedTest::testWithLoss()
 {
 	const long maxIterations = 50;
 
-	Layer* leftLayer = new tests::LayerStub();
+	ILayer* leftLayer = new tests::LayerStub();
 	fun::FUN* leftFUN = new fun::Main(leftLayer);
-	Layer* rightLayer = new tests::LayerStub();
+	ILayer* rightLayer = new tests::LayerStub();
 	fun::FUN* rightFUN = new fun::Main(rightLayer);
 
 	wns::pyconfig::Parser arqConfig;

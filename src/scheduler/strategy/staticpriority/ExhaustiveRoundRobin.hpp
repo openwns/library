@@ -39,32 +39,32 @@
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
 
-	/**
-	 * @brief Exhaustive Round Robin subscheduler.
-	 *
-	 */
+                /**
+                 * @brief Exhaustive Round Robin subscheduler.
+                 *
+                 */
 
-	class ExhaustiveRoundRobin
-	  : public wns::scheduler::strategy::staticpriority::RoundRobin
-	{
-	public:
-		ExhaustiveRoundRobin(const wns::pyconfig::View& config);
+                class ExhaustiveRoundRobin
+                        : public wns::scheduler::strategy::staticpriority::RoundRobin
+                {
+                public:
+                    ExhaustiveRoundRobin(const wns::pyconfig::View& config);
 
-		~ExhaustiveRoundRobin();
+                    ~ExhaustiveRoundRobin();
 
-		virtual void
-		initialize();
+                    virtual void
+                    initialize();
 
-		virtual MapInfoCollectionPtr
-		doStartSubScheduling(SchedulerStatePtr schedulerState,
-				     wns::scheduler::SchedulingMapPtr schedulingMap);
+                    virtual MapInfoCollectionPtr
+                    doStartSubScheduling(SchedulerStatePtr schedulerState,
+                                         wns::scheduler::SchedulingMapPtr schedulingMap);
 
-	private:
-		/** @brief keep state of RR pointer */
-		//wns::scheduler::ConnectionID lastScheduledConnection;
-		/** @brief Number of packets to schedule of the same cid before proceeding to the next one.
-		    (PyConfig parameter) */
-		//int blockSize;
-	};
-}}}}
+                private:
+                    /** @brief keep state of RR pointer */
+                    //wns::scheduler::ConnectionID lastScheduledConnection;
+                    /** @brief Number of packets to schedule of the same cid before proceeding to the next one.
+                        (PyConfig parameter) */
+                    //int blockSize;
+                };
+            }}}}
 #endif

@@ -37,7 +37,7 @@
 #include <string>
 
 namespace wns { namespace ldk {
-	class Layer;
+	class ILayer;
 
 	class Key :
 		virtual public RefCountable

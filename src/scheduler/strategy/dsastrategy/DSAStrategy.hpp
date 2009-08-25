@@ -38,69 +38,75 @@
 #include <vector>
 
 namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy {
-	/** @brief provides methods for "Dynamic Subchannel Assignment" (DSA).
-	    Used by scheduler strategies for during doAdaptiveResourceScheduling()
-	 */
-	class DSAStrategy :
-		virtual public DSAStrategyInterface
-	{
-	public:
-		DSAStrategy(const wns::pyconfig::View& config);
-		virtual ~DSAStrategy();
+                /** @brief provides methods for "Dynamic Subchannel Assignment" (DSA).
+                    Used by scheduler strategies for during doAdaptiveResourceScheduling()
+                */
+                class DSAStrategy :
+            virtual public DSAStrategyInterface
+                {
+                public:
+                    DSAStrategy(const wns::pyconfig::View& config);
+                    virtual ~DSAStrategy();
 
-		/** @brief called once at the beginning */
-		virtual void setColleagues(RegistryProxyInterface* _registry);
+                    /** @brief called once at the beginning */
+                    virtual void setColleagues(RegistryProxyInterface* _registry);
 
-		/** @brief call this before each timeSlot/frame.
-		    Important to reset starting values. */
-		virtual void initialize(SchedulerStatePtr schedulerState,
-					SchedulingMapPtr schedulingMap);
+                    /** @brief call this before each timeSlot/frame.
+                        Important to reset starting values. */
+                    virtual void initialize(SchedulerStatePtr schedulerState,
+                                            SchedulingMapPtr schedulingMap);
 
-		/** @brief if phyModePtr is specified,
-		    the duration of the PDU on the subChannel can be calculated.
-		    Otherwise, undefined means: assume the highest PhyMode */
-		virtual simTimeType
-		getCompoundDuration(RequestForResource& request) const;
+                    /** @brief if phyModePtr is specified,
+                        the duration of the PDU on the subChannel can be calculated.
+                        Otherwise, undefined means: assume the highest PhyMode */
+                    virtual simTimeType
+                    getCompoundDuration(RequestForResource& request) const;
 
-		/** @brief true if requested PDU can be scheduled on that subChannel */
-		int
-		getBeamForSubChannel(int subChannel,
-							 RequestForResource& request,
-							 SchedulerStatePtr schedulerState,
-							 SchedulingMapPtr schedulingMap) const;
+                    /** @brief true if requested PDU can be scheduled on that subChannel */
+                    int
+                    getBeamForSubChannel(int subChannel,
+                                         int timeSlot,
+                                         RequestForResource& request,
+                                         SchedulerStatePtr schedulerState,
+                                         SchedulingMapPtr schedulingMap) const;
 
-		/** @brief true if requested PDU can be scheduled on that subChannel&beam */
-		virtual bool
-		channelIsUsable(int subChannel,
-				int beam,
-				RequestForResource& request,
-				SchedulerStatePtr schedulerState,
-				SchedulingMapPtr schedulingMap) const;
+                    /** @brief true if requested PDU can be scheduled on that subChannel&timeSlot&beam */
+                    virtual bool
+                    channelIsUsable(int subChannel,
+                                    int timeSlot,
+                                    int beam,
+                                    RequestForResource& request,
+                                    SchedulerStatePtr schedulerState,
+                                    SchedulingMapPtr schedulingMap) const;
 
-		/** @brief true if requested PDU can be scheduled on that subChannel */
-		virtual bool
-		channelIsUsable(int subChannel,
-						RequestForResource& request,
-						SchedulerStatePtr schedulerState,
-						SchedulingMapPtr schedulingMap) const;
+                    /** @brief true if requested PDU can be scheduled on that resource block */
+                    virtual bool
+                    channelIsUsable(int subChannel,
+                                    int timeSlot,
+                                    RequestForResource& request,
+                                    SchedulerStatePtr schedulerState,
+                                    SchedulingMapPtr schedulingMap) const;
 
-	protected:
-		wns::logger::Logger logger;
-		struct Colleagues {
-			Colleagues() {registry=NULL;};
-			RegistryProxyInterface* registry;
-		} colleagues;
+                protected:
+                    wns::logger::Logger logger;
+                    struct Colleagues {
+                        Colleagues() {registry=NULL;};
+                        RegistryProxyInterface* registry;
+                    } colleagues;
 
-	protected:
-		/** @brief may different users share a sbubchannel? Usually not. */
-		bool oneUserOnOneSubChannel;
-		/** @brief UL: true if all subchannels must be adjacent (SC-FDMA) */
-		bool adjacentSubchannelsOnUplink;
-		/** @brief data rate per subChannel assuming the highest PhyMode */
-		double highestDataRatePerSubChannel;
-		wns::service::phy::phymode::PhyModeMapperInterface* phyModeMapper;
-	private:
-		std::string dsastrategyName;
-	};
-}}}} // namespace wns::scheduler::strategy::dsastrategy
+                protected:
+                    /** @brief may different users share a sbubchannel? Usually not. */
+                    bool oneUserOnOneSubChannel;
+                    /** @brief UL: true if all subchannels must be adjacent (SC-FDMA) */
+                    bool adjacentSubchannelsOnUplink;
+                    /** @brief data rate per subChannel assuming the highest PhyMode */
+                    double highestDataRatePerSubChannel;
+                    /** @brief phyModeMapper is required to get the dataRate of a PhyMode */
+                    wns::service::phy::phymode::PhyModeMapperInterface* phyModeMapper;
+                    /** @brief myUserID is important in channelIsUsable() */
+                    wns::scheduler::UserID myUserID;
+                private:
+                    std::string dsastrategyName;
+                };
+            }}}} // namespace wns::scheduler::strategy::dsastrategy
 #endif //  WNS_SCHEDULER_DSASTRATEGY_DSASTRATEGY_HPP

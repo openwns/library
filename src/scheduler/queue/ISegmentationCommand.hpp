@@ -25,45 +25,58 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_LDK_SIZECALCULATION_TEST_HPP
-#define WNS_LDK_SIZECALCULATION_TEST_HPP
+#ifndef WNS_SCHEDULER_QUEUE_ISEGMENTATIONCOMMAND_HPP
+#define WNS_SCHEDULER_QUEUE_ISEGMENTATIONCOMMAND_HPP
 
-#include <WNS/ldk/Layer.hpp>
-#include <WNS/ldk/tools/Stub.hpp>
-#include <WNS/Exception.hpp>
+#include <WNS/ldk/Command.hpp>
 
-#include <cppunit/extensions/HelperMacros.h>
-#include <stdexcept>
+namespace wns { namespace scheduler { namespace queue {
+class ISegmentationCommand:
+    public wns::ldk::Command
+{
+public:
+    virtual void
+    setBeginFlag() = 0;
 
-namespace wns { namespace ldk {
+    virtual bool
+    getBeginFlag() = 0;
 
-	class SizeCalculationTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( SizeCalculationTest );
-		CPPUNIT_TEST( testEmpty );
-		CPPUNIT_TEST( testVanilla );
-#ifdef WNS_ASSURE_THROWS_EXCEPTION
-		CPPUNIT_TEST_EXCEPTION( testInPath, Assure::Exception );
-#endif // WNS_ASSURE_THROWS_EXCEPTION
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+    virtual void
+    clearBeginFlag() = 0;
 
-		void testEmpty();
-		void testVanilla();
-		void testInPath();
+    virtual void
+    setEndFlag() = 0;
 
-	private:
-		ILayer* layer;
-		fun::FUN* fuNet;
+    virtual bool
+    getEndFlag() = 0;
 
-		tools::Stub* upper;
-		tools::Stub* lower;
-	};
+    virtual void
+    clearEndFlag() = 0;
 
-}}
+    virtual void
+    setSequenceNumber(long) = 0;
 
+    virtual long
+    getSequenceNumber() = 0;
 
-#endif // NOT defined WNS_LDK_SIZECALCULATION_TEST_HPP
+    virtual void
+    increaseHeaderSize(Bit size) = 0;
 
+    virtual void
+    increaseDataSize(Bit size) = 0;
 
+    virtual void
+    increasePaddingSize(Bit size) = 0;
+
+    virtual Bit
+    totalSize() = 0;
+
+    virtual void
+    addSDU(wns::ldk::CompoundPtr) = 0;
+};
+
+} // queue
+} // scheduler
+} // wns
+
+#endif // WNS_SCHEDULER_QUEUE_ISEGMENTATIONCOMMAND_HPP

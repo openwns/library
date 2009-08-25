@@ -60,7 +60,7 @@ namespace wns { namespace ldk { namespace multiplexer {
 		void testSizes();
 		void testPyConfig();
 	private:
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fuNet;
 
 		tools::Stub* upper1;

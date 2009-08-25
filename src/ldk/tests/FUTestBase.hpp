@@ -171,10 +171,10 @@ namespace wns { namespace ldk { namespace tests {
 		virtual tools::Stub*
 		newLowerStub();
 
-		virtual wns::ldk::Layer*
+		virtual wns::ldk::ILayer*
 		newLayer();
 
-		Layer* layer;
+		ILayer* layer;
 		fun::Main* fun;
 
 		tools::Stub* upperStub;

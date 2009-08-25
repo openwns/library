@@ -38,7 +38,7 @@
 
 namespace wns { namespace ldk {
 
-	class Layer;
+	class ILayer;
 
 	namespace fcf {
 
