@@ -232,7 +232,7 @@ void SegmentingQueueTest::prepare()
 
     wns::pyconfig::View configView(config, "testee");
 
-    testee_ = new wns::scheduler::queue::SegmentingQueue(configView);
+    testee_ = new wns::scheduler::queue::SegmentingQueue(NULL, configView);
 
     layer_ = new wns::ldk::tests::LayerStub();
 
