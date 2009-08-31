@@ -76,6 +76,8 @@ class Node(object):
         self.contextProviders = []
         self.contextProviders.append(
             openwns.probebus.ConstantContextProvider("wns.node.Node.id", self.nodeID))
+        self.contextProviders.append(
+            openwns.probebus.ConstantContextProvider("openwns.node.Node.id", self.nodeID))
 
         self.name = name
         self.components = []
