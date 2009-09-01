@@ -194,9 +194,7 @@ class TextTrace(ITreeNodeGenerator):
 
     def __call__(self, pathname):
         t = openwns.probebus.TextProbeBus(*self.args, **self.kwargs)
-        t.evalConfig.prependSimTime = False
-        t.evalConfig.width = 7
-        t.evalConfig.precision = 20
+        t.prependSimTimeFlag = False
         yield tree.TreeNode(wrappers.ProbeBusWrapper(t, ''))
 
 class TimeSeries(ITreeNodeGenerator):
