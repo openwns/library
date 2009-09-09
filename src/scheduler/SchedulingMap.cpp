@@ -882,7 +882,7 @@ double
 SchedulingMap::getResourceUsage()
 {
     simTimeType totalUsedTime = getUsedTime();
-    simTimeType totalTimeResources = slotLength * numberOfSubChannels * numberOfBeams;
+    simTimeType totalTimeResources = slotLength * numberOfSubChannels * numberOfBeams * numberOfTimeSlots;
     double result = totalUsedTime / totalTimeResources;
     assure(numberOfSubChannels==subChannels.size(),"mismatch in numberOfSubChannels: "<<numberOfSubChannels<<" != "<<subChannels.size());
     assure((result >= -0.01)/*tolerance*/

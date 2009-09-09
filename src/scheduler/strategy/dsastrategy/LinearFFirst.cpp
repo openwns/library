@@ -67,6 +67,7 @@ LinearFFirst::initialize(SchedulerStatePtr schedulerState,
 {
     DSAStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
     lastUsedSubChannel = 0;
+    lastUsedTimeSlot = 0;
     // with beamforming/grouping it might be useful to remember lastUsedSubChannel[userID] separately
     // ^ this would form a new strategy "BFOptimizedLinearFFirst" or "LinearFFirstForBeamForming"
     if (useRandomChannelAtBeginning)
@@ -112,7 +113,7 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
                 }
             }
         }
-        if (subChannel==lastUsedSubChannel)
+        if (subChannel == lastUsedSubChannel && timeSlot == lastUsedTimeSlot)
         { // one complete round already done
             giveUp=true; break;
         }

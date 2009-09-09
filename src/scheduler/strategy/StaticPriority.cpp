@@ -146,7 +146,7 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
 
     // prepare grouping here before going into priorities (subschedulers).
     // This code block could also be moved into the base class Strategy::startScheduling()
-    if ( !colleagues.queue->isEmpty() && groupingRequired() ) // only if (maxBeams>1)
+    if (groupingRequired() && !colleagues.queue->isEmpty()) // only if (maxBeams>1)
     {   // grouping needed for beamforming & its antenna pattern
         GroupingPtr sdmaGrouping = schedulerState->currentState->getNewGrouping(); // also stored in schedulerState
         int maxBeams = schedulerState->currentState->strategyInput->maxBeams;
