@@ -115,6 +115,7 @@ namespace wns { namespace ldk {
 			commandTypeSpecifiers(),
 			commandTypeSpecifierCloned()
 		{
+            wns::simulator::getResetSignal()->connect(&wns::ldk::CommandProxy::clearRegistries); 
 		}
 
 		CommandProxy(const wns::pyconfig::View& config);

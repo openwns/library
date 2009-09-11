@@ -161,6 +161,9 @@ class SegmentingQueueTest:
     CPPUNIT_TEST( testSegmentConcatenate );
     CPPUNIT_TEST( testGetHeadOfLinePDUbits );
     CPPUNIT_TEST( testNumBitsForCid );
+    CPPUNIT_TEST( testQueueStatus );
+    CPPUNIT_TEST( testBelowMinimumSegmentSizeReturnNoPDU );
+    CPPUNIT_TEST( testMultipleCIDs );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -195,6 +198,15 @@ public:
     void
     testNumBitsForCid();
 
+    void
+    testQueueStatus();
+
+    void
+    testBelowMinimumSegmentSizeReturnNoPDU();
+
+    void
+    testMultipleCIDs();
+
     SegmentingQueue* testee_;
 
     wns::ldk::ILayer* layer_;
@@ -208,6 +220,8 @@ public:
     wns::ldk::tools::Stub* lower_;
 
     SegmentingCommandFUStub* commandFU_;
+
+    bool usesPadding_;
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( SegmentingQueueTest );
@@ -227,8 +241,10 @@ void SegmentingQueueTest::prepare()
         "testee = SegmentingQueue(\"test.commandFUName\", \"test.commandFUName\")\n"
         "testee.fixedHeaderLength = 16\n"
         "testee.extensionHeaderLength = 8\n"
-        "testee.logger.level = 3\n"
+        "testee.logger.level = 2\n"
     );
+
+    usesPadding_ = false;
 
     wns::pyconfig::View configView(config, "testee");
 
@@ -434,14 +450,29 @@ SegmentingQueueTest::testSegmentConcatenate()
     // Front||
     //      --
     wns::ldk::CompoundPtr seg4 = testee_->getHeadOfLinePDUSegment(4, 48);
-    CPPUNIT_ASSERT_EQUAL(Bit(48), seg4->getLengthInBits());
+    if (this->usesPadding_ == true)
+    {
+        CPPUNIT_ASSERT_EQUAL(Bit(48), seg4->getLengthInBits());
+    }
+    else
+    {
+        CPPUNIT_ASSERT_EQUAL(Bit(32), seg4->getLengthInBits());
+    }
     SegmentingCommandStub* commandSeg4 = commandFU_->getCommand(seg4->getCommandPool());
     CPPUNIT_ASSERT_EQUAL(false, commandSeg4->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(true, commandSeg4->getEndFlag());
     CPPUNIT_ASSERT_EQUAL((long) 3, commandSeg4->getSequenceNumber());
     CPPUNIT_ASSERT_EQUAL(Bit(16), commandSeg4->peer.headerSize_);
     CPPUNIT_ASSERT_EQUAL(Bit(16), commandSeg4->peer.dataSize_);
-    CPPUNIT_ASSERT_EQUAL(Bit(16), commandSeg4->peer.paddingSize_);
+    if (this->usesPadding_ == true)
+    {
+        CPPUNIT_ASSERT_EQUAL(Bit(16), commandSeg4->peer.paddingSize_);
+    }
+    else
+    {
+        CPPUNIT_ASSERT_EQUAL(Bit(0), commandSeg4->peer.paddingSize_);
+    }
+
     CPPUNIT_ASSERT_EQUAL((size_t)(1), commandSeg4->peer.pdus_.size());
 }
 
@@ -466,10 +497,13 @@ SegmentingQueueTest::testGetHeadOfLinePDUbits()
     // Front|SegPDU1 13|PDU2 64                 |PDU3 32   |
     //      ---------------------------------------------
 
+    // getHeadOfLinePDUbits should deliver brutto bits in queue
+    // i.e. netto + fixedHeader(16) + (N-1) * extensionHeader(16)
+    // 13 + 64 + 32 + 16 + 2*8 = 141
     Bit queuedEffectiveBits = testee_->getHeadOfLinePDUbits(4);
     // If it was a single segment
     // 1 * fixedHeaderSize + SegPDU1 Length
-    CPPUNIT_ASSERT_EQUAL( Bit(16 + 13), queuedEffectiveBits);
+    CPPUNIT_ASSERT_EQUAL( Bit(141), queuedEffectiveBits);
 }
 
 void
@@ -492,4 +526,106 @@ SegmentingQueueTest::testNumBitsForCid()
     // If it was a single segment
     // 1 * fixedHeaderSize + 2 * extension Header + Total PDU Length
     CPPUNIT_ASSERT_EQUAL( Bit(16 + 16 + 16 + 64 + 32), queuedEffectiveBits);
+}
+
+void
+SegmentingQueueTest::testQueueStatus()
+{
+    //      ---------------------------------------------
+    // Front|PDU1 16|PDU2 64                 |PDU3 32   |
+    //      ---------------------------------------------
+    wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 16));
+    SETCID(compound1, 4);
+    testee_->put(compound1);
+    wns::ldk::CompoundPtr compound2(CREATECOMPOUND(fun_, 64));
+    SETCID(compound2, 4);
+    testee_->put(compound2);
+    wns::ldk::CompoundPtr compound3(CREATECOMPOUND(fun_, 32));
+    SETCID(compound3, 4);
+    testee_->put(compound3);
+
+    QueueStatusContainer qstat = testee_->getQueueStatus();
+
+    CPPUNIT_ASSERT_EQUAL(true, qstat.knows(4));
+
+    CPPUNIT_ASSERT_EQUAL(false, qstat.knows(17));
+
+    CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(112 + 16 + 2*8), qstat.find(4).numOfBits);
+
+    CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(3), qstat.find(4).numOfCompounds);
+}
+
+void
+SegmentingQueueTest::testBelowMinimumSegmentSizeReturnNoPDU()
+{
+    //      ---------------------------------------------
+    // Front|PDU1 16|PDU2 64                 |PDU3 32   |
+    //      ---------------------------------------------
+    wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 16));
+    SETCID(compound1, 4);
+    testee_->put(compound1);
+    wns::ldk::CompoundPtr compound2(CREATECOMPOUND(fun_, 64));
+    SETCID(compound2, 4);
+    testee_->put(compound2);
+    wns::ldk::CompoundPtr compound3(CREATECOMPOUND(fun_, 32));
+    SETCID(compound3, 4);
+    testee_->put(compound3);
+
+    wns::ldk::CompoundPtr sdu = testee_->getHeadOfLinePDUSegment(4, 2);
+
+    CPPUNIT_ASSERT_EQUAL(wns::ldk::CompoundPtr(), sdu);
+}
+void
+SegmentingQueueTest::testMultipleCIDs()
+{
+    //      ---------------------------------------------
+    // Front|PDU1 16|PDU2 64                 |PDU3 32   |   (CID 4)
+    //      ---------------------------------------------
+    wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 16));
+    SETCID(compound1, 4);
+    testee_->put(compound1);
+    wns::ldk::CompoundPtr compound2(CREATECOMPOUND(fun_, 64));
+    SETCID(compound2, 4);
+    testee_->put(compound2);
+    wns::ldk::CompoundPtr compound3(CREATECOMPOUND(fun_, 32));
+    SETCID(compound3, 4);
+    testee_->put(compound3);
+
+    //      ---------------------------------------------
+    // Front|PDU1 16|PDU2 64                 |PDU3 32   |   (CID 17)
+    //      ---------------------------------------------
+    wns::ldk::CompoundPtr compound4(CREATECOMPOUND(fun_, 16));
+    SETCID(compound4, 17);
+    testee_->put(compound4);
+    wns::ldk::CompoundPtr compound5(CREATECOMPOUND(fun_, 64));
+    SETCID(compound5, 17);
+    testee_->put(compound5);
+    wns::ldk::CompoundPtr compound6(CREATECOMPOUND(fun_, 32));
+    SETCID(compound6, 17);
+    testee_->put(compound6);
+
+    Bit queuedEffectiveBits = testee_->numBitsForCid(4);
+    CPPUNIT_ASSERT_EQUAL( Bit(16 + 64 + 32 + 16 + 2*8), queuedEffectiveBits);
+    queuedEffectiveBits = testee_->numBitsForCid(17);
+    CPPUNIT_ASSERT_EQUAL( Bit(16 + 64 + 32 + 16 + 2*8), queuedEffectiveBits);
+
+    wns::ldk::CompoundPtr seg1 = testee_->getHeadOfLinePDUSegment(4, 19);
+
+    wns::ldk::CompoundPtr seg2 = testee_->getHeadOfLinePDUSegment(17, 42);
+
+    queuedEffectiveBits = testee_->numBitsForCid(4);
+    CPPUNIT_ASSERT_EQUAL( Bit(13 + 64 + 32 + 16 + 2*8), queuedEffectiveBits);
+    queuedEffectiveBits = testee_->numBitsForCid(17);
+    CPPUNIT_ASSERT_EQUAL( Bit(62 + 32 + 16 + 8), queuedEffectiveBits);
+
+    SegmentingCommandStub* commandSeg1 = commandFU_->getCommand(seg1->getCommandPool());
+    CPPUNIT_ASSERT_EQUAL((long) 0, commandSeg1->getSequenceNumber());
+
+    SegmentingCommandStub* commandSeg2 = commandFU_->getCommand(seg2->getCommandPool());
+    CPPUNIT_ASSERT_EQUAL((long) 0, commandSeg2->getSequenceNumber());
+
+    wns::ldk::CompoundPtr seg3 = testee_->getHeadOfLinePDUSegment(17, 42);
+
+    SegmentingCommandStub* commandSeg3 = commandFU_->getCommand(seg3->getCommandPool());
+    CPPUNIT_ASSERT_EQUAL((long) 1, commandSeg3->getSequenceNumber());
 }

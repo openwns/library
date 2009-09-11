@@ -305,7 +305,7 @@ srcFiles = [
     # the Queues
     'src/scheduler/queue/SimpleQueue.cpp',
     'src/scheduler/queue/SegmentingQueue.cpp',
-
+    'src/scheduler/queue/detail/InnerQueue.cpp',
     'src/scheduler/strategy/tests/StrategyTest.cpp',
     'src/scheduler/tests/PhyModeStub.cpp',
     'src/scheduler/tests/PhyModeMapperStub.cpp',
@@ -314,6 +314,7 @@ srcFiles = [
     'src/scheduler/strategy/tests/ResultsContainer.cpp',
     'src/scheduler/queue/tests/SimpleQueueTest.cpp',
     'src/scheduler/queue/tests/SegmentingQueueTest.cpp',
+    'src/scheduler/queue/detail/tests/InnerQueueTest.cpp',
     'src/scheduler/tests/ClassifierPolicyDropIn.cpp',
 
     'src/distribution/tests/FixedTest.cpp',
@@ -911,6 +912,7 @@ hppFiles = [
 'src/scheduler/queue/SegmentingQueue.hpp',
 'src/scheduler/queue/tests/SimpleQueueTest.hpp',
 'src/scheduler/queue/ISegmentationCommand.hpp',
+'src/scheduler/queue/detail/InnerQueue.hpp',
 'src/scheduler/RegistryProxyInterface.hpp',
 'src/scheduler/strategy/StaticPriority.hpp',
 'src/scheduler/SchedulingMap.hpp',

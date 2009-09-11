@@ -266,7 +266,7 @@ CommandProxy::activateCommand(
     assure(commandPool != NULL, "Invalid argument.");
     assure(id < commandTypeSpecifiers.size(), "Invalid ID");
 
-    activateCommand(commandPool, commandTypeSpecifiers.at(id));
+    return activateCommand(commandPool, commandTypeSpecifiers.at(id));
 }
 
 CommandPool*
@@ -429,6 +429,12 @@ wns::ldk::Command*
 CommandProxy::commit(CommandPool* commandPool,
 		     const CommandTypeSpecifierInterface* commiter) const
 {
+    assure(commandPool != NULL, "No valid commandPool given.");
+    assure(commiter != NULL, "No commiter set. "
+                             "Are you using the CommandProxy::commitSizes"
+                             "directly?. You should use the "
+                             "CommandTypeSpecifier::commitSizes.");
+
 	Command* command = commiter->getCommand(commandPool);
 	Bit commandPoolSize = 0;
 	Bit dataSize = 0;
