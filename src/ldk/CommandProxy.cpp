@@ -425,6 +425,12 @@ CommandProxy::commitSizes(
 	MESSAGE_END();
 } // calculateSizes
 
+void
+CommandProxy::commitSizes(CommandPool* commandPool, const CommandIDType& id) const
+{
+    commitSizes(commandPool, getCommandTypeSpecifier(id));
+}
+
 wns::ldk::Command*
 CommandProxy::commit(CommandPool* commandPool,
 		     const CommandTypeSpecifierInterface* commiter) const

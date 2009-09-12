@@ -60,6 +60,12 @@ namespace wns { namespace ldk {
             return getProxy()->activateCommand(commandPool, getPCIID());
         }
 
+        void
+        commitSizes(CommandPool* commandPool)
+        {
+            getProxy()->commitSizes(commandPool, getPCIID());
+        }
+
 		virtual bool
 		commandIsActivated(const CommandPool* commandPool) const = 0;
 
