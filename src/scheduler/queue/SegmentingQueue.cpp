@@ -184,6 +184,11 @@ SegmentingQueue::numBitsForCid(ConnectionID cid) const
     QueueContainer::const_iterator iter = queues.find(cid);
     assure(iter != queues.end(),"cannot find queue for cid="<<cid);
 
+    /**
+     * @todo dbn: Header Sizes depend on CID! User plane and control plane must be handled
+     * properly. Currently fixedHeaderSize also applies for the ResourceMaps!
+     * This must be fixed!
+     */
     return iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize);
 } // numBitsForCid()
 
@@ -239,6 +244,8 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
     wns::ldk::CompoundPtr segment;
     try {
         segment = queues[cid].retrieve(requestedBits, fixedHeaderSize, extensionHeaderSize, usePadding, segmentHeaderReader);
+        segmentHeaderReader->commitSizes(segment->getCommandPool());
+
     } catch (detail::InnerQueue::RequestBelowMinimumSize e)
     {
         return wns::ldk::CompoundPtr();
