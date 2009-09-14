@@ -35,6 +35,11 @@ def renderLongFromObject(o, pathToObject="", alternateTitle="Default View"):
     anchor = "<a name=\"%s\"></a>" % str(pathToObject)
     return anchor + v.renderLongText(o, pathToObject, alternateTitle)
 
+def createTempfileName():
+    import tempfile
+    return tempfile.mktemp()
+
+
 class IPyTreeVisitor(openwns.interface.Interface):
 
     def renderLinkText(self, objectToRender):
