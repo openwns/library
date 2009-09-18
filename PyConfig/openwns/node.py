@@ -36,6 +36,21 @@ class NodeSimulationModel(object):
         self.logger = Logger("WNS", "NodeSimulationModel", True)
         self.nodes = []
 
+    def getNodesByType(self, nodeType):
+        """
+        Get a list of nodes which are of the given type.
+
+        @type nodeType: str
+        @param nodeType: The nodeType
+
+        @rtype:  [openwns.node.Node]
+        @return: A list of nodes
+        """
+
+        r = [n for n in self.nodes if n.getNodeType() == nodeType]
+
+        return r
+
 class Node(object):
     """ A Node is a list of Components
     """
