@@ -60,7 +60,7 @@ class Strategy(object):
                  symbolDuration = None,
                  parentLogger = None,
                  powerControlSlave = False,
-                 excludeTooLowSINR = True,
+                 excludeTooLowSINR = False,
                  apcstrategy   = openwns.scheduler.APCStrategy.DoNotUseAPC(),
                  dsastrategy   = openwns.scheduler.DSAStrategy.DoNotUseDSA(),
                  dsafbstrategy = openwns.scheduler.DSAStrategy.DoNotUseDSA(),

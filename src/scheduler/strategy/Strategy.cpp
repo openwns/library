@@ -746,17 +746,21 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         assure(std::fabs(estimatedCandI.toSINR().get_dB()-apcResult.sinr.get_dB())<1e-6,"sinr mismatch: sinr="<<estimatedCandI.toSINR()<<" != "<<apcResult.sinr);
         // estimatedCandI (calculated here) and apcResult.estimatedCandI should be the same
         double minSINRforPhyMode = colleagues.registry->getPhyModeMapper()->getMinimumSINR();
-        if (schedulerState->excludeTooLowSINR && (apcResult.sinr.get_dB() < minSINRforPhyMode))
+        if ((apcResult.sinr.get_dB() < minSINRforPhyMode))
         { // this could mean "APC failed"
             MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): too low SINR! sinr="<<estimatedCandI.toSINR()<<", PhyMode="<<*(apcResult.phyModePtr)<<" requires "<<minSINRforPhyMode<<"dB");
             // ^ this may happen in the early milliseconds of a simulation / after association,
             // when there is no realistic estimatedCandI and CQI.
             // If we would break here in this case, there will never be a transmission.
             // which criterion? cqiOnSubChannel.pathloss.get_dB() > 150 ?
-            // (solved in RegistryProxy::estimateRxSINROf()), so "blind case" should not happen here.
+
+            // If the value is extremely low, it is likely that something bad has happened
             assure(estimatedCandI.C.get_dBm() > -190,
                    "sinr="<<apcResult.sinr.get_dB()<<" but minSINRforPhyMode="<<minSINRforPhyMode<<" not reached. Estimation was: C="<<estimatedCandI.C<<", I="<<estimatedCandI.I<<" (blind)");
-            return resultMapInfoEntry; // empty means no result
+            if (schedulerState->excludeTooLowSINR)
+            {
+                return resultMapInfoEntry; // empty means no result
+            }
         }
     } else { // slave scheduling (PowerControlULSlave)
         request.phyModePtr = schedulingMap->getPhyModeUsedInResource(subChannel,timeSlot,beam);
