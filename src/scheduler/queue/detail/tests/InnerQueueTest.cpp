@@ -89,19 +89,19 @@ public:
     increaseHeaderSize(Bit size) { peer.headerSize_ += size; }
 
     virtual Bit
-    getHeaderSize() { return peer.headerSize_; }
+    headerSize() { return peer.headerSize_; }
 
     virtual void
     increaseDataSize(Bit size) { peer.dataSize_ += size; }
 
     virtual Bit
-    getDataSize() { return peer.dataSize_; }
+    dataSize() { return peer.dataSize_; }
 
     virtual void
     increasePaddingSize(Bit size) { peer.paddingSize_ += size; }
 
     virtual Bit
-    getPaddingSize() { return peer.paddingSize_; }
+    paddingSize() { return peer.paddingSize_; }
 
     virtual Bit
     totalSize() { return peer.headerSize_ + peer.dataSize_ + peer.paddingSize_; }
@@ -250,7 +250,12 @@ InnerQueueTest::testConstruction()
 
     // No matter which header sizes are given, if queue is empty
     // then brutto bits is empty, too
-    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(2334, 5654));
+    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(2334, 5654, false));
+
+    // No matter which header sizes are given, if queue is empty
+    // then brutto bits is empty, too. This must also hold if byteAlignHeader is set
+    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(2334, 5654, true));
+    
 }
 
 void
@@ -274,19 +279,20 @@ InnerQueueTest::testNettoBitsInQueue()
 void
 InnerQueueTest::testBruttoBitsInQueue()
 {
-    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(987887, 2983));
+    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(987887, 2983, false));
 
     wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 1034));
 
     testee_->put(compound1);
 
-    CPPUNIT_ASSERT_EQUAL(1050, testee_->queuedBruttoBits(16, 23));
+    CPPUNIT_ASSERT_EQUAL(1050, testee_->queuedBruttoBits(16, 23, false));
 
     wns::ldk::CompoundPtr compound2(CREATECOMPOUND(fun_, 234));
 
     testee_->put(compound2);
 
-    CPPUNIT_ASSERT_EQUAL(1320, testee_->queuedBruttoBits(18, 34));
+    // 4 Bit extra for byte alignment of the header 18 + 34 + 4 = 56; 56 % 8 == 0
+    CPPUNIT_ASSERT_EQUAL(1320 + 4, testee_->queuedBruttoBits(18, 34, true));
 }
 
 void
@@ -306,11 +312,11 @@ InnerQueueTest::testCompoundsInQueue()
 
     CPPUNIT_ASSERT_EQUAL(2, testee_->queuedCompounds());
 
-    wns::ldk::CompoundPtr pdu = testee_->retrieve(1100, 16, 32, false, fun_->getCommandReader("test.commandFUName"));
+    wns::ldk::CompoundPtr pdu = testee_->retrieve(1100, 16, 32, false, false, fun_->getCommandReader("test.commandFUName"));
 
     CPPUNIT_ASSERT_EQUAL(1, testee_->queuedCompounds());
 
-    pdu = testee_->retrieve(1100, 16, 32, false, fun_->getCommandReader("test.commandFUName"));
+    pdu = testee_->retrieve(1100, 16, 32, false, false, fun_->getCommandReader("test.commandFUName"));
 
     CPPUNIT_ASSERT_EQUAL(0, testee_->queuedCompounds());
 }
@@ -332,7 +338,7 @@ InnerQueueTest::testQueueIsEmpty()
 
     CPPUNIT_ASSERT_EQUAL(false, testee_->empty());
 
-    wns::ldk::CompoundPtr pdu = testee_->retrieve(2600, 16, 32, false, fun_->getCommandReader("test.commandFUName"));
+    wns::ldk::CompoundPtr pdu = testee_->retrieve(2600, 16, 32, false, false, fun_->getCommandReader("test.commandFUName"));
 
     CPPUNIT_ASSERT_EQUAL(true, testee_->empty());
 }
@@ -340,7 +346,7 @@ InnerQueueTest::testQueueIsEmpty()
 void
 InnerQueueTest::testRetrieveBelowFixedHeaderSizeThrows()
 {
-    CPPUNIT_ASSERT_THROW( testee_->retrieve(8, 16, 32, false, NULL), InnerQueue::RequestBelowMinimumSize );
+    CPPUNIT_ASSERT_THROW( testee_->retrieve(8, 16, 32, false, false, NULL), InnerQueue::RequestBelowMinimumSize );
 }
 
 void
@@ -352,50 +358,50 @@ InnerQueueTest::testRetrieveFragment()
 
     testee_->put(compound1);
 
-    wns::ldk::CompoundPtr pdu = testee_->retrieve(200, 16, 32, false, fun_->getCommandReader("test.commandFUName"));
+    wns::ldk::CompoundPtr pdu = testee_->retrieve(200, 16, 32, false, false, fun_->getCommandReader("test.commandFUName"));
 
     SegmentingCommandStub* header = NULL;
     header = this->commandFU_->getCommand(pdu->getCommandPool());
 
     CPPUNIT_ASSERT_EQUAL(850, testee_->queuedNettoBits());
-    CPPUNIT_ASSERT_EQUAL(867, testee_->queuedBruttoBits(17,32));
+    CPPUNIT_ASSERT_EQUAL(867, testee_->queuedBruttoBits(17,32, false));
     CPPUNIT_ASSERT_EQUAL((long) 0, header->getSequenceNumber());
     CPPUNIT_ASSERT_EQUAL(true, header->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(false, header->getEndFlag());
     CPPUNIT_ASSERT_EQUAL((size_t) 1, header->peer.pdus_.size());
-    CPPUNIT_ASSERT_EQUAL(16, header->getHeaderSize());
-    CPPUNIT_ASSERT_EQUAL(184, header->getDataSize());
+    CPPUNIT_ASSERT_EQUAL(16, header->headerSize());
+    CPPUNIT_ASSERT_EQUAL(184, header->dataSize());
     CPPUNIT_ASSERT_EQUAL(200, pdu->getLengthInBits());
 
-    pdu = testee_->retrieve(18, 17, 31, false, fun_->getCommandReader("test.commandFUName"));
+    pdu = testee_->retrieve(18, 17, 31, false, false, fun_->getCommandReader("test.commandFUName"));
 
     header = NULL;
     header = this->commandFU_->getCommand(pdu->getCommandPool());
 
     CPPUNIT_ASSERT_EQUAL(849, testee_->queuedNettoBits());
-    CPPUNIT_ASSERT_EQUAL(868, testee_->queuedBruttoBits(19,32));
+    CPPUNIT_ASSERT_EQUAL(868, testee_->queuedBruttoBits(19,32, false));
     CPPUNIT_ASSERT_EQUAL((long) 1, header->getSequenceNumber());
     CPPUNIT_ASSERT_EQUAL(false, header->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(false, header->getEndFlag());
     CPPUNIT_ASSERT_EQUAL((size_t) 1, header->peer.pdus_.size());
-    CPPUNIT_ASSERT_EQUAL(17, header->getHeaderSize());
-    CPPUNIT_ASSERT_EQUAL(1, header->getDataSize());
+    CPPUNIT_ASSERT_EQUAL(17, header->headerSize());
+    CPPUNIT_ASSERT_EQUAL(1, header->dataSize());
     CPPUNIT_ASSERT_EQUAL(18, pdu->getLengthInBits());
 
     // Retrieve all remaining data (pdu size - data size of first sdu - data size of second sdu)
-    pdu = testee_->retrieve(1034 - 184 - 1, 0, 30, false, fun_->getCommandReader("test.commandFUName"));
+    pdu = testee_->retrieve(1034 - 184 - 1, 0, 30, false, false, fun_->getCommandReader("test.commandFUName"));
 
     header = NULL;
     header = this->commandFU_->getCommand(pdu->getCommandPool());
 
     CPPUNIT_ASSERT_EQUAL(0, testee_->queuedNettoBits());
-    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(20,32));
+    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(20,32, false));
     CPPUNIT_ASSERT_EQUAL((long) 2, header->getSequenceNumber());
     CPPUNIT_ASSERT_EQUAL(false, header->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(true, header->getEndFlag());
     CPPUNIT_ASSERT_EQUAL((size_t) 1, header->peer.pdus_.size());
-    CPPUNIT_ASSERT_EQUAL(0, header->getHeaderSize());
-    CPPUNIT_ASSERT_EQUAL(849, header->getDataSize());
+    CPPUNIT_ASSERT_EQUAL(0, header->headerSize());
+    CPPUNIT_ASSERT_EQUAL(849, header->dataSize());
     CPPUNIT_ASSERT_EQUAL(849, pdu->getLengthInBits());
 
     wns::ldk::CompoundPtr compound2(CREATECOMPOUND(fun_, 10));
@@ -408,19 +414,19 @@ InnerQueueTest::testRetrieveFragment()
 
     // Retrieve all and test if padding works (just give a brutto number well
     // above user data + header + extension header)
-    pdu = testee_->retrieve(5000, 8, 29, true, fun_->getCommandReader("test.commandFUName"));
+    pdu = testee_->retrieve(5000, 8, 29, true, false, fun_->getCommandReader("test.commandFUName"));
 
     header = NULL;
     header = this->commandFU_->getCommand(pdu->getCommandPool());
 
     CPPUNIT_ASSERT_EQUAL(0, testee_->queuedNettoBits());
-    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(20,32));
+    CPPUNIT_ASSERT_EQUAL(0, testee_->queuedBruttoBits(20,32, false));
     CPPUNIT_ASSERT_EQUAL((long) 3, header->getSequenceNumber());
     CPPUNIT_ASSERT_EQUAL(true, header->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(true, header->getEndFlag());
     CPPUNIT_ASSERT_EQUAL((size_t) 2, header->peer.pdus_.size());
-    CPPUNIT_ASSERT_EQUAL(37, header->getHeaderSize());
-    CPPUNIT_ASSERT_EQUAL(31, header->getDataSize());
-    CPPUNIT_ASSERT_EQUAL(4932, header->getPaddingSize());
+    CPPUNIT_ASSERT_EQUAL(37, header->headerSize());
+    CPPUNIT_ASSERT_EQUAL(31, header->dataSize());
+    CPPUNIT_ASSERT_EQUAL(4932, header->paddingSize());
     CPPUNIT_ASSERT_EQUAL(5000, pdu->getLengthInBits());
 }

@@ -46,7 +46,7 @@ InnerQueue::queuedNettoBits() const
 }
 
 Bit
-InnerQueue::queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize) const
+InnerQueue::queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize, bool byteAlignHeader) const
 {
     if (queuedNettoBits() == 0)
     {
@@ -54,7 +54,12 @@ InnerQueue::queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize) const
     }
     else
     {
-        return fixedHeaderSize + (pduQueue_.size() - 1) * extensionHeaderSize + queuedNettoBits();
+        Bit headerSize = fixedHeaderSize + (pduQueue_.size() - 1) * extensionHeaderSize;
+        if (byteAlignHeader)
+        {
+            headerSize += headerSize % 8;
+        }
+        return headerSize + queuedNettoBits();
     }
 }
 
@@ -79,7 +84,7 @@ InnerQueue::put(const wns::ldk::CompoundPtr& compound)
 }
 
 wns::ldk::CompoundPtr
-InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, bool usePadding, wns::ldk::CommandReaderInterface* reader)
+InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, bool usePadding, bool byteAlignHeader, wns::ldk::CommandReaderInterface* reader)
 {
     if (requestedBits <= fixedHeaderSize)
     {
@@ -120,7 +125,13 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
             frontSegmentSentBits_ = 0;
             nettoBits_ -= length;
 
-            if ( (header->totalSize() + extensionHeaderSize < requestedBits) &&
+            Bit headerPadding = 0;
+            if ( byteAlignHeader )
+            {
+                headerPadding = (header->headerSize() + extensionHeaderSize) % 8;
+            }
+
+            if ( (header->totalSize() + extensionHeaderSize + headerPadding < requestedBits) &&
                  (pduQueue_.size() > 0))
             {
                 header->increaseHeaderSize(extensionHeaderSize);
@@ -132,11 +143,17 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
         }
         else
         {
+            Bit headerPadding = 0;
+            if ( byteAlignHeader )
+            {
+                headerPadding = header->headerSize() % 8;
+            }
             // only a fraction fits in
             header->addSDU(c->copy());
-            header->increaseDataSize(capacity);
-            frontSegmentSentBits_ += capacity;
-            nettoBits_ -= capacity;
+            header->increaseDataSize(capacity - headerPadding);
+            header->increaseHeaderSize(headerPadding);
+            frontSegmentSentBits_ += capacity - headerPadding;
+            nettoBits_ -= capacity - headerPadding;
             assure(frontSegmentSentBits_ < pduQueue_.front()->getLengthInBits(), "frontSegmentSentBits_ is larger than the front PDU size!");
         }
     }
@@ -149,6 +166,11 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
 
     // Is the last segment in the PDU a fragment? Then clear end flag
     (frontSegmentSentBits_ == 0) ? header->setEndFlag():header->clearEndFlag();
+
+    if (byteAlignHeader)
+    {
+        header->increaseHeaderSize(header->headerSize() % 8);
+    }
 
     // Rest is padding (optional)
     if (usePadding) {

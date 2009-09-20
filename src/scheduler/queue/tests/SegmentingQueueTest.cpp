@@ -97,6 +97,15 @@ public:
     increasePaddingSize(Bit size) { peer.paddingSize_ += size; }
 
     virtual Bit
+    headerSize() { return peer.headerSize_; }
+
+    virtual Bit
+    dataSize() { return peer.dataSize_; }
+
+    virtual Bit
+    paddingSize() { return peer.paddingSize_; }
+
+    virtual Bit
     totalSize() { return peer.headerSize_ + peer.dataSize_ + peer.paddingSize_; }
 
     virtual void
@@ -159,6 +168,7 @@ class SegmentingQueueTest:
     CPPUNIT_TEST( testIsAccepting );
     CPPUNIT_TEST( testGetHeadOfLinePDUThrows );
     CPPUNIT_TEST( testSegmentConcatenate );
+    CPPUNIT_TEST( testSegmentConcatenateByteAlign );
     CPPUNIT_TEST( testGetHeadOfLinePDUbits );
     CPPUNIT_TEST( testNumBitsForCid );
     CPPUNIT_TEST( testQueueStatus );
@@ -170,6 +180,9 @@ public:
 
     void
     prepare();
+
+    void
+    latePrepare();
 
     void
     cleanup();
@@ -191,6 +204,9 @@ public:
 
     void
     testSegmentConcatenate();
+
+    void
+    testSegmentConcatenateByteAlign();
 
     void
     testGetHeadOfLinePDUbits();
@@ -222,6 +238,8 @@ public:
     SegmentingCommandFUStub* commandFU_;
 
     bool usesPadding_;
+
+    std::string alternateConfig;
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( SegmentingQueueTest );
@@ -235,14 +253,25 @@ using namespace wns::scheduler::queue::tests;
 
 void SegmentingQueueTest::prepare()
 {
+}
+
+void SegmentingQueueTest::latePrepare()
+{
     wns::pyconfig::Parser config;
-    config.loadString(
-        "from openwns.Scheduler import SegmentingQueue\n"
-        "testee = SegmentingQueue(\"test.commandFUName\", \"test.commandFUName\")\n"
-        "testee.fixedHeaderLength = 16\n"
-        "testee.extensionHeaderLength = 8\n"
-        "testee.logger.level = 2\n"
-    );
+    if (alternateConfig == "")
+    {
+        config.loadString(
+                           "from openwns.Scheduler import SegmentingQueue\n"
+                           "testee = SegmentingQueue(\"test.commandFUName\", \"test.commandFUName\")\n"
+                           "testee.fixedHeaderSize = 16\n"
+                           "testee.extensionHeaderSize = 8\n"
+                           "testee.logger.level = 2\n"
+                         );
+    }
+    else
+    {
+        config.loadString(alternateConfig);
+    }
 
     usesPadding_ = false;
 
@@ -299,11 +328,13 @@ SegmentingQueueTest::cleanup()
 void
 SegmentingQueueTest::testConstruction()
 {
+    latePrepare();
 }
 
 void
 SegmentingQueueTest::testDynamicSegmentationFlag()
 {
+    latePrepare();
     bool flag = testee_->supportsDynamicSegmentation();
     CPPUNIT_ASSERT_EQUAL(true, flag);
 }
@@ -311,6 +342,7 @@ SegmentingQueueTest::testDynamicSegmentationFlag()
 void
 SegmentingQueueTest::testTestHelper()
 {
+    latePrepare();
     wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 64));
     SETCID(compound1, 1);
 
@@ -324,6 +356,7 @@ SegmentingQueueTest::testTestHelper()
 void
 SegmentingQueueTest::testIsAccepting()
 {
+    latePrepare();
     wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 64));
     SETCID(compound1, 1);
 
@@ -355,6 +388,7 @@ SegmentingQueueTest::testIsAccepting()
 void
 SegmentingQueueTest::testGetHeadOfLinePDUThrows()
 {
+    latePrepare();
     wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 64));
     SETCID(compound1, 1);
 
@@ -371,6 +405,7 @@ SegmentingQueueTest::testGetHeadOfLinePDUThrows()
 void
 SegmentingQueueTest::testSegmentConcatenate()
 {
+    latePrepare();
     //      ---------------------------------------------
     // Front|PDU1 16|PDU2 64                 |PDU3 32   |
     //      ---------------------------------------------
@@ -477,8 +512,57 @@ SegmentingQueueTest::testSegmentConcatenate()
 }
 
 void
+SegmentingQueueTest::testSegmentConcatenateByteAlign()
+{
+    alternateConfig = "from openwns.Scheduler import SegmentingQueue\n"
+        "testee = SegmentingQueue(\"test.commandFUName\", \"test.commandFUName\")\n"
+        "testee.fixedHeaderSize = 8\n"
+        "testee.extensionHeaderSize = 12\n"
+        "testee.byteAlignHeader = True\n"
+        "testee.logger.level = 2\n";
+
+    latePrepare();
+    //      -----------------------------------------------------
+    // Front|PDU1 16|PDU2 64                 |PDU3 32   |PDU4 32|
+    //      -----------------------------------------------------
+    wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 16));
+    SETCID(compound1, 4);
+    testee_->put(compound1);
+    wns::ldk::CompoundPtr compound2(CREATECOMPOUND(fun_, 64));
+    SETCID(compound2, 4);
+    testee_->put(compound2);
+    wns::ldk::CompoundPtr compound3(CREATECOMPOUND(fun_, 32));
+    SETCID(compound3, 4);
+    testee_->put(compound3);
+    wns::ldk::CompoundPtr compound4(CREATECOMPOUND(fun_, 16));
+    SETCID(compound4, 4);
+    testee_->put(compound4);
+
+    // If there are two segments in a PDU with have one extension header
+    // The header would thus be 8+12=20 bit long. This is not byte align and
+    // the implementation shall add 4 bit to make it byte aligned at 24bit
+    wns::ldk::CompoundPtr seg1 = testee_->getHeadOfLinePDUSegment(4, 48);
+
+    CPPUNIT_ASSERT_EQUAL(Bit(48), seg1->getLengthInBits());
+
+    SegmentingCommandStub* commandSeg1 = commandFU_->getCommand(seg1->getCommandPool());
+    CPPUNIT_ASSERT_EQUAL(Bit(24), commandSeg1->peer.headerSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(24), commandSeg1->peer.dataSize_);
+
+    // Get the rest
+    wns::ldk::CompoundPtr seg2 = testee_->getHeadOfLinePDUSegment(4, 512);
+
+    CPPUNIT_ASSERT_EQUAL(Bit(56 + 32 + 16 + 8 + 12 + 12), seg2->getLengthInBits());
+
+    SegmentingCommandStub* commandSeg2 = commandFU_->getCommand(seg2->getCommandPool());
+    CPPUNIT_ASSERT_EQUAL(Bit(8 + 12 + 12), commandSeg2->peer.headerSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(56 + 32 + 16), commandSeg2->peer.dataSize_);
+}
+
+void
 SegmentingQueueTest::testGetHeadOfLinePDUbits()
 {
+    latePrepare();
     //      ---------------------------------------------
     // Front|PDU1 16|PDU2 64                 |PDU3 32   |
     //      ---------------------------------------------
@@ -509,6 +593,7 @@ SegmentingQueueTest::testGetHeadOfLinePDUbits()
 void
 SegmentingQueueTest::testNumBitsForCid()
 {
+    latePrepare();
     //      ---------------------------------------------
     // Front|PDU1 16|PDU2 64                 |PDU3 32   |
     //      ---------------------------------------------
@@ -531,6 +616,7 @@ SegmentingQueueTest::testNumBitsForCid()
 void
 SegmentingQueueTest::testQueueStatus()
 {
+    latePrepare();
     //      ---------------------------------------------
     // Front|PDU1 16|PDU2 64                 |PDU3 32   |
     //      ---------------------------------------------
@@ -558,6 +644,7 @@ SegmentingQueueTest::testQueueStatus()
 void
 SegmentingQueueTest::testBelowMinimumSegmentSizeReturnNoPDU()
 {
+    latePrepare();
     //      ---------------------------------------------
     // Front|PDU1 16|PDU2 64                 |PDU3 32   |
     //      ---------------------------------------------
@@ -575,9 +662,11 @@ SegmentingQueueTest::testBelowMinimumSegmentSizeReturnNoPDU()
 
     CPPUNIT_ASSERT_EQUAL(wns::ldk::CompoundPtr(), sdu);
 }
+
 void
 SegmentingQueueTest::testMultipleCIDs()
 {
+    latePrepare();
     //      ---------------------------------------------
     // Front|PDU1 16|PDU2 64                 |PDU3 32   |   (CID 4)
     //      ---------------------------------------------

@@ -111,8 +111,12 @@ namespace wns { namespace scheduler { namespace queue {
                 } colleagues;
 
                 Bit fixedHeaderSize;
+
                 Bit extensionHeaderSize;
+
                 bool usePadding;
+
+                bool byteAlignHeader;
             };
 
 

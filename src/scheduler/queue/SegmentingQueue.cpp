@@ -48,7 +48,8 @@ SegmentingQueue::SegmentingQueue(wns::ldk::HasReceptorInterface*, const wns::pyc
       minimumSegmentSize(_config.get<uint32_t>("minimumSegmentSize")),
       fixedHeaderSize(_config.get<Bit>("fixedHeaderSize")),
       extensionHeaderSize(_config.get<Bit>("extensionHeaderSize")),
-      usePadding(_config.get<bool>("usePadding"))
+      usePadding(_config.get<bool>("usePadding")),
+      byteAlignHeader(_config.get<bool>("byteAlignHeader"))
 {
 }
 
@@ -124,15 +125,15 @@ SegmentingQueue::put(const wns::ldk::CompoundPtr& compound) {
     // needs a 'map' to do so.
     queues[cid].put(compound);
 
-    MESSAGE_SINGLE(NORMAL, logger, "SegmentingQueue::put(cid="<<cid<<"): after: bits="<<queues[cid].queuedNettoBits()<<"/"<<queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize)<<", PDUs="<<queues[cid].queuedCompounds());
+    MESSAGE_SINGLE(NORMAL, logger, "SegmentingQueue::put(cid="<<cid<<"): after: bits="<<queues[cid].queuedNettoBits()<<"/"<<queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader)<<", PDUs="<<queues[cid].queuedCompounds());
 
     if (sizeProbeBus) {
         int priority = colleagues.registry->getPriorityForConnection(cid); // only for probes
 
-        sizeProbeBus->put((double)queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize) / (double)maxSize,
+        sizeProbeBus->put((double)queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader) / (double)maxSize,
                           boost::make_tuple("cid", cid, "MAC.QoSClass", priority)); // relative (0..100%)
     } else {
-        MESSAGE_SINGLE(NORMAL, logger, "SegmentingQueue::put(cid="<<cid<<"): size="<<queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize)<<"): undefined sizeProbeBus="<<sizeProbeBus);
+        MESSAGE_SINGLE(NORMAL, logger, "SegmentingQueue::put(cid="<<cid<<"): size="<<queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader)<<"): undefined sizeProbeBus="<<sizeProbeBus);
     }
 } // put
 
@@ -189,7 +190,7 @@ SegmentingQueue::numBitsForCid(ConnectionID cid) const
      * properly. Currently fixedHeaderSize also applies for the ResourceMaps!
      * This must be fixed!
      */
-    return iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize);
+    return iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
 } // numBitsForCid()
 
 // result is sorted per-cid
@@ -203,7 +204,7 @@ SegmentingQueue::getQueueStatus() const
     {
         ConnectionID cid = iter->first;
         QueueStatus queueStatus;
-        queueStatus.numOfBits      = iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize);
+        queueStatus.numOfBits      = iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
         queueStatus.numOfCompounds = iter->second.queuedCompounds();
         result.insert(cid,queueStatus);
         MESSAGE_SINGLE(NORMAL, logger, "SegmentingQueue::getQueueStatus():"
@@ -243,7 +244,8 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
 
     wns::ldk::CompoundPtr segment;
     try {
-        segment = queues[cid].retrieve(requestedBits, fixedHeaderSize, extensionHeaderSize, usePadding, segmentHeaderReader);
+        segment = queues[cid].retrieve(requestedBits, fixedHeaderSize, extensionHeaderSize, usePadding, byteAlignHeader, segmentHeaderReader);
+
         segmentHeaderReader->commitSizes(segment->getCommandPool());
 
     } catch (detail::InnerQueue::RequestBelowMinimumSize e)
@@ -254,7 +256,7 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
 
     if (sizeProbeBus) {
         int priority = colleagues.registry->getPriorityForConnection(cid);
-        sizeProbeBus->put((double)queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize) / (double)maxSize,
+        sizeProbeBus->put((double)queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader) / (double)maxSize,
                           boost::make_tuple("cid", cid, "MAC.QoSClass", priority)); // relative (0..100%)
     }
 
@@ -315,7 +317,7 @@ SegmentingQueue::resetAllQueues()
          iter != queues.end(); ++iter)
     {
         ConnectionID cid = iter->first;
-        probeOutput.bits += iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize);
+        probeOutput.bits += iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
         probeOutput.compounds += iter->second.queuedCompounds();
         if (sizeProbeBus) {
             int priority = colleagues.registry->getPriorityForConnection(cid);
@@ -350,7 +352,7 @@ SegmentingQueue::resetQueues(UserID _user)
         if (user == _user)
         {
             ConnectionID cid = iter->first;
-            probeOutput.bits += iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize);
+            probeOutput.bits += iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
             probeOutput.compounds += iter->second.queuedCompounds();
             if (sizeProbeBus) {
                 int priority = colleagues.registry->getPriorityForConnection(cid);
@@ -369,7 +371,7 @@ SegmentingQueue::resetQueue(ConnectionID cid)
 {
     // Store number of bits and compounds for Probe which will be deleted
     ProbeOutput probeOutput;
-    probeOutput.bits += queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize);
+    probeOutput.bits += queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
     probeOutput.compounds += queues[cid].queuedCompounds();
     if (sizeProbeBus) {
         int priority = colleagues.registry->getPriorityForConnection(cid);
@@ -393,7 +395,7 @@ SegmentingQueue::printAllQueues()
          iter != queues.end(); ++iter)
     {
         ConnectionID cid = iter->first;
-        int bits      = iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize);
+        int bits      = iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
         int compounds = iter->second.queuedCompounds();
         s << cid << ":" << bits << "," << compounds << " ";
     }

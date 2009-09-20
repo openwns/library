@@ -95,9 +95,11 @@ public:
      * bruttoBits = fixedHeaderSize + (N-1) * extensionHeaderSize + getNettoBits()
      *
      * where N is the number of queued compounds
+     *
+     * Optionally the header size is increased in the end to be byte aligned.
      */
     Bit
-    queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize) const;
+    queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize, bool byteAlignHeader) const;
 
     /**
      * @brief Get number of compounds in queue
@@ -121,7 +123,7 @@ public:
      * @brief Retrieve a new compound from the front of the queue of required length (brutto) and segment and concatenate as necessary.
      */
     wns::ldk::CompoundPtr
-    retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, bool usePadding, wns::ldk::CommandReaderInterface* reader);
+    retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, bool usePadding, bool byteAlignHeader, wns::ldk::CommandReaderInterface* reader);
 
 private:
 

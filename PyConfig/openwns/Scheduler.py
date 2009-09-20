@@ -377,6 +377,15 @@ class SimpleQueue(object):
 
 ### SegmentingQueue (stores unsegmented original PDUs and does segmentation on-the-fly)
 class SegmentingQueue(object):
+    """
+    Dynamic segmentation encapsulate in a scheduler queue
+    Can be used as implementation for 3GPP LTE R8 RLC
+
+    fixedHeaderSize : Every PDU that possibly contains multiple SDUs has a header of at least this size
+    extenstionHeaderSize: If segments are concatenated this size is added additionally for each extra SDU
+    byteAlignHeader: If set to True then the total header size will be extended such that totalHeaderSize mod 8 = 0
+    """
+
     nameInQueueFactory = None
     logger = None
     sizeProbeName = None
@@ -398,8 +407,9 @@ class SegmentingQueue(object):
         self.logger = openwns.logger.Logger("WNS", "SegmentingQueue", True, parentLogger);
         self.sizeProbeName = 'SegmentingQueueSize'
         self.minimumSegmentSize = 32 # Bits
-        self.fixedHeaderSize = 16
-        self.extensionHeaderSize = 8
+        self.fixedHeaderSize = 8
+        self.extensionHeaderSize = 12
+        self.byteAlignHeader = False
         #self.sizeProbeName = 'schedulerQueueSize'
         self.segmentHeaderFUName = segmentHeaderFUName
         self.segmentHeaderCommandName = segmentHeaderCommandName
