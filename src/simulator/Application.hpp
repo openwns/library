@@ -243,6 +243,11 @@ namespace wns {  namespace simulator {
         bool testing_;
 
         /**
+         * @brief Is the output in testing mode compatible to that of a compiler?
+         */
+        bool compilerTestingOutput_;
+
+        /**
          * @brief If special tests have been defined they are stored here
          */
         TestNameContainer testNames_;
