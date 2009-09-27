@@ -72,6 +72,10 @@ void SegmentingQueue::setFUN(wns::ldk::fun::FUN* fun)
 
     std::string sizeProbeName = config.get<std::string>("sizeProbeName");
     sizeProbeBus = wns::probe::bus::ContextCollectorPtr(new wns::probe::bus::ContextCollector(localContext, sizeProbeName));
+
+    std::string overheadProbeName = config.get<std::string>("overheadProbeName");
+    overheadProbeBus = wns::probe::bus::ContextCollectorPtr(new wns::probe::bus::ContextCollector(localContext, overheadProbeName));
+
     std::string segmentHeaderCommandName = config.get<std::string>("segmentHeaderCommandName");
     segmentHeaderReader = myFUN->getCommandReader(segmentHeaderCommandName);
     assure(segmentHeaderReader, "No reader for the Segment Header ("<<segmentHeaderCommandName<<") available!");
@@ -260,6 +264,12 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
                           boost::make_tuple("cid", cid, "MAC.QoSClass", priority)); // relative (0..100%)
     }
 
+    if (overheadProbeBus) {
+        int priority = colleagues.registry->getPriorityForConnection(cid);
+        overheadProbeBus->put( ( (double) header->headerSize())/((double) header->totalSize()),
+                          boost::make_tuple("cid", cid, "MAC.QoSClass", priority)); // relative (0..100%)
+    }
+    
     MESSAGE_SINGLE(NORMAL, logger, "getHeadOfLinePDUSegment(cid="<<cid<<",to="<<colleagues.registry->getNameForUser(colleagues.registry->getUserForCID(cid))
                    <<",bits="<<requestedBits<<"): totalSize="<<header->totalSize()<<" bits, sn="<< header->getSequenceNumber() );
     assure(header->totalSize()<=requestedBits,"pdulength="<<header->totalSize()<<" > bits="<<requestedBits);

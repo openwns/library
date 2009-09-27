@@ -95,6 +95,8 @@ namespace wns { namespace scheduler { namespace queue {
 
             private:
                 wns::probe::bus::ContextCollectorPtr sizeProbeBus;
+                wns::probe::bus::contextCollectorPtr overheadProbeBus;
+
                 wns::ldk::CommandReaderInterface* segmentHeaderReader;
                 wns::logger::Logger logger;
                 wns::pyconfig::View config;

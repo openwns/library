@@ -389,6 +389,7 @@ class SegmentingQueue(object):
     nameInQueueFactory = None
     logger = None
     sizeProbeName = None
+    overheadProbeName = None
     TxRx = None
     localIDs = None
     minimumSegmentSize = None # used to ask for resources of at least this size
@@ -406,6 +407,7 @@ class SegmentingQueue(object):
         self.nameInQueueFactory = "SegmentingQueue"
         self.logger = openwns.logger.Logger("WNS", "SegmentingQueue", True, parentLogger);
         self.sizeProbeName = 'SegmentingQueueSize'
+        self.overheadProbeName = 'SegmentingQueueOverhead'
         self.minimumSegmentSize = 32 # Bits
         self.fixedHeaderSize = 8
         self.extensionHeaderSize = 12
