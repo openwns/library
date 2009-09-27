@@ -296,17 +296,32 @@ PhysicalResourceBlock::dumpContents(const std::string& prefix) const
     s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
     s.precision(4);
     //s << prefix << subChannelIndex << "\t" << beamIndex;
-    s << prefix
-        // << PhyModeIndex phyModePtr->getBitsPerSymbol() or phyModeMapper->getIndexForPhyMode(*phyModePtr);
-        // << estimatedCandI.toSINR()
-      << txPower.get_dBm() << "\t"
-      << nextPosition/slotLength << "\t";
+    s << prefix;
+    if (phyModePtr != PhyModePtr())
+    {
+        s << phyModePtr->getBitsPerSymbol() << "\t";
+    }
+    else
+    {
+        s << "?" << "\t";
+    }
+
+    s  << txPower.get_dBm() << "\t"
+       << nextPosition/slotLength << "\t";
     if ( nextPosition>0.0 ) // not empty
     {
-        s << scheduledCompounds.begin()->userID << "\t";
-        for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+        s << scheduledCompounds.size() << "\t";
+        if (scheduledCompounds.size() > 0)
         {
-            s << iter->connectionID << ",";
+            int totalbits = 0;
+
+            s << scheduledCompounds.begin()->userID->getName() << "\t";
+            for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+            {
+                s << iter->connectionID << "(" << iter->compoundPtr->getLengthInBits() << "),";
+                totalbits += iter->compoundPtr->getLengthInBits();
+            }
+            s << "total (" << totalbits << ")";
         }
     } else {
         s << "0\t0";
@@ -636,7 +651,7 @@ SchedulingSubChannel::dumpContents(const std::string& prefix) const
         std::stringstream p;
         p << prefix << timeSlotIndex << "\t";
         if (subChannelIsUsable) {
-            temporalResources[timeSlotIndex]->dumpContents(p.str());
+            s << temporalResources[timeSlotIndex]->dumpContents(p.str());
         } else {
             s << prefix << timeSlotIndex << "\t" << "LOCKED" << std::endl;
         }
@@ -1146,7 +1161,7 @@ SchedulingMap::writeHeaderToFile(std::ofstream& f)
         //f << "# numberOfTimeSlots="<<numberOfTimeSlots << std::endl;
         //f << "# numberOfBeams="<<numberOfBeams << std::endl;
         //f << "# slotLength="<<slotLength << std::endl;
-        f << "# (time[s]) frameNr subChannel timeSlot stream/beam PhyModeIndex estimatedSINR[dB] txPower[dBm] filled% userID cidList" << std::endl;
+        f << "# (time[s]) frameNr subChannel timeSlot stream/beam bits/symbol txPower[dBm] filled% #compounds userID cidList(#bits), totalbits" << std::endl;
     } else {
         throw wns::Exception("cannot write to file");
     }
