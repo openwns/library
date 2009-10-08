@@ -84,13 +84,7 @@ RoundRobin::getNextConnection(const ConnectionSet &currentConnections, Connectio
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
         currentConnections.upper_bound(cid);
-    if ( iter != currentConnections.end() ) { // found
-        if ( *iter == cid ) { // go on
-            iter++;
-        } else {
-            return *iter;
-        }
-    }
+
     if ( iter != currentConnections.end() ) { // exists
         return *iter;
     } else { // continue with next higher cid
@@ -126,9 +120,13 @@ RoundRobin::doStartSubScheduling(SchedulerStatePtr schedulerState,
             currentConnections.erase(currentConnection);
             if (currentConnections.size()==0) break; // all queues empty
         }
-        lastScheduledConnection = currentConnection; // this one really had pdus scheduled
-        currentConnection = getNextConnection(currentConnections,currentConnection);
-        MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): next connection="<<currentConnection);
+
+        if (spaceLeft)
+        {
+            lastScheduledConnection = currentConnection; // this one really had pdus scheduled
+            currentConnection = getNextConnection(currentConnections,currentConnection);
+            MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): next connection="<<currentConnection);
+        }
     } // while(spaceLeft)
     MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection="<<mapInfoCollection.getPtr()<<" of size="<<mapInfoCollection->size());
     return mapInfoCollection;
