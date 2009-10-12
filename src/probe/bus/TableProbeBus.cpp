@@ -95,7 +95,7 @@ TableProbeBus::output()
             out << of->getPrefix() << "\n";
 			for (size_t ii = 0; ii<sorters.size(); ++ii)
 			{
-				out << of->getPrefix() << "Dim " << sorters.size()-ii << ": '" << sorters.at(ii).getIdName() << "'\n";
+				out << of->getPrefix() << "Dim " << ii + 1 << ": '" << sorters.at(ii).getIdName() << "'\n";
 			}
 			of->print(out, valueType);
 			out.close();
