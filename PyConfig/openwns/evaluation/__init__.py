@@ -42,7 +42,7 @@ class SourceNotRegistered(Error):
     def __init__(self, sourceName, keys):
         self.message = "Source node " 
         self.message += sourceName 
-        self.message += " was not yet created. Use createMeasurementSource()\n"
+        self.message += " was not yet created. Use createSourceNode()\n"
         self.message += "The following source nodes were created by now:\n"
         for s in keys():
             self.message += str(s) + "\n"
