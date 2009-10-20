@@ -92,7 +92,7 @@ class Node(object):
         self.contextProviders.append(
             openwns.probebus.ConstantContextProvider("wns.node.Node.id", self.nodeID))
 
-        self.name = name
+        self.name = name + str(self.nodeID)
         self.components = []
         self.logger = Logger("WNS", name, True)
 
