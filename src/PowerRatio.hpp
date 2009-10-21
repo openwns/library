@@ -36,6 +36,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <boost/logic/tribool.hpp>
+#include <WNS/Assure.hpp>
 
 namespace wns {
 	class Ratio;
