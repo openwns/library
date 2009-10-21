@@ -83,8 +83,8 @@ namespace wns { namespace events { namespace tests {
 
 	};
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( PeriodicRealTimeoutTest );
-
+	CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( PeriodicRealTimeoutTest, wns::testsuite::Disabled() );
+	
 	void
 	PeriodicRealTimeoutTest::setUp()
 	{
