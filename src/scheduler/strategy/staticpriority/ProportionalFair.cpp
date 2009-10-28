@@ -270,7 +270,8 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
 {
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
     UserSet allUsersInQueue = colleagues.queue->getQueuedUsers();
-    UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue);
+    int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
+	UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue, frameNr);
     ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
 
     MESSAGE_SINGLE(NORMAL, logger, "activeUsers= "<< activeUsers.size()<<" , currentConnections= "<<printConnectionSet(currentConnections)<<" ");
