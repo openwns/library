@@ -70,7 +70,7 @@ namespace wns { namespace scheduler { namespace tests {
                 wns::scheduler::ConnectionSet filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr);
                 wns::scheduler::PowerMap calcULResources(const wns::scheduler::UserSet&, uint32_t) const;
                 wns::scheduler::UserSet getActiveULUsers() const;
-                int getTotalNumberOfUsers(const wns::scheduler::UserID user) const;
+                int getTotalNumberOfUsers(const wns::scheduler::UserID user);
 
                 virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnUplink(UserID user, int frameNr);
                 virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnDownlink(UserID user, int frameNr);
