@@ -88,6 +88,7 @@ namespace wns { namespace scheduler {
             //wns::CandI estimatedCandI; // not supported yet
         }; // SchedulingCompound
 
+    typedef SmartPtr<SchedulingCompound> SchedulingCompoundPtr;
         typedef std::list<SchedulingCompound> ScheduledCompoundsList;
 
         /** @brief class to describe one PhysicalResourceBlock.

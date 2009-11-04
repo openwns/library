@@ -29,7 +29,7 @@
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
 #include <WNS/scheduler/strategy/StrategyInterface.hpp>
-#include <WNS/scheduler/SchedulingMap.hpp>
+//#include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/PowerRatio.hpp>
 
 using namespace wns::scheduler;
@@ -452,44 +452,13 @@ Strategy::schedulingMapReady(StrategyResult& strategyResult)
     assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): performing "<<strategyResult.bursts->size()<<" callbacks:");
     if (strategyResult.bursts->size()==0) return; // nothing to do
-    if (0) { // method 1: iterate through schedulingMap
-        SchedulingMapPtr schedulingMap = strategyResult.schedulingMap; // just a smartPtr
-        for ( SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin();
-              iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
-        {
-            SchedulingSubChannel& subChannel = *iterSubChannel;
-            for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
-            {
-                SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
-                for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
-                      iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
-                {
-                    while ( !iterPRB->scheduledCompounds.empty() )
-                    { // for every compound in subchannel:
-                        SchedulingCompound schedulingCompound = iterPRB->scheduledCompounds.front();
-                        iterPRB->scheduledCompounds.pop_front(); // remove from map
-                        assure(schedulingCompound.endTime<=schedulerState->currentState->strategyInput->slotLength,"endTime="<<schedulingCompound.endTime<<" > slotLength="<<schedulerState->currentState->strategyInput->slotLength<<" is an ERROR");
-                        MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
-                        // fill mapInfoEntry
-                        mapInfoEntry->start      = schedulingCompound.startTime;
-                        mapInfoEntry->end        = schedulingCompound.endTime;
-                        mapInfoEntry->user       = schedulingCompound.userID;
-                        mapInfoEntry->subBand    = schedulingCompound.subChannel;
-                        mapInfoEntry->timeSlot   = schedulingCompound.timeSlot;
-                        mapInfoEntry->beam       = schedulingCompound.beam;
-                        mapInfoEntry->txPower    = schedulingCompound.txPower;
-                        mapInfoEntry->phyModePtr = schedulingCompound.phyModePtr;
-                        //mapInfoEntry->pattern = schedulingCompound.pattern; // for beamforming. TODO
-                        //mapInfoEntry->estimatedCandI = schedulingCompound.estimatedCandI; // for statistics in WiMAC. TODO?
-                        //mapInfoEntry->compounds; // leave empty
-                        schedulerState->currentState->strategyInput->callBackObject->
-                            callBack(mapInfoEntry);
-                    } // while (all scheduledCompounds)
-                } // forall beams
-            } // end for ( timeSlots )
-        } // forall subChannels
-    } else { // method 2: iterate through MapInfoCollectionPtr
+
+    //master is assumed
+    if(isTx()){ //is DL master ?!
+    SchedulingMapPtr schedulingMap = strategyResult.schedulingMap; // just a smartPtr
+    schedulerState->currentState->strategyInput->callBackObject->callBack(schedulingMap);
+    } // is UL master ?!
+ else { // method 2: iterate through MapInfoCollectionPtr
         //MapInfoCollectionPtr bursts = strategyResult.bursts;
         // copy into state, because we are asked later via getMapInfo()
         schedulerState->currentState->bursts = strategyResult.bursts;
