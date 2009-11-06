@@ -41,7 +41,6 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
     class Notification :
         // [rs] why not derive from virtual public service::Notification<Handler> ?
         virtual public service::Service
-        ///virtual public wns::Subject<CarrierSensing>
     {
     public:
         virtual void
@@ -49,6 +48,12 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
 
         virtual void
         registerRSSHandler(RSSHandler* rssHandler) = 0;
+
+        virtual void
+        updateRequest()
+            {
+
+            };
     };
 } // ofdma
 } // phy
