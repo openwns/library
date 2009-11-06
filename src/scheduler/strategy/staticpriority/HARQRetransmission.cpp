@@ -60,6 +60,7 @@ HARQRetransmission::initialize()
 {
     // make state
     lastScheduledConnection = 0;
+    //colleagues.harq->initialize(); // TODO!
     MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission(): initialized");
 }
 
@@ -100,7 +101,7 @@ HARQRetransmission::getNextConnection(const ConnectionSet &currentConnections, C
 
 wns::scheduler::MapInfoCollectionPtr
 HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
-                                 wns::scheduler::SchedulingMapPtr schedulingMap)
+                                         wns::scheduler::SchedulingMapPtr schedulingMap)
 {
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
     ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
@@ -114,14 +115,15 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
         int pduCounter = 0;
         // schedule #=blockSize PDUs for this CID here...
         // TODO: get info from colleagues.harq instead of queue:
-        while( colleagues.queue->queueHasPDUs(currentConnection)
-               && (pduCounter<blockSize)
+        while( //colleagues.harq->queueHasPDUs(currentConnection) // TODO !!!
+               //&&
+               (pduCounter<blockSize)
                && spaceLeft)
         { // spaceLeft[currentConnection] to be more precise
             spaceLeft = scheduleCid(schedulerState,schedulingMap,currentConnection,pduCounter,blockSize,mapInfoCollection);
         } // while PDUs in queue
         // TODO: get info from colleagues.harq instead of queue:
-        if (!colleagues.queue->queueHasPDUs(currentConnection))
+        if (1)//(!colleagues.harq->queueHasPDUs(currentConnection)) // TODO !!!
         { // exit because of queue empty (most probable case for low traffic)
             currentConnections.erase(currentConnection);
             if (currentConnections.size()==0) break; // all queues empty

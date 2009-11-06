@@ -71,6 +71,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 			wns::scheduler::strategy::Strategy* strategy,;
 			wns::scheduler::queue::QueueInterface* queue;
 			wns::scheduler::RegistryProxyInterface* registry;
+			//wns::ldk::harq::HARQ* harq;
 		} colleagues;
 		/** @brief true if the queue allows dynamic Segmentation: */
 		bool useDynamicSegmentation;

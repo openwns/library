@@ -250,6 +250,14 @@ class ProportionalFair(SubStrategy):
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "ProportionalFair", True, parentLogger)
 
+class HARQRetransmission(SubStrategy):
+    __plugin__ = "HARQRetransmission"
+    def __init__(self, parentLogger = None, **kw):
+        self.logger = openwns.logger.Logger("WNS", "HARQRetransmission", True, parentLogger)
+        attrsetter(self, kw)
+    def setParentLogger(self,parentLogger = None):
+        self.logger = openwns.logger.Logger("WNS", "HARQRetransmission", True, parentLogger)
+
 # TODO:
 class EqualTimeRoundRobin(SubStrategy):
     __plugin__ = "EqualTimeRoundRobin"

@@ -69,10 +69,57 @@ namespace wns { namespace ldk { namespace harq {
         struct {} magic;
 
     };
+#if 0
+            /** @brief Interface as required by scheduler strategy HARQRetransmission */
+            class HARQInterface
+            {
+            public:
+                /** @brief  */
+                virtual ~HARQInterface(){};
+                /** @brief This is not automatically called. Not derived from FU */
+                virtual void
+                //onFUNCreated();
+                initialize();
+
+                /** @brief ResourceBlock coming in from PHY.
+                    Called by module specific resource scheduler FU. */
+                virtual void
+                processIncoming(const wns::ldk::CompoundPtr& compound) = 0;
+
+                /** @brief ResourceBlock just scheduled by scheduler bound down to PHY.
+                    Called by module specific resource scheduler FU. */
+                virtual void
+                processOutgoing(const wns::ldk::CompoundPtr&) = 0;
+
+                /** @name (parts of) QueueInterface. Called by specific scheduler strategy. */
+                //@{
+                ConnectionSet getActiveConnections() const = 0;
+                QueueStatusContainer getQueueStatus() const = 0;
+                bool queueHasPDUs(ConnectionID cid) = 0;
+                wns::ldk::CompoundPtr getHeadOfLinePDU(ConnectionID cid) = 0;
+                int getHeadOfLinePDUbits(ConnectionID cid) = 0;
+                //@}
+            };
+
+            class HARQ :
+            public HARQInterface
+            {
+            public:
+                HARQ();
+                virtual ~HARQ();
+                /** @brief This is not automatically called. Not derived from FU */
+                virtual void
+                //onFUNCreated();
+                initialize();
+                bool queueHasPDUs(ConnectionID cid);
+                /** @brief true if getHeadOfLinePDUSegment() is supported */
+                bool supportsDynamicSegmentation() const { return false; }
+            };
+#endif
 
     class HARQFU :
-        public fu::Plain<HARQFU, HARQCommand>,
-        public Delayed<HARQFU>
+            public fu::Plain<HARQFU, HARQCommand>,
+            public Delayed<HARQFU>
     {
     public:
         HARQFU(fun::FUN* fuNet, const wns::pyconfig::View& config);
