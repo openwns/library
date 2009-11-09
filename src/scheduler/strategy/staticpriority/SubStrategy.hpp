@@ -81,6 +81,11 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 		bool useDynamicSegmentation;
 		/** @brief if the queue allows dynamic Segmentation, this is the smallest unit */
 		int minimumSegmentSize;
+
+		/**
+		 * @brief Indicates whether HARQ is enabled for this priority class
+		 */
+		bool useHARQ;
 	};
 
 
