@@ -262,7 +262,7 @@ namespace wns { namespace scheduler {
             bool timeSlotIsUsable;
 
             struct HARQInfo {
-                HARQInfo() : NDI(true), useHARQ(false), processID(0), rv(0), retryCounter(0) {}
+                HARQInfo() : NDI(true), enabled(false), processID(0), rv(0), retryCounter(0) {}
                 /**
                  * @brief New Data Indication flag
                  */
