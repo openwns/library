@@ -211,6 +211,7 @@ class StaticPriority(Strategy):
 
 class SubStrategy:
     logger = None
+    useHARQ = False
     __plugin__ = "NONE"
     def __init__(self, **kw):
         attrsetter(self, kw)

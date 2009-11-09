@@ -25,50 +25,41 @@
  *
  ******************************************************************************/
 
-#include <WNS/ldk/harq/softcombining/Container.hpp>
+#ifndef WNS_SCHEDULER_HARQ_HARQINTERFACE_HPP
+#define WNS_SCHEDULER_HARQ_HARQINTERFACE_HPP
 
-using namespace wns::ldk::harq::softcombining;
+#include <WNS/scheduler/SchedulingMap.hpp>
+#include <WNS/StaticFactory.hpp>
+#include <WNS/PyConfigViewCreator.hpp>
 
-Container::Container(int numRVs)
+namespace wns { namespace scheduler { namespace harq {
+
+class HARQInterface
 {
-    receivedCompounds_.resize(numRVs);
-}
+public:
 
-void
-Container::clear()
-{
-    int size = receivedCompounds_.size();
-    receivedCompounds_.clear();
-    receivedCompounds_.resize(size);
-}
+    virtual ~HARQInterface() {};
 
-int
-Container::getNumRVs() const
-{
-    return receivedCompounds_.size();
-}
+    /**
+     * @brief Called by the scheduler after the scheduling step has finished
+     */
+    virtual void
+    storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr&) = 0;
 
-Container::CompoundList
-Container::getCompoundsForRV(int rv) const
-{
-    checkIfValidRV(rv);
+    /**
+     * @brief Called by the scheduler when a SchedulingTimeSlot is received from the peer
+     */
+    virtual bool
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&) = 0;
 
-    return receivedCompounds_[rv];
-}
+    virtual wns::scheduler::SchedulingTimeSlotPtr
+    nextRetransmission() = 0;
 
-void
-Container::appendCompoundForRV(int rv, wns::ldk::CompoundPtr compound)
-{
-    checkIfValidRV(rv);
+    STATIC_FACTORY_DEFINE(HARQInterface, wns::PyConfigViewCreator);
+};
 
-    receivedCompounds_[rv].push_back(compound);
-}
+} // harq
+} // scheduler
+} // wns
 
-void
-Container::checkIfValidRV(int rv) const
-{
-    if (rv < 0 || rv >= getNumRVs())
-    {
-        throw Container::InvalidRV();
-    }
-}
+#endif // WNS_SCHEDULER_HARQ_HARQINTERFACE_HPP

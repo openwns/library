@@ -30,6 +30,7 @@
 
 #include <WNS/ldk/harq/softcombining/Container.hpp>
 #include <WNS/ldk/harq/softcombining/IDecoder.hpp>
+#include <WNS/ldk/Compound.hpp>
 
 #include <WNS/ldk/fu/Plain.hpp>
 #include <WNS/ldk/Delayed.hpp>
@@ -69,53 +70,6 @@ namespace wns { namespace ldk { namespace harq {
         struct {} magic;
 
     };
-#if 0
-            /** @brief Interface as required by scheduler strategy HARQRetransmission */
-            class HARQInterface
-            {
-            public:
-                /** @brief  */
-                virtual ~HARQInterface(){};
-                /** @brief This is not automatically called. Not derived from FU */
-                virtual void
-                //onFUNCreated();
-                initialize();
-
-                /** @brief ResourceBlock coming in from PHY.
-                    Called by module specific resource scheduler FU. */
-                virtual void
-                processIncoming(const wns::ldk::CompoundPtr& compound) = 0;
-
-                /** @brief ResourceBlock just scheduled by scheduler bound down to PHY.
-                    Called by module specific resource scheduler FU. */
-                virtual void
-                processOutgoing(const wns::ldk::CompoundPtr&) = 0;
-
-                /** @name (parts of) QueueInterface. Called by specific scheduler strategy. */
-                //@{
-                ConnectionSet getActiveConnections() const = 0;
-                QueueStatusContainer getQueueStatus() const = 0;
-                bool queueHasPDUs(ConnectionID cid) = 0;
-                wns::ldk::CompoundPtr getHeadOfLinePDU(ConnectionID cid) = 0;
-                int getHeadOfLinePDUbits(ConnectionID cid) = 0;
-                //@}
-            };
-
-            class HARQ :
-            public HARQInterface
-            {
-            public:
-                HARQ();
-                virtual ~HARQ();
-                /** @brief This is not automatically called. Not derived from FU */
-                virtual void
-                //onFUNCreated();
-                initialize();
-                bool queueHasPDUs(ConnectionID cid);
-                /** @brief true if getHeadOfLinePDUSegment() is supported */
-                bool supportsDynamicSegmentation() const { return false; }
-            };
-#endif
 
     class HARQFU :
             public fu::Plain<HARQFU, HARQCommand>,
@@ -192,7 +146,7 @@ namespace wns { namespace ldk { namespace harq {
 
             wns::logger::Logger logger_;
 
-            softcombining::Container receptionBuffer_;
+            softcombining::Container<wns::ldk::CompoundPtr> receptionBuffer_;
 
             wns::SmartPtr<softcombining::IDecoder> decoder_;
         };

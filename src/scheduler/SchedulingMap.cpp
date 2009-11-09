@@ -50,6 +50,24 @@ SchedulingCompound::SchedulingCompound()
 {
 };
 
+/*SchedulingCompound::SchedulingCompound(const SchedulingCompound& other):
+    subChannel(other.subChannel),
+    timeSlot(other.timeSlot),
+    beam(other.beam),
+    startTime(other.startTime),
+    endTime(other.endTime),
+    connectionID(other.connectionID),
+    userID(other.userID),
+    compoundPtr(),
+    phyModePtr(other.phyModePtr),
+    txPower(other.txPower)
+{
+    if(other.compoundPtr != NULL)
+    {
+        compoundPtr = wns::ldk::CompoundPtr(other.compoundPtr->clone());
+    }
+};*/
+
 SchedulingCompound::SchedulingCompound(int _subChannel,
                                        int _timeSlot,
                                        int _beam,
@@ -129,6 +147,27 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
       antennaPattern()
 {
 }
+
+/*PhysicalResourceBlock::PhysicalResourceBlock(const PhysicalResourceBlock& other):
+    subChannelIndex(other.subChannelIndex),
+    timeSlotIndex(other.timeSlotIndex),
+    beamIndex(other.beamIndex),
+    slotLength(other.slotLength),
+    freeTime(other.freeTime),
+    nextPosition(other.nextPosition),
+    scheduledCompounds(),
+    userID(other.userID),
+    phyModePtr(other.phyModePtr),
+    txPower(other.txPower),
+    antennaPattern(other.antennaPattern)
+{
+    for (ScheduledCompoundsList::const_iterator it=other.scheduledCompounds.begin();
+         it != other.scheduledCompounds.end();
+         ++it)
+    {
+        scheduledCompounds.push_back(SchedulingCompound(*it));
+    }
+}*/
 
 PhysicalResourceBlock::~PhysicalResourceBlock()
 {
@@ -462,6 +501,24 @@ SchedulingTimeSlot::SchedulingTimeSlot(int _subChannel,
         physicalResources.push_back(emptyPRB); // object copied
     }
 }
+
+/*SchedulingTimeSlot::SchedulingTimeSlot(const SchedulingTimeSlot& other):
+    subChannelIndex(other.subChannelIndex),
+    timeSlotIndex(other.timeSlotIndex),
+    numberOfBeams(other.numberOfBeams),
+    slotLength(other.slotLength),
+    timeSlotStartTime(other.timeSlotStartTime),
+    timeSlotIsUsable(other.timeSlotIsUsable)
+{
+    harq.NDI = other.harq.NDI;
+
+    for (PhysicalResourceBlockVector::const_iterator it = other.physicalResources.begin();
+         it != other.physicalResources.end();
+         ++it)
+    {
+        physicalResources.push_back(PhysicalResourceBlock(*it));
+    }
+}*/
 
 SchedulingTimeSlot::~SchedulingTimeSlot()
 {
@@ -836,7 +893,8 @@ SchedulingMap::addCompound(int subChannelIndex,
                            wns::ldk::CompoundPtr compoundPtr,
                            wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                            wns::Power txPower,
-                           wns::service::phy::ofdma::PatternPtr pattern
+                           wns::service::phy::ofdma::PatternPtr pattern,
+                           bool useHARQ
     )
 {
     bool ok =
@@ -849,14 +907,18 @@ SchedulingMap::addCompound(int subChannelIndex,
             txPower,
             pattern
             );
-    if (ok) numberOfCompounds++;
+    if (ok) {
+        numberOfCompounds++;
+        subChannels[subChannelIndex].temporalResources[timeSlot]->harq.enabled = useHARQ;
+    }
     return ok;
 } // addCompound
 
 bool
 SchedulingMap::addCompound(strategy::RequestForResource& request,
                            MapInfoEntryPtr mapInfoEntry, // <- must not contain compounds yet
-                           wns::ldk::CompoundPtr compoundPtr
+                           wns::ldk::CompoundPtr compoundPtr,
+                           bool useHARQ
     )
 {
     // mapInfoEntry can contain compounds when in while loop:
@@ -870,7 +932,10 @@ SchedulingMap::addCompound(strategy::RequestForResource& request,
             mapInfoEntry,
             compoundPtr
             );
-    if (ok) numberOfCompounds++;
+    if (ok) {
+        numberOfCompounds++;
+        subChannels[subChannelIndex].temporalResources[timeSlot]->harq.enabled = useHARQ;
+    }
     return ok;
 } // addCompound
 

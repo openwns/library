@@ -306,6 +306,7 @@ srcFiles = [
     'src/scheduler/queue/SimpleQueue.cpp',
     'src/scheduler/queue/SegmentingQueue.cpp',
     'src/scheduler/queue/detail/InnerQueue.cpp',
+    'src/scheduler/harq/HARQ.cpp',
     'src/scheduler/strategy/tests/StrategyTest.cpp',
     'src/scheduler/tests/PhyModeStub.cpp',
     'src/scheduler/tests/PhyModeMapperStub.cpp',
@@ -399,7 +400,6 @@ srcFiles = [
 
     # ldk.HARQ
     'src/ldk/harq/HARQ.cpp',
-    'src/ldk/harq/softcombining/Container.cpp',
     'src/ldk/harq/softcombining/UniformRandomDecoder.cpp',
 
     # ldk.CRC
@@ -913,6 +913,8 @@ hppFiles = [
 'src/scheduler/queue/tests/SimpleQueueTest.hpp',
 'src/scheduler/queue/ISegmentationCommand.hpp',
 'src/scheduler/queue/detail/InnerQueue.hpp',
+'src/scheduler/harq/HARQInterface.hpp',
+'src/scheduler/harq/HARQ.hpp',
 'src/scheduler/RegistryProxyInterface.hpp',
 'src/scheduler/strategy/StaticPriority.hpp',
 'src/scheduler/SchedulingMap.hpp',

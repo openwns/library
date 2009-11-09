@@ -27,6 +27,7 @@
 
 #include <WNS/TestFixture.hpp>
 #include <WNS/ldk/harq/softcombining/Container.hpp>
+#include <WNS/ldk/Compound.hpp>
 
 namespace wns { namespace ldk { namespace harq { namespace softcombining { namespace tests {
 
@@ -73,6 +74,7 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining { names
         testClear();
     };
 
+    typedef Container<wns::ldk::CompoundPtr> TestContainer;
     CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( ContainerTest, wns::testsuite::Default() );
 
 } // tests
@@ -96,7 +98,7 @@ ContainerTest::cleanup()
 void
 ContainerTest::testGetNumRVs()
 {
-    Container c = Container(5);
+    TestContainer c = TestContainer(5);
 
     CPPUNIT_ASSERT_EQUAL(c.getNumRVs(), 5);
 }
@@ -104,13 +106,13 @@ ContainerTest::testGetNumRVs()
 void
 ContainerTest::testGetEmptyCompoundList()
 {
-    Container c = Container(9);
+    TestContainer c = TestContainer(9);
 
     CPPUNIT_ASSERT_EQUAL(c.getNumRVs(), 9);
 
-    Container::CompoundList cl;
+    TestContainer::EntryList cl;
 
-    cl = c.getCompoundsForRV(4);
+    cl = c.getEntriesForRV(4);
 
     CPPUNIT_ASSERT_EQUAL(cl.size(), (size_t) 0);
 }
@@ -119,67 +121,67 @@ ContainerTest::testGetEmptyCompoundList()
 void
 ContainerTest::testAppendAndGetCompoundList()
 {
-    Container c = Container(3);
+    TestContainer c = TestContainer(3);
 
     CPPUNIT_ASSERT_EQUAL(c.getNumRVs(), 3);
 
-    c.appendCompoundForRV(1, wns::ldk::CompoundPtr());
+    c.appendEntryForRV(1, wns::ldk::CompoundPtr());
 
-    c.appendCompoundForRV(2, wns::ldk::CompoundPtr());
+    c.appendEntryForRV(2, wns::ldk::CompoundPtr());
 
-    c.appendCompoundForRV(2, wns::ldk::CompoundPtr());
+    c.appendEntryForRV(2, wns::ldk::CompoundPtr());
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(0).size(), (size_t) 0);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(0).size(), (size_t) 0);
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(1).size(), (size_t) 1);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(1).size(), (size_t) 1);
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(2).size(), (size_t) 2);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(2).size(), (size_t) 2);
 }
 
 void
 ContainerTest::testGetCompoundListForInvalidRV()
 {
-    Container c = Container(3);
+    TestContainer c = TestContainer(3);
 
-    CPPUNIT_ASSERT_THROW(c.getCompoundsForRV(3), Container::InvalidRV);
+    CPPUNIT_ASSERT_THROW(c.getEntriesForRV(3), TestContainer::InvalidRV);
 }
 
 
 void
 ContainerTest::testAppendCompoundListForInvalidRV()
 {
-    Container c = Container(5);
+    TestContainer c = TestContainer(5);
 
-    CPPUNIT_ASSERT_THROW(c.appendCompoundForRV(6, wns::ldk::CompoundPtr()), Container::InvalidRV);
+    CPPUNIT_ASSERT_THROW(c.appendEntryForRV(6, wns::ldk::CompoundPtr()), TestContainer::InvalidRV);
 }
 
 void
 ContainerTest::testClear()
 {
-    Container c = Container(3);
+    TestContainer c = TestContainer(3);
 
     CPPUNIT_ASSERT_EQUAL(c.getNumRVs(), 3);
 
-    c.appendCompoundForRV(1, wns::ldk::CompoundPtr());
+    c.appendEntryForRV(1, wns::ldk::CompoundPtr());
 
-    c.appendCompoundForRV(2, wns::ldk::CompoundPtr());
+    c.appendEntryForRV(2, wns::ldk::CompoundPtr());
 
-    c.appendCompoundForRV(2, wns::ldk::CompoundPtr());
+    c.appendEntryForRV(2, wns::ldk::CompoundPtr());
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(0).size(), (size_t) 0);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(0).size(), (size_t) 0);
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(1).size(), (size_t) 1);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(1).size(), (size_t) 1);
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(2).size(), (size_t) 2);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(2).size(), (size_t) 2);
 
     c.clear();
 
     CPPUNIT_ASSERT_EQUAL(c.getNumRVs(), 3);
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(0).size(), (size_t) 0);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(0).size(), (size_t) 0);
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(1).size(), (size_t) 0);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(1).size(), (size_t) 0);
 
-    CPPUNIT_ASSERT_EQUAL(c.getCompoundsForRV(2).size(), (size_t) 0);
+    CPPUNIT_ASSERT_EQUAL(c.getEntriesForRV(2).size(), (size_t) 0);
 }
 

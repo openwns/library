@@ -58,6 +58,8 @@ namespace wns { namespace scheduler {
                                wns::Power _txPower,
                                wns::service::phy::ofdma::PatternPtr _pattern
                 );
+            //SchedulingCompound(const SchedulingCompound&);
+
             ~SchedulingCompound();
             simTimeType getCompoundDuration() { return endTime-startTime; };
             std::string toString() const;
@@ -99,6 +101,8 @@ namespace wns { namespace scheduler {
         public:
             PhysicalResourceBlock();
             PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _beam, simTimeType _slotLength);
+            //PhysicalResourceBlock(const PhysicalResourceBlock&);
+
             ~PhysicalResourceBlock();
             /** @brief total used time in this PhysicalResourceBlock */
             simTimeType getUsedTime() const;
@@ -206,6 +210,8 @@ namespace wns { namespace scheduler {
         public:
             SchedulingTimeSlot();
             SchedulingTimeSlot(int _subChannel, int _timeSlot, int _numberOfBeams, simTimeType _slotLength);
+            //SchedulingTimeSlot(const SchedulingTimeSlot&);
+
             ~SchedulingTimeSlot();
             /** @brief total used time in this SchedulingTimeSlot */
             simTimeType getUsedTime() const;
@@ -254,6 +260,23 @@ namespace wns { namespace scheduler {
             simTimeType timeSlotStartTime;
             /** @brief isUsable = flag to exclude certain resources from DSA */
             bool timeSlotIsUsable;
+
+            struct HARQInfo {
+                HARQInfo() : NDI(true), useHARQ(false), processID(0), rv(0), retryCounter(0) {}
+                /**
+                 * @brief New Data Indication flag
+                 */
+                bool NDI;
+                bool enabled;
+                int processID;
+                int rv;
+                int retryCounter;
+                boost::function<void ()> ackCallback;
+                boost::function<void ()> nackCallback;
+            };
+
+            HARQInfo harq;
+
          }; // SchedulingTimeSlot
 
         /** @brief can be used to send via an container compound to emulate one complete resource unit (chunk) */
@@ -376,7 +399,8 @@ namespace wns { namespace scheduler {
                              wns::ldk::CompoundPtr compoundPtr,
                              wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                              wns::Power txPower,
-                             wns::service::phy::ofdma::PatternPtr pattern
+                             wns::service::phy::ofdma::PatternPtr pattern,
+                             bool useHARQ
                 );
 
             /** @brief put scheduled compound (one after another) into the SchedulingMap
@@ -386,7 +410,8 @@ namespace wns { namespace scheduler {
             */
             bool addCompound(strategy::RequestForResource& request,
                              MapInfoEntryPtr mapInfoEntry, // <- must not contain compounds yet
-                             wns::ldk::CompoundPtr compoundPtr
+                             wns::ldk::CompoundPtr compoundPtr,
+                             bool useHARQ
                 );
 
             /** @brief get "offset for new compounds" == used time for already scheduled compounds. Zero for empty subChannel */

@@ -101,7 +101,7 @@ StaticPriority::onColleaguesKnown()
         MESSAGE_SINGLE(NORMAL, logger, "initializing subStrategy["<<priority<<"]");
         wns::scheduler::strategy::staticpriority::SubStrategyInterface* substrategy = subStrategies[priority];
         assure(substrategy!=NULL, "The substrategy["<<priority<<"] is not accessible");
-        substrategy->setColleagues(this, colleagues.queue, colleagues.registry);
+        substrategy->setColleagues(this, colleagues.queue, colleagues.registry, colleagues.harq);
         //schedulerState->currentSubStrategyState = ...;
     }
 }

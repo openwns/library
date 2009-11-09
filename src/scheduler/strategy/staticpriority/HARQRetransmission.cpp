@@ -67,6 +67,7 @@ HARQRetransmission::initialize()
 wns::scheduler::ConnectionID
 HARQRetransmission::getValidCurrentConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
 {
+    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission::getValidCurrentConnection");
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
         currentConnections.upper_bound(cid);
@@ -81,6 +82,7 @@ HARQRetransmission::getValidCurrentConnection(const ConnectionSet &currentConnec
 wns::scheduler::ConnectionID
 HARQRetransmission::getNextConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
 {
+    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission::getNextConnection");
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
         currentConnections.upper_bound(cid);
@@ -103,36 +105,45 @@ wns::scheduler::MapInfoCollectionPtr
 HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                                          wns::scheduler::SchedulingMapPtr schedulingMap)
 {
-    MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
-    ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
-    if ( currentConnections.empty() ) return mapInfoCollection; // nothing to do
-    wns::scheduler::ConnectionID currentConnection = getValidCurrentConnection(currentConnections,lastScheduledConnection);
-    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission::doStartSubScheduling("<<printConnectionSet(currentConnections)<<") start with cid="<<currentConnection);
-
-    bool spaceLeft=true;
-    while(spaceLeft)
+    // harq colleague may be NULL, e.g. Uplink Master Scheduler does not have HARQ
+    if(colleagues.harq == NULL)
     {
-        int pduCounter = 0;
-        // schedule #=blockSize PDUs for this CID here...
-        // TODO: get info from colleagues.harq instead of queue:
-        while( //colleagues.harq->queueHasPDUs(currentConnection) // TODO !!!
-               //&&
-               (pduCounter<blockSize)
-               && spaceLeft)
-        { // spaceLeft[currentConnection] to be more precise
-            spaceLeft = scheduleCid(schedulerState,schedulingMap,currentConnection,pduCounter,blockSize,mapInfoCollection);
-        } // while PDUs in queue
-        // TODO: get info from colleagues.harq instead of queue:
-        if (1)//(!colleagues.harq->queueHasPDUs(currentConnection)) // TODO !!!
-        { // exit because of queue empty (most probable case for low traffic)
-            currentConnections.erase(currentConnection);
-            if (currentConnections.size()==0) break; // all queues empty
+        MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
+
+        return mapInfoCollection;
+    }
+
+    wns::scheduler::SchedulingTimeSlotPtr timeslot = colleagues.harq->nextRetransmission();
+
+    MESSAGE_SINGLE(NORMAL, logger, "Checking for retransmissions");
+    while(timeslot != NULL)
+    {
+        for (wns::scheduler::SubChannelVector::iterator it = schedulingMap->subChannels.begin();
+             it != schedulingMap->subChannels.end();
+             ++it
+            )
+        {
+            if (it->isEmpty())
+            {
+                MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting ");
+                m << " for HARQ process " << timeslot->harq.processID;
+                m << " sent on subchannel " << it->subChannelIndex;
+                MESSAGE_END();
+
+                /**
+                 * @todo dbn: Maybe enable multiple temporalResources. Check destination users in uplink.
+                 */
+                it->temporalResources[0] = timeslot;
+                it->temporalResources[0]->subChannelIndex = it->subChannelIndex;
+                it->temporalResources[0]->physicalResources[0].subChannelIndex = it->subChannelIndex;
+                break;
+            }
         }
-        lastScheduledConnection = currentConnection; // this one really had pdus scheduled
-        currentConnection = getNextConnection(currentConnections,currentConnection);
-        MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): next connection="<<currentConnection);
-    } // while(spaceLeft)
-    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection="<<mapInfoCollection.getPtr()<<" of size="<<mapInfoCollection->size());
+        timeslot = colleagues.harq->nextRetransmission();
+    }
+
+    MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
+
     return mapInfoCollection;
 } // doStartSubScheduling
 

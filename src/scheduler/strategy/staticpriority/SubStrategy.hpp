@@ -34,6 +34,8 @@
 #include <WNS/scheduler/strategy/StrategyInterface.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
 #include <WNS/scheduler/strategy/staticpriority/SubStrategyInterface.hpp>
+#include <WNS/scheduler/harq/HARQInterface.hpp>
+
 #include <WNS/logger/Logger.hpp>
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
@@ -53,7 +55,9 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 		virtual void
 		setColleagues(wns::scheduler::strategy::Strategy* _strategy,
 			      wns::scheduler::queue::QueueInterface* _queue,
-			      wns::scheduler::RegistryProxyInterface* _registry);
+			      wns::scheduler::RegistryProxyInterface* _registry,
+                      wns::scheduler::harq::HARQInterface* _harq);
+
 		/** @brief schedule PDUs of this cid on any available subchannel. Limited by blockSize PDUs. */
 		virtual bool
 		scheduleCid(SchedulerStatePtr schedulerState,
@@ -67,11 +71,11 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 	protected:
 		wns::logger::Logger logger;
 		struct Colleagues {
-			Colleagues() {strategy=NULL;queue=NULL;registry=NULL;};
-			wns::scheduler::strategy::Strategy* strategy,;
+            Colleagues() {strategy=NULL;queue=NULL;registry=NULL;harq=NULL;};
+			wns::scheduler::strategy::Strategy* strategy;
 			wns::scheduler::queue::QueueInterface* queue;
 			wns::scheduler::RegistryProxyInterface* registry;
-			//wns::ldk::harq::HARQ* harq;
+            wns::scheduler::harq::HARQInterface* harq;
 		} colleagues;
 		/** @brief true if the queue allows dynamic Segmentation: */
 		bool useDynamicSegmentation;

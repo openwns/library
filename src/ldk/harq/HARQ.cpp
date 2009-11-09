@@ -198,7 +198,7 @@ HARQFU::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
         receptionBuffer_.clear();
     }
 
-    receptionBuffer_.appendCompoundForRV(command->peer.rv, compound);
+    receptionBuffer_.appendEntryForRV(command->peer.rv, compound);
 
     CommandPool* ackPCI = entity_->getFUN()->getProxy()->createReply(compound->getCommandPool(), entity_);
     wns::ldk::CompoundPtr ack_ = wns::ldk::CompoundPtr(new Compound(ackPCI));

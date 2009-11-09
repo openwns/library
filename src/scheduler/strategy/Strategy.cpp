@@ -109,14 +109,16 @@ Strategy::~Strategy()
 void
 Strategy::setColleagues(queue::QueueInterface* _queue,
                         grouper::GroupingProviderInterface* _grouper,
-                        RegistryProxyInterface* _registry
-                        //wns::ldk::harq::HARQ* _harq
+                        RegistryProxyInterface* _registry,
+                        wns::scheduler::harq::HARQInterface* _harq
     )
 {
     MESSAGE_SINGLE(NORMAL, logger,"Strategy::setColleagues(): creating DSA/APC strategies...");
     colleagues.queue = _queue;
     colleagues.grouper = _grouper;
     colleagues.registry = _registry;
+    colleagues.harq = _harq;
+
     //colleagues.harq = _harq; // may be NULL if no HARQ is there.
     assure(dynamic_cast<queue::QueueInterface*>(colleagues.queue), "Need access to the queue");
     assure(dynamic_cast<grouper::GroupingProviderInterface*>(colleagues.grouper), "Need access to the grouper");

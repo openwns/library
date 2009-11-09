@@ -44,6 +44,9 @@ namespace wns { namespace scheduler {
         namespace queue {
             class QueueInterface;
         }
+        namespace harq {
+            class HARQInterface;
+        }
         namespace grouper {
             class GroupingProviderInterface;
         }
@@ -201,8 +204,8 @@ namespace wns { namespace scheduler { namespace strategy {
                     strategy,queues,spatialGrouper,registryProxy */
                 virtual void setColleagues(queue::QueueInterface* _queue,
                                            grouper::GroupingProviderInterface* _grouper,
-                                           RegistryProxyInterface* _registry
-                                           //wns::ldk::harq::HARQ* _harq
+                                           RegistryProxyInterface* _registry,
+                                           wns::scheduler::harq::HARQInterface* _harq
                     ) = 0;
 
                 /** @brief can be overloaded by derived classes to perform initialization code.
