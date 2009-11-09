@@ -112,7 +112,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 
 
         wns::pyconfig::Parser pyco;
-        pyco.loadString("from wns.Buffer import Bounded\n"
+        pyco.loadString("from openwns.Buffer import Bounded\n"
                         "buffer = Bounded(size = 100, probingEnabled = False)\n"
             );
         wns::pyconfig::View view(pyco, "buffer");
@@ -122,7 +122,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 
         std::stringstream ss;
 
-        ss << "from wns.ARQ import StopAndWaitRC\n"
+        ss << "from openwns.ARQ import StopAndWaitRC\n"
            << "arq = StopAndWaitRC(\n"
            << "  bitsPerIFrame = " << bitsPerIFrame << ",\n"
            << "  bitsPerRRFrame = " << bitsPerRRFrame << ",\n"
