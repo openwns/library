@@ -31,20 +31,28 @@ import openwns
 
 class UniformRandomDecoder(openwns.StaticFactoryClass):
 
-    def __init__(self):
+    def __init__(self, parentLogger = None):
         openwns.StaticFactoryClass.__init__(self, "UniformRandomDecoder")
         self.initialPER = 0.1
         self.rolloffFactor = 1.0
+        self.logger = openwns.logger.Logger("WNS", "UnifromRandomDecoder", True, parentLogger)
+
+class ChaseCombiningDecoder(openwns.StaticFactoryClass):
+
+    def __init__(self, parentLogger = None):
+        openwns.StaticFactoryClass.__init__(self, "ChaseCombiningDecoder")
+        self.logger = openwns.logger.Logger("WNS", "ChaseCombiningDecoder", True, parentLogger)
+
 
 class HARQReceiver:
 
-    def __init__(self):
-        self.decoder = UniformRandomDecoder()
+    def __init__(self, parentLogger=None):
+        self.decoder = UniformRandomDecoder(parentLogger=parentLogger)
 
 class HARQEntity:
 
-    def __init__(self):
-        self.receiverConfig = HARQReceiver()
+    def __init__(self, parentLogger=None):
+        self.receiverConfig = HARQReceiver(parentLogger=parentLogger)
 
 class HARQ(openwns.StaticFactoryClass):
 

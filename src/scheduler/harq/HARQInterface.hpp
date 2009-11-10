@@ -29,6 +29,7 @@
 #define WNS_SCHEDULER_HARQ_HARQINTERFACE_HPP
 
 #include <WNS/scheduler/SchedulingMap.hpp>
+#include <WNS/service/phy/power/PowerMeasurement.hpp>
 #include <WNS/StaticFactory.hpp>
 #include <WNS/PyConfigViewCreator.hpp>
 
@@ -50,7 +51,7 @@ public:
      * @brief Called by the scheduler when a SchedulingTimeSlot is received from the peer
      */
     virtual bool
-    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&) = 0;
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::service::phy::power::PowerMeasurementPtr&) = 0;
 
     virtual wns::scheduler::SchedulingTimeSlotPtr
     nextRetransmission() = 0;

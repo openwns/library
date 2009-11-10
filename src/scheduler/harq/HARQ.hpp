@@ -29,6 +29,7 @@
 #define WNS_SCHEDULER_HARQ_HARQ_HPP
 
 #include <WNS/scheduler/harq/HARQInterface.hpp>
+#include <WNS/service/phy/power/PowerMeasurement.hpp>
 #include <WNS/ldk/harq/softcombining/Container.hpp>
 #include <WNS/distribution/Uniform.hpp>
 
@@ -44,7 +45,7 @@ class IDecoder
 public:
 
     virtual bool
-    canDecode(const wns::ldk::harq::softcombining::Container<wns::scheduler::SchedulingTimeSlotPtr>&) = 0;
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr>&) = 0;
 };
 STATIC_FACTORY_DEFINE(IDecoder, wns::PyConfigViewCreator);
 
@@ -55,7 +56,7 @@ public:
     UniformRandomDecoder(const wns::pyconfig::View&);
 
     virtual bool
-    canDecode(const wns::ldk::harq::softcombining::Container<wns::scheduler::SchedulingTimeSlotPtr>&);
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr>&);
 private:
 
     std::auto_ptr<wns::distribution::Distribution> dis_;
@@ -63,6 +64,23 @@ private:
     double initialPER_;
 
     double rolloffFactor_;
+
+    wns::logger::Logger logger_;
+};
+
+class ChaseCombiningDecoder:
+    public IDecoder
+{
+public:
+    ChaseCombiningDecoder(const wns::pyconfig::View&);
+
+    virtual bool
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr>&);
+private:
+
+    std::auto_ptr<wns::distribution::Distribution> dis_;
+
+    wns::logger::Logger logger_;
 };
 
 class HARQReceiverProcess
@@ -71,7 +89,7 @@ public:
     HARQReceiverProcess(const wns::pyconfig::View&, HARQEntity*, int processID, int numRVs, const wns::logger::Logger);
 
     bool
-    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&);
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::service::phy::power::PowerMeasurementPtr&);
 
 private:
     HARQEntity* entity_;
@@ -82,7 +100,7 @@ private:
 
     wns::logger::Logger logger_;
 
-    wns::ldk::harq::softcombining::Container<wns::scheduler::SchedulingTimeSlotPtr> receptionBuffer;
+    wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr> receptionBuffer;
 
     IDecoder* decoder_;
 };
@@ -128,7 +146,7 @@ public:
     hasCapacity();
 
     bool
-    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&);
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::service::phy::power::PowerMeasurementPtr&);
 
     void
     enqueueRetransmission(wns::scheduler::SchedulingTimeSlotPtr&);
@@ -174,7 +192,7 @@ public:
      * accomplish duplicate detection and may only process one of the maps
      */
     virtual bool
-    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&);
+    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::service::phy::power::PowerMeasurementPtr&);
 
     virtual wns::scheduler::SchedulingTimeSlotPtr
     nextRetransmission();

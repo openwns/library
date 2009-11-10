@@ -42,15 +42,22 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
     "UniformRandomDecoder",
     wns::PyConfigViewCreator);
 
+STATIC_FACTORY_REGISTER_WITH_CREATOR(
+    ChaseCombiningDecoder,
+    IDecoder,
+    "ChaseCombiningDecoder",
+    wns::PyConfigViewCreator);
+
 UniformRandomDecoder::UniformRandomDecoder(const wns::pyconfig::View& config):
     dis_(new wns::distribution::StandardUniform()),
     initialPER_(config.get<double>("initialPER")),
-    rolloffFactor_(config.get<double>("rolloffFactor"))
+    rolloffFactor_(config.get<double>("rolloffFactor")),
+    logger_(config.get("logger"))
 {
 }
 
 bool
-UniformRandomDecoder::canDecode(const wns::ldk::harq::softcombining::Container<wns::scheduler::SchedulingTimeSlotPtr>& c)
+UniformRandomDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr>& c)
 {
     int numTransmissions = 0;
 
@@ -69,6 +76,72 @@ UniformRandomDecoder::canDecode(const wns::ldk::harq::softcombining::Container<w
     {
         return true;
     }
+    return false;
+}
+
+ChaseCombiningDecoder::ChaseCombiningDecoder(const wns::pyconfig::View& config):
+    dis_(new wns::distribution::StandardUniform()),
+    logger_(config.get("logger"))
+{
+}
+
+bool
+ChaseCombiningDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr>& c)
+{
+    for (int ii=1; ii < c.getNumRVs(); ++ii)
+    {
+        assure(c.getEntriesForRV(ii).size() == 0, "ChaseCombining expects only RV 0 to be used, but " << ii << " is used, too.");
+    }
+    assure(c.getEntriesForRV(0).size() > 0, "Chase combining has no receptions for RV 0.");
+
+    std::list<wns::service::phy::power::PowerMeasurementPtr> pms = c.getEntriesForRV(0);
+    std::list<wns::service::phy::power::PowerMeasurementPtr>::iterator it;
+
+    // Calculate effective MI
+
+    // According to IEEE 802.16m-08/004r5 (PMD) pp. 91 Chase Combinig can be modeled as
+    // follows. Sum up all SINR values in the linear domain for one symbol. From that value
+    // determine the Sum Mutual Information (MI). Calculate the average MI of all symbols.
+    // From this value the PER can be detected according to the coding scheme
+    // Here we do not work on symbols but on subchannels. Currently there is only one of
+    // that, so the averaging is not necessary.
+
+    double sumSINR = 0.0;
+    // For all retransmissions
+    for(it = pms.begin(); it != pms.end(); ++it)
+    {
+        sumSINR += (*it)->getSINR().get_factor();
+    }
+
+    double mi = pms.front()->getPhyMode()->getSINR2MIB(wns::Ratio::from_factor(sumSINR));
+
+    int blocksize = 0;
+    // Get block size
+    for(wns::scheduler::PhysicalResourceBlockVector::iterator it = timeslot->physicalResources.begin();
+        it != timeslot->physicalResources.end();
+        ++it)
+    {
+        for (wns::scheduler::ScheduledCompoundsList::iterator compoundIt = it->scheduledCompounds.begin();
+             compoundIt != it->scheduledCompounds.end();
+            ++compoundIt)
+        {
+            blocksize += compoundIt->compoundPtr->getLengthInBits();
+        }
+    }
+
+    double per = pms.front()->getPhyMode()->getMI2PER(mi, blocksize);
+
+    MESSAGE_BEGIN(NORMAL, logger_, m, "canDecode Average MI=" << mi);
+    m << ", length=" << blocksize;
+    m << ", per=" << per;
+    MESSAGE_END();
+
+    if ((*dis_)() > per)
+    {
+        MESSAGE_SINGLE(NORMAL, logger_, "Decode success");
+        return true;
+    }
+    MESSAGE_SINGLE(NORMAL, logger_, "Decode failed");
     return false;
 }
 
@@ -128,7 +201,7 @@ HARQ::storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr& timeS
 }
 
 bool
-HARQ::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot)
+HARQ::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::service::phy::power::PowerMeasurementPtr& pm)
 {
     MESSAGE_SINGLE(VERBOSE, logger_, "onTimeSlotReceived");
     if (!timeslot->harq.enabled)
@@ -146,7 +219,7 @@ HARQ::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot)
     /**
      * @todo dbn: Need to ask for permission. Use ent->hasCapacity
      */
-    return ent->canDecode(timeslot);
+    return ent->canDecode(timeslot, pm);
 }
 
 wns::scheduler::SchedulingTimeSlotPtr
@@ -219,7 +292,7 @@ HARQEntity::hasCapacity()
 }
 
 bool
-HARQEntity::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot)
+HARQEntity::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::service::phy::power::PowerMeasurementPtr& pm)
 {
     if (!timeslot->harq.enabled)
     {
@@ -227,7 +300,7 @@ HARQEntity::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot)
     }
 
     assure(timeslot->harq.processID < receiverProcesses_.size(), "Invalid receiver process " << timeslot->harq.processID);
-    return receiverProcesses_[timeslot->harq.processID].canDecode(timeslot);
+    return receiverProcesses_[timeslot->harq.processID].canDecode(timeslot, pm);
 }
 
 void
@@ -259,10 +332,10 @@ HARQReceiverProcess::HARQReceiverProcess(const wns::pyconfig::View& config, HARQ
 }
 
 bool
-HARQReceiverProcess::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot)
+HARQReceiverProcess::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::service::phy::power::PowerMeasurementPtr& pm)
 {
     MESSAGE_BEGIN(NORMAL, logger_, m, "HarqReceiverProcess::receive processID_ = " << processID_);
-    m << ",RV = " << timeslot->harq.rv << ", RetryCounter=" << timeslot->harq.retryCounter;
+    m << ",RV = " << timeslot->harq.rv << ", RetryCounter=" << timeslot->harq.retryCounter << ", SINR=" << pm->getSINR();
     MESSAGE_END();
 
     if (timeslot->harq.NDI)
@@ -270,9 +343,9 @@ HARQReceiverProcess::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& time
         receptionBuffer.clear();
     }
 
-    receptionBuffer.appendEntryForRV(timeslot->harq.rv, timeslot);
+    receptionBuffer.appendEntryForRV(timeslot->harq.rv, pm);
 
-    if (decoder_->canDecode(receptionBuffer))
+    if (decoder_->canDecode(timeslot, receptionBuffer))
     {
         timeslot->harq.ackCallback();
         return true;
