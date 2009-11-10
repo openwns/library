@@ -117,9 +117,8 @@ Strategy::setColleagues(queue::QueueInterface* _queue,
     colleagues.queue = _queue;
     colleagues.grouper = _grouper;
     colleagues.registry = _registry;
-    colleagues.harq = _harq;
+    colleagues.harq = _harq; // may be NULL if no HARQ is there.
 
-    //colleagues.harq = _harq; // may be NULL if no HARQ is there.
     assure(dynamic_cast<queue::QueueInterface*>(colleagues.queue), "Need access to the queue");
     assure(dynamic_cast<grouper::GroupingProviderInterface*>(colleagues.grouper), "Need access to the grouper");
     assure(dynamic_cast<RegistryProxyInterface*>(colleagues.registry), "Need access to the registry");
@@ -230,7 +229,6 @@ Strategy::revolveSchedulerState(const StrategyInput& strategyInput)
     assure(colleagues.registry!=NULL,"registry==NULL");
     assure(&strategyInput!=NULL,"strategyInput==NULL");
     schedulerState->currentState = RevolvingStatePtr(new RevolvingState(&strategyInput));
-    //schedulerState->currentState->strategyInput = &strategyInput;
     return schedulerState;
 }
 
@@ -338,7 +336,6 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
         assure(schedulerState->currentState->schedulingMap == strategyInput.inputSchedulingMap,"schedulingMap must be set in revolveSchedulerState()");
     }
     wns::scheduler::SchedulingMapPtr schedulingMap = schedulerState->currentState->schedulingMap; // alias
-    //if (strategyInput.mapInfoEntryFromMaster == MapInfoEntryPtr()) // empty
     if (schedulerState->schedulerSpot != wns::scheduler::SchedulerSpot::ULSlave())
     { // master scheduling
         assure(strategyInput.mapInfoEntryFromMaster == MapInfoEntryPtr(),"mapInfoEntryFromMaster must be NULL");
@@ -490,7 +487,6 @@ Strategy::schedulingMapReady(StrategyResult& strategyResult)
                 }
             } // forall bursts
             bursts->push_back(burst); // only one burst (in slave mode)
-            //} else if (schedulerState->schedulerSpot = wns::scheduler::SchedulerSpot::ULMaster()) { // UL Master
         } else { // Master
             bursts = schedulerState->currentState->bursts;
         }
@@ -535,16 +531,6 @@ Strategy::schedulingMapReady(StrategyResult& strategyResult)
     } // method 2
     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): done ("<<strategyResult.bursts->size()<<" callbacks/mapInfoEntries/bursts).");
 } // schedulingMapReady
-
-/*
-// Attention: RemainingTxPower depends on user in case of RS-RX
-wns::Power
-Strategy::getRemainingTxPower(const wns::scheduler::SchedulingMapPtr schedulingMap, int timeSlot) const
-{
-    wns::Power totalPower = schedulerState->powerCapabilities.maxOverall;
-    return schedulingMap->getRemainingPower(totalPower,timeSlot);
-} // getRemainingTxPower
-*/
 
 MapInfoEntryPtr
 Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
@@ -591,9 +577,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 
     ChannelQualitiesOnAllSubBandsPtr cqiForUser; // SmartPtr (allocated in CQI)
     wns::CandI estimatedCandI;
-    // phyMode may be given by master to slave:
-    //if (schedulerState->defaultPhyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr())
-    //    request.phyModePtr = schedulerState->defaultPhyModePtr;
+
     assure(schedulerState->defaultPhyModePtr == wns::service::phy::phymode::PhyModeInterfacePtr(),
            "defaultPhyModePtr must not be set at this point (either master scheduler or inputSchedulingMap method)");
 
@@ -704,8 +688,8 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         // do adaptive power allocation
         apcResult = colleagues.apcstrategy->doStartAPC(request, schedulerState, schedulingMap);
         // not (yet) possible: if (?==apcstrategy::APCNotFound) return resultMapInfoEntry; // empty means no result
-	    if(apcResult.txPower == wns::Power())
-		    return resultMapInfoEntry; // empty means no result
+        if (apcResult.txPower == wns::Power())
+            return resultMapInfoEntry; // empty means no result
         // fix the proposed phyMode value:
         request.phyModePtr = apcResult.phyModePtr;
         txPower = apcResult.txPower;

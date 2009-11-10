@@ -113,33 +113,49 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
         return mapInfoCollection;
     }
 
-    wns::scheduler::SchedulingTimeSlotPtr timeslot = colleagues.harq->nextRetransmission();
 
-    MESSAGE_SINGLE(NORMAL, logger, "Checking for retransmissions");
-    while(timeslot != NULL)
+    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling: "<<colleagues.harq->getNumberOfRetransmissions()<<" HARQ retransmissions waiting");
+
+    wns::scheduler::SchedulingTimeSlotPtr resourceBlock = colleagues.harq->nextRetransmission();
+    while(resourceBlock != NULL)
     {
-        for (wns::scheduler::SubChannelVector::iterator it = schedulingMap->subChannels.begin();
-             it != schedulingMap->subChannels.end();
-             ++it
+        // iterate over all subchannels:
+        for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin();
+             iterSubChannel != schedulingMap->subChannels.end();
+             ++iterSubChannel
             )
         {
-            if (it->isEmpty())
+            SchedulingSubChannel& subChannel = *iterSubChannel;
+            int subChannelIndex = subChannel.subChannelIndex;
+            for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
             {
-                MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting ");
-                m << " for HARQ process " << timeslot->harq.processID;
-                m << " sent on subchannel " << it->subChannelIndex;
-                MESSAGE_END();
+                SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+                int timeSlotIndex = timeSlotPtr->timeSlotIndex;
+                if (timeSlotPtr->isEmpty())
+                { // free space found. Pack it into.
+                    MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting ");
+                    m << " for HARQ processID=" << resourceBlock->harq.processID;
+                    m << " inside subchannel=" << subChannelIndex<<"."<<timeSlotIndex;
+                    MESSAGE_END();
 
-                /**
-                 * @todo dbn: Maybe enable multiple temporalResources. Check destination users in uplink.
-                 */
-                it->temporalResources[0] = timeslot;
-                it->temporalResources[0]->subChannelIndex = it->subChannelIndex;
-                it->temporalResources[0]->physicalResources[0].subChannelIndex = it->subChannelIndex;
-                break;
+                    /**
+                     * @todo dbn: Maybe enable multiple temporalResources. Check destination users in uplink.
+                     */
+                    iterSubChannel->temporalResources[timeSlotIndex] = resourceBlock;
+                    iterSubChannel->temporalResources[timeSlotIndex]->subChannelIndex = iterSubChannel->subChannelIndex;
+                    // foreach PRB...
+                    for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
+                          iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
+                    {
+                        //iterSubChannel->temporalResources[timeSlotIndex]->physicalResources[0].subChannelIndex = iterSubChannel->subChannelIndex;
+                        iterPRB->subChannelIndex = subChannelIndex;
+                    }
+                    break;
+                }
             }
         }
-        timeslot = colleagues.harq->nextRetransmission();
+        resourceBlock = colleagues.harq->nextRetransmission();
     }
 
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);

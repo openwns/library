@@ -53,6 +53,9 @@ public:
     virtual bool
     canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::service::phy::power::PowerMeasurementPtr&) = 0;
 
+    virtual int
+    getNumberOfRetransmissions() = 0;
+
     virtual wns::scheduler::SchedulingTimeSlotPtr
     nextRetransmission() = 0;
 

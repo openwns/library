@@ -57,13 +57,14 @@ UniformRandomDecoder::UniformRandomDecoder(const wns::pyconfig::View& config):
 }
 
 bool
-UniformRandomDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr>& c)
+UniformRandomDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock,
+                                const SoftCombiningContainer& softCombiningContainer)
 {
     int numTransmissions = 0;
 
-    for (int ii=0; ii < c.getNumRVs(); ++ii)
+    for (int ii=0; ii < softCombiningContainer.getNumRVs(); ++ii)
     {
-        numTransmissions += c.getEntriesForRV(ii).size();
+        numTransmissions += softCombiningContainer.getEntriesForRV(ii).size();
     }
 
     double threshold = pow(initialPER_, numTransmissions * rolloffFactor_);
@@ -86,21 +87,22 @@ ChaseCombiningDecoder::ChaseCombiningDecoder(const wns::pyconfig::View& config):
 }
 
 bool
-ChaseCombiningDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::ldk::harq::softcombining::Container<wns::service::phy::power::PowerMeasurementPtr>& c)
+ChaseCombiningDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock,
+                                 const SoftCombiningContainer& softCombiningContainer)
 {
-    for (int ii=1; ii < c.getNumRVs(); ++ii)
+    for (int ii=1; ii < softCombiningContainer.getNumRVs(); ++ii)
     {
-        assure(c.getEntriesForRV(ii).size() == 0, "ChaseCombining expects only RV 0 to be used, but " << ii << " is used, too.");
+        assure(softCombiningContainer.getEntriesForRV(ii).size() == 0, "ChaseCombining expects only RV 0 to be used, but RV=" << ii << " is used, too.");
     }
-    assure(c.getEntriesForRV(0).size() > 0, "Chase combining has no receptions for RV 0.");
+    assure(softCombiningContainer.getEntriesForRV(0).size() > 0, "Chase combining has no receptions for RV 0.");
 
-    std::list<wns::service::phy::power::PowerMeasurementPtr> pms = c.getEntriesForRV(0);
+    std::list<wns::service::phy::power::PowerMeasurementPtr> pms = softCombiningContainer.getEntriesForRV(0);
     std::list<wns::service::phy::power::PowerMeasurementPtr>::iterator it;
 
     // Calculate effective MI
 
     // According to IEEE 802.16m-08/004r5 (PMD) pp. 91 Chase Combinig can be modeled as
-    // follows. Sum up all SINR values in the linear domain for one symbol. From that value
+    // follows. Sum up all SINR values in the linear domain (power, not dB) for one symbol. From that value
     // determine the Sum Mutual Information (MI). Calculate the average MI of all symbols.
     // From this value the PER can be detected according to the coding scheme
     // Here we do not work on symbols but on subchannels. Currently there is only one of
@@ -113,12 +115,12 @@ ChaseCombiningDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& ti
         sumSINR += (*it)->getSINR().get_factor();
     }
 
-    double mi = pms.front()->getPhyMode()->getSINR2MIB(wns::Ratio::from_factor(sumSINR));
+    double mib = pms.front()->getPhyMode()->getSINR2MIB(wns::Ratio::from_factor(sumSINR));
 
     int blocksize = 0;
     // Get block size
-    for(wns::scheduler::PhysicalResourceBlockVector::iterator it = timeslot->physicalResources.begin();
-        it != timeslot->physicalResources.end();
+    for(wns::scheduler::PhysicalResourceBlockVector::iterator it = resourceBlock->physicalResources.begin();
+        it != resourceBlock->physicalResources.end();
         ++it)
     {
         for (wns::scheduler::ScheduledCompoundsList::iterator compoundIt = it->scheduledCompounds.begin();
@@ -129,9 +131,10 @@ ChaseCombiningDecoder::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& ti
         }
     }
 
-    double per = pms.front()->getPhyMode()->getMI2PER(mi, blocksize);
+    double per = pms.front()->getPhyMode()->getMI2PER(mib, blocksize);
+    /** @todo: [rs]: check if MIB or MI is expected here ^^^ */
 
-    MESSAGE_BEGIN(NORMAL, logger_, m, "canDecode Average MI=" << mi);
+    MESSAGE_BEGIN(NORMAL, logger_, m, "canDecode Average MIB=" << mib);
     m << ", length=" << blocksize;
     m << ", per=" << per;
     MESSAGE_END();
@@ -159,68 +162,82 @@ HARQ::~HARQ()
 }
 
 void
-HARQ::storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr& timeSlot)
+HARQ::storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock)
 {
     MESSAGE_SINGLE(VERBOSE, logger_, "storeSchedulingMap");
 
-    if (!timeSlot->harq.enabled)
+    if (!resourceBlock->harq.enabled)
     {
         MESSAGE_SINGLE(VERBOSE, logger_, "storeSchedulingMap: HARQ is disabled. Skipping.");
         return;
     }
 
-    if (timeSlot->isEmpty())
+    if (resourceBlock->isEmpty())
     {
         MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingMap: time slot is empty");
         return;
     }
 
-    if (!timeSlot->harq.NDI)
+    if (!resourceBlock->harq.NDI)
     {
         MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingMap: Found a retransmission. Skipping.");
         return;
     }
 
     /**
-     * @todo dbn: Check if timeSlot->getUserID is right in uplink
+     * @todo dbn: Check if resourceBlock->getUserID is right in uplink
      */
-    if (!harqEntities_.knows(timeSlot->getUserID()))
+    if (!harqEntities_.knows(resourceBlock->getUserID()))
     {
-        MESSAGE_SINGLE(NORMAL, logger_, "Creating new HARQEntity for UserID " << timeSlot->getUserID()->getName() );
-        harqEntities_.insert(timeSlot->getUserID(), new HARQEntity(config_.get("harqEntity"), numSenderProcesses_, numReceiverProcesses_, numRVs_, logger_));
+        MESSAGE_SINGLE(NORMAL, logger_, "Creating new HARQEntity for UserID " << resourceBlock->getUserID()->getName() );
+        harqEntities_.insert(resourceBlock->getUserID(), new HARQEntity(config_.get("harqEntity"), numSenderProcesses_, numReceiverProcesses_, numRVs_, logger_));
     }
 
-    HARQEntity* ent = harqEntities_.find(timeSlot->getUserID());
-    assure(ent->hasCapacity(), "The HARQ Entity for user " << timeSlot->getUserID()->getName() << " does not have anymore capacity!");
+    HARQEntity* ent = harqEntities_.find(resourceBlock->getUserID());
+    assure(ent->hasCapacity(), "The HARQ Entity for user " << resourceBlock->getUserID()->getName() << " does not have anymore capacity!");
 
     // now store the SchedulingTimeSlotPtr
     /**
      * @todo dbn: Need to ask for permission. Use ent->hasCapacity
      */
-    ent->newTransmission(timeSlot);
+    ent->newTransmission(resourceBlock);
 }
 
 bool
-HARQ::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::service::phy::power::PowerMeasurementPtr& pm)
+HARQ::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock, const wns::service::phy::power::PowerMeasurementPtr& pm)
 {
     MESSAGE_SINGLE(VERBOSE, logger_, "onTimeSlotReceived");
-    if (!timeslot->harq.enabled)
+    if (!resourceBlock->harq.enabled)
     {
         MESSAGE_SINGLE(VERBOSE, logger_, "onTimeSlotReceived: HARQ is disabled. Skipping.");
         return true;
     }
 
-    if (!harqEntities_.knows(timeslot->getUserID()))
+    if (!harqEntities_.knows(resourceBlock->getUserID()))
     {
-        MESSAGE_SINGLE(NORMAL, logger_, "Creating new HARQEntity for UserID " << timeslot->getUserID()->getName() );
-        harqEntities_.insert(timeslot->getUserID(), new HARQEntity(config_.get("harqEntity"), numSenderProcesses_, numReceiverProcesses_, numRVs_, logger_));
+        MESSAGE_SINGLE(NORMAL, logger_, "Creating new HARQEntity for UserID " << resourceBlock->getUserID()->getName() );
+        harqEntities_.insert(resourceBlock->getUserID(), new HARQEntity(config_.get("harqEntity"), numSenderProcesses_, numReceiverProcesses_, numRVs_, logger_));
     }
-    HARQEntity* ent = harqEntities_.find(timeslot->getUserID());
+    HARQEntity* ent = harqEntities_.find(resourceBlock->getUserID());
     /**
      * @todo dbn: Need to ask for permission. Use ent->hasCapacity
      */
-    return ent->canDecode(timeslot, pm);
+    return ent->canDecode(resourceBlock, pm);
 }
+
+int
+HARQ::getNumberOfRetransmissions()
+{
+    int numberOfRetransmissions=0;
+    for (HARQEntityContainer::const_iterator it = harqEntities_.begin();
+         it != harqEntities_.end();
+         ++it)
+    { // foreach user
+        numberOfRetransmissions += it->second->getNumberOfRetransmissions();
+    }
+    return numberOfRetransmissions;
+}
+
 
 wns::scheduler::SchedulingTimeSlotPtr
 HARQ::nextRetransmission()
@@ -228,7 +245,7 @@ HARQ::nextRetransmission()
     for (HARQEntityContainer::const_iterator it = harqEntities_.begin();
          it != harqEntities_.end();
          ++it)
-    {
+    { // foreach user
         wns::scheduler::SchedulingTimeSlotPtr r;
         r = it->second->nextRetransmission();
         if (r != NULL)
@@ -257,9 +274,9 @@ HARQEntity::HARQEntity(const wns::pyconfig::View& config, int numSenderProcesses
 }
 
 void
-HARQEntity::newTransmission(const wns::scheduler::SchedulingTimeSlotPtr& timeslot)
+HARQEntity::newTransmission(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock)
 {
-    if (!timeslot->harq.enabled)
+    if (!resourceBlock->harq.enabled)
     {
         return;
     }
@@ -271,7 +288,7 @@ HARQEntity::newTransmission(const wns::scheduler::SchedulingTimeSlotPtr& timeslo
     {
         if (senderProcesses_[ii].hasCapacity())
         {
-            senderProcesses_[ii].newTransmission(timeslot);
+            senderProcesses_[ii].newTransmission(resourceBlock);
             break;
         }
     }
@@ -292,21 +309,27 @@ HARQEntity::hasCapacity()
 }
 
 bool
-HARQEntity::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::service::phy::power::PowerMeasurementPtr& pm)
+HARQEntity::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock, const wns::service::phy::power::PowerMeasurementPtr& pm)
 {
-    if (!timeslot->harq.enabled)
+    if (!resourceBlock->harq.enabled)
     {
         return true;
     }
 
-    assure(timeslot->harq.processID < receiverProcesses_.size(), "Invalid receiver process " << timeslot->harq.processID);
-    return receiverProcesses_[timeslot->harq.processID].canDecode(timeslot, pm);
+    assure(resourceBlock->harq.processID < receiverProcesses_.size(), "Invalid receiver process " << resourceBlock->harq.processID);
+    return receiverProcesses_[resourceBlock->harq.processID].canDecode(resourceBlock, pm);
 }
 
 void
-HARQEntity::enqueueRetransmission(wns::scheduler::SchedulingTimeSlotPtr& timeslot)
+HARQEntity::enqueueRetransmission(wns::scheduler::SchedulingTimeSlotPtr& resourceBlock)
 {
-    pendingRetransmissions_.push_back(timeslot);
+    pendingRetransmissions_.push_back(resourceBlock);
+}
+
+int
+HARQEntity::getNumberOfRetransmissions()
+{
+    return pendingRetransmissions_.size();
 }
 
 wns::scheduler::SchedulingTimeSlotPtr
@@ -332,27 +355,27 @@ HARQReceiverProcess::HARQReceiverProcess(const wns::pyconfig::View& config, HARQ
 }
 
 bool
-HARQReceiverProcess::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& timeslot, const wns::service::phy::power::PowerMeasurementPtr& pm)
+HARQReceiverProcess::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock, const wns::service::phy::power::PowerMeasurementPtr& pm)
 {
     MESSAGE_BEGIN(NORMAL, logger_, m, "HarqReceiverProcess::receive processID_ = " << processID_);
-    m << ",RV = " << timeslot->harq.rv << ", RetryCounter=" << timeslot->harq.retryCounter << ", SINR=" << pm->getSINR();
+    m << ",RV = " << resourceBlock->harq.rv << ", RetryCounter=" << resourceBlock->harq.retryCounter << ", SINR=" << pm->getSINR();
     MESSAGE_END();
 
-    if (timeslot->harq.NDI)
+    if (resourceBlock->harq.NDI)
     {
         receptionBuffer.clear();
     }
 
-    receptionBuffer.appendEntryForRV(timeslot->harq.rv, pm);
+    receptionBuffer.appendEntryForRV(resourceBlock->harq.rv, pm);
 
-    if (decoder_->canDecode(timeslot, receptionBuffer))
+    if (decoder_->canDecode(resourceBlock, receptionBuffer))
     {
-        timeslot->harq.ackCallback();
+        resourceBlock->harq.ackCallback();
         return true;
     }
     else
     {
-        timeslot->harq.nackCallback();
+        resourceBlock->harq.nackCallback();
         return false;
     }
 }
@@ -362,39 +385,39 @@ HARQSenderProcess::HARQSenderProcess(HARQEntity* entity, int processID, int numR
     processID_(processID),
     numRVs_(numRVs),
     logger_(logger),
-    timeslot_()
+    resourceBlock_()
 {
 }
 
 void
-HARQSenderProcess::newTransmission(const wns::scheduler::SchedulingTimeSlotPtr& timeslot)
+HARQSenderProcess::newTransmission(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock)
 {
-    assure(timeslot_ == NULL, "HARQ Process " << processID_ << " is busy but you wanted to start a new transmission!");
-    timeslot_ = timeslot;
-    timeslot->harq.processID = processID_;
-    timeslot->harq.rv = 0;
-    timeslot->harq.ackCallback = boost::bind(&HARQSenderProcess::ACK, this);
-    timeslot->harq.nackCallback = boost::bind(&HARQSenderProcess::NACK, this);
+    assure(resourceBlock_ == NULL, "HARQ Process " << processID_ << " is busy but you wanted to start a new transmission!");
+    resourceBlock_ = resourceBlock;
+    resourceBlock->harq.processID = processID_;
+    resourceBlock->harq.rv = 0;
+    resourceBlock->harq.ackCallback = boost::bind(&HARQSenderProcess::ACK, this);
+    resourceBlock->harq.nackCallback = boost::bind(&HARQSenderProcess::NACK, this);
 }
 
 bool
 HARQSenderProcess::hasCapacity()
 {
-    return (timeslot_ == NULL);
+    return (resourceBlock_ == NULL);
 }
 
 void
 HARQSenderProcess::ACK()
 {
     MESSAGE_SINGLE(NORMAL, logger_, "HARQ process " << processID_ << " received ACK");
-    timeslot_ = wns::scheduler::SchedulingTimeSlotPtr();
+    resourceBlock_ = wns::scheduler::SchedulingTimeSlotPtr();
 }
 
 void
 HARQSenderProcess::NACK()
 {
     MESSAGE_SINGLE(NORMAL, logger_, "HARQ process " << processID_ << " received NACK");
-    timeslot_->harq.NDI = false;
-    timeslot_->harq.retryCounter++;
-    entity_->enqueueRetransmission(timeslot_);
+    resourceBlock_->harq.NDI = false;
+    resourceBlock_->harq.retryCounter++;
+    entity_->enqueueRetransmission(resourceBlock_);
 }
