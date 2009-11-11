@@ -63,3 +63,12 @@ class Soft(SAR):
         super(Soft, self).__init__(segmentSize, **kw)
         self.PERProvider = PERProviderName
         self.logger = Logger('WNS','SoftSAR',True, parentLogger)
+
+class DynamicSAR(openwns.FUN.FunctionalUnit):
+    __plugin__ = 'wns.sar.DynamicSAR'
+    name = 'Dynamic SAR'
+    searchAlgo = 'wns.search.SimpleBinarySearch'
+
+    def __init__(self, maxSegmentSize, parentLogger = None, **kw):
+        self.maxSegmentSize = maxSegmentSize
+        self.logger = Logger('WNS','DynamicSAR',True, parentLogger)

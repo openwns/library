@@ -241,6 +241,9 @@ srcFiles = [
     'src/service/phy/phymode/MI2PERInterface.cpp',
     'src/service/phy/phymode/PhyModeMapperInterface.cpp',
 
+    'src/search/SimpleBinarySearch.cpp',
+    'src/search/tests/SimpleBinarySearchTest.cpp',
+
     # scheduler framework
     # the groupers
     'src/scheduler/grouper/NoGrouper.cpp',
@@ -408,6 +411,7 @@ srcFiles = [
     # ldk.SAR
     'src/ldk/sar/Fixed.cpp',
     'src/ldk/sar/Soft.cpp',
+    'src/ldk/sar/DynamicSAR.cpp',
 
     # ldk.Concatenation
     'src/ldk/concatenation/Concatenation.cpp',
@@ -500,6 +504,7 @@ srcFiles = [
     'src/ldk/buffer/tests/BoundedTest.cpp',
     'src/ldk/buffer/tests/DroppingTest.cpp',
     'src/ldk/sar/tests/FixedTest.cpp',
+    'src/ldk/sar/tests/DynamicSARTest.cpp',
     'src/ldk/tools/tests/ForwarderTest.cpp',
     'src/ldk/tools/tests/ProducerTest.cpp',
     'src/ldk/tools/tests/ConsumerTest.cpp',
@@ -704,6 +709,7 @@ hppFiles = [
 'src/ldk/sar/Fixed.hpp',
 'src/ldk/sar/SAR.hpp',
 'src/ldk/sar/Soft.hpp',
+'src/ldk/sar/DynamicSAR.hpp',
 'src/ldk/SequentlyCallingLinkHandler.hpp',
 'src/ldk/SimpleLinkHandler.hpp',
 'src/ldk/SingleConnector.hpp',
@@ -894,6 +900,9 @@ hppFiles = [
 'src/service/phy/copper/DataTransmission.hpp',
 'src/service/phy/copper/Handler.hpp',
 'src/service/phy/copper/Notification.hpp',
+'src/search/ISearch.hpp',
+'src/search/SearchCreator.hpp',
+'src/search/SimpleBinarySearch.hpp',
 'src/scheduler/CallBackInterface.hpp',
 'src/scheduler/grouper/AllPossibleGroupsGrouper.hpp',
 'src/scheduler/grouper/DoAGrouper.hpp',

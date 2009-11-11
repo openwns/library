@@ -47,7 +47,8 @@ StubBase::StubBase() :
 		stepping(false),
 		accepting(true),
 		addToPCISize(0),
-		addToPDUSize(0)
+                addToPDUSize(0),
+                compoundAcceptanceSize(0)
 {
 }
 
@@ -68,6 +69,13 @@ StubBase::setSizes(Bit _addToPCISize, Bit _addToPDUSize)
 {
 	addToPCISize = _addToPCISize;
 	addToPDUSize = _addToPDUSize;
+}
+
+
+void
+StubBase::setAcceptanceSize(Bit compoundSize)
+{
+	compoundAcceptanceSize = compoundSize;
 }
 
 
@@ -111,6 +119,19 @@ StubBase::doIsAccepting(const CompoundPtr& compound) const
 	{
 		return false;
 	}
+
+        if (compoundAcceptanceSize > 0)
+        {
+            Bit commandPoolSize = 0;
+            Bit dataSize = 0;
+
+            CompoundPtr compoundCopy = compound->copy();
+            activateCommand(compoundCopy->getCommandPool());
+            getFUN()->calculateSizes(compoundCopy->getCommandPool(), commandPoolSize, dataSize, this);
+
+            if(commandPoolSize + dataSize > compoundAcceptanceSize)
+                return false;
+        }
 
 	if(getConnector()->size() == 0)
 	{
@@ -206,7 +227,8 @@ StubBase::integrityCheck()
 Stub::Stub(fun::FUN* fuNet, const pyconfig::View& /* config */) :
 	StubBase(),
 	CommandTypeSpecifier<StubCommand>(fuNet),
-	Cloneable<Stub>()
+        Cloneable<Stub>(),
+        sequenceNumber(0)
 {
 }
 
@@ -222,6 +244,8 @@ Stub::doSendData(const CompoundPtr& compound)
 		}
 		StubCommand* sc = this->getCommand(compound->getCommandPool());
 		sc->magic.sendDataTime = wns::simulator::getEventScheduler()->getTime();
+                sc->magic.sequenceNumber = sequenceNumber;
+                sequenceNumber++;
 	}
 	StubBase::doSendData(compound);
 }
