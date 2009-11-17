@@ -113,50 +113,65 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
         return mapInfoCollection;
     }
 
-
-    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling: "<<colleagues.harq->getNumberOfRetransmissions()<<" HARQ retransmissions waiting");
-
-    wns::scheduler::SchedulingTimeSlotPtr resourceBlock = colleagues.harq->nextRetransmission();
-    while(resourceBlock != NULL)
-    {
-        // iterate over all subchannels:
-        for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin();
-             iterSubChannel != schedulingMap->subChannels.end();
-             ++iterSubChannel
-            )
+    int numberOfRetransmissions = colleagues.harq->getNumberOfRetransmissions();
+    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling: "<<numberOfRetransmissions<<" HARQ retransmissions waiting");
+    if (numberOfRetransmissions>0) {
+        wns::scheduler::SchedulingTimeSlotPtr resourceBlock = colleagues.harq->nextRetransmission();
+        while(resourceBlock != NULL)
         {
-            SchedulingSubChannel& subChannel = *iterSubChannel;
-            int subChannelIndex = subChannel.subChannelIndex;
-            for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+            bool foundSpace=false;
+            // iterate over all subchannels (like Linear Frequency First DSA Strategy):
+            for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin();
+                 iterSubChannel != schedulingMap->subChannels.end();
+                 ++iterSubChannel
+                )
             {
-                SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
-                int timeSlotIndex = timeSlotPtr->timeSlotIndex;
-                if (timeSlotPtr->isEmpty())
-                { // free space found. Pack it into.
-                    MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting ");
-                    m << " for HARQ processID=" << resourceBlock->harq.processID;
-                    m << " inside subchannel=" << subChannelIndex<<"."<<timeSlotIndex;
-                    MESSAGE_END();
-
-                    /**
-                     * @todo dbn: Maybe enable multiple temporalResources. Check destination users in uplink.
-                     */
-                    iterSubChannel->temporalResources[timeSlotIndex] = resourceBlock;
-                    iterSubChannel->temporalResources[timeSlotIndex]->subChannelIndex = iterSubChannel->subChannelIndex;
-                    // foreach PRB...
-                    for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
-                          iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
-                    {
-                        //iterSubChannel->temporalResources[timeSlotIndex]->physicalResources[0].subChannelIndex = iterSubChannel->subChannelIndex;
-                        iterPRB->subChannelIndex = subChannelIndex;
-                    }
-                    break;
-                }
-            }
-        }
-        resourceBlock = colleagues.harq->nextRetransmission();
-    }
+                SchedulingSubChannel& subChannel = *iterSubChannel;
+                int subChannelIndex = subChannel.subChannelIndex;
+                for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+                      iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+                {
+                    SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+                    int timeSlotIndex = timeSlotPtr->timeSlotIndex;
+                    if (timeSlotPtr->isEmpty())
+                    { // free space found. Pack it into.
+                        MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting");
+                        m << " HARQ block (processID=" << resourceBlock->harq.processID<<")";
+                        m << " inside subchannel.timeslot=" << subChannelIndex<<"."<<timeSlotIndex;
+                        m << " (ex "<<resourceBlock->subChannelIndex<<"."<<resourceBlock->timeSlotIndex<<")";
+                        MESSAGE_END();
+                        assure(resourceBlock->subChannelIndex==resourceBlock->physicalResources[0].subChannelIndex,
+                               "mismatch of subChannelIndex: "<<resourceBlock->subChannelIndex<<"!="<<resourceBlock->physicalResources[0].subChannelIndex);
+                        assure(resourceBlock->timeSlotIndex==resourceBlock->physicalResources[0].timeSlotIndex,
+                               "mismatch of timeSlotIndex: "<<resourceBlock->timeSlotIndex<<"!="<<resourceBlock->physicalResources[0].timeSlotIndex);
+                        assure (resourceBlock != wns::scheduler::SchedulingTimeSlotPtr(),"resourceBlock==NULL");
+                        iterSubChannel->temporalResources[timeSlotIndex] = resourceBlock; // copy Smartptr over
+                        // at this point timeSlotPtr is no longer valid for use! Only resourceBlock
+                        //iterSubChannel->temporalResources[timeSlotIndex]->subChannelIndex = subChannelIndex;
+                        resourceBlock->subChannelIndex = subChannelIndex;
+                        resourceBlock->timeSlotIndex = timeSlotIndex;
+                        assure(resourceBlock->physicalResources.size()==resourceBlock->numberOfBeams,
+                               "mismatch in spatial domain: "<<resourceBlock->physicalResources.size()<<"!="<<resourceBlock->numberOfBeams);
+                        // foreach PRB... fix subChannelIndex
+                        for ( PhysicalResourceBlockVector::iterator iterPRB = resourceBlock->physicalResources.begin();
+                              iterPRB != resourceBlock->physicalResources.end(); ++iterPRB)
+                        {
+                            int spatialIndex = iterPRB->beamIndex;
+                            MESSAGE_SINGLE(NORMAL, logger, "PRB["<<spatialIndex<<"]: Adjusting subChannelIndex from "<<iterPRB->subChannelIndex<<" to "<<subChannelIndex);
+                            iterPRB->subChannelIndex = subChannelIndex;
+                            iterPRB->timeSlotIndex = timeSlotIndex;
+                        }
+                        // end the loops:
+                        foundSpace=true;
+                        break; // found a space, so end the loops
+                    } // if free space found
+                    if (foundSpace) break;
+                } // forall timeSlots
+                if (foundSpace) break;
+            }// forall subChannels
+            resourceBlock = colleagues.harq->nextRetransmission();
+        } // while
+    } // if
 
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
 
