@@ -109,12 +109,13 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
     if(colleagues.harq == NULL)
     {
         MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
-
+        MESSAGE_SINGLE(NORMAL, logger, "colleagues.harq==NULL is illegal. Please choose another strategy than HARQRetransmission");
         return mapInfoCollection;
     }
+    assure(colleagues.harq!=NULL,"colleagues.harq==NULL is illegal. Please choose another strategy than HARQRetransmission");
 
     int numberOfRetransmissions = colleagues.harq->getNumberOfRetransmissions();
-    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling: "<<numberOfRetransmissions<<" HARQ retransmissions waiting");
+    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling: "<<numberOfRetransmissions<<" HARQ retransmission(s) waiting");
     if (numberOfRetransmissions>0) {
         wns::scheduler::SchedulingTimeSlotPtr resourceBlock = colleagues.harq->nextRetransmission();
         while(resourceBlock != NULL)
@@ -136,8 +137,9 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                     if (timeSlotPtr->isEmpty())
                     { // free space found. Pack it into.
                         MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting");
-                        m << " HARQ block (processID=" << resourceBlock->harq.processID<<")";
-                        m << " inside subchannel.timeslot=" << subChannelIndex<<"."<<timeSlotIndex;
+                        m << " HARQ block ("<<resourceBlock->getUserID()->getName()<<",processID=" << resourceBlock->harq.processID;
+                        m <<",Retry="<<resourceBlock->harq.retryCounter<<")";
+                        m << " inside subchannel.timeslot=" <<subChannelIndex<<"."<<timeSlotIndex;
                         m << " (ex "<<resourceBlock->subChannelIndex<<"."<<resourceBlock->timeSlotIndex<<")";
                         MESSAGE_END();
                         assure(resourceBlock->subChannelIndex==resourceBlock->physicalResources[0].subChannelIndex,
@@ -147,7 +149,6 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                         assure (resourceBlock != wns::scheduler::SchedulingTimeSlotPtr(),"resourceBlock==NULL");
                         iterSubChannel->temporalResources[timeSlotIndex] = resourceBlock; // copy Smartptr over
                         // at this point timeSlotPtr is no longer valid for use! Only resourceBlock
-                        //iterSubChannel->temporalResources[timeSlotIndex]->subChannelIndex = subChannelIndex;
                         resourceBlock->subChannelIndex = subChannelIndex;
                         resourceBlock->timeSlotIndex = timeSlotIndex;
                         assure(resourceBlock->physicalResources.size()==resourceBlock->numberOfBeams,
@@ -157,7 +158,7 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                               iterPRB != resourceBlock->physicalResources.end(); ++iterPRB)
                         {
                             int spatialIndex = iterPRB->beamIndex;
-                            MESSAGE_SINGLE(NORMAL, logger, "PRB["<<spatialIndex<<"]: Adjusting subChannelIndex from "<<iterPRB->subChannelIndex<<" to "<<subChannelIndex);
+                            MESSAGE_SINGLE(NORMAL, logger, subChannelIndex<<"."<<timeSlotIndex<<".PRB["<<spatialIndex<<"]: Adjusting subChannelIndex from "<<iterPRB->subChannelIndex<<" to "<<subChannelIndex);
                             iterPRB->subChannelIndex = subChannelIndex;
                             iterPRB->timeSlotIndex = timeSlotIndex;
                         }

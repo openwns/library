@@ -41,6 +41,22 @@ namespace wns { namespace scheduler {
         namespace strategy {
             class RequestForResource; /** @see SchedulerState.hpp */
         }
+
+            struct HARQInfo {
+                HARQInfo() : NDI(true), enabled(false), processID(0), rv(0), retryCounter(0) {}
+                /**
+                 * @brief New Data Indication flag
+                 */
+                bool NDI;
+                bool enabled;
+                int processID;
+                int rv;
+                int retryCounter;
+                boost::function<void ()> ackCallback;
+                boost::function<void ()> nackCallback;
+            };
+
+
         /** @brief class to describe the contents of a SchedulingSubChannel */
         class SchedulingCompound
         {
@@ -90,7 +106,7 @@ namespace wns { namespace scheduler {
             //wns::CandI estimatedCandI; // not supported yet
         }; // SchedulingCompound
 
-    typedef SmartPtr<SchedulingCompound> SchedulingCompoundPtr;
+        typedef SmartPtr<SchedulingCompound> SchedulingCompoundPtr;
         typedef std::list<SchedulingCompound> ScheduledCompoundsList;
 
         /** @brief class to describe one PhysicalResourceBlock.
@@ -169,6 +185,8 @@ namespace wns { namespace scheduler {
             void processMasterMap();
             /** @brief checks if there are UL resources available for given user */
             bool hasResourcesForUser(wns::scheduler::UserID user) const;
+            /** @brief determine the length in bits stored in this resource */
+            int getNetBlockSizeInBits() const;
 
         public:
             /** @brief my own subChannelIndex as seen from outside (container) */
@@ -243,6 +261,8 @@ namespace wns { namespace scheduler {
             void processMasterMap();
             /** @brief checks if there are UL resources available for given user */
             bool hasResourcesForUser(wns::scheduler::UserID user) const;
+            /** @brief determine the length in bits stored in this resource */
+            int getNetBlockSizeInBits() const;
         public:
             /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
             PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
@@ -260,20 +280,6 @@ namespace wns { namespace scheduler {
             simTimeType timeSlotStartTime;
             /** @brief isUsable = flag to exclude certain resources from DSA */
             bool timeSlotIsUsable;
-
-            struct HARQInfo {
-                HARQInfo() : NDI(true), enabled(false), processID(0), rv(0), retryCounter(0) {}
-                /**
-                 * @brief New Data Indication flag
-                 */
-                bool NDI;
-                bool enabled;
-                int processID;
-                int rv;
-                int retryCounter;
-                boost::function<void ()> ackCallback;
-                boost::function<void ()> nackCallback;
-            };
 
             HARQInfo harq;
 

@@ -466,9 +466,28 @@ PhysicalResourceBlock::processMasterMap()
     assure(scheduledCompounds.size() == 0,"scheduledCompounds is not empty but must be");
 }
 
-bool PhysicalResourceBlock::hasResourcesForUser(wns::scheduler::UserID user) const
+bool
+PhysicalResourceBlock::hasResourcesForUser(wns::scheduler::UserID user) const
 {
     return (user == userID);
+}
+
+int
+PhysicalResourceBlock::getNetBlockSizeInBits() const
+{
+    if ( nextPosition>0.0 ) // not empty
+    {
+        if (scheduledCompounds.size() > 0)
+        {
+            int totalbits = 0;
+            for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+            {
+                totalbits += iter->compoundPtr->getLengthInBits();
+            }
+            return totalbits;
+        }
+    }
+    return 0;
 }
 
 /**************************************************************/
@@ -666,6 +685,17 @@ SchedulingTimeSlot::hasResourcesForUser(wns::scheduler::UserID user) const
             return true;
     }
     return false;
+}
+
+int
+SchedulingTimeSlot::getNetBlockSizeInBits() const
+{
+    int netBits = 0;
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        netBits += physicalResources[beamIndex].getNetBlockSizeInBits();
+    }
+    return netBits;
 }
 
 /**************************************************************/
