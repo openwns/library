@@ -38,9 +38,6 @@
 
 
 namespace wns { namespace scheduler { namespace grouper {
-
-	class wns::Power;
-
 	/// GroupingProviderInterface defines the functions to be provided by every
 	/// spatial grouper.
 

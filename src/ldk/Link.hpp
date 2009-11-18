@@ -65,7 +65,7 @@ namespace wns { namespace ldk {
             /**
              * @brief Return number of FUs added.
              */
-            virtual uint32_t size() const = 0;
+            virtual size_t size() const = 0;
 
             /**
              * @brief Return set of stored FUs.

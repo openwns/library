@@ -127,15 +127,18 @@ BottleNeckDetective::periodically()
 		itr != compounds.end();
 		++itr)
 	{
-		Visit v = *(itr->second->getJourney().rbegin());
-		if(countCompounds.find(v.location) != countCompounds.end())
-		{
-			countCompounds[v.location]++;
-		}
-		else
-		{
-			countCompounds[v.location] = 0;
-		}
+        if(!itr->second->getJourney().empty())
+        {
+		    Visit v = *(itr->second->getJourney().rbegin());
+		    if(countCompounds.find(v.location) != countCompounds.end())
+		    {
+			    countCompounds[v.location]++;
+		    }
+		    else
+		    {
+			    countCompounds[v.location] = 0;
+		    }
+        }
 	}
 
 	std::multimap<int, std::string> countCompoundsSorted;
