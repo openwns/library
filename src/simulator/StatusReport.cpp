@@ -85,10 +85,16 @@ void StatusReport::start(const pyconfig::View& _pyConfigView)
 	}
 	progressFile.close();
 
- 	// register memConsumption Probe
+    // register memConsumption Probe
     memoryConsumption = wns::probe::bus::ContextCollectorPtr(
         new wns::probe::bus::ContextCollector(wns::probe::bus::ContextProviderCollection(),
                                               _pyConfigView.get<std::string>("memConsumptionProbeBusName")));
+
+    // register simTime Probe
+    simTimePerRealTime = wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(wns::probe::bus::ContextProviderCollection(),
+                                              _pyConfigView.get<std::string>("simTimeProbeBusName")));
+
 	this->writeStatus(false);
 	this->startPeriodicTimeout(_pyConfigView.get<double>("statusWriteInterval"));
 }
@@ -233,8 +239,8 @@ void StatusReport::writeStatus(bool anEndOfSimFlag, std::string otherFileName)
 void
 StatusReport::probe()
 {
- 	if (memoryConsumption != NULL)
-	{
+    if (memoryConsumption != NULL)
+    {
 		std::ifstream in( "/proc/self/statm");
 		uint32_t sizeInPages(0);
 		in >> sizeInPages;
@@ -243,4 +249,14 @@ StatusReport::probe()
 		uint32_t vmemUsage = pagesize * sizeInPages / 1024; // express in kB
  		memoryConsumption->put(vmemUsage);
 	}
+
+    if (simTimePerRealTime != NULL)
+    {
+        double curSimTime =  wns::simulator::getEventScheduler()->getTime();
+        time_t curTime = time(NULL);                
+        double deltaSeconds = double(curTime - startTime);
+        if(deltaSeconds > 0.0)
+            simTimePerRealTime->put(curSimTime / deltaSeconds);
+    }
+
 }
