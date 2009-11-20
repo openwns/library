@@ -409,11 +409,18 @@ PhysicalResourceBlock::toString() const
     return s.str();
 } // toString
 
+int
+PhysicalResourceBlock::countScheduledCompounds() const
+{
+    return scheduledCompounds.size();
+}
+
 bool
 PhysicalResourceBlock::isEmpty() const
 {
     // nextPosition can be 0.0 in a master schedulingMap, although phyMode and user is set
     // so this && check is necessary in the master schedulers
+    // For the uplink the master map entries have isEmpty==false because nextPosition>0 and PhyMode set.
     return ((nextPosition==0.0) &&
             (phyModePtr==wns::service::phy::phymode::PhyModeInterfacePtr()));
 }
@@ -443,7 +450,7 @@ PhysicalResourceBlock::deleteCompounds()
 void
 PhysicalResourceBlock::grantFullResources()
 {
-    // extend UL resource size to full length, so that UT can make use of it.
+    // Used in MasterMap: extend UL resource size to full length, so that UT can make use of it.
     if (!isEmpty())
     {
         // with these values the resourceUsage statistics counts the full resource:
@@ -455,7 +462,7 @@ PhysicalResourceBlock::grantFullResources()
 void
 PhysicalResourceBlock::processMasterMap()
 {
-    // extend UL resource size to full length, so that UT can make use of it.
+    // Used in MasterMap: Extend UL resource size to full length, so that UT can make use of it.
     if (!isEmpty())
     {
         scheduledCompounds.clear();
@@ -565,6 +572,17 @@ SchedulingTimeSlot::getFreeTime() const
         freeTime += physicalResources[beamIndex].getFreeTime();
     }
     return freeTime;
+}
+
+int
+SchedulingTimeSlot::countScheduledCompounds() const
+{
+    int count=0;
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        count += physicalResources[beamIndex].countScheduledCompounds();
+    }
+    return count;
 }
 
 bool

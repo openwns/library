@@ -163,7 +163,10 @@ namespace wns { namespace scheduler {
             /** @brief output structure (machine readable table for Matlab,Gnuplot,etc) */
             std::string dumpContents(const std::string& prefix) const;
 
-            /** @brief true if there is nothing scheduled in this block.
+            /** @brief number of compunds inside this resource */
+            int countScheduledCompounds() const;
+            /** @brief true if there is nothing reserved(scheduled) in this block (DL).
+                For the uplink the master map entries have isEmpty==false.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
             /** @brief get userID this resource has been reserved for or NULL if empty */
@@ -235,7 +238,10 @@ namespace wns { namespace scheduler {
             simTimeType getUsedTime() const;
             /** @brief total free time on this SchedulingTimeSlot */
             simTimeType getFreeTime() const;
-            /** @brief true if there is nothing scheduled in this block.
+            /** @brief number of compunds inside this resource */
+            int countScheduledCompounds() const;
+            /** @brief true if there is nothing reserved(scheduled) in this block.
+                For the uplink the master map entries have isEmpty==false.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
             /** @brief get userID this resource has been reserved for or NULL if empty.
@@ -330,7 +336,8 @@ namespace wns { namespace scheduler {
             //wns::Power
             //getTxPowerUsedInResource(int timeSlot, int beam) const;
 
-            /** @brief true if there is nothing scheduled in this block.
+            /** @brief true if there is nothing reserved(scheduled) in this block.
+                For the uplink the master map entries have isEmpty==false.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
 
@@ -460,7 +467,7 @@ namespace wns { namespace scheduler {
             /** @brief make MapInfoCollection structure from myself */
             void convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/);
 
-            /** @brief true if there is nothing scheduled in the whole schedulingMap. */
+            /** @brief true if there is nothing reserved(scheduled) in the whole schedulingMap. */
             bool isEmpty() const;
 
             /** @brief Delete all compounds from the map. But keep all other info (PhyMode, usedTime).

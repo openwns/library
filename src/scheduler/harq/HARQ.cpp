@@ -151,25 +151,29 @@ HARQ::storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr& resou
 {
     int subChannelIndex = resourceBlock->subChannelIndex;
     int timeSlotIndex   = resourceBlock->timeSlotIndex;
-    MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingTimeSlot("<<subChannelIndex<<"."<<timeSlotIndex<<")");
 
     if (!resourceBlock->harq.enabled)
     {
         MESSAGE_SINGLE(VERBOSE, logger_, "storeSchedulingTimeSlot("<<subChannelIndex<<"."<<timeSlotIndex<<"): HARQ is disabled. Skipping.");
         return;
     }
-
-    if (resourceBlock->isEmpty())
+    else if (resourceBlock->isEmpty())
     {
         MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingTimeSlot("<<subChannelIndex<<"."<<timeSlotIndex<<"): time slot is empty");
         return;
     }
-
-    if (!resourceBlock->harq.NDI)
+    else if (!resourceBlock->harq.NDI)
     {
         MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingTimeSlot("<<subChannelIndex<<"."<<timeSlotIndex<<"): Found a retransmission. Skipping.");
         return;
     }
+    else
+    {
+        //MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingTimeSlot("<<subChannelIndex<<"."<<timeSlotIndex<<")");
+        MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingTimeSlot("<<subChannelIndex<<"."<<timeSlotIndex<<")"
+                       <<" for "<<resourceBlock->getUserID()->getName());
+    }
+
     // at this point we have a brand new transmission which we must take care of...
     // this is the userID seen from here (the sending peer):
     wns::scheduler::UserID userID = resourceBlock->getUserID();
@@ -179,7 +183,7 @@ HARQ::storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr& resou
      */
     if (!harqEntities_.knows(userID))
     {
-        MESSAGE_SINGLE(NORMAL, logger_, "Creating new HARQEntity for peer UserID=" << userID->getName() );
+        MESSAGE_SINGLE(NORMAL, logger_, "storeSchedulingTimeSlot(): Creating new HARQEntity for peer UserID=" << userID->getName() );
         harqEntities_.insert(userID, new HARQEntity(config_.get("harqEntity"), numSenderProcesses_, numReceiverProcesses_, numRVs_, logger_));
     }
 
@@ -201,21 +205,36 @@ HARQ::canDecode(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock,
     if (!resourceBlock->harq.enabled)
     {
         MESSAGE_SINGLE(VERBOSE, logger_, "onTimeSlotReceived: HARQ is disabled. Skipping.");
-        return true;
+        return true; // always correct reception.
+        /**
+         * @todo dbn/rs: Probably we neer an error model here also.
+         * For the priority classes which don't use HARQ.
+         * At least tag the packets with MI so that an FU above can do CRC.
+         */
     }
+    else
+    {
+        //MESSAGE_SINGLE(NORMAL, logger_, "canDecode("<<resourceBlock->subChannelIndex<<"."<<resourceBlock->timeSlotIndex<<")");
+        MESSAGE_SINGLE(NORMAL, logger_, "canDecode(resource="<<resourceBlock->subChannelIndex<<"."<<resourceBlock->timeSlotIndex<<")"
+                       <<" for "<<resourceBlock->getUserID()->getName());
+    }
+
     // this is the userID seen from the sending peer, so it's myself ;-)
     wns::scheduler::UserID userID = resourceBlock->getUserID();
 
     if (!harqEntities_.knows(userID))
     {
-        MESSAGE_SINGLE(NORMAL, logger_, "Creating new HARQEntity for UserID=" << userID->getName() );
+        MESSAGE_SINGLE(NORMAL, logger_, "canDecode(): Creating new HARQEntity for UserID=" << userID->getName() );
         harqEntities_.insert(userID, new HARQEntity(config_.get("harqEntity"), numSenderProcesses_, numReceiverProcesses_, numRVs_, logger_));
     }
     HARQEntity* entity = harqEntities_.find(userID);
     /**
      * @todo dbn: Need to ask for permission. Use entity->hasCapacity
      */
-    return entity->canDecode(resourceBlock, pm);
+    bool canDecode = entity->canDecode(resourceBlock, pm);
+    MESSAGE_SINGLE(NORMAL, logger_, "canDecode(resource="<<resourceBlock->subChannelIndex<<"."<<resourceBlock->timeSlotIndex<<")"
+                   <<" for "<<resourceBlock->getUserID()->getName()<<": "<<(canDecode?"true":"false"));
+    return canDecode;
 }
 
 int
@@ -264,6 +283,9 @@ HARQEntity::HARQEntity(const wns::pyconfig::View& config, int numSenderProcesses
     {
         receiverProcesses_.push_back(HARQReceiverProcess(config.get("receiverConfig"), this, ii, numRVs_, logger_));
     }
+    /**
+     * @todo dbn: A probe would be great, how many processes are occupied over time...
+     */
 }
 
 void
@@ -413,8 +435,9 @@ void
 HARQSenderProcess::NACK()
 {
     //MESSAGE_SINGLE(NORMAL, logger_, "HARQ process " << processID_ << " received NACK");
-    MESSAGE_SINGLE(NORMAL, logger_, "HARQSender processID=" << processID_ << " received NACK on resource "<<
-                   resourceBlock_->subChannelIndex<<"."<<resourceBlock_->timeSlotIndex);
+    MESSAGE_SINGLE(NORMAL, logger_, "HARQSender processID=" << processID_ << " received NACK"
+                   <<" on resource "<<resourceBlock_->subChannelIndex<<"."<<resourceBlock_->timeSlotIndex
+                   <<" for "<<resourceBlock_->getUserID()->getName());
     resourceBlock_->harq.NDI = false;
     resourceBlock_->harq.retryCounter++;
     entity_->enqueueRetransmission(resourceBlock_);

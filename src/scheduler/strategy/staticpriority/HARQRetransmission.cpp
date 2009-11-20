@@ -114,10 +114,14 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
     }
     assure(colleagues.harq!=NULL,"colleagues.harq==NULL is illegal. Please choose another strategy than HARQRetransmission");
 
-    int numberOfRetransmissions = colleagues.harq->getNumberOfRetransmissions();
+    /**
+     * @todo dbn/rs: Take reachability into account! Some target peers may be not reachable.
+     */
+    int numberOfRetransmissions = colleagues.harq->getNumberOfRetransmissions(/* @todo peer */);
     MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling: "<<numberOfRetransmissions<<" HARQ retransmission(s) waiting");
     if (numberOfRetransmissions>0) {
         wns::scheduler::SchedulingTimeSlotPtr resourceBlock = colleagues.harq->nextRetransmission();
+        assure(resourceBlock != NULL, "resourceBlock == NULL although numberOfRetransmissions="<<numberOfRetransmissions);
         while(resourceBlock != NULL)
         {
             bool foundSpace=false;
@@ -134,11 +138,15 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                 {
                     SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
                     int timeSlotIndex = timeSlotPtr->timeSlotIndex;
-                    if (timeSlotPtr->isEmpty())
+                    //MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): trying subchannel.timeslot="<<subChannelIndex<<"."<<timeSlotIndex
+                    //               <<": "<<(timeSlotPtr->isEmpty()?"empty":"reserved")
+                    //               <<": #="<<timeSlotPtr->countScheduledCompounds());
+                    // if (timeSlotPtr->isEmpty()) // not the right question in UL slave
+                    if (timeSlotPtr->countScheduledCompounds()==0)
                     { // free space found. Pack it into.
                         MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting");
                         m << " HARQ block ("<<resourceBlock->getUserID()->getName()<<",processID=" << resourceBlock->harq.processID;
-                        m <<",Retry="<<resourceBlock->harq.retryCounter<<")";
+                        m << ",Retry="<<resourceBlock->harq.retryCounter<<")";
                         m << " inside subchannel.timeslot=" <<subChannelIndex<<"."<<timeSlotIndex;
                         m << " (ex "<<resourceBlock->subChannelIndex<<"."<<resourceBlock->timeSlotIndex<<")";
                         MESSAGE_END();
