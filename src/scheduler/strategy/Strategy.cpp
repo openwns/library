@@ -397,7 +397,7 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
     assure(strategyResult.schedulingMap==schedulingMap,"schedulingMap mismatch");
     if (colleagues.apcstrategy!=NULL)
         colleagues.apcstrategy->postProcess(schedulerState,schedulingMap);
-    schedulingMapReady(strategyResult); // make the callBacks
+    //schedulingMapReady(strategyResult); // make the callBacks
 
     return strategyResult;
 } // startScheduling
@@ -442,95 +442,106 @@ Strategy::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 }
 
 // NEW interface instead of compoundReady. Calls callBack functions of system resourceSchedulers (my caller)
-void
-Strategy::schedulingMapReady(StrategyResult& strategyResult)
+// void
+// Strategy::schedulingMapReady(StrategyResult& strategyResult)
+// {
+//     assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
+//     // nothing to do if no callBack registered:
+//     if (schedulerState->currentState->strategyInput->callBackObject==NULL) return; // nothing to do
+//     assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
+//     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): performing "<<strategyResult.bursts->size()<<" callbacks:");
+//     if (strategyResult.bursts->size()==0) return; // nothing to do
+// 
+//     //master is assumed
+//     if(isTx()){ //is DL master ?!
+//     SchedulingMapPtr schedulingMap = strategyResult.schedulingMap; // just a smartPtr
+//     schedulerState->currentState->strategyInput->callBackObject->callBack(schedulingMap);
+//     } // is UL master ?!
+//  else { // method 2: iterate through MapInfoCollectionPtr
+//         //MapInfoCollectionPtr bursts = strategyResult.bursts;
+//         // copy into state, because we are asked later via getMapInfo()
+//         schedulerState->currentState->bursts = strategyResult.bursts;
+//         MapInfoCollectionPtr bursts;
+//         // In slave scheduler translate the bursts into one before processing:
+//         if (schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
+//         { // SLAVE
+//             MapInfoCollectionPtr scheduledBursts = schedulerState->currentState->bursts; // input
+//             bursts = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // output
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: scheduledBursts="<<scheduledBursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(scheduledBursts)); // debug
+//             assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
+//             MapInfoEntryPtr burst = schedulerState->currentState->strategyInput->mapInfoEntryFromMaster; // only this one burst is valid
+//             for ( MapInfoCollection::iterator iterBurst = scheduledBursts->begin();
+//                   iterBurst != scheduledBursts->end(); ++iterBurst)
+//             {
+//                 MapInfoEntryPtr scheduledBurst = (*iterBurst);
+//                 // For slave scheduling the StrategyInput contains a (one!) mapInfoEntryFromMaster which specifies one subchannel only
+//                 // However, the substrategies altogether return a number of mapInfoEntries=bursts, which are all "copies" of the original SmartPtr mapInfoEntryFromMaster
+//                 // But the first burst already contains all information. But its start-end values are wrong.
+//                 // So better copy the contents of all scheduledBursts into the masterBurst
+//                 MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: iterBurst="<<scheduledBurst.getPtr());
+//                 burst->user = scheduledBurst->user; // switch to new receiver (RAP)
+//                 for (wns::scheduler::CompoundList::iterator iter=scheduledBurst->compounds.begin(); iter!=scheduledBurst->compounds.end(); ++iter)
+//                 { // forall compounds in burst
+//                     wns::ldk::CompoundPtr compoundPtr = *iter;
+//                     burst->compounds.push_back(compoundPtr); // copy into masterBurst
+//                 }
+//             } // forall bursts
+//             bursts->push_back(burst); // only one burst (in slave mode)
+//             //} else if (schedulerState->schedulerSpot = wns::scheduler::SchedulerSpot::ULMaster()) { // UL Master
+//         } else { // Master
+//             bursts = schedulerState->currentState->bursts;
+//         }
+//         MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): bursts="<<bursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(bursts)); // debug
+// 
+//         MapInfoEntryPtr lastBurst; // only for debugging
+//         for ( MapInfoCollection::iterator iterBurst = bursts->begin();
+//               iterBurst != bursts->end(); ++iterBurst)
+//         {
+//             //MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<iterBurst->getPtr()); // debug
+//             MapInfoEntryPtr burst = (*iterBurst);
+//             // unset members?
+//             if (burst->frameNr<0) { burst->frameNr=schedulerState->currentState->strategyInput->frameNr; }
+//             // "-inf dBm" must be handled (some strategies leave this incomplete):
+//             if (burst->txPower==wns::Power()) {
+//                 assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
+//                 burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
+//             }
+//             if (burst->txPower.get_mW()==0.0) {
+//                 assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
+//                 burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
+//             }
+//             if (!burst->estimatedCandI.isValid()) { // only old strategies need this:
+//                 burst->estimatedCandI = (schedulerState->isTx)?
+//                     (colleagues.registry->estimateTxSINRAt(burst->user)) // Tx
+//                     :
+//                     (colleagues.registry->estimateRxSINROf(burst->user)); // Rx;
+//                 // estimatedCandI is old (flat channel) method here. Not CQI.
+//                 MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): warning: too late calculation of estimatedCandI="<<burst->estimatedCandI.toSINR());
+//             }
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): powerCapabilities.nominalPerSubband="<<schedulerState->powerCapabilities.nominalPerSubband);
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<" vs lastBurst="<<lastBurst.getPtr());
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<burst->toString());
+//             assure(burst->txPower.get_dBm()>-40.0,"bad txPower="<<burst->txPower);
+//             assure(burst->phyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr(),"phyModePtr="<<burst->phyModePtr);
+//             // this can happen if ULSlaveScheduler works on burst=mapInfoEntryFromMaster and subStrategies return multiple copies of that:
+//             assure(burst.getPtr()!=lastBurst.getPtr(),"burst="<<burst.getPtr()<<" equals lastBurst="<<lastBurst.getPtr());
+//             schedulerState->currentState->strategyInput->callBackObject->
+//                 callBack(burst);
+//             lastBurst=burst; // only for debugging
+//         } // foreach burst
+//     } // method 2
+//     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): done ("<<strategyResult.bursts->size()<<" callbacks/mapInfoEntries/bursts).");
+// } // schedulingMapReady
+
+/*
+// Attention: RemainingTxPower depends on user in case of RS-RX
+wns::Power
+Strategy::getRemainingTxPower(const wns::scheduler::SchedulingMapPtr schedulingMap, int timeSlot) const
 {
-    assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
-    // nothing to do if no callBack registered:
-    if (schedulerState->currentState->strategyInput->callBackObject==NULL) return; // nothing to do
-    assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
-    MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): performing "<<strategyResult.bursts->size()<<" callbacks:");
-    if (strategyResult.bursts->size()==0) return; // nothing to do
-
-    //master is assumed
-    if(isTx()){ //is DL master ?!
-    SchedulingMapPtr schedulingMap = strategyResult.schedulingMap; // just a smartPtr
-    schedulerState->currentState->strategyInput->callBackObject->callBack(schedulingMap);
-    } // is UL master ?!
- else { // method 2: iterate through MapInfoCollectionPtr
-        //MapInfoCollectionPtr bursts = strategyResult.bursts;
-        // copy into state, because we are asked later via getMapInfo()
-        schedulerState->currentState->bursts = strategyResult.bursts;
-        MapInfoCollectionPtr bursts;
-        // In slave scheduler translate the bursts into one before processing:
-        if (schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
-        { // SLAVE
-            MapInfoCollectionPtr scheduledBursts = schedulerState->currentState->bursts; // input
-            bursts = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // output
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: scheduledBursts="<<scheduledBursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(scheduledBursts)); // debug
-            assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
-            MapInfoEntryPtr burst = schedulerState->currentState->strategyInput->mapInfoEntryFromMaster; // only this one burst is valid
-            for ( MapInfoCollection::iterator iterBurst = scheduledBursts->begin();
-                  iterBurst != scheduledBursts->end(); ++iterBurst)
-            {
-                MapInfoEntryPtr scheduledBurst = (*iterBurst);
-                // For slave scheduling the StrategyInput contains a (one!) mapInfoEntryFromMaster which specifies one subchannel only
-                // However, the substrategies altogether return a number of mapInfoEntries=bursts, which are all "copies" of the original SmartPtr mapInfoEntryFromMaster
-                // But the first burst already contains all information. But its start-end values are wrong.
-                // So better copy the contents of all scheduledBursts into the masterBurst
-                MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: iterBurst="<<scheduledBurst.getPtr());
-                burst->user = scheduledBurst->user; // switch to new receiver (RAP)
-                for (wns::scheduler::CompoundList::iterator iter=scheduledBurst->compounds.begin(); iter!=scheduledBurst->compounds.end(); ++iter)
-                { // forall compounds in burst
-                    wns::ldk::CompoundPtr compoundPtr = *iter;
-                    burst->compounds.push_back(compoundPtr); // copy into masterBurst
-                }
-            } // forall bursts
-            bursts->push_back(burst); // only one burst (in slave mode)
-        } else { // Master
-            bursts = schedulerState->currentState->bursts;
-        }
-        MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): bursts="<<bursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(bursts)); // debug
-
-        MapInfoEntryPtr lastBurst; // only for debugging
-        for ( MapInfoCollection::iterator iterBurst = bursts->begin();
-              iterBurst != bursts->end(); ++iterBurst)
-        {
-            //MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<iterBurst->getPtr()); // debug
-            MapInfoEntryPtr burst = (*iterBurst);
-            // unset members?
-            if (burst->frameNr<0) { burst->frameNr=schedulerState->currentState->strategyInput->frameNr; }
-            // "-inf dBm" must be handled (some strategies leave this incomplete):
-            if (burst->txPower==wns::Power()) {
-                assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
-                burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
-            }
-            if (burst->txPower.get_mW()==0.0) {
-                assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
-                burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
-            }
-            if (!burst->estimatedCandI.isValid()) { // only old strategies need this:
-                burst->estimatedCandI = (schedulerState->isTx)?
-                    (colleagues.registry->estimateTxSINRAt(burst->user)) // Tx
-                    :
-                    (colleagues.registry->estimateRxSINROf(burst->user)); // Rx;
-                // estimatedCandI is old (flat channel) method here. Not CQI.
-                MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): warning: too late calculation of estimatedCandI="<<burst->estimatedCandI.toSINR());
-            }
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): powerCapabilities.nominalPerSubband="<<schedulerState->powerCapabilities.nominalPerSubband);
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<" vs lastBurst="<<lastBurst.getPtr());
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<burst->toString());
-            assure(burst->txPower.get_dBm()>-40.0,"bad txPower="<<burst->txPower);
-            assure(burst->phyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr(),"phyModePtr="<<burst->phyModePtr);
-            // this can happen if ULSlaveScheduler works on burst=mapInfoEntryFromMaster and subStrategies return multiple copies of that:
-            assure(burst.getPtr()!=lastBurst.getPtr(),"burst="<<burst.getPtr()<<" equals lastBurst="<<lastBurst.getPtr());
-            schedulerState->currentState->strategyInput->callBackObject->
-                callBack(burst);
-            lastBurst=burst; // only for debugging
-        } // foreach burst
-    } // method 2
-    MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): done ("<<strategyResult.bursts->size()<<" callbacks/mapInfoEntries/bursts).");
-} // schedulingMapReady
+    wns::Power totalPower = schedulerState->powerCapabilities.maxOverall;
+    return schedulingMap->getRemainingPower(totalPower,timeSlot);
+} // getRemainingTxPower
+*/
 
 MapInfoEntryPtr
 Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
