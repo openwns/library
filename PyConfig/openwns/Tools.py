@@ -138,7 +138,6 @@ class ConstantDelay(openwns.FUN.FunctionalUnit):
 
         openwns.pyconfig.attrsetter(self, kw)
 
-        
 class Compressor(openwns.FUN.FunctionalUnit):
     __plugin__ = 'wns.ldk.tools.Compressor'
 
@@ -152,3 +151,16 @@ class Compressor(openwns.FUN.FunctionalUnit):
         self.logger = openwns.logger.Logger("WNS", self.name, True, parentLogger)
         self.reduction = reduction
         openwns.pyconfig.attrsetter(self, kw)
+
+class InSequenceChecker(openwns.FUN.FunctionalUnit):
+    """In Sequence Checker FU"""
+
+    __plugin__ = 'wns.ldk.tools.InSequenceChecker'
+    name = "InSequenceChecker"
+
+    logger = None
+    """Logger configuration"""
+
+    def __init__(self, enabled = True, parentLogger = None, **kw):
+        self.logger = openwns.logger.Logger("WNS", "InSequenceChecker", enabled, parentLogger)
+        attrsetter(self, kw)
