@@ -92,9 +92,9 @@ class Node(object):
         self.contextProviders.append(
             openwns.probebus.ConstantContextProvider("wns.node.Node.id", self.nodeID))
 
-        self.name = name + str(self.nodeID)
+        self.name = name
         self.components = []
-        self.logger = Logger("WNS", name, True)
+        self.logger = Logger("WNS", self.name + str(self.nodeID), True)
 
     def addComponent(self, component):
         """ add a component
@@ -128,7 +128,7 @@ class Component(object):
     def __init__(self, node, name):
         super(Component, self).__init__()
         self.name = name
-        self.logger = Logger("WNS", name, True, node.logger)
+        self.logger = Logger("WNS", self.name + str(node.nodeID), True, node.logger)
         self.node = node
         self.node.addComponent(self)
 
