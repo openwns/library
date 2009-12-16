@@ -83,6 +83,13 @@ Positionable::getDistance(const PositionableInterface& p)
 	return (p.getPosition() - this->getPosition()).abs();
 }
 
+double
+Positionable::getAngle(const PositionableInterface &p)
+{
+    return(p.getPosition() - this->getPosition()).getAzimuth();
+}
+
+
 void
 Positionable::setPosition(const wns::Position& p)
 {

@@ -105,4 +105,12 @@ PositionableTest::getDistance()
 }
 
 
+void
+PositionableTest::getAngle()
+{
+    PositionableObject positionable;
+    PositionableObject positionable2;
+    positionable2.move(Position(1,1,0));
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.78539816339744828, positionable.getAngle(positionable2), 0.00001);
+}
 
