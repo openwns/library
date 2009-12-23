@@ -176,8 +176,8 @@ namespace wns { namespace scheduler { namespace strategy {
 
                 /** @brief call this method after all compounds have been scheduled.
                     Calls the callback() */
-                //void
-                //schedulingMapReady(StrategyResult& strategyResult);
+                void
+                schedulingMapReady(StrategyResult& strategyResult);
 
                 /** @brief get ? */
                 //virtual MapInfoEntryPtr

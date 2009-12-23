@@ -442,16 +442,16 @@ Strategy::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 }
 
 // NEW interface instead of compoundReady. Calls callBack functions of system resourceSchedulers (my caller)
-// void
-// Strategy::schedulingMapReady(StrategyResult& strategyResult)
-// {
-//     assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
-//     // nothing to do if no callBack registered:
-//     if (schedulerState->currentState->strategyInput->callBackObject==NULL) return; // nothing to do
-//     assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
+void
+Strategy::schedulingMapReady(StrategyResult& strategyResult)
+{
+     assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
+     // nothing to do if no callBack registered:
+     if (schedulerState->currentState->strategyInput->callBackObject==NULL) return; // nothing to do
+     assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
 //     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): performing "<<strategyResult.bursts->size()<<" callbacks:");
 //     if (strategyResult.bursts->size()==0) return; // nothing to do
-// 
+//
 //     //master is assumed
 //     if(isTx()){ //is DL master ?!
 //     SchedulingMapPtr schedulingMap = strategyResult.schedulingMap; // just a smartPtr
@@ -492,7 +492,7 @@ Strategy::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 //             bursts = schedulerState->currentState->bursts;
 //         }
 //         MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): bursts="<<bursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(bursts)); // debug
-// 
+//
 //         MapInfoEntryPtr lastBurst; // only for debugging
 //         for ( MapInfoCollection::iterator iterBurst = bursts->begin();
 //               iterBurst != bursts->end(); ++iterBurst)
@@ -531,7 +531,7 @@ Strategy::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 //         } // foreach burst
 //     } // method 2
 //     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): done ("<<strategyResult.bursts->size()<<" callbacks/mapInfoEntries/bursts).");
-// } // schedulingMapReady
+} // schedulingMapReady
 
 /*
 // Attention: RemainingTxPower depends on user in case of RS-RX
