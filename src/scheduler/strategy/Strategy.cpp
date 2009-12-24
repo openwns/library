@@ -363,7 +363,9 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
             assure(strategyInput.inputSchedulingMap != wns::scheduler::SchedulingMapPtr(), "slave scheduling requires inputSchedulingMap");
             MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with given inputSchedulingMap...");
             // all PhyModes and TxPower are written in the inputSchedulingMap
-            // I may only use those resources (subchannels,slots) where my userID is written into
+            // I may only use those resources (subchannels,slots) where my userID is written into (UTx)
+            // Before going to UT's PhyUser, take care to use the right userID!
+            // it must be reverted (to BSx) in the PhyCommand to send to the right peer.
             assure(schedulerState->currentState->schedulingMap == strategyInput.inputSchedulingMap,"schedulingMap must be set in revolveSchedulerState()");
             // set empty all resources but keep userID, PhyMode, TxPower
             MESSAGE_SINGLE(NORMAL, logger, "inputSchedulingMap->processMasterMap()");
