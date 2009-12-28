@@ -29,6 +29,7 @@
 #define WNS_LDK_HARQ_SOFTCOMBINING_IDECODER_HPP
 
 #include <WNS/ldk/harq/softcombining/Container.hpp>
+#include <WNS/ldk/Compound.hpp>
 #include <WNS/RefCountable.hpp>
 #include <WNS/ldk/FUNConfigCreator.hpp>
 
@@ -40,7 +41,7 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
      public:
 
          virtual bool
-         canDecode(const Container& c) = 0;
+         canDecode(const Container<wns::ldk::CompoundPtr>& c) = 0;
 
          virtual void
          onFUNCreated() = 0;

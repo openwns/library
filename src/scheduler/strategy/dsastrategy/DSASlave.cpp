@@ -106,7 +106,7 @@ DSASlave::getSubChannelWithDSA(RequestForResource& request,
                 }
             }
         }
-        if (subChannel==lastUsedSubChannel)
+        if (subChannel==lastUsedSubChannel && timeSlot == lastUsedTimeSlot)
         { // one complete round already done
             giveUp=true; break;
         }

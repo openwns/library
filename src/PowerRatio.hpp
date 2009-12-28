@@ -35,6 +35,8 @@
 #include <cmath>
 #include <iostream>
 #include <stdint.h>
+#include <boost/logic/tribool.hpp>
+#include <WNS/Assure.hpp>
 
 namespace wns {
 	class Ratio;
@@ -114,9 +116,10 @@ namespace wns {
 			}
 			throw(Exception("Warning: No valid unit provided for ratio (dB)! Got: " + sTmp));
 		}
-
+        boost::tribool los;
 	protected:
 		double factor;
+
 	private:
 		inline Ratio(double aValue);
 	};
@@ -228,14 +231,14 @@ namespace wns {
 // Implementation
 //! Sets the Ration to 0.0 dB
 	inline  Ratio::Ratio()
-		: factor(1.0) {}
+    : factor(1.0), los(boost::logic::indeterminate) {}
 
 //! Sets the Ration to the value of r
 	inline  Ratio::Ratio(const Ratio &r)
-		: factor(r.factor) {}
+		: factor(r.factor), los(r.los) {}
 
 	inline  Ratio::Ratio(double aValue)
-		: factor(aValue) {
+    : factor(aValue), los(boost::logic::indeterminate) {
 		assert(aValue>=0);
 	}
 
@@ -246,6 +249,7 @@ namespace wns {
 	{
 		assert(r.factor>=0);
 		factor = r.factor;
+        los = r.los; 
 		return *this;
 	}
 
@@ -284,24 +288,92 @@ namespace wns {
 	inline Ratio Ratio::operator -(const Ratio& r) const {
 		assert(factor>=0);
 		assert(r.factor>=0);
-		return Ratio(factor/r.factor);
+        Ratio re(factor/r.factor);
+        if (boost::logic::indeterminate(los))
+        {
+            re.los = r.los;
+        }
+        else if (boost::logic::indeterminate(r.los))
+        {
+            re.los = los;
+        }
+        else if ( (los && r.los) || (!los && !r.los))
+        {
+            re.los = los;
+        }
+        else
+        {
+            assure(false, "Conflicting LOS/NLOS");
+        }
+		return re;
 	}
 
 	inline void Ratio::operator -=(const Ratio& r) {
 		assert(factor>=0);
 		assert(r.factor>=0);
-		factor /= r.factor;
+        if (boost::logic::indeterminate(los))
+        {
+            los = r.los;
+        }
+        else if (boost::logic::indeterminate(r.los))
+        {
+            los = los;
+        }
+        else if ( (los && r.los) || (!los && !r.los))
+        {
+            los = los;
+        }
+        else
+        {
+            assure(false, "Conflicting LOS/NLOS");
+        }
+
+        factor /= r.factor;
 	}
 
 	inline Ratio Ratio::operator +(const Ratio& r) const {
 		assert(factor>=0);
 		assert(r.factor>=0);
-		return Ratio(factor*r.factor);
+
+        Ratio re(factor*r.factor);
+        if (boost::logic::indeterminate(los))
+        {
+            re.los = r.los;
+        }
+        else if (boost::logic::indeterminate(r.los))
+        {
+            re.los = los;
+        }
+        else if ( (los && r.los) || (!los && !r.los))
+        {
+            re.los = los;
+        }
+        else
+        {
+            assure(false, "Conflicting LOS/NLOS");
+        }
+        return re;
 	}
 
 	inline void Ratio::operator +=(const Ratio& r) {
 		assert(factor>=0);
 		assert(r.factor>=0);
+        if (boost::logic::indeterminate(los))
+        {
+            los = r.los;
+        }
+        else if (boost::logic::indeterminate(r.los))
+        {
+            los = los;
+        }
+        else if ( (los && r.los) || (!los && !r.los))
+        {
+            los = los;
+        }
+        else
+        {
+            assure(false, "Conflicting LOS/NLOS");
+        }
 		factor *= r.factor;
 	}
 

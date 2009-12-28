@@ -88,7 +88,7 @@ class Position:
         self.z = z
         self.label = label
 
-    def toString(self,precision=0):
+    def toString(self,precision=2):
         format = '%%.%df %%.%df %%.%df'%(precision,precision,precision)
         return (format % (self.x, self.y, self.z))
     def __str__(self):

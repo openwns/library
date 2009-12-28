@@ -30,6 +30,7 @@
 
 #include <WNS/ldk/harq/softcombining/Container.hpp>
 #include <WNS/ldk/harq/softcombining/IDecoder.hpp>
+#include <WNS/ldk/Compound.hpp>
 
 #include <WNS/ldk/fu/Plain.hpp>
 #include <WNS/ldk/Delayed.hpp>
@@ -71,8 +72,8 @@ namespace wns { namespace ldk { namespace harq {
     };
 
     class HARQFU :
-        public fu::Plain<HARQFU, HARQCommand>,
-        public Delayed<HARQFU>
+            public fu::Plain<HARQFU, HARQCommand>,
+            public Delayed<HARQFU>
     {
     public:
         HARQFU(fun::FUN* fuNet, const wns::pyconfig::View& config);
@@ -145,7 +146,7 @@ namespace wns { namespace ldk { namespace harq {
 
             wns::logger::Logger logger_;
 
-            softcombining::Container receptionBuffer_;
+            softcombining::Container<wns::ldk::CompoundPtr> receptionBuffer_;
 
             wns::SmartPtr<softcombining::IDecoder> decoder_;
         };

@@ -46,6 +46,8 @@ namespace wns { namespace scheduler { namespace strategy { namespace tests {
 		// CallBackInterface
 		virtual void
 		callBack(MapInfoEntryPtr mapInfoEntry);
+	  virtual void
+	  callBack(SchedulingMapPtr schedulingMapPtr){};
 
 		// old CallBackInterface
 		void callBack(unsigned int fSlot, simTimeType startTime, simTimeType endTime, wns::scheduler::UserID user,

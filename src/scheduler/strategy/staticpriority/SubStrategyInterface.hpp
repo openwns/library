@@ -45,6 +45,7 @@ namespace wns { namespace scheduler {
         namespace strategy { namespace staticpriority {
                 class SchedulingMap;
             }}
+        namespace harq { class HARQInterface;}
     }}// forward declarations
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
@@ -58,7 +59,8 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
                         Do not overload. At least call this base class method first. */
                     virtual void setColleagues(wns::scheduler::strategy::Strategy* _strategy,
                                                wns::scheduler::queue::QueueInterface* _queue,
-                                               wns::scheduler::RegistryProxyInterface* _registry) = 0;
+                                               wns::scheduler::RegistryProxyInterface* _registry,
+                                               wns::scheduler::harq::HARQInterface*) = 0;
 
                     /** @brief this method is used to initialize datastructures.
                         Please overload/implement this for your derived class */

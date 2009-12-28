@@ -40,7 +40,8 @@ SubStrategy::SubStrategy()
     : logger(std::string("WNS"), std::string("SubStrategy")),
       colleagues(),
       useDynamicSegmentation(false),
-      minimumSegmentSize(-1)
+      minimumSegmentSize(-1),
+      useHARQ(false)
 {
 }
 
@@ -48,18 +49,21 @@ SubStrategy::SubStrategy(const wns::pyconfig::View& config)
     : logger(config.get("logger")),
       colleagues(),
       useDynamicSegmentation(false),
-      minimumSegmentSize(-1)
+      minimumSegmentSize(-1),
+      useHARQ(config.get<bool>("useHARQ"))
 {
 }
 
 void
 SubStrategy::setColleagues(wns::scheduler::strategy::Strategy* _strategy,
                            wns::scheduler::queue::QueueInterface* _queue,
-                           wns::scheduler::RegistryProxyInterface* _registry)
+                           wns::scheduler::RegistryProxyInterface* _registry,
+                           wns::scheduler::harq::HARQInterface* _harq)
 {
     colleagues.strategy = _strategy;
     colleagues.queue = _queue;
     colleagues.registry = _registry;
+    colleagues.harq = _harq;
     assure(colleagues.strategy!=NULL, "Need access to the strategy");
     assure(dynamic_cast<queue::QueueInterface*>(colleagues.queue), "Need access to the queue");
     assure(dynamic_cast<RegistryProxyInterface*>(colleagues.registry), "Need access to the registry");
@@ -125,7 +129,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
             assure(compoundBits<=request.bits,"compoundLengthInBits="<<compoundBits<<" vs request.bits="<<request.bits);
             MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): getHeadOfLinePDUSegment("<<request.bits<<") => "<<compoundBits<<" bits dequeued, d="<<compoundDuration*1e6<<"us");
         }
-        bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr);
+        bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr, useHARQ);
         assure(ok,"schedulingMap->addCompound("<<request.toString()<<") failed. mapInfoEntry="<<mapInfoEntry->toString());
         mapInfoEntry->compounds.push_back(compoundPtr); // (currentBurst)
         allCompoundsEndTime += compoundDuration;
@@ -142,7 +146,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
         { // try to put one (or more) pdus into this resource block
             wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDU(cid);
             MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): request.bits="<<request.bits);
-            bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr);
+            bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr, useHARQ);
             assure(ok,"schedulingMap->addCompound("<<request.toString()<<") failed. mapInfoEntry="<<mapInfoEntry->toString());
             mapInfoEntry->compounds.push_back(compoundPtr); // (currentBurst)
             allCompoundsEndTime += request.getDuration();

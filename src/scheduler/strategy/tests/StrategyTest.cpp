@@ -230,7 +230,7 @@ StrategyTest::setupStrategy(std::string strategyName)
 	assure(strategy, "Strategy module creation failed");
 
 	// configure Strategy module
-	strategy->setColleagues(queue, grouper, registry);
+	strategy->setColleagues(queue, grouper, registry, NULL);
 	strategy->getPowerCapabilities(NULL); // trigger scheduler to ask RegistryProxy(Stub)
 } // setupStrategy
 
@@ -262,7 +262,7 @@ StrategyTest::setupULStrategy(std::string strategyName)
 	assure(strategy, "Strategy module creation failed");
 
 	// configure Strategy module
-	strategy->setColleagues(queue, grouper, registry);
+	strategy->setColleagues(queue, grouper, registry, NULL);
 	strategy->getPowerCapabilities(NULL); // trigger scheduler to ask RegistryProxy(Stub)
 } // setupULStrategy
 

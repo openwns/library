@@ -41,6 +41,22 @@ namespace wns { namespace scheduler {
         namespace strategy {
             class RequestForResource; /** @see SchedulerState.hpp */
         }
+
+            struct HARQInfo {
+                HARQInfo() : NDI(true), enabled(false), processID(0), rv(0), retryCounter(0) {}
+                /**
+                 * @brief New Data Indication flag
+                 */
+                bool NDI;
+                bool enabled;
+                int processID;
+                int rv;
+                int retryCounter;
+                boost::function<void ()> ackCallback;
+                boost::function<void ()> nackCallback;
+            };
+
+
         /** @brief class to describe the contents of a SchedulingSubChannel */
         class SchedulingCompound
         {
@@ -58,6 +74,8 @@ namespace wns { namespace scheduler {
                                wns::Power _txPower,
                                wns::service::phy::ofdma::PatternPtr _pattern
                 );
+            //SchedulingCompound(const SchedulingCompound&);
+
             ~SchedulingCompound();
             simTimeType getCompoundDuration() { return endTime-startTime; };
             std::string toString() const;
@@ -88,6 +106,7 @@ namespace wns { namespace scheduler {
             //wns::CandI estimatedCandI; // not supported yet
         }; // SchedulingCompound
 
+        typedef SmartPtr<SchedulingCompound> SchedulingCompoundPtr;
         typedef std::list<SchedulingCompound> ScheduledCompoundsList;
 
         /** @brief class to describe one PhysicalResourceBlock.
@@ -98,6 +117,8 @@ namespace wns { namespace scheduler {
         public:
             PhysicalResourceBlock();
             PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _beam, simTimeType _slotLength);
+            //PhysicalResourceBlock(const PhysicalResourceBlock&);
+
             ~PhysicalResourceBlock();
             /** @brief total used time in this PhysicalResourceBlock */
             simTimeType getUsedTime() const;
@@ -142,7 +163,10 @@ namespace wns { namespace scheduler {
             /** @brief output structure (machine readable table for Matlab,Gnuplot,etc) */
             std::string dumpContents(const std::string& prefix) const;
 
-            /** @brief true if there is nothing scheduled in this block.
+            /** @brief number of compunds inside this resource */
+            int countScheduledCompounds() const;
+            /** @brief true if there is nothing reserved(scheduled) in this block (DL).
+                For the uplink the master map entries have isEmpty==false.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
             /** @brief get userID this resource has been reserved for or NULL if empty */
@@ -164,6 +188,8 @@ namespace wns { namespace scheduler {
             void processMasterMap();
             /** @brief checks if there are UL resources available for given user */
             bool hasResourcesForUser(wns::scheduler::UserID user) const;
+            /** @brief determine the length in bits stored in this resource */
+            int getNetBlockSizeInBits() const;
 
         public:
             /** @brief my own subChannelIndex as seen from outside (container) */
@@ -205,12 +231,17 @@ namespace wns { namespace scheduler {
         public:
             SchedulingTimeSlot();
             SchedulingTimeSlot(int _subChannel, int _timeSlot, int _numberOfBeams, simTimeType _slotLength);
+            //SchedulingTimeSlot(const SchedulingTimeSlot&);
+
             ~SchedulingTimeSlot();
             /** @brief total used time in this SchedulingTimeSlot */
             simTimeType getUsedTime() const;
             /** @brief total free time on this SchedulingTimeSlot */
             simTimeType getFreeTime() const;
-            /** @brief true if there is nothing scheduled in this block.
+            /** @brief number of compunds inside this resource */
+            int countScheduledCompounds() const;
+            /** @brief true if there is nothing reserved(scheduled) in this block.
+                For the uplink the master map entries have isEmpty==false.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
             /** @brief get userID this resource has been reserved for or NULL if empty.
@@ -236,6 +267,8 @@ namespace wns { namespace scheduler {
             void processMasterMap();
             /** @brief checks if there are UL resources available for given user */
             bool hasResourcesForUser(wns::scheduler::UserID user) const;
+            /** @brief determine the length in bits stored in this resource */
+            int getNetBlockSizeInBits() const;
         public:
             /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
             PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
@@ -253,6 +286,9 @@ namespace wns { namespace scheduler {
             simTimeType timeSlotStartTime;
             /** @brief isUsable = flag to exclude certain resources from DSA */
             bool timeSlotIsUsable;
+
+            HARQInfo harq;
+
          }; // SchedulingTimeSlot
 
         /** @brief can be used to send via an container compound to emulate one complete resource unit (chunk) */
@@ -300,7 +336,8 @@ namespace wns { namespace scheduler {
             //wns::Power
             //getTxPowerUsedInResource(int timeSlot, int beam) const;
 
-            /** @brief true if there is nothing scheduled in this block.
+            /** @brief true if there is nothing reserved(scheduled) in this block.
+                For the uplink the master map entries have isEmpty==false.
                 This question is NOT enough to allow it to be used. see subChannelIsUsable. */
             bool isEmpty() const;
 
@@ -375,7 +412,8 @@ namespace wns { namespace scheduler {
                              wns::ldk::CompoundPtr compoundPtr,
                              wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                              wns::Power txPower,
-                             wns::service::phy::ofdma::PatternPtr pattern
+                             wns::service::phy::ofdma::PatternPtr pattern,
+                             bool useHARQ
                 );
 
             /** @brief put scheduled compound (one after another) into the SchedulingMap
@@ -385,7 +423,8 @@ namespace wns { namespace scheduler {
             */
             bool addCompound(strategy::RequestForResource& request,
                              MapInfoEntryPtr mapInfoEntry, // <- must not contain compounds yet
-                             wns::ldk::CompoundPtr compoundPtr
+                             wns::ldk::CompoundPtr compoundPtr,
+                             bool useHARQ
                 );
 
             /** @brief get "offset for new compounds" == used time for already scheduled compounds. Zero for empty subChannel */
@@ -428,7 +467,7 @@ namespace wns { namespace scheduler {
             /** @brief make MapInfoCollection structure from myself */
             void convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/);
 
-            /** @brief true if there is nothing scheduled in the whole schedulingMap. */
+            /** @brief true if there is nothing reserved(scheduled) in the whole schedulingMap. */
             bool isEmpty() const;
 
             /** @brief Delete all compounds from the map. But keep all other info (PhyMode, usedTime).

@@ -25,12 +25,13 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_SEGMENTINGQUEUE_SIMPLEQUEUE_HPP
-#define WNS_SCHEDULER_SEGMENTINGQUEUE_SIMPLEQUEUE_HPP
+#ifndef WNS_SCHEDULER_QUEUE_SEGMENTINGQUEUE_HPP
+#define WNS_SCHEDULER_QUEUE_SEGMENTINGQUEUE_HPP
 
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/scheduler/queue/QueueInterface.hpp>
 #include <WNS/scheduler/queue/ISegmentationCommand.hpp>
+#include <WNS/scheduler/queue/detail/InnerQueue.hpp>
 #include <WNS/StaticFactory.hpp>
 #include <WNS/ldk/CommandTypeSpecifier.hpp>
 
@@ -93,33 +94,18 @@ namespace wns { namespace scheduler { namespace queue {
                 probe();
 
             private:
-                wns::probe::bus::contextprovider::Variable* probeContextProviderForCid;
-                wns::probe::bus::contextprovider::Variable* probeContextProviderForPriority;
                 wns::probe::bus::ContextCollectorPtr sizeProbeBus;
+                wns::probe::bus::ContextCollectorPtr overheadProbeBus;
+
                 wns::ldk::CommandReaderInterface* segmentHeaderReader;
                 wns::logger::Logger logger;
                 wns::pyconfig::View config;
                 wns::ldk::fun::FUN* myFUN;
-                // Every CID has its own queue. A user might have multiple CIDs
-                // associated with it. Queue length counters exist for every queue/CID.
-                struct Queue {
-                    Queue()
-                        : bitsNetto(0),
-                          bitsBrutto(0),
-                          frontSegmentSentBits(0),
-                          currentSegmentNumber(0)
-                    {}
-                    Bits bitsNetto; // current contents (raw original sizes)
-                    Bits bitsBrutto; // current contents (including headers)
-                    Bits frontSegmentSentBits; // fraction of the first segment sent so far
-                    long currentSegmentNumber;
-                    std::list<wns::ldk::CompoundPtr> pduQueue;
-                };
 
                 long int maxSize;
                 uint32_t minimumSegmentSize;
 
-                typedef std::map<ConnectionID, Queue> QueueContainer;
+                typedef std::map<ConnectionID, detail::InnerQueue> QueueContainer;
                 QueueContainer queues;
 
                 struct Colleagues {
@@ -127,12 +113,16 @@ namespace wns { namespace scheduler { namespace queue {
                 } colleagues;
 
                 Bit fixedHeaderSize;
+
                 Bit extensionHeaderSize;
+
                 bool usePadding;
+
+                bool byteAlignHeader;
             };
 
 
         }}} // namespace wns::scheduler::queue
-#endif // WNS_SCHEDULER_QUEUE_SIMPLEQUEUE_HPP
+#endif // WNS_SCHEDULER_QUEUE_SEGMENTINGQUEUE_HPP
 
 

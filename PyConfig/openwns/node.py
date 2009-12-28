@@ -36,6 +36,21 @@ class NodeSimulationModel(object):
         self.logger = Logger("WNS", "NodeSimulationModel", True)
         self.nodes = []
 
+    def getNodesByType(self, nodeType):
+        """
+        Get a list of nodes which are of the given type.
+
+        @type nodeType: str
+        @param nodeType: The nodeType
+
+        @rtype:  [openwns.node.Node]
+        @return: A list of nodes
+        """
+
+        r = [n for n in self.nodes if n.getNodeType() == nodeType]
+
+        return r
+
 class Node(object):
     """ A Node is a list of Components
     """
@@ -81,7 +96,7 @@ class Node(object):
 
         self.name = name
         self.components = []
-        self.logger = Logger("WNS", name, True)
+        self.logger = Logger("WNS", self.name + str(self.nodeID), True)
 
     def addComponent(self, component):
         """ add a component
@@ -115,7 +130,7 @@ class Component(object):
     def __init__(self, node, name):
         super(Component, self).__init__()
         self.name = name
-        self.logger = Logger("WNS", name, True, node.logger)
+        self.logger = Logger("WNS", self.name + str(node.nodeID), True, node.logger)
         self.node = node
         self.node.addComponent(self)
 

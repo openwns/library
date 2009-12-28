@@ -29,6 +29,7 @@
 #define WNS_SCHEDULER_CALLBACKINTERFACE_HPP
 
 #include <WNS/scheduler/MapInfoEntry.hpp>
+#include <WNS/scheduler/SchedulingMap.hpp>
 
 namespace wns {	namespace scheduler {
 
@@ -40,6 +41,8 @@ namespace wns {	namespace scheduler {
 	  /**@brief this method is called for each scheduling result pdu */
 	  virtual void
 	  callBack(MapInfoEntryPtr mapInfoEntry) = 0;
+	  virtual void
+	  callBack(SchedulingMapPtr schedulingMapPtr) = 0;
 	}; // CallBackInterface
 
 }} // namespace wns::scheduler

@@ -29,7 +29,7 @@
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
 #include <WNS/scheduler/strategy/StrategyInterface.hpp>
-#include <WNS/scheduler/SchedulingMap.hpp>
+//#include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/PowerRatio.hpp>
 
 using namespace wns::scheduler;
@@ -109,15 +109,16 @@ Strategy::~Strategy()
 void
 Strategy::setColleagues(queue::QueueInterface* _queue,
                         grouper::GroupingProviderInterface* _grouper,
-                        RegistryProxyInterface* _registry
-                        //wns::ldk::harq::HARQ* _harq
+                        RegistryProxyInterface* _registry,
+                        wns::scheduler::harq::HARQInterface* _harq
     )
 {
     MESSAGE_SINGLE(NORMAL, logger,"Strategy::setColleagues(): creating DSA/APC strategies...");
     colleagues.queue = _queue;
     colleagues.grouper = _grouper;
     colleagues.registry = _registry;
-    //colleagues.harq = _harq; // may be NULL if no HARQ is there.
+    colleagues.harq = _harq; // may be NULL if no HARQ is there.
+
     assure(dynamic_cast<queue::QueueInterface*>(colleagues.queue), "Need access to the queue");
     assure(dynamic_cast<grouper::GroupingProviderInterface*>(colleagues.grouper), "Need access to the grouper");
     assure(dynamic_cast<RegistryProxyInterface*>(colleagues.registry), "Need access to the registry");
@@ -228,7 +229,6 @@ Strategy::revolveSchedulerState(const StrategyInput& strategyInput)
     assure(colleagues.registry!=NULL,"registry==NULL");
     assure(&strategyInput!=NULL,"strategyInput==NULL");
     schedulerState->currentState = RevolvingStatePtr(new RevolvingState(&strategyInput));
-    //schedulerState->currentState->strategyInput = &strategyInput;
     return schedulerState;
 }
 
@@ -336,7 +336,6 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
         assure(schedulerState->currentState->schedulingMap == strategyInput.inputSchedulingMap,"schedulingMap must be set in revolveSchedulerState()");
     }
     wns::scheduler::SchedulingMapPtr schedulingMap = schedulerState->currentState->schedulingMap; // alias
-    //if (strategyInput.mapInfoEntryFromMaster == MapInfoEntryPtr()) // empty
     if (schedulerState->schedulerSpot != wns::scheduler::SchedulerSpot::ULSlave())
     { // master scheduling
         assure(strategyInput.mapInfoEntryFromMaster == MapInfoEntryPtr(),"mapInfoEntryFromMaster must be NULL");
@@ -365,7 +364,9 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
             assure(strategyInput.inputSchedulingMap != wns::scheduler::SchedulingMapPtr(), "slave scheduling requires inputSchedulingMap");
             MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with given inputSchedulingMap...");
             // all PhyModes and TxPower are written in the inputSchedulingMap
-            // I may only use those resources (subchannels,slots) where my userID is written into
+            // I may only use those resources (subchannels,slots) where my userID is written into (UTx)
+            // Before going to UT's PhyUser, take care to use the right userID!
+            // it must be reverted (to BSx) in the PhyCommand to send to the right peer.
             assure(schedulerState->currentState->schedulingMap == strategyInput.inputSchedulingMap,"schedulingMap must be set in revolveSchedulerState()");
             // set empty all resources but keep userID, PhyMode, TxPower
             MESSAGE_SINGLE(NORMAL, logger, "inputSchedulingMap->processMasterMap()");
@@ -400,7 +401,7 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
     assure(strategyResult.schedulingMap==schedulingMap,"schedulingMap mismatch");
     if (colleagues.apcstrategy!=NULL)
         colleagues.apcstrategy->postProcess(schedulerState,schedulingMap);
-    schedulingMapReady(strategyResult); // make the callBacks
+    //schedulingMapReady(strategyResult); // make the callBacks
 
     return strategyResult;
 } // startScheduling
@@ -448,123 +449,92 @@ Strategy::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 void
 Strategy::schedulingMapReady(StrategyResult& strategyResult)
 {
-    assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
-    // nothing to do if no callBack registered:
-    if (schedulerState->currentState->strategyInput->callBackObject==NULL) return; // nothing to do
-    assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
-    MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): performing "<<strategyResult.bursts->size()<<" callbacks:");
-    if (strategyResult.bursts->size()==0) return; // nothing to do
-    if (0) { // method 1: iterate through schedulingMap
-        SchedulingMapPtr schedulingMap = strategyResult.schedulingMap; // just a smartPtr
-        for ( SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin();
-              iterSubChannel != schedulingMap->subChannels.end(); ++iterSubChannel)
-        {
-            SchedulingSubChannel& subChannel = *iterSubChannel;
-            for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-                  iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
-            {
-                SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
-                for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
-                      iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
-                {
-                    while ( !iterPRB->scheduledCompounds.empty() )
-                    { // for every compound in subchannel:
-                        SchedulingCompound schedulingCompound = iterPRB->scheduledCompounds.front();
-                        iterPRB->scheduledCompounds.pop_front(); // remove from map
-                        assure(schedulingCompound.endTime<=schedulerState->currentState->strategyInput->slotLength,"endTime="<<schedulingCompound.endTime<<" > slotLength="<<schedulerState->currentState->strategyInput->slotLength<<" is an ERROR");
-                        MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
-                        // fill mapInfoEntry
-                        mapInfoEntry->start      = schedulingCompound.startTime;
-                        mapInfoEntry->end        = schedulingCompound.endTime;
-                        mapInfoEntry->user       = schedulingCompound.userID;
-                        mapInfoEntry->subBand    = schedulingCompound.subChannel;
-                        mapInfoEntry->timeSlot   = schedulingCompound.timeSlot;
-                        mapInfoEntry->beam       = schedulingCompound.beam;
-                        mapInfoEntry->txPower    = schedulingCompound.txPower;
-                        mapInfoEntry->phyModePtr = schedulingCompound.phyModePtr;
-                        //mapInfoEntry->pattern = schedulingCompound.pattern; // for beamforming. TODO
-                        //mapInfoEntry->estimatedCandI = schedulingCompound.estimatedCandI; // for statistics in WiMAC. TODO?
-                        //mapInfoEntry->compounds; // leave empty
-                        schedulerState->currentState->strategyInput->callBackObject->
-                            callBack(mapInfoEntry);
-                    } // while (all scheduledCompounds)
-                } // forall beams
-            } // end for ( timeSlots )
-        } // forall subChannels
-    } else { // method 2: iterate through MapInfoCollectionPtr
-        //MapInfoCollectionPtr bursts = strategyResult.bursts;
-        // copy into state, because we are asked later via getMapInfo()
-        schedulerState->currentState->bursts = strategyResult.bursts;
-        MapInfoCollectionPtr bursts;
-        // In slave scheduler translate the bursts into one before processing:
-        if (schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
-        { // SLAVE
-            MapInfoCollectionPtr scheduledBursts = schedulerState->currentState->bursts; // input
-            bursts = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // output
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: scheduledBursts="<<scheduledBursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(scheduledBursts)); // debug
-            assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
-            MapInfoEntryPtr burst = schedulerState->currentState->strategyInput->mapInfoEntryFromMaster; // only this one burst is valid
-            for ( MapInfoCollection::iterator iterBurst = scheduledBursts->begin();
-                  iterBurst != scheduledBursts->end(); ++iterBurst)
-            {
-                MapInfoEntryPtr scheduledBurst = (*iterBurst);
-                // For slave scheduling the StrategyInput contains a (one!) mapInfoEntryFromMaster which specifies one subchannel only
-                // However, the substrategies altogether return a number of mapInfoEntries=bursts, which are all "copies" of the original SmartPtr mapInfoEntryFromMaster
-                // But the first burst already contains all information. But its start-end values are wrong.
-                // So better copy the contents of all scheduledBursts into the masterBurst
-                MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: iterBurst="<<scheduledBurst.getPtr());
-                burst->user = scheduledBurst->user; // switch to new receiver (RAP)
-                for (wns::scheduler::CompoundList::iterator iter=scheduledBurst->compounds.begin(); iter!=scheduledBurst->compounds.end(); ++iter)
-                { // forall compounds in burst
-                    wns::ldk::CompoundPtr compoundPtr = *iter;
-                    burst->compounds.push_back(compoundPtr); // copy into masterBurst
-                }
-            } // forall bursts
-            bursts->push_back(burst); // only one burst (in slave mode)
-            //} else if (schedulerState->schedulerSpot = wns::scheduler::SchedulerSpot::ULMaster()) { // UL Master
-        } else { // Master
-            bursts = schedulerState->currentState->bursts;
-        }
-        MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): bursts="<<bursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(bursts)); // debug
-
-        MapInfoEntryPtr lastBurst; // only for debugging
-        for ( MapInfoCollection::iterator iterBurst = bursts->begin();
-              iterBurst != bursts->end(); ++iterBurst)
-        {
-            //MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<iterBurst->getPtr()); // debug
-            MapInfoEntryPtr burst = (*iterBurst);
-            // unset members?
-            if (burst->frameNr<0) { burst->frameNr=schedulerState->currentState->strategyInput->frameNr; }
-            // "-inf dBm" must be handled (some strategies leave this incomplete):
-            if (burst->txPower==wns::Power()) {
-                assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
-                burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
-            }
-            if (burst->txPower.get_mW()==0.0) {
-                assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
-                burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
-            }
-            if (!burst->estimatedCandI.isValid()) { // only old strategies need this:
-                burst->estimatedCandI = (schedulerState->isTx)?
-                    (colleagues.registry->estimateTxSINRAt(burst->user)) // Tx
-                    :
-                    (colleagues.registry->estimateRxSINROf(burst->user)); // Rx;
-                // estimatedCandI is old (flat channel) method here. Not CQI.
-                MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): warning: too late calculation of estimatedCandI="<<burst->estimatedCandI.toSINR());
-            }
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): powerCapabilities.nominalPerSubband="<<schedulerState->powerCapabilities.nominalPerSubband);
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<" vs lastBurst="<<lastBurst.getPtr());
-            MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<burst->toString());
-            assure(burst->txPower.get_dBm()>-40.0,"bad txPower="<<burst->txPower);
-            assure(burst->phyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr(),"phyModePtr="<<burst->phyModePtr);
-            // this can happen if ULSlaveScheduler works on burst=mapInfoEntryFromMaster and subStrategies return multiple copies of that:
-            assure(burst.getPtr()!=lastBurst.getPtr(),"burst="<<burst.getPtr()<<" equals lastBurst="<<lastBurst.getPtr());
-            schedulerState->currentState->strategyInput->callBackObject->
-                callBack(burst);
-            lastBurst=burst; // only for debugging
-        } // foreach burst
-    } // method 2
-    MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): done ("<<strategyResult.bursts->size()<<" callbacks/mapInfoEntries/bursts).");
+     assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
+     // nothing to do if no callBack registered:
+     if (schedulerState->currentState->strategyInput->callBackObject==NULL) return; // nothing to do
+     assure(schedulerState->currentState->strategyInput->callBackObject!=NULL,"invalid callback");
+//     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): performing "<<strategyResult.bursts->size()<<" callbacks:");
+//     if (strategyResult.bursts->size()==0) return; // nothing to do
+//
+//     //master is assumed
+//     if(isTx()){ //is DL master ?!
+//     SchedulingMapPtr schedulingMap = strategyResult.schedulingMap; // just a smartPtr
+//     schedulerState->currentState->strategyInput->callBackObject->callBack(schedulingMap);
+//     } // is UL master ?!
+//  else { // method 2: iterate through MapInfoCollectionPtr
+//         //MapInfoCollectionPtr bursts = strategyResult.bursts;
+//         // copy into state, because we are asked later via getMapInfo()
+//         schedulerState->currentState->bursts = strategyResult.bursts;
+//         MapInfoCollectionPtr bursts;
+//         // In slave scheduler translate the bursts into one before processing:
+//         if (schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULSlave())
+//         { // SLAVE
+//             MapInfoCollectionPtr scheduledBursts = schedulerState->currentState->bursts; // input
+//             bursts = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // output
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: scheduledBursts="<<scheduledBursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(scheduledBursts)); // debug
+//             assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
+//             MapInfoEntryPtr burst = schedulerState->currentState->strategyInput->mapInfoEntryFromMaster; // only this one burst is valid
+//             for ( MapInfoCollection::iterator iterBurst = scheduledBursts->begin();
+//                   iterBurst != scheduledBursts->end(); ++iterBurst)
+//             {
+//                 MapInfoEntryPtr scheduledBurst = (*iterBurst);
+//                 // For slave scheduling the StrategyInput contains a (one!) mapInfoEntryFromMaster which specifies one subchannel only
+//                 // However, the substrategies altogether return a number of mapInfoEntries=bursts, which are all "copies" of the original SmartPtr mapInfoEntryFromMaster
+//                 // But the first burst already contains all information. But its start-end values are wrong.
+//                 // So better copy the contents of all scheduledBursts into the masterBurst
+//                 MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): ULSlave: iterBurst="<<scheduledBurst.getPtr());
+//                 burst->user = scheduledBurst->user; // switch to new receiver (RAP)
+//                 for (wns::scheduler::CompoundList::iterator iter=scheduledBurst->compounds.begin(); iter!=scheduledBurst->compounds.end(); ++iter)
+//                 { // forall compounds in burst
+//                     wns::ldk::CompoundPtr compoundPtr = *iter;
+//                     burst->compounds.push_back(compoundPtr); // copy into masterBurst
+//                 }
+//             } // forall bursts
+//             bursts->push_back(burst); // only one burst (in slave mode)
+//             //} else if (schedulerState->schedulerSpot = wns::scheduler::SchedulerSpot::ULMaster()) { // UL Master
+//         } else { // Master
+//             bursts = schedulerState->currentState->bursts;
+//         }
+//         MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): bursts="<<bursts.getPtr()<<"="<<wns::scheduler::printMapInfoCollection(bursts)); // debug
+//
+//         MapInfoEntryPtr lastBurst; // only for debugging
+//         for ( MapInfoCollection::iterator iterBurst = bursts->begin();
+//               iterBurst != bursts->end(); ++iterBurst)
+//         {
+//             //MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<iterBurst->getPtr()); // debug
+//             MapInfoEntryPtr burst = (*iterBurst);
+//             // unset members?
+//             if (burst->frameNr<0) { burst->frameNr=schedulerState->currentState->strategyInput->frameNr; }
+//             // "-inf dBm" must be handled (some strategies leave this incomplete):
+//             if (burst->txPower==wns::Power()) {
+//                 assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
+//                 burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
+//             }
+//             if (burst->txPower.get_mW()==0.0) {
+//                 assure (schedulerState->powerCapabilities.nominalPerSubband!=wns::Power(),"undefined powerCapabilities.nominalPerSubband=="<<schedulerState->powerCapabilities.nominalPerSubband);
+//                 burst->txPower=schedulerState->powerCapabilities.nominalPerSubband;
+//             }
+//             if (!burst->estimatedCandI.isValid()) { // only old strategies need this:
+//                 burst->estimatedCandI = (schedulerState->isTx)?
+//                     (colleagues.registry->estimateTxSINRAt(burst->user)) // Tx
+//                     :
+//                     (colleagues.registry->estimateRxSINROf(burst->user)); // Rx;
+//                 // estimatedCandI is old (flat channel) method here. Not CQI.
+//                 MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): warning: too late calculation of estimatedCandI="<<burst->estimatedCandI.toSINR());
+//             }
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): powerCapabilities.nominalPerSubband="<<schedulerState->powerCapabilities.nominalPerSubband);
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<" vs lastBurst="<<lastBurst.getPtr());
+//             MESSAGE_SINGLE(NORMAL, logger,"schedulingMapReady(): iterBurst="<<burst.getPtr()<<burst->toString());
+//             assure(burst->txPower.get_dBm()>-40.0,"bad txPower="<<burst->txPower);
+//             assure(burst->phyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr(),"phyModePtr="<<burst->phyModePtr);
+//             // this can happen if ULSlaveScheduler works on burst=mapInfoEntryFromMaster and subStrategies return multiple copies of that:
+//             assure(burst.getPtr()!=lastBurst.getPtr(),"burst="<<burst.getPtr()<<" equals lastBurst="<<lastBurst.getPtr());
+//             schedulerState->currentState->strategyInput->callBackObject->
+//                 callBack(burst);
+//             lastBurst=burst; // only for debugging
+//         } // foreach burst
+//     } // method 2
+//     MESSAGE_SINGLE(NORMAL, logger, "schedulingMapReady(): done ("<<strategyResult.bursts->size()<<" callbacks/mapInfoEntries/bursts).");
 } // schedulingMapReady
 
 /*
@@ -623,9 +593,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 
     ChannelQualitiesOnAllSubBandsPtr cqiForUser; // SmartPtr (allocated in CQI)
     wns::CandI estimatedCandI;
-    // phyMode may be given by master to slave:
-    //if (schedulerState->defaultPhyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr())
-    //    request.phyModePtr = schedulerState->defaultPhyModePtr;
+
     assure(schedulerState->defaultPhyModePtr == wns::service::phy::phymode::PhyModeInterfacePtr(),
            "defaultPhyModePtr must not be set at this point (either master scheduler or inputSchedulingMap method)");
 
@@ -736,8 +704,8 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         // do adaptive power allocation
         apcResult = colleagues.apcstrategy->doStartAPC(request, schedulerState, schedulingMap);
         // not (yet) possible: if (?==apcstrategy::APCNotFound) return resultMapInfoEntry; // empty means no result
-	    if(apcResult.txPower == wns::Power())
-		    return resultMapInfoEntry; // empty means no result
+        if (apcResult.txPower == wns::Power())
+            return resultMapInfoEntry; // empty means no result
         // fix the proposed phyMode value:
         request.phyModePtr = apcResult.phyModePtr;
         txPower = apcResult.txPower;
@@ -749,17 +717,21 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         assure(std::fabs(estimatedCandI.toSINR().get_dB()-apcResult.sinr.get_dB())<1e-6,"sinr mismatch: sinr="<<estimatedCandI.toSINR()<<" != "<<apcResult.sinr);
         // estimatedCandI (calculated here) and apcResult.estimatedCandI should be the same
         double minSINRforPhyMode = colleagues.registry->getPhyModeMapper()->getMinimumSINR();
-        if (schedulerState->excludeTooLowSINR && (apcResult.sinr.get_dB() < minSINRforPhyMode))
+        if ((apcResult.sinr.get_dB() < minSINRforPhyMode))
         { // this could mean "APC failed"
             MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): too low SINR! sinr="<<estimatedCandI.toSINR()<<", PhyMode="<<*(apcResult.phyModePtr)<<" requires "<<minSINRforPhyMode<<"dB");
             // ^ this may happen in the early milliseconds of a simulation / after association,
             // when there is no realistic estimatedCandI and CQI.
             // If we would break here in this case, there will never be a transmission.
             // which criterion? cqiOnSubChannel.pathloss.get_dB() > 150 ?
-            // (solved in RegistryProxy::estimateRxSINROf()), so "blind case" should not happen here.
+
+            // If the value is extremely low, it is likely that something bad has happened
             assure(estimatedCandI.C.get_dBm() > -190,
                    "sinr="<<apcResult.sinr.get_dB()<<" but minSINRforPhyMode="<<minSINRforPhyMode<<" not reached. Estimation was: C="<<estimatedCandI.C<<", I="<<estimatedCandI.I<<" (blind)");
-            return resultMapInfoEntry; // empty means no result
+            if (schedulerState->excludeTooLowSINR)
+            {
+                return resultMapInfoEntry; // empty means no result
+            }
         }
     } else { // slave scheduling (PowerControlULSlave)
         request.phyModePtr = schedulingMap->getPhyModeUsedInResource(subChannel,timeSlot,beam);
