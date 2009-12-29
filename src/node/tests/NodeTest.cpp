@@ -72,7 +72,7 @@ void NodeTest::getName()
 		registry,
 		pyconfig::helper::createViewFromDropInConfig("openwns.node",
 							     "NodeDropIn"));
-	CPPUNIT_ASSERT(node.getName() == "The Node1");
+	CPPUNIT_ASSERT(node.getName() == "The Node");
 }
 
 void NodeTest::noDuplicateNodeIDs()
