@@ -234,7 +234,7 @@ RegistryProxyStub::getActiveULUsers() const
 }
 
 int
-RegistryProxyStub::getTotalNumberOfUsers(wns::scheduler::UserID /*user*/)
+RegistryProxyStub::getTotalNumberOfUsers(wns::scheduler::UserID /*user*/) const
 {
 	return 1;
 }

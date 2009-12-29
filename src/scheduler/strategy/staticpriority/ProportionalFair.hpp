@@ -70,12 +70,6 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
                                          wns::scheduler::SchedulingMapPtr schedulingMap);
 
                 protected:
-                    /** @brief Returns connections belonnging to current priority of this user*/
-                    ConnectionVector
-                    getConnectionsForPrio(int currentPrio, const UserID user);
-                    /** @brief Return a random connection out of the connection vector*/
-                    wns::scheduler::ConnectionID
-                    getRandomConnection(ConnectionVector currentPrioConns);
                     /** @brief Number of packets to schedule of the same cid before proceeding to the next one */
                     int blockSize;
                     /** @brief exponential window sliding average; p_i=(1-h)*c_i + h*i_{i-1} */

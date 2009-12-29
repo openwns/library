@@ -188,7 +188,7 @@ namespace wns { namespace scheduler {
 
             /** @brief returns one for UTs, and #connected UTs in case of RNs */
             virtual int
-            getTotalNumberOfUsers(const wns::scheduler::UserID user) = 0;
+            getTotalNumberOfUsers(const wns::scheduler::UserID user) const = 0;
 
             /** @brief retrieve info about a user's power capabilities */
             virtual wns::scheduler::PowerCapabilities

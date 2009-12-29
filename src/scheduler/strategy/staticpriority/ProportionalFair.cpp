@@ -108,7 +108,6 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
         // iterate over the global past data rates map of all users and
         // find the past data rate for this user
         // there is exactly one pastDataRate value per userID
-        int weight = colleagues.registry->getTotalNumberOfUsers(user);
         for (std::map<UserID, float>::const_iterator iter = pastDataRates.begin();
              iter != pastDataRates.end(); ++iter)
         {
@@ -117,8 +116,9 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
                 float dataRate = iter->second;
                 // a RN must get a better share of the bandwidth
                 // here: proportional to its number of users:
-                assure(weight>0, "numberOfUsers(" <<user->getName()<<")=" << weight);
-                dataRate /= static_cast<float>(weight);
+                int weight = colleagues.registry->getTotalNumberOfUsers(iter->first);
+                MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user<<"): dataRate("<<colleagues.registry->getNameForUser(iter->first)<<")="<<dataRate<<" with weight="<<weight);
+                dataRate /= static_cast<double>(weight);
                 // dataRate now has the meaning of a weight.
                 pastDataRate = dataRate;
             }
@@ -155,7 +155,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
             (1.0-scalingBetweenMaxTPandPFair) * resultMaxThroughput
             +scalingBetweenMaxTPandPFair  * resultPropFair;
 
-        MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user->getName()<<"): weight=" << weight << ", pastDataRate= "<<pastDataRate<<" bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
+        MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user->getName()<<"): pastDataRate= "<<pastDataRate<<"bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
 
         // calculate preferences for users and order them
         preferences.push(UserPreference(UserPref, user));
@@ -203,59 +203,35 @@ ProportionalFair::getNextConnection(SchedulerStatePtr schedulerState,
 
     while (!preferences.empty())
     {
-        int priority = schedulerState->currentState->getCurrentPriority();
         const float preference = preferences.top().first;
         const UserID user = preferences.top().second;
-        MESSAGE_SINGLE(NORMAL, logger, "Selected user="<<user->getName());
+        MESSAGE_SINGLE(NORMAL, logger, "SelectedUser= "<<user->getName()<<"");
 
-        ConnectionVector currentPrioConns = getConnectionsForPrio(priority, user);
+        // get all registered connections for current user
+        ConnectionVector allRegisteredConns = colleagues.registry->getConnectionsForUser(user);
 
-        if(!currentPrioConns.empty())
+        for (ConnectionVector::const_iterator iter = allRegisteredConns.begin();
+             iter != allRegisteredConns.end();
+             ++iter)
         {
-            next = getRandomConnection(currentPrioConns);
-            MESSAGE_SINGLE(NORMAL, logger, "Selected connection with CID="<<next);
-            return next;
+            wns::scheduler::ConnectionID currentConnection = *iter;
+            // check if the connection has the current priority
+            if (schedulerState->currentState->getCurrentPriority()
+                == colleagues.registry->getPriorityForConnection(currentConnection))
+            {
+                if (colleagues.queue->queueHasPDUs(currentConnection))
+                {
+                    next = currentConnection;
+                    return next;
+                }
+                // else: this conection is empty, go to the next connection of this user
+            }
+            // else: this connection belongs to another, i.e. lower priority, go to the next connection of this user
         }
+        // All connections of this user are already handled, remove user from preferences and go to next user
         preferences.pop();
     }
     return next;
-}
-
-// return connections for user belonging to current priority
-ConnectionVector
-ProportionalFair::getConnectionsForPrio(int currentPrio, const UserID user)
-{
-    ConnectionVector currentPrioConns;
-    ConnectionVector allRegisteredConns = colleagues.registry->getConnectionsForUser(user);
-    for (ConnectionVector::const_iterator iter = allRegisteredConns.begin();
-         iter != allRegisteredConns.end();
-         ++iter)
-    {
-        wns::scheduler::ConnectionID currentConnection = *iter;
-        // check if the connection has the current priority
-        if (colleagues.registry->getPriorityForConnection(currentConnection) == currentPrio)
-        {
-            if (colleagues.queue->queueHasPDUs(currentConnection))
-            {
-                currentPrioConns.push_back(currentConnection);
-            }
-            // else: this conection is empty, go to the next connection of this user
-        }
-        // else: this connection belongs to another, i.e. lower priority, go to the next connection of this user
-    }
-    return currentPrioConns;
-}
-
-wns::scheduler::ConnectionID
-ProportionalFair::getRandomConnection(ConnectionVector currentPrioConns)
-{
-    int numberOfConns = currentPrioConns.size();
-    wns::distribution::Uniform* randomPositionDistribution = new wns::distribution::Uniform(0.0, numberOfConns);
-    float randomNumber = (*randomPositionDistribution)();
-    int randomPosition = static_cast<int>(randomNumber);
-    MESSAGE_SINGLE(NORMAL, logger, "Drew random number="<<randomNumber<< ", position="<< randomPosition << " out of "<< numberOfConns << " total connections.");
-    assure(randomPosition<numberOfConns, "Random position of connections="<< randomPosition << " out of range of current connections size="<<numberOfConns);
-    return currentPrioConns[randomPosition];
 }
 
 // maybe we could get rid of the phase length
@@ -294,8 +270,7 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
 {
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
     UserSet allUsersInQueue = colleagues.queue->getQueuedUsers();
-    int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
-	UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue, frameNr);
+    UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue);
     ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
 
     MESSAGE_SINGLE(NORMAL, logger, "activeUsers= "<< activeUsers.size()<<" , currentConnections= "<<printConnectionSet(currentConnections)<<" ");

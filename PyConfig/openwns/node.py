@@ -101,7 +101,7 @@ class Node(object):
     def addComponent(self, component):
         """ add a component
         """
-        assert component.name not in [ i.name for i in self.components ]
+        assert component.name not in [ i.name for i in self.components ], component.name + " already known."
         self.components.append(component)
 
     def addConstantContextProvider(self, key, value):

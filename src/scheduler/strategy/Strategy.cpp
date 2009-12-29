@@ -359,7 +359,6 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
             MESSAGE_SINGLE(NORMAL, logger,"PhyMode="<<*(strategyInput.mapInfoEntryFromMaster->phyModePtr)<<", txPower="<<strategyInput.mapInfoEntryFromMaster->txPower);
             schedulerState->setDefaultPhyMode(strategyInput.mapInfoEntryFromMaster->phyModePtr);
             schedulerState->setDefaultTxPower(strategyInput.mapInfoEntryFromMaster->txPower);
-            /* workaround for old UL model without inputSchedulingMap. Re-enable soon
         } else {
             assure(strategyInput.inputSchedulingMap != wns::scheduler::SchedulingMapPtr(), "slave scheduling requires inputSchedulingMap");
             MESSAGE_SINGLE(NORMAL, logger, "SlaveScheduling with given inputSchedulingMap...");
@@ -372,7 +371,6 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
             MESSAGE_SINGLE(NORMAL, logger, "inputSchedulingMap->processMasterMap()");
             schedulerState->currentState->schedulingMap->processMasterMap();
             MESSAGE_SINGLE(NORMAL, logger, "prepared master schedulingMap="<<schedulerState->currentState->schedulingMap->toString());
-            */
         }
     }
     schedulerState->clearMap(); // empty bursts result datastructure MapInfoCollection (not schedulingMap)
@@ -566,8 +564,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         assure(schedulerState->schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave(),
                "PowerControlULSlave requires SchedulerSpot::ULSlave");
         assure(schedulerState->currentState->strategyInput!=NULL,"need strategyInput");
-        if (schedulerState->powerControlType==PowerControlULSlave)
-        //if (schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr()) // workaround for old UL model without inputSchedulingMap. Re-enable soon
+        if (schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr())
         { // don't do anything. Just return the known=given masterBurst
             assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
             MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry(*(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster))); // copy and new SmartPtr to carry the result
