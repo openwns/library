@@ -36,9 +36,18 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(QueueProxy,
                                      wns::HasReceptorConfigCreator);
 
 QueueProxy::QueueProxy(wns::ldk::HasReceptorInterface*, const wns::pyconfig::View& _config) :     
+    queueManagerServiceName_(_config.get<std::string>("queueManagerServiceName")),
+    readOnly_(_config.get<bool>("readOnly")),
     logger_(_config.get("logger")),
     myFUN_(NULL)
 {
+    MESSAGE_BEGIN(NORMAL, logger_, m, "QueueProxy");
+    m << " Created ";
+    m << (readOnly_?"read only":"read/write"); 
+    m << " QueueProxy Queue using QueueManagerService ";
+    m << queueManagerServiceName_;
+    MESSAGE_END();
+
 }
 
 QueueProxy::~QueueProxy()
@@ -48,25 +57,45 @@ QueueProxy::~QueueProxy()
 void QueueProxy::setFUN(wns::ldk::fun::FUN* fun)
 {
     myFUN_ = fun;
+    colleagues.queueManager_ = fun->getLayer()->
+            getManagementService<wns::scheduler::queue::IQueueManager>(
+                queueManagerServiceName_);
+    assure(colleagues.queueManager_, "QueueProxy needs a QueueManager");
+
+    MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
+    m << " Received valid FUN pointer and QueueManagerService ";
+    m << queueManagerServiceName_;
+    MESSAGE_END();
 }
 
 bool QueueProxy::isAccepting(const wns::ldk::CompoundPtr&  compound ) const 
 {
+    if(readOnly_)
+        return false;
+
+    assure(false, "QueueProxy can currently only be used read only");
+
 }
 
 void
 QueueProxy::put(const wns::ldk::CompoundPtr& compound) 
 {
+    assure(!readOnly_, "Put called for readOnly QueueProxy");
+    
+    if(readOnly_)
+        return;
 }
 
 wns::scheduler::UserSet
 QueueProxy::getQueuedUsers() const 
 {
+    assure(false, "Not implemented");
 }
 
 wns::scheduler::ConnectionSet
 QueueProxy::getActiveConnections() const
 {
+    colleagues.queueManager_->getAllQueues();    
 }
 
 uint32_t
@@ -82,6 +111,7 @@ QueueProxy::numBitsForCid(wns::scheduler::ConnectionID cid) const
 wns::scheduler::QueueStatusContainer
 QueueProxy::getQueueStatus() const
 {
+    colleagues.queueManager_->getAllQueues();    
 }
 
 wns::ldk::CompoundPtr
@@ -97,6 +127,7 @@ QueueProxy::getHeadOfLinePDUbits(wns::scheduler::ConnectionID cid)
 bool
 QueueProxy::isEmpty() const
 {
+    colleagues.queueManager_->getAllQueues();    
 }
 
 bool
@@ -107,11 +138,13 @@ QueueProxy::hasQueue(wns::scheduler::ConnectionID cid)
 bool
 QueueProxy::queueHasPDUs(wns::scheduler::ConnectionID cid) 
 {
+    colleagues.queueManager_->getAllQueues();
 }
 
 wns::scheduler::ConnectionSet
 QueueProxy::filterQueuedCids(wns::scheduler::ConnectionSet connections) 
 {
+    colleagues.queueManager_->getAllQueues();    
 }
 
 void
@@ -130,6 +163,7 @@ QueueProxy::resetAllQueues()
     probeOutput.compounds += iter->second.pduQueue.size();
 
     return probeOutput;*/
+    colleagues.queueManager_->getAllQueues();    
 }
 
 wns::scheduler::queue::QueueInterface::ProbeOutput
@@ -154,11 +188,14 @@ QueueProxy::printAllQueues()
         s << cid << ":" << bits << "," << compounds << " ";
     }
     return s.str();*/
+    colleagues.queueManager_->getAllQueues();    
 }
 
 bool
 QueueProxy::supportsDynamicSegmentation() const
 {
+    //if(colleagues.queueManager_ != NULL)
+    //    colleagues.queueManager_->getAllQueues();    
 }
 
 wns::ldk::CompoundPtr 

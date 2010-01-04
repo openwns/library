@@ -55,7 +55,7 @@ namespace wns { namespace scheduler { namespace queue {
 
                 wns::scheduler::UserSet 
                 getQueuedUsers() const;
-                
+
                 wns::scheduler::ConnectionSet 
                 getActiveConnections() const;
 
@@ -83,7 +83,7 @@ namespace wns { namespace scheduler { namespace queue {
 
                 bool 
                 queueHasPDUs(wns::scheduler::ConnectionID cid);
-                
+
                 wns::scheduler::ConnectionSet 
                 filterQueuedCids(wns::scheduler::ConnectionSet connections);
 
@@ -120,10 +120,6 @@ namespace wns { namespace scheduler { namespace queue {
                 int 
                 getMinimumSegmentSize() const;
 
-            protected:
-                void
-                probe();
-
             private:
                 struct Colleagues {
                     wns::scheduler::RegistryProxyInterface* registry_;
@@ -131,6 +127,7 @@ namespace wns { namespace scheduler { namespace queue {
                 } colleagues;
 
                 std::string queueManagerServiceName_;
+                bool readOnly_;
                 wns::logger::Logger logger_;
                 wns::ldk::fun::FUN* myFUN_;
             };

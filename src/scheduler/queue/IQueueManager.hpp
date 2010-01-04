@@ -25,8 +25,8 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_IQUEUEMANAGER_HPP
-#define WNS_SCHEDULER_IQUEUEMANAGER_HPP
+#ifndef WNS_SCHEDULER_QUEUE_IQUEUEMANAGER_HPP
+#define WNS_SCHEDULER_QUEUE_IQUEUEMANAGER_HPP
 
 #include <WNS/scheduler/queue/QueueInterface.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
@@ -51,9 +51,8 @@ namespace wns { namespace scheduler { namespace queue {
 
                 virtual ~IQueueManager() {};
 
-
                 /**
-                 * @brief Return all maneged queues
+                 * @brief Return all managed queues
                  */
                 virtual QueueSet
                 getAllQueues() = 0;
@@ -65,6 +64,6 @@ namespace wns { namespace scheduler { namespace queue {
                 getQueue(wns::scheduler::ConnectionID cid) = 0;
             };
         }}} // namespace wns::scheduler::queue
-#endif // WNS_SCHEDULER_IQUEUEMANAGER_HPP
+#endif // WNS_SCHEDULER_QUEUE_IQUEUEMANAGER_HPP
 
 

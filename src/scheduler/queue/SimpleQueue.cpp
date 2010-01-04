@@ -77,7 +77,6 @@ void SimpleQueue::setFUN(wns::ldk::fun::FUN* fun)
 
 bool SimpleQueue::isAccepting(const wns::ldk::CompoundPtr&  compound ) const {
     int size = compound->getLengthInBits();
-    std::string myName = colleagues.registry->getNameForUser(colleagues.registry->getMyUserID());
 
     ConnectionID cid = colleagues.registry->getCIDforPDU(compound);
 

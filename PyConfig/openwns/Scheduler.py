@@ -384,6 +384,19 @@ class SimpleQueue(object):
         self.sizeProbeName = 'SimpleQueueSize'
         attrsetter(self, kw)
 
+######################################################
+### QueueProxy (passes all calls to other queues. Used to
+### access uplink queues
+class QueueProxy(object):
+    nameInQueueFactory = "wns.scheduler.queue.QueueProxy"
+    queueManagerServiceName = None
+    readOnly = None
+    
+    def __init__(self, queueManagerServiceName, readOnly = True, parentLogger = None):
+        self.queueManagerServiceName = queueManagerServiceName
+        self.readOnly = readOnly
+        self.logger = openwns.logger.Logger("WNS", "QueueProxy", True, parentLogger);
+
 ### SegmentingQueue (stores unsegmented original PDUs and does segmentation on-the-fly)
 class SegmentingQueue(object):
     """
