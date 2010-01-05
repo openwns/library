@@ -89,56 +89,157 @@ QueueProxy::put(const wns::ldk::CompoundPtr& compound)
 wns::scheduler::UserSet
 QueueProxy::getQueuedUsers() const 
 {
-    assure(false, "Not implemented");
+    wns::scheduler::UserSet us;
+
+    QueueContainer queues = colleagues.queueManager_->getAllQueues();    
+
+    QueueContainer::iterator it;
+    for(it = queues.begin(); it != queues.end(); it++)
+    {
+        wns::scheduler::UserSet innerUs;
+        innerUs = it->second->getQueuedUsers();
+        wns::scheduler::UserSet::iterator iit;
+        
+        for(iit = innerUs.begin(); iit != innerUs.end(); iit++)
+            us.insert(*iit);
+    }
+    return us;
+
 }
 
 wns::scheduler::ConnectionSet
 QueueProxy::getActiveConnections() const
 {
-    colleagues.queueManager_->getAllQueues();    
+    wns::scheduler::ConnectionSet cs;
+
+    QueueContainer queues = colleagues.queueManager_->getAllQueues();    
+
+    QueueContainer::iterator it;
+    for(it = queues.begin(); it != queues.end(); it++)
+    {
+        wns::scheduler::ConnectionSet innerCs;
+        innerCs = it->second->getActiveConnections();
+        wns::scheduler::ConnectionSet::iterator iit;
+        
+        for(iit = innerCs.begin(); iit != innerCs.end(); iit++)
+            cs.insert(*iit);
+    }
+    return cs;
 }
 
 uint32_t
 QueueProxy::numCompoundsForCid(wns::scheduler::ConnectionID cid) const
 {
+    assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");
+    return colleagues.queueManager_->getQueue(cid)->numCompoundsForCid(cid);  
 }
 
 uint32_t
 QueueProxy::numBitsForCid(wns::scheduler::ConnectionID cid) const
 {
+    assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");
+    return colleagues.queueManager_->getQueue(cid)->numBitsForCid(cid);   
 }
 
 wns::scheduler::QueueStatusContainer
 QueueProxy::getQueueStatus() const
 {
-    colleagues.queueManager_->getAllQueues();    
+    wns::scheduler::QueueStatusContainer csc;
+
+    QueueContainer queues = colleagues.queueManager_->getAllQueues();    
+
+    QueueContainer::iterator it;
+    for(it = queues.begin(); it != queues.end(); it++)
+    {
+        wns::scheduler::QueueStatusContainer innerCsc;
+        innerCsc = it->second->getQueueStatus();
+        wns::scheduler::QueueStatusContainer::const_iterator iit;
+        
+        for(iit = innerCsc.begin(); iit != innerCsc.end(); iit++)
+            csc.insert(iit->first, iit->second);
+    }
+    return csc;
 }
 
 wns::ldk::CompoundPtr
 QueueProxy::getHeadOfLinePDU(wns::scheduler::ConnectionID cid) 
-{
+{        
+    assure(copyQueue_.find(cid) != copyQueue_.end(), "No copyQueue for CID");
+    assure(!copyQueue_[cid].empty(), "Requested PDU from emty queue");
+    
+    wns::ldk::CompoundPtr pdu = copyQueue_[cid].front();        
+    copyQueue_[cid].pop();        
+    return pdu;
 }
 
 int
 QueueProxy::getHeadOfLinePDUbits(wns::scheduler::ConnectionID cid)
 {
+    assure(hasQueue(cid), "No queue for this CID");
+    return colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDUbits(cid);
 }
 
 bool
 QueueProxy::isEmpty() const
 {
-    colleagues.queueManager_->getAllQueues();    
+    QueueContainer queues = colleagues.queueManager_->getAllQueues();    
+    QueueContainer::iterator it;
+    for(it = queues.begin(); it != queues.end(); it++)
+    {
+        if(!(it->second->isEmpty()))
+            return false;
+    }
+    return true;
 }
 
 bool
 QueueProxy::hasQueue(wns::scheduler::ConnectionID cid)
 {
+    wns::scheduler::queue::QueueInterface* queue;
+    queue = colleagues.queueManager_->getQueue(cid);
+
+    return (queue == NULL)?false:true;
 }
 
 bool
 QueueProxy::queueHasPDUs(wns::scheduler::ConnectionID cid) 
 {
-    colleagues.queueManager_->getAllQueues();
+    wns::scheduler::queue::QueueInterface* queue;
+    queue = colleagues.queueManager_->getQueue(cid);
+
+    if(queue != NULL)
+    {
+        createQueueCopyIfNeeded(cid);
+
+        if(copyQueue_.find(cid) != copyQueue_.end())
+        {
+            if(copyQueue_[cid].empty()) 
+            {
+                MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
+                m << " queueHasPDUs: CopyQueue for CID " << cid << " is empty.";
+                MESSAGE_END();
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            std::cout << "Pass: "<< queue->queueHasPDUs(cid) << "\n";
+            MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
+            m << " queueHasPDUs: Passing call for  CID " << cid << " to real queue.";
+            MESSAGE_END();
+
+            return queue->queueHasPDUs(cid);
+        }
+    }
+    else
+    {
+        return false;
+    }
 }
 
 wns::scheduler::ConnectionSet
@@ -156,46 +257,53 @@ QueueProxy::setColleagues(wns::scheduler::RegistryProxyInterface* registry)
 wns::scheduler::queue::QueueInterface::ProbeOutput
 QueueProxy::resetAllQueues()
 {
-    // Store number of bits and compounds for Probe which will be deleted
-/*    ProbeOutput probeOutput;
-        
-    probeOutput.bits += iter->second.bits;
-    probeOutput.compounds += iter->second.pduQueue.size();
+    wns::scheduler::queue::QueueInterface::ProbeOutput po;
 
-    return probeOutput;*/
-    colleagues.queueManager_->getAllQueues();    
+    QueueContainer queues = colleagues.queueManager_->getAllQueues();    
+
+    QueueContainer::iterator it;
+    for(it = queues.begin(); it != queues.end(); it++)
+    {
+        wns::scheduler::queue::QueueInterface::ProbeOutput innerPo;
+        innerPo = it->second->resetAllQueues();
+        po.bits += innerPo.bits;
+        po.compounds += innerPo.compounds;
+    }
+    return po;   
 }
 
 wns::scheduler::queue::QueueInterface::ProbeOutput
 QueueProxy::resetQueues(wns::scheduler::UserID _user)
 {
-//    return probeOutput;
+    assure(false, "Not implemeted, use request with CID instead");
 }
 
 wns::scheduler::queue::QueueInterface::ProbeOutput
 QueueProxy::resetQueue(wns::scheduler::ConnectionID cid)
 {
-//    return probeOutput;
+    assure(hasQueue(cid), "No queue for this CID");
+    return colleagues.queueManager_->getQueue(cid)->resetQueue(cid);    
 }
 
 std::string
 QueueProxy::printAllQueues()
 {
-/*    std::stringstream s;
-        ConnectionID cid = iter->first;
-        int bits      = iter->second.bits;
-        int compounds = iter->second.pduQueue.size();
-        s << cid << ":" << bits << "," << compounds << " ";
+    std::stringstream s;
+    
+    QueueContainer queues = colleagues.queueManager_->getAllQueues();    
+
+    QueueContainer::iterator it;
+    for(it = queues.begin(); it != queues.end(); it++)
+    {    
+        s << it->second->printAllQueues() << "\n";
     }
-    return s.str();*/
-    colleagues.queueManager_->getAllQueues();    
+    return s.str();
 }
 
 bool
 QueueProxy::supportsDynamicSegmentation() const
 {
-    //if(colleagues.queueManager_ != NULL)
-    //    colleagues.queueManager_->getAllQueues();    
+    return false;   
 }
 
 wns::ldk::CompoundPtr 
@@ -206,6 +314,46 @@ QueueProxy::getHeadOfLinePDUSegment(wns::scheduler::ConnectionID cid, int bits)
 int 
 QueueProxy::getMinimumSegmentSize() const
 {
+}
+
+void
+QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid)
+{
+    wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
+
+    // New round, create new PDUs in copyQueue
+    if(lastChecked_.find(cid) == lastChecked_.end() || lastChecked_[cid] != now)
+    {
+        // Empty the old copy queue
+        if(copyQueue_.find(cid) != copyQueue_.end())
+        {
+            MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
+            m << " Removing " << copyQueue_[cid].size() << " PDUs form old copyQueue ";
+            m << " for CID " << cid;
+            MESSAGE_END();
+
+            copyQueue_[cid] = std::queue<wns::ldk::CompoundPtr>();
+        }
+            
+        wns::scheduler::queue::QueueInterface* queue;
+        queue = colleagues.queueManager_->getQueue(cid);
+        uint32_t pdus = queue->numCompoundsForCid(cid);
+        
+        MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
+        m << " Creating copy of " << pdus << " PDUs for CID ";
+        m << cid;
+        MESSAGE_END();
+
+        for(uint32_t i = 0; i < pdus; i++)
+        {
+            wns::ldk::CompoundPtr pdu = colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDU(cid);
+
+            // TODO: Use FakePDUs instead!    
+            copyQueue_[cid].push(pdu->copy());
+            queue->put(pdu);
+        }
+        lastChecked_[cid] = now;
+    }
 }
 
 

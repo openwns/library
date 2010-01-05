@@ -31,6 +31,7 @@
 #include <WNS/scheduler/queue/QueueInterface.hpp>
 #include <WNS/scheduler/queue/IQueueManager.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
+#include <queue>
 
 
 namespace wns { namespace scheduler { namespace queue {
@@ -121,6 +122,9 @@ namespace wns { namespace scheduler { namespace queue {
                 getMinimumSegmentSize() const;
 
             private:
+                void
+                createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid);
+
                 struct Colleagues {
                     wns::scheduler::RegistryProxyInterface* registry_;
                     wns::scheduler::queue::IQueueManager* queueManager_;
@@ -128,6 +132,9 @@ namespace wns { namespace scheduler { namespace queue {
 
                 std::string queueManagerServiceName_;
                 bool readOnly_;
+                std::map<wns::scheduler::ConnectionID, wns::simulator::Time> lastChecked_;
+                std::map<wns::scheduler::ConnectionID, std::queue<wns::ldk::CompoundPtr> > copyQueue_; 
+ 
                 wns::logger::Logger logger_;
                 wns::ldk::fun::FUN* myFUN_;
             };

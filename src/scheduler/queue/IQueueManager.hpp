@@ -35,7 +35,7 @@
 
 namespace wns { namespace scheduler { namespace queue {
 
-            typedef std::set<QueueInterface*> QueueSet;
+            typedef std::map<wns::scheduler::ConnectionID, QueueInterface*> QueueContainer;
 
             /**
              * @brief Interface class for the queue manager used by the QueueProxy.
@@ -54,7 +54,7 @@ namespace wns { namespace scheduler { namespace queue {
                 /**
                  * @brief Return all managed queues
                  */
-                virtual QueueSet
+                virtual QueueContainer
                 getAllQueues() = 0;
 
                 /**
