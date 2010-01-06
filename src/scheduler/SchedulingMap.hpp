@@ -238,7 +238,7 @@ namespace wns { namespace scheduler {
             simTimeType getUsedTime() const;
             /** @brief total free time on this SchedulingTimeSlot */
             simTimeType getFreeTime() const;
-            /** @brief number of compunds inside this resource */
+            /** @brief number of compounds inside this resource */
             int countScheduledCompounds() const;
             /** @brief true if there is nothing reserved(scheduled) in this block.
                 For the uplink the master map entries have isEmpty==false.
