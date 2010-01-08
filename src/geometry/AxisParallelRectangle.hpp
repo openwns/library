@@ -34,15 +34,17 @@
 #include "LineSegment.hpp"
 #include "AABoundingBox.hpp"
 
+#include <WNS/pyconfig/View.hpp>
 
 namespace wns{	namespace geometry{
     
     class AxisParallelRectangle : public Shape2D
     {
     public:
-	AxisParallelRectangle();
-	AxisParallelRectangle(const Point& a, const Point& b);
-	AxisParallelRectangle(const Point& a, const Vector& db);
+        AxisParallelRectangle();
+        AxisParallelRectangle(const Point& a, const Point& b);
+        AxisParallelRectangle(const Point& a, const Vector& db);
+        AxisParallelRectangle(const wns::pyconfig::View& config);
 	
 	Point 
 	getA() const { return Point(std::min(a.getX(), b.getX()), 

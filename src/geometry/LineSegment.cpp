@@ -47,6 +47,14 @@ LineSegment::LineSegment(const Point& a, const Vector& db)
 	boundingBox = AABoundingBox(a, a + db);
 }
 
+LineSegment::LineSegment(const wns::pyconfig::View& config)
+    : Shape2D(wns::geometry::Point(config.getView("pointA")),
+              wns::geometry::Point(config.getView("pointB")))
+{
+        boundingBox = AABoundingBox(wns::geometry::Point(config.getView("pointA")),
+                                    wns::geometry::Point(config.getView("pointB")));
+}
+
 LineSegment::~LineSegment()
 {}
 
