@@ -91,6 +91,12 @@ namespace wns { namespace scheduler { namespace queue {
                 /** @brief if supportsDynamicSegmentation, this is the minimum size of a segment in bits */
                 int getMinimumSegmentSize() const { throw wns::Exception("getHeadOfLinePDUSegment() is unsupported"); return 0; };
 
+                /** @brief Retrieves a copy of the queue for a CID. Queued compounds are not copied but
+                * point to the same ones as in the original queue!
+                **/
+                std::queue<wns::ldk::CompoundPtr> 
+                getQueueCopy(ConnectionID cid);                
+
             protected:
                 void
                 probe();

@@ -78,7 +78,7 @@ InnerQueue::empty() const
 void
 InnerQueue::put(const wns::ldk::CompoundPtr& compound)
 {
-    pduQueue_.push_back(compound);
+    pduQueue_.push(compound);
 
     nettoBits_ += compound->getLengthInBits();
 }
@@ -121,7 +121,7 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
             // fits in completely
             header->addSDU(c->copy());
             header->increaseDataSize(length);
-            pduQueue_.pop_front();
+            pduQueue_.pop();
             frontSegmentSentBits_ = 0;
             nettoBits_ -= length;
 
@@ -179,4 +179,10 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
 
     assure(header->totalSize()<=requestedBits,"pdulength="<<header->totalSize()<<" > bits="<<requestedBits);
     return pdu;
+}
+
+std::queue<wns::ldk::CompoundPtr> 
+InnerQueue::getQueueCopy()
+{
+    return pduQueue_;
 }

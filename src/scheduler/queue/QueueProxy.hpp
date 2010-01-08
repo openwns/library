@@ -121,6 +121,14 @@ namespace wns { namespace scheduler { namespace queue {
                 int 
                 getMinimumSegmentSize() const;
 
+
+                /** @brief Retrieves a copy of the queue for a CID. This class uses the method from other queues
+                * but it makes no sense to call our method so we throw
+                **/
+                virtual std::queue<wns::ldk::CompoundPtr> 
+                getQueueCopy(ConnectionID cid);
+
+
             private:
                 void
                 createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid);

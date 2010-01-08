@@ -225,6 +225,13 @@ SimpleQueue::getHeadOfLinePDUbits(ConnectionID cid)
     return queues[cid].pduQueue.front()->getLengthInBits();
 }
 
+std::queue<wns::ldk::CompoundPtr> 
+SimpleQueue::getQueueCopy(ConnectionID cid)
+{
+    assure(queues.find(cid) != queues.end(), "getQueueCopy called for non-existent CID");
+    return queues[cid].pduQueue;
+}
+
 bool
 SimpleQueue::isEmpty() const
 {

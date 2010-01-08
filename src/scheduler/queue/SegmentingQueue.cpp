@@ -276,6 +276,13 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
     return segment;
 }
 
+std::queue<wns::ldk::CompoundPtr> 
+SegmentingQueue::getQueueCopy(ConnectionID cid)
+{
+    assure(queues.find(cid) != queues.end(), "getQueueCopy called for non-existent CID");
+    return queues[cid].getQueueCopy();
+}
+
 bool
 SegmentingQueue::isEmpty() const
 {

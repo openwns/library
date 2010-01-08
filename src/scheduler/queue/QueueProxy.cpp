@@ -337,24 +337,30 @@ QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid)
             
         wns::scheduler::queue::QueueInterface* queue;
         queue = colleagues.queueManager_->getQueue(cid);
-        uint32_t pdus = queue->numCompoundsForCid(cid);
+        //uint32_t pdus = queue->numCompoundsForCid(cid);
         
+        copyQueue_[cid] = queue->getQueueCopy(cid);
+
         MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
-        m << " Creating copy of " << pdus << " PDUs for CID ";
+        m << " Creating copy of " << copyQueue_[cid].size() << " PDUs for CID ";
         m << cid;
         MESSAGE_END();
 
-        for(uint32_t i = 0; i < pdus; i++)
-        {
-            wns::ldk::CompoundPtr pdu = colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDU(cid);
+        //for(uint32_t i = 0; i < pdus; i++)
+        //{
+        //    wns::ldk::CompoundPtr pdu = colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDU(cid);
 
             // TODO: Use FakePDUs instead!    
-            copyQueue_[cid].push(pdu->copy());
-            queue->put(pdu);
-        }
+        //    copyQueue_[cid].push(pdu->copy());
+        //    queue->put(pdu);
+        //}
         lastChecked_[cid] = now;
     }
 }
 
-
+std::queue<wns::ldk::CompoundPtr> 
+QueueProxy::getQueueCopy(ConnectionID cid)
+{ 
+    wns::Exception("You should not call getQueueCopy of the QueueProxy."); 
+}
 

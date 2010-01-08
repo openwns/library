@@ -30,6 +30,7 @@
 
 #include <WNS/simulator/Bit.hpp>
 #include <WNS/ldk/Compound.hpp>
+#include <queue>
 
 namespace wns { namespace scheduler { namespace queue { namespace detail {
 
@@ -125,9 +126,14 @@ public:
     wns::ldk::CompoundPtr
     retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, bool usePadding, bool byteAlignHeader, wns::ldk::CommandReaderInterface* reader);
 
+    /** @brief Retrieves a copy of the raw queue. Queued compounds are not copied but
+    * point to the same ones as in the original queue!
+    **/
+    std::queue<wns::ldk::CompoundPtr> getQueueCopy();
+
 private:
 
-    typedef std::list<wns::ldk::CompoundPtr> CompoundContainer;
+    typedef std::queue<wns::ldk::CompoundPtr> CompoundContainer;
 
     CompoundContainer pduQueue_;
 
