@@ -387,18 +387,25 @@ class SimpleQueue(object):
 ######################################################
 ### QueueProxy (passes all calls to other queues. Used to
 ### access uplink queues
-class QueueProxy(object):
+class SegQueueConfig(object):
+    def __init__(self, commandName):
+        self.fixedHeaderSize = 0
+        self.extensionHeaderSize = 0
+        self.byteAlignHeader = False
+        self.usePadding = False
+        self.segmentHeaderCommandName = None
+
+class QueueProxy(object):  	
     nameInQueueFactory = "wns.scheduler.queue.QueueProxy"
     queueManagerServiceName = None
     supportsDynamicSegmentation = None
     segmentingQueueConfig = None
     
     def __init__(self, queueManagerServiceName, 
-                supportsDynamicSegmentation = False, 
+                supportsDynamicSegmentation = False,
                 parentLogger = None):
         self.queueManagerServiceName = queueManagerServiceName
         self.supportsDynamicSegmentation = supportsDynamicSegmentation
-        self.readOnly = readOnly
         self.logger = openwns.logger.Logger("WNS", "QueueProxy", True, parentLogger);
         
     def setSegmentingQueueConfig(self, config):

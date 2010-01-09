@@ -415,6 +415,13 @@ srcFiles = [
     'src/ldk/sar/Fixed.cpp',
     'src/ldk/sar/Soft.cpp',
     'src/ldk/sar/DynamicSAR.cpp',
+    'src/ldk/sar/SegAndConcat.cpp',
+    'src/ldk/sar/tests/SACSegmentingQueueIntegrationTest.cpp',
+    'src/ldk/sar/tests/SegAndConcatTest.cpp',
+    'src/ldk/sar/reassembly/ReassemblyBuffer.cpp',
+    'src/ldk/sar/reassembly/ReorderingWindow.cpp',
+    'src/ldk/sar/reassembly/tests/ReassemblyBufferTest.cpp',
+    'src/ldk/sar/reassembly/tests/ReorderingWindowTest.cpp',
 
     # ldk.Concatenation
     'src/ldk/concatenation/Concatenation.cpp',
@@ -714,6 +721,9 @@ hppFiles = [
 'src/ldk/sar/SAR.hpp',
 'src/ldk/sar/Soft.hpp',
 'src/ldk/sar/DynamicSAR.hpp',
+'src/ldk/sar/SegAndConcat.hpp',
+'src/ldk/sar/reassembly/ReassemblyBuffer.hpp',
+'src/ldk/sar/reassembly/ReorderingWindow.hpp',
 'src/ldk/SequentlyCallingLinkHandler.hpp',
 'src/ldk/SimpleLinkHandler.hpp',
 'src/ldk/SingleConnector.hpp',

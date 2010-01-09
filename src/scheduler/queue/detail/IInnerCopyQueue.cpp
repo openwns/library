@@ -89,7 +89,6 @@ SimpleInnerCopyQueue::getSize(ConnectionID cid)
 void
 SimpleInnerCopyQueue::setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue)
 {
-    assure(queue_.find(cid) != queue_.end(), "Unknown CID");
     queue_[cid] = queue;
 }
 
@@ -100,7 +99,7 @@ SegmentingInnerCopyQueue::SegmentingInnerCopyQueue(const wns::pyconfig::View& _c
     extensionHeaderSize_(_config.get<Bit>("extensionHeaderSize")),
     usePadding_(_config.get<bool>("usePadding")),
     byteAlignHeader_(_config.get<bool>("byteAlignHeader")),
-    segmentHeaderCommandName_(_config.get<std::string>("segmentHeaderCommandName_"))
+    segmentHeaderCommandName_(_config.get<std::string>("segmentHeaderCommandName"))
 {
 }
 
@@ -178,6 +177,8 @@ SegmentingInnerCopyQueue::getSize(ConnectionID cid)
 void
 SegmentingInnerCopyQueue::setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue)
 {
-    assure(queue_.find(cid) != queue_.end(), "Unknown CID");
+    if(queue_.find(cid) != queue_.end())
+        queue_[cid] = InnerQueue();
+
     queue_[cid].setQueue(queue);
 }
