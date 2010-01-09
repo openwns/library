@@ -181,7 +181,9 @@ SegmentingInnerCopyQueue::setQueue(ConnectionID cid, std::queue<wns::ldk::Compou
     if(queue_.find(cid) != queue_.end())
         queue_[cid] = InnerQueue();
 
-    queue_[cid].setQueue(queue);
+    int s = queue.size();
+    for(int i = 0; i < s; i++)
+        queue_[cid].put(queue.front());
 }
 
 uint32_t 

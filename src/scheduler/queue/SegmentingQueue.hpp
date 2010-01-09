@@ -95,11 +95,6 @@ namespace wns { namespace scheduler { namespace queue {
                 std::queue<wns::ldk::CompoundPtr> 
                 getQueueCopy(ConnectionID cid);
 
-                /** @brief Exchanges the queue for a CID.
-                **/
-                void
-                setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue);
-
                 uint32_t 
                 getMinimumSegmentSize(){ return minimumSegmentSize;};
 

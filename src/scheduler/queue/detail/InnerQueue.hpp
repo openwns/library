@@ -132,12 +132,6 @@ public:
     std::queue<wns::ldk::CompoundPtr> 
     getQueueCopy();
 
-    /** 
-    * @brief Exchanges the queue
-    **/
-    void
-    setQueue(std::queue<wns::ldk::CompoundPtr> queue);
-
 private:
 
     typedef std::queue<wns::ldk::CompoundPtr> CompoundContainer;
