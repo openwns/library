@@ -391,9 +391,10 @@ class SegQueueConfig(object):
     def __init__(self, commandName):
         self.fixedHeaderSize = 0
         self.extensionHeaderSize = 0
+        self.minimumSegmentSize = 1 # Bits
         self.byteAlignHeader = False
         self.usePadding = False
-        self.segmentHeaderCommandName = None
+        self.segmentHeaderCommandName = commandName
 
 class QueueProxy(object):  	
     nameInQueueFactory = "wns.scheduler.queue.QueueProxy"

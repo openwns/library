@@ -329,11 +329,21 @@ QueueProxy::supportsDynamicSegmentation() const
 wns::ldk::CompoundPtr 
 QueueProxy::getHeadOfLinePDUSegment(wns::scheduler::ConnectionID cid, int bits)
 {
+    assure(supportsDynamicSegmentation_, "Dynamic segmentation not supported");
+    assure(!copyQueue_->isEmpty(cid), "Requested PDU from emty queue");
+    
+    wns::ldk::CompoundPtr pdu = copyQueue_->getPDU(cid, bits);        
+    return pdu;
 }
 
 int 
 QueueProxy::getMinimumSegmentSize() const
 {
+    assure(supportsDynamicSegmentation_, "Dynamic segmentation not supported");
+    detail::SegmentingInnerCopyQueue* q;
+    q = dynamic_cast<detail::SegmentingInnerCopyQueue*>(copyQueue_);
+
+    return q->getMinimumSegmentSize();
 }
 
 void

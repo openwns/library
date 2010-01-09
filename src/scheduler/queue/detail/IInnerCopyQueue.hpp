@@ -133,12 +133,16 @@ namespace wns { namespace scheduler { namespace queue { namespace detail {
     
         virtual void
         setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue);
+
+        uint32_t
+        getMinimumSegmentSize();
     
     private:
         std::map<ConnectionID, InnerQueue> queue_;
 
         Bit fixedHeaderSize_;
         Bit extensionHeaderSize_;
+        uint32_t minimumSegmentSize_;
         bool usePadding_;
         bool byteAlignHeader_;
         std::string segmentHeaderCommandName_;
