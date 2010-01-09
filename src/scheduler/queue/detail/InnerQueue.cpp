@@ -186,3 +186,9 @@ InnerQueue::getQueueCopy()
 {
     return pduQueue_;
 }
+
+void
+InnerQueue::setQueue(std::queue<wns::ldk::CompoundPtr> queue)
+{
+    pduQueue_ = queue;
+}

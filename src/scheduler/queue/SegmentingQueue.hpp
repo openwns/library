@@ -69,7 +69,7 @@ namespace wns { namespace scheduler { namespace queue {
 
                 bool isEmpty() const;
                 bool hasQueue(ConnectionID cid);
-                bool queueHasPDUs(ConnectionID cid);
+                bool queueHasPDUs(ConnectionID cid) const;
                 ConnectionSet filterQueuedCids(ConnectionSet connections);
 
                 void setColleagues(RegistryProxyInterface* _registry);
@@ -94,6 +94,23 @@ namespace wns { namespace scheduler { namespace queue {
                 **/
                 std::queue<wns::ldk::CompoundPtr> 
                 getQueueCopy(ConnectionID cid);
+
+                /** @brief Exchanges the queue for a CID.
+                **/
+                void
+                setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue);
+
+                uint32_t 
+                getMinimumSegmentSize(){ return minimumSegmentSize;};
+
+                Bit
+                getFixedHeaderSize(){ return fixedHeaderSize; };
+
+                Bit
+                getExtensionHeaderSize(){ return fixedHeaderSize; };
+
+                bool
+                getByteAlignHeader(){ return byteAlignHeader; };
 
             protected:
                 void

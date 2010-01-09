@@ -129,7 +129,14 @@ public:
     /** @brief Retrieves a copy of the raw queue. Queued compounds are not copied but
     * point to the same ones as in the original queue!
     **/
-    std::queue<wns::ldk::CompoundPtr> getQueueCopy();
+    std::queue<wns::ldk::CompoundPtr> 
+    getQueueCopy();
+
+    /** 
+    * @brief Exchanges the queue
+    **/
+    void
+    setQueue(std::queue<wns::ldk::CompoundPtr> queue);
 
 private:
 

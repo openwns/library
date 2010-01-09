@@ -283,6 +283,13 @@ SegmentingQueue::getQueueCopy(ConnectionID cid)
     return queues[cid].getQueueCopy();
 }
 
+void
+SegmentingQueue::setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue)
+{
+    assure(queues.find(cid) != queues.end(), "setQueue called for non-existent CID");
+    return queues[cid].setQueue(queue);
+}
+
 bool
 SegmentingQueue::isEmpty() const
 {
@@ -301,10 +308,10 @@ SegmentingQueue::hasQueue(ConnectionID cid)
 }
 
 bool
-SegmentingQueue::queueHasPDUs(ConnectionID cid) {
+SegmentingQueue::queueHasPDUs(ConnectionID cid) const {
     if (queues.find(cid) == queues.end())
         return false;
-    return ( !(queues[cid].empty()) );
+    return ( !(queues.find(cid)->second.empty()) );
 }
 
 ConnectionSet

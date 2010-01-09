@@ -30,6 +30,7 @@
 
 #include <WNS/scheduler/queue/QueueInterface.hpp>
 #include <WNS/scheduler/queue/IQueueManager.hpp>
+#include <WNS/scheduler/queue/detail/IInnerCopyQueue.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <queue>
 
@@ -83,7 +84,7 @@ namespace wns { namespace scheduler { namespace queue {
                 hasQueue(wns::scheduler::ConnectionID cid);
 
                 bool 
-                queueHasPDUs(wns::scheduler::ConnectionID cid);
+                queueHasPDUs(wns::scheduler::ConnectionID cid) const;
 
                 wns::scheduler::ConnectionSet 
                 filterQueuedCids(wns::scheduler::ConnectionSet connections);
@@ -131,7 +132,7 @@ namespace wns { namespace scheduler { namespace queue {
 
             private:
                 void
-                createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid);
+                createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid) const;
 
                 struct Colleagues {
                     wns::scheduler::RegistryProxyInterface* registry_;
@@ -139,9 +140,10 @@ namespace wns { namespace scheduler { namespace queue {
                 } colleagues;
 
                 std::string queueManagerServiceName_;
-                bool readOnly_;
-                std::map<wns::scheduler::ConnectionID, wns::simulator::Time> lastChecked_;
-                std::map<wns::scheduler::ConnectionID, std::queue<wns::ldk::CompoundPtr> > copyQueue_; 
+                bool supportsDynamicSegmentation_;
+                
+                mutable std::map<wns::scheduler::ConnectionID, wns::simulator::Time> lastChecked_;
+                mutable detail::IInnerCopyQueue* copyQueue_; 
  
                 wns::logger::Logger logger_;
                 wns::ldk::fun::FUN* myFUN_;

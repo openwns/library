@@ -249,10 +249,10 @@ SimpleQueue::hasQueue(ConnectionID cid)
 }
 
 bool
-SimpleQueue::queueHasPDUs(ConnectionID cid) {
+SimpleQueue::queueHasPDUs(ConnectionID cid) const {
     if (queues.find(cid) == queues.end())
         return false;
-    return (queues[cid].pduQueue.size() != 0);
+    return (queues.find(cid)->second.pduQueue.size() != 0);
 }
 
 ConnectionSet

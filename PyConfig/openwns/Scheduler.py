@@ -390,12 +390,19 @@ class SimpleQueue(object):
 class QueueProxy(object):
     nameInQueueFactory = "wns.scheduler.queue.QueueProxy"
     queueManagerServiceName = None
-    readOnly = None
+    supportsDynamicSegmentation = None
+    segmentingQueueConfig = None
     
-    def __init__(self, queueManagerServiceName, readOnly = True, parentLogger = None):
+    def __init__(self, queueManagerServiceName, 
+                supportsDynamicSegmentation = False, 
+                parentLogger = None):
         self.queueManagerServiceName = queueManagerServiceName
+        self.supportsDynamicSegmentation = supportsDynamicSegmentation
         self.readOnly = readOnly
         self.logger = openwns.logger.Logger("WNS", "QueueProxy", True, parentLogger);
+        
+    def setSegmentingQueueConfig(self, config):
+        self.segmentingQueueConfig = config
 
 ### SegmentingQueue (stores unsegmented original PDUs and does segmentation on-the-fly)
 class SegmentingQueue(object):

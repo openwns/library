@@ -66,7 +66,7 @@ namespace wns { namespace scheduler { namespace queue {
                  *
                  * Returns true if the queue belonging to cid has backlogged PDUs.
                  */
-                virtual bool queueHasPDUs(ConnectionID cid) = 0;
+                virtual bool queueHasPDUs(ConnectionID cid) const = 0;
 
                 /**
                  * @brief

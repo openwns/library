@@ -71,7 +71,7 @@ namespace wns { namespace scheduler { namespace queue {
 
                 bool isEmpty() const;
                 bool hasQueue(ConnectionID cid);
-                bool queueHasPDUs(ConnectionID cid);
+                bool queueHasPDUs(ConnectionID cid) const;
                 ConnectionSet filterQueuedCids(ConnectionSet connections);
 
                 void setColleagues(RegistryProxyInterface* _registry);

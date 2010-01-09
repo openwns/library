@@ -37,21 +37,32 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(QueueProxy,
 
 QueueProxy::QueueProxy(wns::ldk::HasReceptorInterface*, const wns::pyconfig::View& _config) :     
     queueManagerServiceName_(_config.get<std::string>("queueManagerServiceName")),
-    readOnly_(_config.get<bool>("readOnly")),
+    supportsDynamicSegmentation_(_config.get<bool>("supportsDynamicSegmentation")),
+    copyQueue_(NULL),
     logger_(_config.get("logger")),
     myFUN_(NULL)
 {
     MESSAGE_BEGIN(NORMAL, logger_, m, "QueueProxy");
     m << " Created ";
-    m << (readOnly_?"read only":"read/write"); 
     m << " QueueProxy Queue using QueueManagerService ";
     m << queueManagerServiceName_;
     MESSAGE_END();
+
+    if(supportsDynamicSegmentation_)
+    {
+        copyQueue_ = new detail::SegmentingInnerCopyQueue(_config.get("segmentingQueueConfig"));
+    }
+    else
+    {
+        copyQueue_ = new detail::SimpleInnerCopyQueue();
+    }
 
 }
 
 QueueProxy::~QueueProxy()
 {
+    assure(copyQueue_ != NULL, "Want to delete copyQueue_ but it is NULL");
+    delete copyQueue_;
 }
 
 void QueueProxy::setFUN(wns::ldk::fun::FUN* fun)
@@ -62,6 +73,8 @@ void QueueProxy::setFUN(wns::ldk::fun::FUN* fun)
                 queueManagerServiceName_);
     assure(colleagues.queueManager_, "QueueProxy needs a QueueManager");
 
+    copyQueue_->setFUN(myFUN_);
+
     MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
     m << " Received valid FUN pointer and QueueManagerService ";
     m << queueManagerServiceName_;
@@ -70,20 +83,13 @@ void QueueProxy::setFUN(wns::ldk::fun::FUN* fun)
 
 bool QueueProxy::isAccepting(const wns::ldk::CompoundPtr&  compound ) const 
 {
-    if(readOnly_)
-        return false;
-
-    assure(false, "QueueProxy can currently only be used read only");
-
+    return false;
 }
 
 void
 QueueProxy::put(const wns::ldk::CompoundPtr& compound) 
 {
-    assure(!readOnly_, "Put called for readOnly QueueProxy");
-    
-    if(readOnly_)
-        return;
+    assure(false, "Put called for readOnly QueueProxy");
 }
 
 wns::scheduler::UserSet
@@ -112,7 +118,7 @@ QueueProxy::getActiveConnections() const
 {
     wns::scheduler::ConnectionSet cs;
 
-    QueueContainer queues = colleagues.queueManager_->getAllQueues();    
+    QueueContainer queues = colleagues.queueManager_->getAllQueues();
 
     QueueContainer::iterator it;
     for(it = queues.begin(); it != queues.end(); it++)
@@ -154,7 +160,7 @@ QueueProxy::getQueueStatus() const
         wns::scheduler::QueueStatusContainer innerCsc;
         innerCsc = it->second->getQueueStatus();
         wns::scheduler::QueueStatusContainer::const_iterator iit;
-        
+
         for(iit = innerCsc.begin(); iit != innerCsc.end(); iit++)
             csc.insert(iit->first, iit->second);
     }
@@ -164,11 +170,9 @@ QueueProxy::getQueueStatus() const
 wns::ldk::CompoundPtr
 QueueProxy::getHeadOfLinePDU(wns::scheduler::ConnectionID cid) 
 {        
-    assure(copyQueue_.find(cid) != copyQueue_.end(), "No copyQueue for CID");
-    assure(!copyQueue_[cid].empty(), "Requested PDU from emty queue");
+    assure(!copyQueue_->isEmpty(cid), "Requested PDU from emty queue");
     
-    wns::ldk::CompoundPtr pdu = copyQueue_[cid].front();        
-    copyQueue_[cid].pop();        
+    wns::ldk::CompoundPtr pdu = copyQueue_->getPDU(cid);        
     return pdu;
 }
 
@@ -176,7 +180,14 @@ int
 QueueProxy::getHeadOfLinePDUbits(wns::scheduler::ConnectionID cid)
 {
     assure(hasQueue(cid), "No queue for this CID");
-    return colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDUbits(cid);
+
+    if(!copyQueue_->knowsCID(cid))
+        return colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDUbits(cid);
+    else
+    {
+        assure(!copyQueue_->isEmpty(cid), "Called getHeadOfLinePDUbits for empty queue!");
+        return copyQueue_->getHeadofLinePDUBit(cid);
+    }
 }
 
 bool
@@ -186,7 +197,7 @@ QueueProxy::isEmpty() const
     QueueContainer::iterator it;
     for(it = queues.begin(); it != queues.end(); it++)
     {
-        if(!(it->second->isEmpty()))
+        if(queueHasPDUs(it->first))
             return false;
     }
     return true;
@@ -202,7 +213,7 @@ QueueProxy::hasQueue(wns::scheduler::ConnectionID cid)
 }
 
 bool
-QueueProxy::queueHasPDUs(wns::scheduler::ConnectionID cid) 
+QueueProxy::queueHasPDUs(wns::scheduler::ConnectionID cid) const 
 {
     wns::scheduler::queue::QueueInterface* queue;
     queue = colleagues.queueManager_->getQueue(cid);
@@ -211,9 +222,9 @@ QueueProxy::queueHasPDUs(wns::scheduler::ConnectionID cid)
     {
         createQueueCopyIfNeeded(cid);
 
-        if(copyQueue_.find(cid) != copyQueue_.end())
+        if(copyQueue_->knowsCID(cid))
         {
-            if(copyQueue_[cid].empty()) 
+            if(copyQueue_->isEmpty(cid)) 
             {
                 MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
                 m << " queueHasPDUs: CopyQueue for CID " << cid << " is empty.";
@@ -268,6 +279,10 @@ QueueProxy::resetAllQueues()
         innerPo = it->second->resetAllQueues();
         po.bits += innerPo.bits;
         po.compounds += innerPo.compounds;
+
+        // Empty the copyQueue but do not count for statistics
+        if(copyQueue_->knowsCID(it->first))
+            copyQueue_->reset(it->first);
     }
     return po;   
 }
@@ -282,6 +297,11 @@ wns::scheduler::queue::QueueInterface::ProbeOutput
 QueueProxy::resetQueue(wns::scheduler::ConnectionID cid)
 {
     assure(hasQueue(cid), "No queue for this CID");
+
+    // Empty the copyQueue but do not count for statistics
+    if(copyQueue_->knowsCID(cid))
+        copyQueue_->reset(cid);
+
     return colleagues.queueManager_->getQueue(cid)->resetQueue(cid);    
 }
 
@@ -303,7 +323,7 @@ QueueProxy::printAllQueues()
 bool
 QueueProxy::supportsDynamicSegmentation() const
 {
-    return false;   
+    return supportsDynamicSegmentation_;   
 }
 
 wns::ldk::CompoundPtr 
@@ -317,43 +337,35 @@ QueueProxy::getMinimumSegmentSize() const
 }
 
 void
-QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid)
+QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid) const
 {
     wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
 
+    wns::scheduler::queue::QueueInterface* queue;
+    queue = colleagues.queueManager_->getQueue(cid);
+
     // New round, create new PDUs in copyQueue
-    if(lastChecked_.find(cid) == lastChecked_.end() || lastChecked_[cid] != now)
+    if(queue != NULL && queue->queueHasPDUs(cid) && 
+        (lastChecked_.find(cid) == lastChecked_.end() || lastChecked_[cid] != now))
     {
         // Empty the old copy queue
-        if(copyQueue_.find(cid) != copyQueue_.end())
+        if(copyQueue_->knowsCID(cid))
         {
             MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
-            m << " Removing " << copyQueue_[cid].size() << " PDUs form old copyQueue ";
+            m << " Removing " << copyQueue_->getSize(cid) << " PDUs form old copyQueue ";
             m << " for CID " << cid;
             MESSAGE_END();
 
-            copyQueue_[cid] = std::queue<wns::ldk::CompoundPtr>();
+            copyQueue_->reset(cid);
         }
-            
-        wns::scheduler::queue::QueueInterface* queue;
-        queue = colleagues.queueManager_->getQueue(cid);
-        //uint32_t pdus = queue->numCompoundsForCid(cid);
         
-        copyQueue_[cid] = queue->getQueueCopy(cid);
+        copyQueue_->setQueue(cid, queue->getQueueCopy(cid));
 
         MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
-        m << " Creating copy of " << copyQueue_[cid].size() << " PDUs for CID ";
+        m << " Created a copy of " << copyQueue_->getSize(cid) << " PDUs for CID ";
         m << cid;
         MESSAGE_END();
 
-        //for(uint32_t i = 0; i < pdus; i++)
-        //{
-        //    wns::ldk::CompoundPtr pdu = colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDU(cid);
-
-            // TODO: Use FakePDUs instead!    
-        //    copyQueue_[cid].push(pdu->copy());
-        //    queue->put(pdu);
-        //}
         lastChecked_[cid] = now;
     }
 }
