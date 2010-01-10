@@ -92,7 +92,7 @@ class SegAndConcat(openwns.StaticFactoryClass):
 
     def __init__(self, segmentSize, headerSize, commandName, parentLogger = None):
         openwns.StaticFactoryClass.__init__(self, "wns.sar.SegAndConcat")
-        self.logger = openwns.logger.Logger('WinProSt', 'SegAndConcat', True, parentLogger)
+        self.logger = openwns.logger.Logger('WNS', 'SegAndConcat', True, parentLogger)
         self.commandName = commandName
         self.segmentSize = segmentSize
         self.headerSize = headerSize

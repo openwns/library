@@ -88,6 +88,8 @@ SegAndConcat::processOutgoing(const wns::ldk::CompoundPtr& sdu)
     if (!isSegmenting_)
     {
         this->senderPendingSegments_.push_back(sdu);
+        MESSAGE_SINGLE(NORMAL, logger_, "Adding one SDu with " << sdu->getLengthInBits() 
+                << " bits to pending segments. Segmenting disabled.");
         return;
     }
 
