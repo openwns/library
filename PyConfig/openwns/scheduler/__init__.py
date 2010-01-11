@@ -47,7 +47,7 @@ class ChaseCombiningDecoder(openwns.StaticFactoryClass):
 class HARQReceiver:
 
     def __init__(self, parentLogger=None):
-        self.decoder = UniformRandomDecoder(parentLogger=parentLogger)
+        self.decoder = ChaseCombiningDecoder(parentLogger=parentLogger)
 
 class HARQEntity:
 
