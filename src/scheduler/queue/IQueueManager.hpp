@@ -62,6 +62,12 @@ namespace wns { namespace scheduler { namespace queue {
                  */
                 virtual QueueInterface*
                 getQueue(wns::scheduler::ConnectionID cid) = 0;
+
+                /**
+                * @brief Calls wakeUp to fill the queue
+                */
+                virtual void
+                startCollection(wns::scheduler::ConnectionID cid) = 0;
             };
         }}} // namespace wns::scheduler::queue
 #endif // WNS_SCHEDULER_QUEUE_IQUEUEMANAGER_HPP

@@ -239,7 +239,6 @@ QueueProxy::queueHasPDUs(wns::scheduler::ConnectionID cid) const
         }
         else
         {
-            std::cout << "Pass: "<< queue->queueHasPDUs(cid) << "\n";
             MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
             m << " queueHasPDUs: Passing call for  CID " << cid << " to real queue.";
             MESSAGE_END();
@@ -355,9 +354,11 @@ QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid) const
     queue = colleagues.queueManager_->getQueue(cid);
 
     // New round, create new PDUs in copyQueue
-    if(queue != NULL && queue->queueHasPDUs(cid) && 
+    if(queue != NULL &&  
         (lastChecked_.find(cid) == lastChecked_.end() || lastChecked_[cid] != now))
     {
+        lastChecked_[cid] = now;
+
         // Empty the old copy queue
         if(copyQueue_->knowsCID(cid))
         {
@@ -369,6 +370,17 @@ QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid) const
             copyQueue_->reset(cid);
         }
         
+        colleagues.queueManager_->startCollection(cid);
+
+        if(!queue->queueHasPDUs(cid))
+        {
+            MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
+            m << " Real queue is empty for CID: ";
+            m << cid;
+            MESSAGE_END();
+            return;
+        }
+
         copyQueue_->setQueue(cid, queue->getQueueCopy(cid));
 
         MESSAGE_BEGIN(NORMAL, logger_, m, myFUN_->getName());
@@ -376,7 +388,6 @@ QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid) const
         m << cid;
         MESSAGE_END();
 
-        lastChecked_[cid] = now;
     }
 }
 
