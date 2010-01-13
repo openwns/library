@@ -448,6 +448,7 @@ srcFiles = [
     'src/ldk/probe/ErrorRate.cpp',
     'src/ldk/probe/bus/Packet.cpp',
     'src/ldk/probe/bus/Window.cpp',
+    'src/ldk/probe/TickTack.cpp',
 
     # ldk.Command
     'src/ldk/command/FlowControl.cpp',
@@ -532,6 +533,7 @@ srcFiles = [
     'src/ldk/fcf/tests/NewFrameProviderObserverTest.cpp',
     'src/ldk/probe/tests/PacketTest.cpp',
     'src/ldk/probe/tests/WindowTest.cpp',
+    'src/ldk/probe/tests/TickTackConstDelayTest.cpp',
     
     'src/fsm/tests/FSMTest.cpp',
 ]
@@ -709,6 +711,7 @@ hppFiles = [
 'src/ldk/probe/Packet.hpp',
 'src/ldk/probe/Probe.hpp',
 'src/ldk/probe/Window.hpp',
+'src/ldk/probe/TickTack.hpp',
 'src/ldk/Processor.hpp',
 'src/ldk/PyConfigCreator.hpp',
 'src/ldk/RandomAccessLink.hpp',
