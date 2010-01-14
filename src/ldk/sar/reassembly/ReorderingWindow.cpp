@@ -69,6 +69,8 @@ ReorderingWindow::ReorderingWindow(wns::pyconfig::View config):
     MESSAGE_BEGIN(NORMAL, logger_, m, "ReorderingWindow (snFieldLength=" << snFieldLength_);
     m << ", windowSize_ = " << windowSize_ << ")";
     MESSAGE_END();
+    assure(windowSize_ > 0, "Missconfigured windowSize (possible overflow). Try decreasing snFieldLength");
+    assure(tReordering_ > 0, "tReordering must be positive");
 }
 
 ReorderingWindow::ReorderingWindow(const ReorderingWindow& other):
