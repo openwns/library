@@ -19,6 +19,7 @@
 #include <WNS/ldk/SinglePort.hpp>
 #include <WNS/ldk/Port.hpp>
 #include <WNS/ldk/fun/FUN.hpp>
+#include <WNS/ldk/CommandTypeSpecifierInterface.hpp>
 
 #include <WNS/Assure.hpp>
 
@@ -87,7 +88,8 @@ namespace wns { namespace ldk {
         template <typename CLASS>
         class HasReceptorReceptacle<CLASS, SinglePort>
             : public virtual IReceptorReceptacle,
-              public virtual ReceptorReceptacleRegistry
+              public virtual ReceptorReceptacleRegistry,
+            public virtual CommandTypeSpecifierInterface
         {
         public:
             HasReceptorReceptacle()
@@ -112,7 +114,7 @@ namespace wns { namespace ldk {
             virtual void
             wakeup()
             {
-                dynamic_cast<CLASS*>(this)->getFUN()->getLinkHandler()->wakeup(this);
+                getFUN()->getLinkHandler()->wakeup(this);
             }
 
             virtual FunctionalUnit*
