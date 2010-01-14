@@ -102,12 +102,16 @@ QueueProxy::getQueuedUsers() const
     QueueContainer::iterator it;
     for(it = queues.begin(); it != queues.end(); it++)
     {
-        wns::scheduler::UserSet innerUs;
-        innerUs = it->second->getQueuedUsers();
-        wns::scheduler::UserSet::iterator iit;
+        startCollectionIfNeeded(it->first);
+
+        wns::scheduler::ConnectionSet innerCs;
+
+        // We have to ask our RegistryProxy to map the CID to a UserID!
+        innerCs = it->second->getActiveConnections();
+        wns::scheduler::ConnectionSet::iterator iit;
         
-        for(iit = innerUs.begin(); iit != innerUs.end(); iit++)
-            us.insert(*iit);
+        for(iit = innerCs.begin(); iit != innerCs.end(); iit++)
+            us.insert(colleagues.registry_->getUserForCID(*iit));
     }
     return us;
 
@@ -123,6 +127,8 @@ QueueProxy::getActiveConnections() const
     QueueContainer::iterator it;
     for(it = queues.begin(); it != queues.end(); it++)
     {
+        startCollectionIfNeeded(it->first);
+
         wns::scheduler::ConnectionSet innerCs;
         innerCs = it->second->getActiveConnections();
         wns::scheduler::ConnectionSet::iterator iit;
@@ -137,6 +143,7 @@ uint32_t
 QueueProxy::numCompoundsForCid(wns::scheduler::ConnectionID cid) const
 {
     assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");
+    startCollectionIfNeeded(cid);
     return colleagues.queueManager_->getQueue(cid)->numCompoundsForCid(cid);  
 }
 
@@ -144,6 +151,7 @@ uint32_t
 QueueProxy::numBitsForCid(wns::scheduler::ConnectionID cid) const
 {
     assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");
+    startCollectionIfNeeded(cid);
     return colleagues.queueManager_->getQueue(cid)->numBitsForCid(cid);   
 }
 
@@ -157,6 +165,8 @@ QueueProxy::getQueueStatus() const
     QueueContainer::iterator it;
     for(it = queues.begin(); it != queues.end(); it++)
     {
+        startCollectionIfNeeded(it->first);
+
         wns::scheduler::QueueStatusContainer innerCsc;
         innerCsc = it->second->getQueueStatus();
         wns::scheduler::QueueStatusContainer::const_iterator iit;
@@ -182,7 +192,10 @@ QueueProxy::getHeadOfLinePDUbits(wns::scheduler::ConnectionID cid)
     assure(hasQueue(cid), "No queue for this CID");
 
     if(!copyQueue_->knowsCID(cid))
+    {
+        startCollectionIfNeeded(cid);
         return colleagues.queueManager_->getQueue(cid)->getHeadOfLinePDUbits(cid);
+    }
     else
     {
         assure(!copyQueue_->isEmpty(cid), "Called getHeadOfLinePDUbits for empty queue!");
@@ -314,6 +327,7 @@ QueueProxy::printAllQueues()
     QueueContainer::iterator it;
     for(it = queues.begin(); it != queues.end(); it++)
     {    
+        startCollectionIfNeeded(it->first);
         s << it->second->printAllQueues() << "\n";
     }
     return s.str();
@@ -370,7 +384,7 @@ QueueProxy::createQueueCopyIfNeeded(wns::scheduler::ConnectionID cid) const
             copyQueue_->reset(cid);
         }
         
-        colleagues.queueManager_->startCollection(cid);
+        startCollectionIfNeeded(cid);
 
         if(!queue->queueHasPDUs(cid))
         {
@@ -395,5 +409,17 @@ std::queue<wns::ldk::CompoundPtr>
 QueueProxy::getQueueCopy(ConnectionID cid)
 { 
     wns::Exception("You should not call getQueueCopy of the QueueProxy."); 
+}
+
+void
+QueueProxy::startCollectionIfNeeded(wns::scheduler::ConnectionID cid) const
+{
+    wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
+
+    if(lastCollected_.find(cid) == lastCollected_.end() || lastCollected_[cid] != now)
+    {
+        lastCollected_[cid] = now;
+        colleagues.queueManager_->startCollection(cid);
+    }    
 }
 

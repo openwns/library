@@ -108,9 +108,7 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::scheduler::queue::QueueInterface::ProbeOutput 
                 resetQueue(wns::scheduler::ConnectionID cid);
 
-                /** @brief true if getHeadOfLinePDUSegment() is supported
-                for performance reasons we only check the real queues the first time
-                and then save the result. In dbg mode we always check using assures. */
+                /** @brief true if getHeadOfLinePDUSegment() is supported */
                 bool 
                 supportsDynamicSegmentation() const;
 
@@ -129,6 +127,9 @@ namespace wns { namespace scheduler { namespace queue {
                 virtual std::queue<wns::ldk::CompoundPtr> 
                 getQueueCopy(ConnectionID cid);
 
+                void
+                startCollectionIfNeeded(wns::scheduler::ConnectionID cid) const;
+
 
             private:
                 void
@@ -143,6 +144,7 @@ namespace wns { namespace scheduler { namespace queue {
                 bool supportsDynamicSegmentation_;
                 
                 mutable std::map<wns::scheduler::ConnectionID, wns::simulator::Time> lastChecked_;
+                mutable std::map<wns::scheduler::ConnectionID, wns::simulator::Time> lastCollected_;
                 mutable detail::IInnerCopyQueue* copyQueue_; 
  
                 wns::logger::Logger logger_;
