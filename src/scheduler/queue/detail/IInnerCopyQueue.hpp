@@ -62,6 +62,9 @@ namespace wns { namespace scheduler { namespace queue { namespace detail {
         virtual int
         getSize(ConnectionID cid) = 0;
     
+        virtual int
+        getSizeInBit(ConnectionID cid) = 0;
+    
         virtual void
         setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue) = 0;
     };
@@ -94,12 +97,16 @@ namespace wns { namespace scheduler { namespace queue { namespace detail {
     
         virtual int
         getSize(ConnectionID cid);
+    
+        virtual int
+        getSizeInBit(ConnectionID cid);
 
         virtual void
         setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue);
 
     private:
         std::map<wns::scheduler::ConnectionID, std::queue<wns::ldk::CompoundPtr> > queue_; 
+        std::map<wns::scheduler::ConnectionID, int > queueSize_; 
     };
     
     class SegmentingInnerCopyQueue:
@@ -130,6 +137,9 @@ namespace wns { namespace scheduler { namespace queue { namespace detail {
     
         virtual int
         getSize(ConnectionID cid);
+    
+        virtual int
+        getSizeInBit(ConnectionID cid);
     
         virtual void
         setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue);

@@ -143,16 +143,32 @@ uint32_t
 QueueProxy::numCompoundsForCid(wns::scheduler::ConnectionID cid) const
 {
     assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");
-    startCollectionIfNeeded(cid);
-    return colleagues.queueManager_->getQueue(cid)->numCompoundsForCid(cid);  
+
+    if(!copyQueue_->knowsCID(cid))
+    {
+        startCollectionIfNeeded(cid);
+        return colleagues.queueManager_->getQueue(cid)->numCompoundsForCid(cid);
+    }
+    else
+    {
+        return copyQueue_->getSize(cid);
+    }
 }
 
 uint32_t
 QueueProxy::numBitsForCid(wns::scheduler::ConnectionID cid) const
 {
     assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");
-    startCollectionIfNeeded(cid);
-    return colleagues.queueManager_->getQueue(cid)->numBitsForCid(cid);   
+
+    if(!copyQueue_->knowsCID(cid))
+    {
+        startCollectionIfNeeded(cid);
+        return colleagues.queueManager_->getQueue(cid)->numBitsForCid(cid);
+    }
+    else
+    {
+        return copyQueue_->getSizeInBit(cid);
+    }
 }
 
 wns::scheduler::QueueStatusContainer
@@ -198,7 +214,6 @@ QueueProxy::getHeadOfLinePDUbits(wns::scheduler::ConnectionID cid)
     }
     else
     {
-        assure(!copyQueue_->isEmpty(cid), "Called getHeadOfLinePDUbits for empty queue!");
         return copyQueue_->getHeadofLinePDUBit(cid);
     }
 }

@@ -57,6 +57,10 @@ SimpleInnerCopyQueue::getPDU(ConnectionID cid, Bit)
     assure(!queue_[cid].empty(), "Called getPDU for empty queue");
 
     wns::ldk::CompoundPtr c = queue_[cid].front();
+
+    queueSize_[cid] -= getHeadofLinePDUBit(cid);
+    assure(queueSize_[cid] > 0, "Queue size is below 0");
+
     queue_[cid].pop();
 
     return  c;
@@ -68,7 +72,7 @@ SimpleInnerCopyQueue::getHeadofLinePDUBit(ConnectionID cid)
     assure(queue_.find(cid) != queue_.end(), "Unknown CID");
     assure(!queue_[cid].empty(), "Called getHeadofLinePDUBit for empty queue");
 
-    return queue_[cid].front()->getLengthInBits();;
+    return queue_[cid].front()->getLengthInBits();
 }
     
 
@@ -77,6 +81,7 @@ SimpleInnerCopyQueue::reset(ConnectionID cid)
 {
     assure(queue_.find(cid) != queue_.end(), "Unknown CID");
     queue_[cid] = std::queue<wns::ldk::CompoundPtr>();
+    queueSize_[cid] = 0;
 }
     
 int
@@ -86,10 +91,32 @@ SimpleInnerCopyQueue::getSize(ConnectionID cid)
     return queue_[cid].size();
 }
     
+int
+SimpleInnerCopyQueue::getSizeInBit(ConnectionID cid)
+{
+    assure(queue_.find(cid) != queue_.end(), "Unknown CID");
+    assure(queueSize_.find(cid) != queueSize_.end(), "Unknown CID");
+
+    return queueSize_[cid];
+}
+    
 void
 SimpleInnerCopyQueue::setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPtr> queue)
 {
-    queue_[cid] = queue;
+    if(queue_.find(cid) != queue_.end())
+        queue_[cid] = std::queue<wns::ldk::CompoundPtr>();
+
+    queueSize_[cid] = 0;
+
+    wns::ldk::CompoundPtr compound;
+
+    int s = queue.size();
+    for(int i = 0; i < s; i++)
+    {
+        compound = queue.front();
+        queue_[cid].push(compound);
+        queueSize_[cid] += compound->getLengthInBits();
+    }
 }
 
 // SegmentingInnerCopyQueue:
@@ -173,6 +200,13 @@ SegmentingInnerCopyQueue::getSize(ConnectionID cid)
 {
     assure(queue_.find(cid) != queue_.end(), "Unknown CID");
     return queue_[cid].queuedCompounds();
+}
+
+int
+SegmentingInnerCopyQueue::getSizeInBit(ConnectionID cid)
+{
+    assure(queue_.find(cid) != queue_.end(), "Unknown CID");
+    return queue_[cid].queuedBruttoBits(fixedHeaderSize_, extensionHeaderSize_, byteAlignHeader_);
 }
     
 void
