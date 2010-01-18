@@ -30,6 +30,7 @@
 
 #include <WNS/simulator/Bit.hpp>
 #include <WNS/ldk/Compound.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
 #include <queue>
 
 namespace wns { namespace scheduler { namespace queue { namespace detail {
@@ -124,7 +125,14 @@ public:
      * @brief Retrieve a new compound from the front of the queue of required length (brutto) and segment and concatenate as necessary.
      */
     wns::ldk::CompoundPtr
-    retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, bool usePadding, bool byteAlignHeader, wns::ldk::CommandReaderInterface* reader);
+    retrieve(Bit requestedBits, 
+        Bit fixedHeaderSize, 
+        Bit extensionHeaderSize, 
+        bool usePadding, 
+        bool byteAlignHeader, 
+        wns::ldk::CommandReaderInterface* reader,
+        const wns::probe::bus::ContextCollectorPtr& = wns::probe::bus::ContextCollectorPtr(),
+        wns::ldk::CommandReaderInterface* = NULL);
 
     /** @brief Retrieves a copy of the raw queue. Queued compounds are not copied but
     * point to the same ones as in the original queue!
@@ -133,6 +141,10 @@ public:
     getQueueCopy();
 
 private:
+    void 
+    probe(const wns::ldk::CompoundPtr& compound,
+        const wns::probe::bus::ContextCollectorPtr& probeCC,
+        wns::ldk::CommandReaderInterface* cmdReader);
 
     typedef std::queue<wns::ldk::CompoundPtr> CompoundContainer;
 

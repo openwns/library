@@ -427,6 +427,7 @@ class SegmentingQueue(object):
     logger = None
     sizeProbeName = None
     overheadProbeName = None
+    delayProbeName = None
     TxRx = None
     localIDs = None
     minimumSegmentSize = None # used to ask for resources of at least this size

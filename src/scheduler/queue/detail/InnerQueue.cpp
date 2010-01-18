@@ -30,6 +30,10 @@
 #include <WNS/scheduler/queue/ISegmentationCommand.hpp>
 #include <WNS/ldk/CommandTypeSpecifier.hpp>
 
+#include <WNS/simulator/ISimulator.hpp>
+#include <WNS/ldk/probe/TickTack.hpp>
+
+
 using namespace wns::scheduler::queue::detail;
 
 InnerQueue::InnerQueue():
@@ -84,7 +88,10 @@ InnerQueue::put(const wns::ldk::CompoundPtr& compound)
 }
 
 wns::ldk::CompoundPtr
-InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, bool usePadding, bool byteAlignHeader, wns::ldk::CommandReaderInterface* reader)
+InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, 
+    bool usePadding, bool byteAlignHeader, wns::ldk::CommandReaderInterface* reader,
+    const wns::probe::bus::ContextCollectorPtr& probeCC,
+    wns::ldk::CommandReaderInterface* probeCmdReader)
 {
     if (requestedBits <= fixedHeaderSize)
     {
@@ -121,6 +128,7 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
             // fits in completely
             header->addSDU(c->copy());
             header->increaseDataSize(length);
+            probe(c, probeCC, probeCmdReader); 
             pduQueue_.pop();
             frontSegmentSentBits_ = 0;
             nettoBits_ -= length;
@@ -186,3 +194,24 @@ InnerQueue::getQueueCopy()
 {
     return pduQueue_;
 }
+
+void
+InnerQueue::probe(const wns::ldk::CompoundPtr& compound,
+    const wns::probe::bus::ContextCollectorPtr& probeCC,
+    wns::ldk::CommandReaderInterface* cmdReader)
+{
+    assure(compound != wns::ldk::CompoundPtr(), "No valid compound");
+
+    if(cmdReader == NULL ||
+        probeCC == wns::probe::bus::ContextCollectorPtr())
+        return;
+
+    wns::ldk::probe::TickTackCommand* cmd;
+    cmd = cmdReader->readCommand<wns::ldk::probe::TickTackCommand>(compound->getCommandPool());
+    assure(cmd != NULL, "Cannot get TickTackCommand to probe delay");
+
+    wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
+    probeCC->put(now - cmd->magic.tickTime);
+}
+
+

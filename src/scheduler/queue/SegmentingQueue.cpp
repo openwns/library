@@ -41,6 +41,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(SegmentingQueue,
 
 SegmentingQueue::SegmentingQueue(wns::ldk::HasReceptorInterface*, const wns::pyconfig::View& _config)
     : segmentHeaderReader(NULL),
+      probeHeaderReader(NULL),
       logger(_config.get("logger")),
       config(_config),
       myFUN(),
@@ -75,6 +76,17 @@ void SegmentingQueue::setFUN(wns::ldk::fun::FUN* fun)
 
     std::string overheadProbeName = config.get<std::string>("overheadProbeName");
     overheadProbeBus = wns::probe::bus::ContextCollectorPtr(new wns::probe::bus::ContextCollector(localContext, overheadProbeName));
+
+    if(!config.isNone("delayProbeName"))
+    {
+        std::string delayProbeName = config.get<std::string>("delayProbeName");
+        delayProbeBus = wns::probe::bus::ContextCollectorPtr(
+            new wns::probe::bus::ContextCollector(localContext, 
+                delayProbeName + ".delay"));
+    
+        // Same name as the probe prefix
+        probeHeaderReader = myFUN->getCommandReader(delayProbeName);
+    }
 
     std::string segmentHeaderCommandName = config.get<std::string>("segmentHeaderCommandName");
     segmentHeaderReader = myFUN->getCommandReader(segmentHeaderCommandName);
@@ -248,7 +260,8 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
 
     wns::ldk::CompoundPtr segment;
     try {
-        segment = queues[cid].retrieve(requestedBits, fixedHeaderSize, extensionHeaderSize, usePadding, byteAlignHeader, segmentHeaderReader);
+        segment = queues[cid].retrieve(requestedBits, fixedHeaderSize, extensionHeaderSize, 
+            usePadding, byteAlignHeader, segmentHeaderReader, delayProbeBus, probeHeaderReader);
 
         segmentHeaderReader->commitSizes(segment->getCommandPool());
 
