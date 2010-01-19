@@ -73,6 +73,12 @@ namespace wns { namespace ldk { namespace probe {
         virtual 
         void onFUNCreated();
 
+        virtual void
+        probeOutgoing();
+
+        virtual void
+        probeIncoming();
+
     private:
         virtual void
         doSendData(const CompoundPtr& compound);
@@ -92,7 +98,11 @@ namespace wns { namespace ldk { namespace probe {
             getReceptor()->wakeup();
         }
 
+        void
+        writeCommand(const CompoundPtr& compound);
+
         std::string probeName_;
+        bool probeOutgoing_;
         wns::probe::bus::ContextCollectorPtr outSizeProbe_;
         wns::logger::Logger logger_;
 

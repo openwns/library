@@ -208,16 +208,19 @@ class WindowProbeBus(Window):
 class Tick(openwns.FUN.FunctionalUnit):
     __plugin__ = 'wns.probe.Tick'
 
+    probeOutgoing = None
     logger = None
 
-    def __init__(self, probeName, parentLogger = None):
+    def __init__(self, probeName, probeOutgoing = True, parentLogger = None):
         super(Tick, self).__init__(functionalUnitName = "Tick" + probeName, commandName = probeName)
+        self.probeOutgoing = probeOutgoing
         self.logger = openwns.logger.Logger("WNS", "Tick", True, parentLogger)
 
 class Tack(openwns.FUN.FunctionalUnit):
     __plugin__ = 'wns.probe.Tack'
 
     probeAndCommandName = None
+    probeOutgoing = None
     logger = None
 
     def __init__(self, probeName, probeOutgoing = True, parentLogger = None):

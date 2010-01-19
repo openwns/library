@@ -47,6 +47,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 Tick::Tick(fun::FUN* fuNet, const wns::pyconfig::View& config) :
     fu::Plain<Tick, TickTackCommand>(fuNet),
     probeName_(config.get<std::string>("commandName")),
+    probeOutgoing_(config.get<bool>("probeOutgoing")),
     logger_(config.get("logger"))
 {
     wns::probe::bus::ContextProviderCollection* cpcParent = 
@@ -55,7 +56,7 @@ Tick::Tick(fun::FUN* fuNet, const wns::pyconfig::View& config) :
     wns::probe::bus::ContextProviderCollection cpc(cpcParent);
 
     outSizeProbe_ = wns::probe::bus::ContextCollectorPtr(
-        new wns::probe::bus::ContextCollector(cpc, probeName_ + ".outgoing.size"));
+        new wns::probe::bus::ContextCollector(cpc, probeName_ + ".start.compoundSize"));
 }
 
 Tick::~Tick()
@@ -70,13 +71,8 @@ Tick::onFUNCreated()
 void
 Tick::doSendData(const CompoundPtr& compound)
 {
-    activateCommand(compound->getCommandPool());
-
-    MESSAGE_BEGIN(NORMAL, logger_, m, getFUN()->getName());
-    m << " passing through Tick probing " << probeName_;
-    MESSAGE_END();
-
-    outSizeProbe_->put(compound, compound->getLengthInBits());
+    if(probeOutgoing_)
+        writeCommand(compound);
 
     getConnector()->getAcceptor(compound)->sendData(compound);
 }
@@ -84,8 +80,38 @@ Tick::doSendData(const CompoundPtr& compound)
 void
 Tick::doOnData(const CompoundPtr& compound)
 {
+    if(!probeOutgoing_)
+        writeCommand(compound);
+
     getDeliverer()->getAcceptor(compound)->onData(compound);
 }
+
+void
+Tick::writeCommand(const CompoundPtr& compound)
+{
+    activateCommand(compound->getCommandPool());
+
+    MESSAGE_BEGIN(NORMAL, logger_, m, getFUN()->getName());
+    m << " passing through Tick probing " << probeName_;
+    m << " direction " << (probeOutgoing_?"outgoing":"incoming");
+    MESSAGE_END();
+
+    outSizeProbe_->put(compound, compound->getLengthInBits());
+}
+
+void
+Tick::probeOutgoing()
+{
+    probeOutgoing_ = true;
+}
+
+void
+Tick::probeIncoming()
+{
+    probeOutgoing_ = false;
+}
+
+
 
 
 Tack::Tack(fun::FUN* fuNet, const wns::pyconfig::View& config) :
@@ -102,10 +128,10 @@ Tack::Tack(fun::FUN* fuNet, const wns::pyconfig::View& config) :
     wns::probe::bus::ContextProviderCollection cpc(cpcParent);
 
     delayProbe_ = wns::probe::bus::ContextCollectorPtr(
-        new wns::probe::bus::ContextCollector(cpc, probeName_ + ".incoming.delay"));
+        new wns::probe::bus::ContextCollector(cpc, probeName_ + ".delay"));
 
     inSizeProbe_ = wns::probe::bus::ContextCollectorPtr(
-        new wns::probe::bus::ContextCollector(cpc, probeName_ + ".incoming.size"));
+        new wns::probe::bus::ContextCollector(cpc, probeName_ + ".stop.compoundSize"));
 }
 
 Tack::~Tack()

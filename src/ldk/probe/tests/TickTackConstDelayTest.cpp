@@ -52,7 +52,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                     void prepare()
                     {
                         this->startObserving(
-                            wns::simulator::getProbeBusRegistry()->getMeasurementSource("test.incoming.delay"));
+                            wns::simulator::getProbeBusRegistry()->getMeasurementSource("test.delay"));
 
                         layerTX.reset(new wns::ldk::tests::LayerStub());
                         fuNetTX.reset(new fun::Main(layerTX.get()));
@@ -83,8 +83,8 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                         tackTX->connect(delay2);
                         delay2->connect(lower);
 
-                        upper->connect(tickRX);
-                        tickRX->connect(tackRX);
+                        upper->connect(tackRX);
+                        tackRX->connect(tickRX);
 
                         fuNetTX->addFunctionalUnit("test", "tickTX", tickTX);
                         fuNetTX->addFunctionalUnit("delay1", delay1);
@@ -130,6 +130,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                         CompoundPtr compound2(fuNetTX->createCompound(innerPDU));
                         CompoundPtr compound3(fuNetTX->createCompound(innerPDU));
                         CompoundPtr compound4(fuNetTX->createCompound(innerPDU));
+                        CompoundPtr compound5(fuNetTX->createCompound(innerPDU));
 
                         tackTX->probeIncoming();
                         tackRX->probeOutgoing();
@@ -137,7 +138,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                         tickTX->sendData(compound1);
                         wns::simulator::getEventScheduler()->processOneEvent();
                         wns::simulator::getEventScheduler()->processOneEvent();
-                        tackRX->onData(compound1);
+                        tickRX->onData(compound1);
 
                         // Wrong direction in RX and TX, we do not probe
                         CPPUNIT_ASSERT(nProbed == 0);
@@ -147,7 +148,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                         tickTX->sendData(compound2);
                         wns::simulator::getEventScheduler()->processOneEvent();
                         wns::simulator::getEventScheduler()->processOneEvent();
-                        tackRX->onData(compound2);
+                        tickRX->onData(compound2);
 
                         // Now we probe outgoing in TX
                         CPPUNIT_ASSERT(nProbed == 1);
@@ -157,7 +158,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                         tickTX->sendData(compound3);
                         wns::simulator::getEventScheduler()->processOneEvent();
                         wns::simulator::getEventScheduler()->processOneEvent();
-                        tackRX->onData(compound3);
+                        tickRX->onData(compound3);
 
                         // TX and RX now probe, but compound is only probed once
                         CPPUNIT_ASSERT(nProbed == 2);
@@ -173,11 +174,29 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                         CPPUNIT_ASSERT(nProbed == 2);
 
                         wns::simulator::getEventScheduler()->processOneEvent();
-                        tackRX->onData(compound4);
+                        tickRX->onData(compound4);
 
                         // RX probes
                         CPPUNIT_ASSERT(nProbed == 3);
                         WNS_ASSERT_MAX_REL_ERROR(probedDelay, 0.35, 1E-6);
+
+                        // TX side does not probe, RX does
+                        tickTX->probeIncoming();
+                        tackTX->probeIncoming();
+                        tickRX->probeIncoming();
+                        tackRX->probeIncoming();
+
+                        tickTX->sendData(compound5);
+                        wns::simulator::getEventScheduler()->processOneEvent();
+                        wns::simulator::getEventScheduler()->processOneEvent();
+
+                        // No probing in TX
+                        CPPUNIT_ASSERT(nProbed == 3);
+                        tickRX->onData(compound5);
+
+                        // Probed zero delay in RX 
+                        CPPUNIT_ASSERT(nProbed == 4);
+                        WNS_ASSERT_MAX_REL_ERROR(probedDelay, 0.0, 1E-6);
                     }
 
                     void cleanup() 
