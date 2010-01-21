@@ -893,6 +893,7 @@ hppFiles = [
 'src/probe/bus/ContextProviderCollection.hpp',
 'src/probe/bus/utils.hpp',
 'src/probe/bus/CompoundContextProvider.hpp',
+'src/probe/bus/CommandContextProvider.hpp',
 'src/service/Service.hpp',
 'src/service/dll/Address.hpp',
 'src/service/dll/DataTransmission.hpp',
