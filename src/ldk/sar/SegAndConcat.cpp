@@ -33,13 +33,35 @@ SegAndConcat::SegAndConcat(wns::ldk::fun::FUN* fun,
     sduLengthAddition_(config.get<Bit>("sduLengthAddition")),
     nextOutgoingSN_(0),
     reorderingWindow_(config.get("reorderingWindow")),
-    isSegmenting_(config.get<bool>("isSegmenting")),
-    segmentDropRatioCC_(
-        wns::probe::bus::ContextProviderCollection(&fun->getLayer()->getContextProviderCollection()),
-        "segmentDropRatio")
+    isSegmenting_(config.get<bool>("isSegmenting"))
 {
     reorderingWindow_.connectToReassemblySignal(boost::bind(&SegAndConcat::onReorderedPDU, this, _1, _2));
     reorderingWindow_.connectToDiscardSignal(boost::bind(&SegAndConcat::onDiscardedPDU, this, _1, _2));
+
+    wns::probe::bus::ContextProviderCollection* cpcParent = &fun->getLayer()->getContextProviderCollection();
+    wns::probe::bus::ContextProviderCollection cpc(cpcParent);
+
+    segmentDropRatioCC_ = wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(cpc, "segmentDropRatio"));
+
+    if(!config.isNone("delayProbeName"))
+    {
+        std::string delayProbeName = config.get<std::string>("delayProbeName");
+        minDelayCC_ = wns::probe::bus::ContextCollectorPtr(
+            new wns::probe::bus::ContextCollector(cpc, 
+                delayProbeName + ".minDelay"));
+        maxDelayCC_ = wns::probe::bus::ContextCollectorPtr(
+            new wns::probe::bus::ContextCollector(cpc, 
+                delayProbeName + ".maxDelay"));
+        sizeCC_ = wns::probe::bus::ContextCollectorPtr(
+            new wns::probe::bus::ContextCollector(cpc, 
+                delayProbeName + ".stop.compoundSize"));
+    
+        // Same name as the probe prefix
+        probeHeaderReader_ = fun->getCommandReader(delayProbeName);
+
+        reassemblyBuffer_.enableDelayProbing(minDelayCC_, maxDelayCC_, probeHeaderReader_);
+    }
 }
 
 SegAndConcat::SegAndConcat(const SegAndConcat& other):
@@ -53,7 +75,11 @@ SegAndConcat::SegAndConcat(const SegAndConcat& other):
     reorderingWindow_(other.reorderingWindow_),
     reassemblyBuffer_(other.reassemblyBuffer_),
     isSegmenting_(other.isSegmenting_),
-    segmentDropRatioCC_(other.segmentDropRatioCC_)
+    segmentDropRatioCC_(other.segmentDropRatioCC_),
+    minDelayCC_(other.minDelayCC_),
+    maxDelayCC_(other.minDelayCC_),
+    sizeCC_(other.sizeCC_),
+    probeHeaderReader_(other.probeHeaderReader_)
 {
     reorderingWindow_.connectToReassemblySignal(boost::bind(&SegAndConcat::onReorderedPDU, this, _1, _2));
 
@@ -152,7 +178,7 @@ SegAndConcat::onReorderedPDU(long sn, wns::ldk::CompoundPtr c)
 
         for(size_t ii=0; ii < reassemblyBuffer_.size(); ++ii)
         {
-            segmentDropRatioCC_.put(1.0);
+            segmentDropRatioCC_->put(1.0);
         }
         reassemblyBuffer_.clear();
     }
@@ -178,7 +204,7 @@ SegAndConcat::onReorderedPDU(long sn, wns::ldk::CompoundPtr c)
 
     for (int ii=0; ii < numberOfReassembledSegments; ++ii)
     {
-        segmentDropRatioCC_.put(0.0);
+        segmentDropRatioCC_->put(0.0);
     }
 
     MESSAGE_SINGLE(NORMAL, logger_, "reassemble: getReassembledSegments() sc.size()=" << sc.size());
@@ -192,6 +218,7 @@ SegAndConcat::onReorderedPDU(long sn, wns::ldk::CompoundPtr c)
                 << " bits to upper FU.");
             // This sends the complete PDU upwards:
             getDeliverer()->getAcceptor( (*it) )->onData( (*it) );
+            sizeCC_->put((*it)->getLengthInBits());
         }
     }
     else
@@ -203,7 +230,7 @@ SegAndConcat::onReorderedPDU(long sn, wns::ldk::CompoundPtr c)
 void
 SegAndConcat::onDiscardedPDU(long, wns::ldk::CompoundPtr)
 {
-    segmentDropRatioCC_.put(1.0);
+    segmentDropRatioCC_->put(1.0);
 }
 
 bool

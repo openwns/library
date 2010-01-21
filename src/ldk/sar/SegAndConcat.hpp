@@ -188,7 +188,12 @@ namespace wns { namespace ldk { namespace sar {
 
         bool isSegmenting_;
 
-        wns::probe::bus::ContextCollector segmentDropRatioCC_;
+        wns::probe::bus::ContextCollectorPtr minDelayCC_;
+        wns::probe::bus::ContextCollectorPtr maxDelayCC_;
+        wns::probe::bus::ContextCollectorPtr sizeCC_;
+        wns::ldk::CommandReaderInterface* probeHeaderReader_;
+
+        wns::probe::bus::ContextCollectorPtr segmentDropRatioCC_;
     };
 }
 }

@@ -211,7 +211,7 @@ InnerQueue::probe(const wns::ldk::CompoundPtr& compound,
     assure(cmd != NULL, "Cannot get TickTackCommand to probe delay");
 
     wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
-    probeCC->put(now - cmd->magic.tickTime);
+    probeCC->put(compound, now - cmd->magic.tickTime);
 }
 
 

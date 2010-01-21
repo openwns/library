@@ -90,7 +90,7 @@ class SegAndConcat(openwns.StaticFactoryClass):
     Each segment is then prepended by a header of length headerSize.
     """
 
-    def __init__(self, segmentSize, headerSize, commandName, parentLogger = None):
+    def __init__(self, segmentSize, headerSize, commandName, delayProbeName = None, parentLogger = None):
         openwns.StaticFactoryClass.__init__(self, "wns.sar.SegAndConcat")
         self.logger = openwns.logger.Logger('WNS', 'SegAndConcat', True, parentLogger)
         self.commandName = commandName
@@ -104,3 +104,4 @@ class SegAndConcat(openwns.StaticFactoryClass):
         # general we need simulator parameter settings per QoS class
         self.reorderingWindow = ReorderingWindow(snFieldLength = 10, parentLogger = self.logger)
         self.isSegmenting = False
+        self.delayProbeName = delayProbeName

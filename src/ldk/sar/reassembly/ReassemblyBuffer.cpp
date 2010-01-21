@@ -28,12 +28,16 @@
 #include <WNS/ldk/sar/reassembly/ReassemblyBuffer.hpp>
 #include <WNS/ldk/sar/SegAndConcat.hpp>
 
+#include <WNS/simulator/ISimulator.hpp>
+#include <WNS/ldk/probe/TickTack.hpp>
+
 #include <sstream>
 
 using namespace wns::ldk::sar::reassembly;
 
 ReassemblyBuffer::ReassemblyBuffer():
-    commandReader_(NULL)
+    commandReader_(NULL),
+    delayProbingEnabled_(false)
 {
 }
 
@@ -124,6 +128,8 @@ ReassemblyBuffer::readCommand(const wns::ldk::CompoundPtr& c)
 ReassemblyBuffer::SegmentContainer
 ReassemblyBuffer::getReassembledSegments(int &reassembledSegmentCounter)
 {
+    delays_.clear();
+
     reassembledSegmentCounter = 0;
 
     assure(integrityCheck(), "IntegrityCheck failed!");
@@ -136,27 +142,29 @@ ReassemblyBuffer::getReassembledSegments(int &reassembledSegmentCounter)
 
         SegAndConcatCommand* frontCommand = readCommand(buffer_.front());
 
+        // Segment starts with an entire PDU and ends with an entire PDU, 
+        // we can reassemble all PDUs within this segment
         if (frontCommand->getEndFlag())
         {
-            // PDU starts with an SDU and ends with an SDU, we can reassemble
-            // all SDUs within this segment
             std::list<wns::ldk::CompoundPtr>::iterator it;
 
             for(it = frontCommand->peer.pdus_.begin(); it!=frontCommand->peer.pdus_.end(); ++it)
             {
                 sc.push_back( (*it) );
+                prepareForProbing(sc.size() - 1, buffer_.front());
             }
 
             buffer_.pop_front();
             reassembledSegmentCounter++;
 
-            // Whole SDU was unpacked. IntegrityCheck must hold.
+            // Whole PDU(s) was/were unpacked. IntegrityCheck must hold.
             assure(integrityCheck(), "IntegrityCheck failed!");
         }
         else
         {
-            // Is there a follow-up PDU with either more than one SDU
-            // or with the end flag set? If yes, we can reassemble
+            // Is there a follow-up segment with either more than one PDU
+            // or with the end flag set? If yes, we can reassemble.
+            // Else we cannot reassamble any more.
             ReassemblyBuffer::SegmentContainer::iterator endOfSDU;
 
             for(endOfSDU = buffer_.begin();
@@ -178,33 +186,47 @@ ReassemblyBuffer::getReassembledSegments(int &reassembledSegmentCounter)
                 {
                     SegAndConcatCommand* frontCommand = readCommand(buffer_.front());
 
+                    // A whole PDU was in this one segment, more PDUs
+                    // behind it in this segment. Take out the one PDU
+                    // and mark the next segment as the start segment of the next PDU
                     if (frontCommand->peer.pdus_.size() > 1)
                     {
                         sc.push_front(frontCommand->peer.pdus_.front());
+                        prepareForProbing(sc.size() - 1, buffer_.front());
+
                         frontCommand->peer.pdus_.pop_front();
                         reassembledSegmentCounter++;
                         frontCommand->setBeginFlag();
                         break;
                     }
+                    // One PDU spans over the entire segment. But it could
+                    // span over even more segments
                     else
                     {
                         sc.push_back(frontCommand->peer.pdus_.front());
+                        prepareForProbing(sc.size() - 1, buffer_.front());
                     }
 
+                    // The PDU does not span over more segments
                     if (frontCommand->getEndFlag())
                     {
                         buffer_.pop_front();
                         reassembledSegmentCounter++;
                         break;
                     }
+                    // The PDU does span over more segments.
+                    // Take the rest of the PDU out of the next
+                    // segment and assure the counter is right after that.
+                    // The next segment now starts with a new PDU marked
+                    // by the "StartFlag".
                     else
                     {
                         buffer_.pop_front();
                         reassembledSegmentCounter++;
-                        // The next segment continues this SDU
-                        // It needs to be dropped, since we already pushed the
-                        // first segment to the segment container
-                        reassembledSegmentCounter += dropSegmentsOfSDU();
+                        // The next segment continues this PDU
+                        // The PDU needs to be removed from the list of the next segment,
+                        // since we already pushed the PDU in this segment.
+                        reassembledSegmentCounter += dropSegmentsOfSDU(sc.size() - 1);
                         break;
                     }
                 }
@@ -216,6 +238,7 @@ ReassemblyBuffer::getReassembledSegments(int &reassembledSegmentCounter)
         }
     }
 
+    probe(sc); 
     return sc;
 } // getReassembledSegments
 
@@ -276,8 +299,9 @@ ReassemblyBuffer::integrityCheck()
     return true;
 }
 
+// We have extracted a PDU from the last segment but the PDU continues in the next segments
 int
-ReassemblyBuffer::dropSegmentsOfSDU()
+ReassemblyBuffer::dropSegmentsOfSDU(int index)
 {
     assure(buffer_.size() > 0, "You cannot drop SDU segments from an empty buffer!");
     // This first Segment in buffer_ is the first to be dropped
@@ -287,26 +311,92 @@ ReassemblyBuffer::dropSegmentsOfSDU()
     while(true)
     {
         SegAndConcatCommand* frontCommand = readCommand(buffer_.front());
+        // The PDU ends in this segment. There are no other PDUs in the segment
         if ( (frontCommand->peer.pdus_.size() == 1) && (frontCommand->getEndFlag()) )
         {
+            prepareForProbing(index, buffer_.front());
             buffer_.pop_front();
             droppedSegmentCounter++;
             break;
         }
 
+        // The PDU ends in this segment. There are other PDUs in the segment.
+        // Take out the PDU and set the beginning of the segment to the next PDU.
         if (frontCommand->peer.pdus_.size() > 1)
         {
+            prepareForProbing(index, buffer_.front());
             frontCommand->peer.pdus_.pop_front();
             frontCommand->setBeginFlag();
             break;
         }
 
+        // The PDU spans through the entire segment and continues in the next. 
+        // Continue the loop until we find the end of the PDU.
         if ( (frontCommand->peer.pdus_.size() == 1) && (!frontCommand->getEndFlag()) )
         {
+            prepareForProbing(index, buffer_.front());
             buffer_.pop_front();
             droppedSegmentCounter++;
             continue;
         }
     }
     return droppedSegmentCounter;
+}
+
+void
+ReassemblyBuffer::enableDelayProbing(const wns::probe::bus::ContextCollectorPtr& minDelayCC,
+        const wns::probe::bus::ContextCollectorPtr& maxDelayCC,
+        wns::ldk::CommandReaderInterface* cmdReader)
+{
+    assure(minDelayCC != NULL, "No valid min delay probe");
+    assure(maxDelayCC != NULL, "No valid max delay probe");
+    assure(cmdReader != NULL, "No valid command reader");
+
+    delayProbingEnabled_ = true;
+    minDelayCC_ = minDelayCC;
+    maxDelayCC_ = maxDelayCC;
+    probeCmdReader_ = cmdReader;
+}
+
+void
+ReassemblyBuffer::prepareForProbing(int position,
+    const wns::ldk::CompoundPtr& segment)
+{    
+    if(delayProbingEnabled_)
+    {
+        assure(position >= 0, "Invalid position " << position);
+        assure(segment != wns::ldk::CompoundPtr(), "No valid compound");
+        assure(probeCmdReader_ != NULL, "No valid command reader");
+
+        if(delays_.find(position) == delays_.end())
+            delays_[position] = std::set<wns::simulator::Time>();
+
+        wns::ldk::probe::TickTackCommand* cmd;
+        cmd = probeCmdReader_->readCommand<wns::ldk::probe::TickTackCommand>(segment->getCommandPool());
+        assure(cmd != NULL, "Cannot get TickTackCommand to probe delay");
+
+        wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
+
+        delays_[position].insert(now - cmd->magic.tickTime);
+    }
+}
+
+void
+ReassemblyBuffer::probe(const SegmentContainer& sc)
+{
+    if(delayProbingEnabled_)
+    {
+        assure(minDelayCC_ != NULL, "No valid min delay probe");
+        assure(maxDelayCC_ != NULL, "No valid max delay probe");
+    
+        SegmentContainer::const_iterator it;
+        int i = 0;
+        for (it = sc.begin(); it != sc.end(); ++it)
+        {
+            assure(!delays_[i].empty(), "No delay probed for " << i << "th PDU.");
+            minDelayCC_->put((*it), *(delays_[i].begin()));
+            maxDelayCC_->put((*it), *(delays_[i].rbegin()));
+            i++;
+        }
+    }
 }

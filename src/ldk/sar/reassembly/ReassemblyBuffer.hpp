@@ -28,6 +28,11 @@
 #define WNS_LDK_SAR_REASSEMBLY_REASSEMBLYBUFFER_HPP
 
 #include <WNS/ldk/Compound.hpp>
+#include <WNS/ldk/CommandReaderInterface.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
+
+#include <set>
+#include <map>
 
 namespace wns { namespace ldk { class FunctionalUnit;}}
 namespace wns { namespace ldk { namespace sar { class SegAndConcatCommand; }}}
@@ -75,7 +80,25 @@ public:
     SegmentContainer
     getReassembledSegments(int &reassembledSegmentCounter);
 
+    void
+    enableDelayProbing(const wns::probe::bus::ContextCollectorPtr& minDelayCC,
+        const wns::probe::bus::ContextCollectorPtr& maxDelayCC,
+        wns::ldk::CommandReaderInterface* cmdReader);
+
 private:
+    bool delayProbingEnabled_;
+    std::map<int, std::set<wns::simulator::Time> > delays_;
+    wns::probe::bus::ContextCollectorPtr minDelayCC_;
+    wns::probe::bus::ContextCollectorPtr maxDelayCC_;
+    wns::ldk::CommandReaderInterface* probeCmdReader_;
+
+    void
+    prepareForProbing(int position,
+        const wns::ldk::CompoundPtr& segment);
+
+    void 
+    probe(const SegmentContainer& sc);
+
     bool
     integrityCheck();
 
@@ -83,7 +106,7 @@ private:
     readCommand(const wns::ldk::CompoundPtr&);
 
     int
-    dropSegmentsOfSDU();
+    dropSegmentsOfSDU(int index = 0);
 
     SegmentContainer buffer_;
 
