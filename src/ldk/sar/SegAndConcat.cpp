@@ -218,7 +218,8 @@ SegAndConcat::onReorderedPDU(long sn, wns::ldk::CompoundPtr c)
                 << " bits to upper FU.");
             // This sends the complete PDU upwards:
             getDeliverer()->getAcceptor( (*it) )->onData( (*it) );
-            sizeCC_->put((*it)->getLengthInBits());
+            if(sizeCC_ != NULL)
+                sizeCC_->put((*it)->getLengthInBits());
         }
     }
     else
