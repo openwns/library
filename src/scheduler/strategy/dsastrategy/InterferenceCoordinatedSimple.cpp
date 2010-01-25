@@ -28,7 +28,6 @@
 #include <WNS/scheduler/strategy/dsastrategy/InterferenceCoordinatedSimple.hpp>
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
-#include <DLL/StationManager.hpp>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -73,8 +72,6 @@ InterferenceCoordinatedSimple::initialize(SchedulerStatePtr schedulerState,
 	// 3) find a way to get direct neighbors only (adjacent, geometrically)
 	// 4) Find a way to get neighbor scheduler/strategy/state
 	// 5) Let neighbors communicate about their decisions (using a Singleton?)
-	//dll::NodeList nodeList = colleagues.registry->getNodeList();
-	//MESSAGE_SINGLE(NORMAL, logger, "getNodeList() = "<<dll::printNodeList(nodeList));
 }
 
 DSAResult
