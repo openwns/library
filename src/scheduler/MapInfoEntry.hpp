@@ -71,7 +71,7 @@ namespace wns { namespace scheduler {
             wns::node::Interface* user;
             /** @brief frameNr is the index within the superframe. Used for advance scheduling */
             int frameNr;
-            /** @brief can be abstract subband from scheduling result or real world SubChannelNr after channelMapping */
+            /** @brief subBand is the index within the frame */
             int subBand;
             /** @brief number of resource blocks in time-direction (TDMA) */
             int timeSlot;
