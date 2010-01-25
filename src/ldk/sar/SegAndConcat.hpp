@@ -129,7 +129,7 @@ namespace wns { namespace ldk { namespace sar {
         public wns::ldk::HasConnector<>,
         public wns::ldk::HasDeliverer<>,
         public wns::Cloneable<SegAndConcat>,
-        virtual public wns::ldk::CommandTypeSpecifier<SegAndConcatCommand>
+        public wns::ldk::CommandTypeSpecifier<SegAndConcatCommand>
     {
     public:
         SegAndConcat(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config);
@@ -160,6 +160,10 @@ namespace wns { namespace ldk { namespace sar {
         virtual void
         calculateSizes(const wns::ldk::CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
 
+    protected:
+        wns::logger::Logger logger_;
+        bool isSegmenting_;
+
     private:
 
         void
@@ -169,8 +173,6 @@ namespace wns { namespace ldk { namespace sar {
         onDiscardedPDU(long, wns::ldk::CompoundPtr);
 
         std::list<wns::ldk::CompoundPtr> senderPendingSegments_;
-
-        wns::logger::Logger logger_;
 
         std::string commandName_;
 
@@ -186,14 +188,13 @@ namespace wns { namespace ldk { namespace sar {
 
         reassembly::ReorderingWindow reorderingWindow_;
 
-        bool isSegmenting_;
-
         wns::probe::bus::ContextCollectorPtr minDelayCC_;
         wns::probe::bus::ContextCollectorPtr maxDelayCC_;
         wns::probe::bus::ContextCollectorPtr sizeCC_;
         wns::ldk::CommandReaderInterface* probeHeaderReader_;
 
         wns::probe::bus::ContextCollectorPtr segmentDropRatioCC_;
+        std::string segmentDropRatioProbeName_;
     };
 }
 }

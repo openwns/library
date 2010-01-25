@@ -73,7 +73,7 @@ class DynamicSAR(openwns.FUN.FunctionalUnit):
         self.maxSegmentSize = maxSegmentSize
         self.logger = Logger('WNS','DynamicSAR',True, parentLogger)
 
-class ReorderingWindow:
+class ReorderingWindow(object):
 
     def __init__(self, snFieldLength, parentLogger = None):
         self.snFieldLength = snFieldLength
@@ -105,3 +105,4 @@ class SegAndConcat(openwns.StaticFactoryClass):
         self.reorderingWindow = ReorderingWindow(snFieldLength = 10, parentLogger = self.logger)
         self.isSegmenting = False
         self.delayProbeName = delayProbeName
+        self.segmentDropRatioProbeName = "segmentDropRatio"

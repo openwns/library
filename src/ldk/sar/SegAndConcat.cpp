@@ -33,7 +33,8 @@ SegAndConcat::SegAndConcat(wns::ldk::fun::FUN* fun,
     sduLengthAddition_(config.get<Bit>("sduLengthAddition")),
     nextOutgoingSN_(0),
     reorderingWindow_(config.get("reorderingWindow")),
-    isSegmenting_(config.get<bool>("isSegmenting"))
+    isSegmenting_(config.get<bool>("isSegmenting")),
+    segmentDropRatioProbeName_(config.get<std::string>("segmentDropRatioProbeName"))
 {
     reorderingWindow_.connectToReassemblySignal(boost::bind(&SegAndConcat::onReorderedPDU, this, _1, _2));
     reorderingWindow_.connectToDiscardSignal(boost::bind(&SegAndConcat::onDiscardedPDU, this, _1, _2));
@@ -42,7 +43,7 @@ SegAndConcat::SegAndConcat(wns::ldk::fun::FUN* fun,
     wns::probe::bus::ContextProviderCollection cpc(cpcParent);
 
     segmentDropRatioCC_ = wns::probe::bus::ContextCollectorPtr(
-        new wns::probe::bus::ContextCollector(cpc, "segmentDropRatio"));
+        new wns::probe::bus::ContextCollector(cpc, segmentDropRatioProbeName_));
 
     if(!config.isNone("delayProbeName"))
     {
