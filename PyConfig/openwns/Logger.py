@@ -38,7 +38,7 @@ class LoggerRegistry(object):
         assert isinstance(category, str)
         if not self.dict.has_key(category):
             self.dict[category] = []
-            self.dict[category].append(logger)
+        self.dict[category].append(logger)
 
     def setAttribute(self, category, attribute, value):
         assert isinstance(category, str)

@@ -117,7 +117,8 @@ using namespace wns::scheduler::strategy::tests;
 /********************************* Test *****************************/
 
 //CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( StrategyTest, "StrategyTest");
-CPPUNIT_TEST_SUITE_REGISTRATION( StrategyTest );
+// Mue: Disabled since these are the old startegies. This must be changed to test StaticPriority
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( StrategyTest, wns::testsuite::Disabled() );
 
 StrategyTest::StrategyTest() : /* 1. */
         wns::TestFixture(),
@@ -230,7 +231,7 @@ StrategyTest::setupStrategy(std::string strategyName)
 	assure(strategy, "Strategy module creation failed");
 
 	// configure Strategy module
-	strategy->setColleagues(queue, grouper, registry);
+	strategy->setColleagues(queue, grouper, registry, NULL);
 	strategy->getPowerCapabilities(NULL); // trigger scheduler to ask RegistryProxy(Stub)
 } // setupStrategy
 
@@ -262,7 +263,7 @@ StrategyTest::setupULStrategy(std::string strategyName)
 	assure(strategy, "Strategy module creation failed");
 
 	// configure Strategy module
-	strategy->setColleagues(queue, grouper, registry);
+	strategy->setColleagues(queue, grouper, registry, NULL);
 	strategy->getPowerCapabilities(NULL); // trigger scheduler to ask RegistryProxy(Stub)
 } // setupULStrategy
 

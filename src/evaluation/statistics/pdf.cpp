@@ -180,11 +180,10 @@ PDF::print(std::ostream& stream) const
            << std::endl << prefix
            << "Percentiles" << std::endl;
 
-    stream << prefix; this->printPercentile( 1, stream);
-    stream << prefix; this->printPercentile( 5, stream);
-    stream << prefix; this->printPercentile(50, stream);
-    stream << prefix; this->printPercentile(95, stream);
-    stream << prefix; this->printPercentile(99, stream);
+    for (int ii=1; ii <= 100; ++ii)
+    {
+        stream << prefix; this->printPercentile( ii, stream);
+    }
 
     stream << separator
            << std::endl << prefix << std::endl << prefix

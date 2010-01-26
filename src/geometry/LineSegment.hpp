@@ -31,15 +31,16 @@
 #include "Shape2D.hpp"
 #include "AABoundingBox.hpp"
 
+#include <WNS/pyconfig/View.hpp>
+
 namespace wns{	namespace geometry{
 
     class LineSegment : public Shape2D    {
     public:
-	LineSegment();
-	
-	LineSegment(const Point& a, const Point& b);
-	
-	LineSegment(const Point& a, const Vector& db);
+        LineSegment();
+        LineSegment(const Point& a, const Point& b);
+        LineSegment(const Point& a, const Vector& db);
+        LineSegment(const wns::pyconfig::View& config);
 	
 	virtual
 	~LineSegment();

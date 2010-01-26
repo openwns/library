@@ -40,134 +40,129 @@
 
 namespace wns { namespace service { namespace phy { namespace ofdma {
 
-	/**
+    /**
 	 * @brief Values OFDMA Phy
 	 */
-	struct Tune
-	{
-		double frequency;
-		double bandwidth;
-		int numberOfSubCarrier;
+    struct Tune
+    {
+        double frequency;
+        double bandwidth;
+        int numberOfSubCarrier;
 
-		bool operator==(const wns::service::phy::ofdma::Tune& other) const{
-			return ( (frequency == other.frequency) &&
-				 (bandwidth == other.bandwidth) &&
-				 (numberOfSubCarrier == other.numberOfSubCarrier));
-		}
+        bool operator==(const wns::service::phy::ofdma::Tune& other) const{
+            return ( (frequency == other.frequency) &&
+                     (bandwidth == other.bandwidth) &&
+                     (numberOfSubCarrier == other.numberOfSubCarrier));
+        }
 
-		Tune& operator=(const wns::service::phy::ofdma::Tune& other){
-			this->frequency = other.frequency;
-			this->bandwidth = other.bandwidth;
-			this->numberOfSubCarrier = other.numberOfSubCarrier;
-			return (*this);
-		}
-	};
+        Tune& operator=(const wns::service::phy::ofdma::Tune& other){
+            this->frequency = other.frequency;
+            this->bandwidth = other.bandwidth;
+            this->numberOfSubCarrier = other.numberOfSubCarrier;
+            return (*this);
+        }
+    };
 
-	struct BFIdu
-	{
-		osi::PDUPtr pdu;
-		node::Interface* recipient;
-		int subBand;
-		PatternPtr pattern;
-	};
+    struct BFIdu
+    {
+        osi::PDUPtr pdu;
+        node::Interface* recipient;
+        int subBand;
+        PatternPtr pattern;
+    };
 
-	/** @brief Common Interface for Non-beamforming and beamforming Transmission/Reception */
-	class TransmissionBase :
-		public virtual service::Service
-	{
-	public:
-		virtual
-		~TransmissionBase(){}
+    /** @brief Common Interface for Non-beamforming and beamforming Transmission/Reception */
+    class TransmissionBase :
+        public virtual service::Service
+    {
+    public:
+        virtual
+        ~TransmissionBase(){}
 
-		/**
+        /**
 		 * @brief stop a transmission of the given osi::PDUPtr
 		 */
-		virtual void
-		stopTransmission(osi::PDUPtr pdu, int subBand) = 0;
+        virtual void
+        stopTransmission(osi::PDUPtr pdu, int subBand) = 0;
 
-		/**
+        /**
 		 * @brief informs whether station is currently receiving data or not
 		 */
-		virtual bool
-		isReceiving() const = 0;
-	};
+        virtual bool
+        isReceiving() const = 0;
+    };
 
-	/** @brief Interface for Non-beamforming Transmission */
-	class NonBFTransmission :
-		public virtual TransmissionBase
-	{
-	public:
-		virtual
-		~NonBFTransmission(){}
+    /** @brief Interface for Non-beamforming Transmission */
+    class NonBFTransmission :
+        public virtual TransmissionBase
+    {
+    public:
+        virtual
+        ~NonBFTransmission(){}
 
-		/**
+        /**
 		 * @brief start unicast transmission
 		 */
-		/** @todo obsolete interface if PhyMode is always specified */
-		virtual void
-		startUnicast(osi::PDUPtr pdu,
-			     wns::node::Interface* recipient,
-			     int subBand,
-			     wns::Power requestedTxPower) = 0;
+        virtual void
+        startUnicast(osi::PDUPtr pdu,
+                     wns::node::Interface* recipient,
+                     int subBand,
+                     wns::Power requestedTxPower,
+                     int numberOfSpatialStreams) = 0;
 
-		/**
+        /**
 		 * @brief start unicast transmission
 		 */
-		virtual void
-		startUnicast(osi::PDUPtr pdu,
-			     wns::node::Interface* recipient,
-			     int subBand,
-			     wns::Power requestedTxPower,
-			     //const wns::service::phy::phymode::PhyModeInterface& phyMode) = 0;
-			     wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr) = 0;
+        virtual void
+        startUnicast(osi::PDUPtr pdu,
+                     wns::node::Interface* recipient,
+                     int subBand,
+                     wns::Power requestedTxPower,
+                     wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr) = 0;
 
-		/**
+        /**
 		 * @brief start broadcast transmission
 		 */
-		/** @todo obsolete interface if PhyMode is always specified */
-		virtual void
-		startBroadcast(osi::PDUPtr pdu,
-			       int subBand,
-			       wns::Power requestedTxPower) = 0;
-		/**
+        virtual void
+        startBroadcast(osi::PDUPtr pdu,
+                       int subBand,
+                       wns::Power requestedTxPower,
+                       int numberOfSpatialStreams) = 0;
+        /**
 		 * @brief start broadcast transmission
 		 */
-		virtual void
-		startBroadcast(osi::PDUPtr pdu,
-			       int subBand,
-			       wns::Power requestedTxPower,
-			       //const wns::service::phy::phymode::PhyModeInterface& phyMode) = 0;
-			       wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr) = 0;
-	};
+        virtual void
+        startBroadcast(osi::PDUPtr pdu,
+                       int subBand,
+                       wns::Power requestedTxPower,
+                       wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr) = 0;
+    };
 
-	/** @brief Interface for beamforming Transmission */
-	class BFTransmission :
-		public virtual  TransmissionBase
-	{
-	public:
-		virtual
-		~BFTransmission(){}
+    /** @brief Interface for beamforming Transmission */
+    class BFTransmission :
+        public virtual  TransmissionBase
+    {
+    public:
+        virtual
+        ~BFTransmission(){}
 
-		/** @todo obsolete interface if PhyMode is always specified */
-		virtual void
-		startTransmission(wns::osi::PDUPtr pdu,
-				  wns::node::Interface* recipient,
-				  int subBand,
-				  PatternPtr pattern,
-				  wns::Power requestedTxPower) = 0;
+        virtual void
+        startTransmission(wns::osi::PDUPtr pdu,
+                          wns::node::Interface* recipient,
+                          int subBand,
+                          PatternPtr pattern,
+                          wns::Power requestedTxPower,
+                          int numberOfSpatialStreams) = 0;
 
-		virtual void
-		startTransmission(wns::osi::PDUPtr pdu,
-				  wns::node::Interface* recipient,
-				  int subBand,
-				  PatternPtr pattern,
-				  wns::Power requestedTxPower,
-				  //const wns::service::phy::phymode::PhyModeInterface& phyMode) = 0;
-				  wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr) = 0;
+        virtual void
+        startTransmission(wns::osi::PDUPtr pdu,
+                          wns::node::Interface* recipient,
+                          int subBand,
+                          PatternPtr pattern,
+                          wns::Power requestedTxPower,
+                          wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr) = 0;
 
-// 		virtual void
-// 		startTransmissions(const std::vector<BFIdu>& whatToTransmit) = 0;
-	};
+    };
 
 	/** @brief Interface for modifying all RF related settings */
 	class RFSettings :

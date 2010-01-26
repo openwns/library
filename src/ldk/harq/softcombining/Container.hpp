@@ -28,7 +28,6 @@
 #ifndef WNS_LDK_HARQ_SOFTCOMBINING_CONTAINER_HPP
 #define WNS_LDK_HARQ_SOFTCOMBINING_CONTAINER_HPP
 
-#include <WNS/ldk/Compound.hpp>
 #include <WNS/Exception.hpp>
 
 #include <list>
@@ -36,39 +35,70 @@
 
 namespace wns { namespace ldk { namespace harq { namespace softcombining {
 
+     template <class T>
      class Container
      {
      public:
 
-         typedef std::list<wns::ldk::CompoundPtr> CompoundList;
+         typedef std::list<T> EntryList;
 
-         typedef std::vector<CompoundList> CompoundListVector;
+         typedef std::vector<EntryList> EntryListVector;
 
          class InvalidRV :
              public Exception
          {
          };
 
-         Container(int numRV);
+         Container(int numRVs)
+         {
+             receivedEntries_.resize(numRVs);
+         }
 
          void
-         clear();
+         clear()
+         {
+             int size = receivedEntries_.size();
+             receivedEntries_.clear();
+             receivedEntries_.resize(size);
+         }
+
 
          int
-         getNumRVs() const;
+         getNumRVs() const
+         {
+             return receivedEntries_.size();
+         }
 
-         CompoundList
-         getCompoundsForRV(int rv) const;
+
+         EntryList
+         getEntriesForRV(int rv) const
+         {
+             checkIfValidRV(rv);
+
+             return receivedEntries_[rv];
+         }
+
 
          void
-         appendCompoundForRV(int rv, wns::ldk::CompoundPtr compound);
+         appendEntryForRV(int rv, T compound)
+         {
+             checkIfValidRV(rv);
+
+             receivedEntries_[rv].push_back(compound);
+         }
 
      private:
 
          void
-         checkIfValidRV(int rv) const;
+         checkIfValidRV(int rv) const
+         {
+             if (rv < 0 || rv >= getNumRVs())
+             {
+                 throw typename Container::InvalidRV();
+             }
+         }
 
-         CompoundListVector receivedCompounds_;
+         EntryListVector receivedEntries_;
      };
 
 } // softcombining

@@ -32,12 +32,56 @@
 
 using namespace wns::ldk::harq;
 
+/*
+STATIC_FACTORY_REGISTER_WITH_CREATOR(
+    HARQ,
+    HARQInterface,
+    "wns.harq.HARQ",
+    wns::PyConfigViewCreator);
+*/
+
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     HARQFU,
     wns::ldk::FunctionalUnit,
-    "wns.harq.HARQ",
+    "wns.harq.HARQFU",
     wns::ldk::FUNConfigCreator);
 
+/*
+// HARQ class as required by scheduler integration
+HARQ::HARQ(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
+    numSenderProcesses_(config.get<int>("numSenderProcesses")),
+    numReceiverProcesses_(config.len("receiverProcesses")),
+    numRVs_(config.get<int>("numRVs")),
+    logger_(config.get("logger"))
+{
+    for (int ii=0; ii < numSenderProcesses_; ++ii)
+    {
+        senderProcesses_.push_back(HARQSenderProcess(ii, numRVs_, this, logger_));
+    }
+
+    for (int ii=0; ii < numReceiverProcesses_; ++ii)
+    {
+        receiverProcesses_.push_back(
+            HARQFU::HARQReceiverProcess(config.get("receiverProcesses", ii), ii, this));
+    }
+}
+
+HARQ::~HARQ()
+{
+}
+
+void
+//HARQ::onFUNCreated()
+HARQ::initialize()
+{
+    for (int ii=0; ii < numReceiverProcesses_; ++ii)
+    {
+        receiverProcesses_[ii].onFUNCreated();
+    }
+} // onFUNCreated
+*/
+
+// HARQ as a functional unit
 HARQFU::HARQSenderProcess::HARQSenderProcess(int processID,
                                              int numRVs,
                                              HARQFU* entity,
@@ -154,7 +198,7 @@ HARQFU::HARQReceiverProcess::receive(const wns::ldk::CompoundPtr& compound)
         receptionBuffer_.clear();
     }
 
-    receptionBuffer_.appendCompoundForRV(command->peer.rv, compound);
+    receptionBuffer_.appendEntryForRV(command->peer.rv, compound);
 
     CommandPool* ackPCI = entity_->getFUN()->getProxy()->createReply(compound->getCommandPool(), entity_);
     wns::ldk::CompoundPtr ack_ = wns::ldk::CompoundPtr(new Compound(ackPCI));

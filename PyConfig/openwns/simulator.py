@@ -88,7 +88,7 @@ class OpenWNS(object):
 
     __slots__ = ["environment", "__postProcessingFuncs", "logger", "maxSimTime", "eventSchedulerMonitor",
     "simulationModel", "outputDir", "statusWriteInterval", "probesWriteInterval", "statusFileName",
-    "outputStrategy", "memConsumptionProbeBusName"]
+    "outputStrategy", "memConsumptionProbeBusName", "simTimeProbeBusName"]
 
     modules = Modules()
 
@@ -106,6 +106,8 @@ class OpenWNS(object):
         self.outputStrategy = OutputStrategy.MOVE
         # make available for easy access in wns-core
         self.memConsumptionProbeBusName = "wns.Memory"
+        self.simTimeProbeBusName = "wns.SimTimePerRealTime"
+        
 
         openwns.pyconfig.attrsetter(self, kw)
 

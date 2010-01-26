@@ -60,12 +60,14 @@ HARQRetransmission::initialize()
 {
     // make state
     lastScheduledConnection = 0;
+    //colleagues.harq->initialize(); // TODO!
     MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission(): initialized");
 }
 
 wns::scheduler::ConnectionID
 HARQRetransmission::getValidCurrentConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
 {
+    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission::getValidCurrentConnection");
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
         currentConnections.upper_bound(cid);
@@ -80,6 +82,7 @@ HARQRetransmission::getValidCurrentConnection(const ConnectionSet &currentConnec
 wns::scheduler::ConnectionID
 HARQRetransmission::getNextConnection(const ConnectionSet &currentConnections, ConnectionID cid) const
 {
+    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission::getNextConnection");
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
         currentConnections.upper_bound(cid);
@@ -100,37 +103,87 @@ HARQRetransmission::getNextConnection(const ConnectionSet &currentConnections, C
 
 wns::scheduler::MapInfoCollectionPtr
 HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
-                                 wns::scheduler::SchedulingMapPtr schedulingMap)
+                                         wns::scheduler::SchedulingMapPtr schedulingMap)
 {
-    MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
-    ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
-    if ( currentConnections.empty() ) return mapInfoCollection; // nothing to do
-    wns::scheduler::ConnectionID currentConnection = getValidCurrentConnection(currentConnections,lastScheduledConnection);
-    MESSAGE_SINGLE(NORMAL, logger, "HARQRetransmission::doStartSubScheduling("<<printConnectionSet(currentConnections)<<") start with cid="<<currentConnection);
-
-    bool spaceLeft=true;
-    while(spaceLeft)
+    // harq colleague may be NULL, e.g. Uplink Master Scheduler does not have HARQ
+    if(colleagues.harq == NULL)
     {
-        int pduCounter = 0;
-        // schedule #=blockSize PDUs for this CID here...
-        // TODO: get info from colleagues.harq instead of queue:
-        while( colleagues.queue->queueHasPDUs(currentConnection)
-               && (pduCounter<blockSize)
-               && spaceLeft)
-        { // spaceLeft[currentConnection] to be more precise
-            spaceLeft = scheduleCid(schedulerState,schedulingMap,currentConnection,pduCounter,blockSize,mapInfoCollection);
-        } // while PDUs in queue
-        // TODO: get info from colleagues.harq instead of queue:
-        if (!colleagues.queue->queueHasPDUs(currentConnection))
-        { // exit because of queue empty (most probable case for low traffic)
-            currentConnections.erase(currentConnection);
-            if (currentConnections.size()==0) break; // all queues empty
-        }
-        lastScheduledConnection = currentConnection; // this one really had pdus scheduled
-        currentConnection = getNextConnection(currentConnections,currentConnection);
-        MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): next connection="<<currentConnection);
-    } // while(spaceLeft)
-    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection="<<mapInfoCollection.getPtr()<<" of size="<<mapInfoCollection->size());
+        MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
+        MESSAGE_SINGLE(NORMAL, logger, "colleagues.harq==NULL is illegal. Please choose another strategy than HARQRetransmission");
+        return mapInfoCollection;
+    }
+    assure(colleagues.harq!=NULL,"colleagues.harq==NULL is illegal. Please choose another strategy than HARQRetransmission");
+
+    /**
+     * @todo dbn/rs: Take reachability into account! Some target peers may be not reachable.
+     */
+    int numberOfRetransmissions = colleagues.harq->getNumberOfRetransmissions(/* @todo peer */);
+    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling: "<<numberOfRetransmissions<<" HARQ retransmission(s) waiting");
+    if (numberOfRetransmissions>0) {
+        wns::scheduler::SchedulingTimeSlotPtr resourceBlock = colleagues.harq->nextRetransmission();
+        assure(resourceBlock != NULL, "resourceBlock == NULL although numberOfRetransmissions="<<numberOfRetransmissions);
+        while(resourceBlock != NULL)
+        {
+            bool foundSpace=false;
+            // iterate over all subchannels (like Linear Frequency First DSA Strategy):
+            for (wns::scheduler::SubChannelVector::iterator iterSubChannel = schedulingMap->subChannels.begin();
+                 iterSubChannel != schedulingMap->subChannels.end();
+                 ++iterSubChannel
+                )
+            {
+                SchedulingSubChannel& subChannel = *iterSubChannel;
+                int subChannelIndex = subChannel.subChannelIndex;
+                for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+                      iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+                {
+                    SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+                    int timeSlotIndex = timeSlotPtr->timeSlotIndex;
+                    //MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): trying subchannel.timeslot="<<subChannelIndex<<"."<<timeSlotIndex
+                    //               <<": "<<(timeSlotPtr->isEmpty()?"empty":"reserved")
+                    //               <<": #="<<timeSlotPtr->countScheduledCompounds());
+                    // if (timeSlotPtr->isEmpty()) // not the right question in UL slave
+                    if (timeSlotPtr->countScheduledCompounds()==0)
+                    { // free space found. Pack it into.
+                        MESSAGE_BEGIN(NORMAL, logger, m, "Retransmitting");
+                        m << " HARQ block ("<<resourceBlock->getUserID()->getName()<<",processID=" << resourceBlock->harq.processID;
+                        m << ",Retry="<<resourceBlock->harq.retryCounter<<")";
+                        m << " inside subchannel.timeslot=" <<subChannelIndex<<"."<<timeSlotIndex;
+                        m << " (ex "<<resourceBlock->subChannelIndex<<"."<<resourceBlock->timeSlotIndex<<")";
+                        MESSAGE_END();
+                        assure(resourceBlock->subChannelIndex==resourceBlock->physicalResources[0].subChannelIndex,
+                               "mismatch of subChannelIndex: "<<resourceBlock->subChannelIndex<<"!="<<resourceBlock->physicalResources[0].subChannelIndex);
+                        assure(resourceBlock->timeSlotIndex==resourceBlock->physicalResources[0].timeSlotIndex,
+                               "mismatch of timeSlotIndex: "<<resourceBlock->timeSlotIndex<<"!="<<resourceBlock->physicalResources[0].timeSlotIndex);
+                        assure (resourceBlock != wns::scheduler::SchedulingTimeSlotPtr(),"resourceBlock==NULL");
+                        iterSubChannel->temporalResources[timeSlotIndex] = resourceBlock; // copy Smartptr over
+                        // at this point timeSlotPtr is no longer valid for use! Only resourceBlock
+                        resourceBlock->subChannelIndex = subChannelIndex;
+                        resourceBlock->timeSlotIndex = timeSlotIndex;
+                        assure(resourceBlock->physicalResources.size()==resourceBlock->numberOfBeams,
+                               "mismatch in spatial domain: "<<resourceBlock->physicalResources.size()<<"!="<<resourceBlock->numberOfBeams);
+                        // foreach PRB... fix subChannelIndex
+                        for ( PhysicalResourceBlockVector::iterator iterPRB = resourceBlock->physicalResources.begin();
+                              iterPRB != resourceBlock->physicalResources.end(); ++iterPRB)
+                        {
+                            int spatialIndex = iterPRB->beamIndex;
+                            MESSAGE_SINGLE(NORMAL, logger, subChannelIndex<<"."<<timeSlotIndex<<".PRB["<<spatialIndex<<"]: Adjusting subChannelIndex from "<<iterPRB->subChannelIndex<<" to "<<subChannelIndex);
+                            iterPRB->subChannelIndex = subChannelIndex;
+                            iterPRB->timeSlotIndex = timeSlotIndex;
+                        }
+                        // end the loops:
+                        foundSpace=true;
+                        break; // found a space, so end the loops
+                    } // if free space found
+                    if (foundSpace) break;
+                } // forall timeSlots
+                if (foundSpace) break;
+            }// forall subChannels
+            resourceBlock = colleagues.harq->nextRetransmission();
+        } // while
+    } // if
+
+    MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
+
     return mapInfoCollection;
 } // doStartSubScheduling
 

@@ -47,6 +47,14 @@ AxisParallelRectangle::AxisParallelRectangle(const Point& a, const Vector& db)
     boundingBox = AABoundingBox(a, a + db);
 }
 
+AxisParallelRectangle::AxisParallelRectangle(const wns::pyconfig::View& config)
+    : Shape2D(wns::geometry::Point(config.getView("pointA")),
+              wns::geometry::Point(config.getView("pointB")))
+{
+    boundingBox = AABoundingBox(wns::geometry::Point(config.getView("pointA")),
+                                wns::geometry::Point(config.getView("pointB")));
+}
+
 bool 
 AxisParallelRectangle::contains(const Point& point) const
 {

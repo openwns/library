@@ -31,6 +31,7 @@
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/HasReceptorConfigCreator.hpp>
+#include <queue>
 
 namespace wns { namespace scheduler { namespace queue {
 
@@ -65,7 +66,7 @@ namespace wns { namespace scheduler { namespace queue {
                  *
                  * Returns true if the queue belonging to cid has backlogged PDUs.
                  */
-                virtual bool queueHasPDUs(ConnectionID cid) = 0;
+                virtual bool queueHasPDUs(ConnectionID cid) const = 0;
 
                 /**
                  * @brief
@@ -135,6 +136,12 @@ namespace wns { namespace scheduler { namespace queue {
                 virtual wns::ldk::CompoundPtr getHeadOfLinePDUSegment(ConnectionID cid, int bits) = 0;
                 /** @brief if supportsDynamicSegmentation, this is the minimum size of a segment in bits */
                 virtual int getMinimumSegmentSize() const { return 0;};
+
+                /** @brief Retrieves a copy of the queue for a CID. Queued compounds are not copied but
+                * point to the same ones as in the original queue!
+                **/
+                virtual std::queue<wns::ldk::CompoundPtr> 
+                getQueueCopy(ConnectionID cid) = 0;
 
                 /**
                  * @brief

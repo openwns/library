@@ -62,6 +62,7 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/TestResult.h>
+#include <cppunit/CompilerOutputter.h>
 
 #include <boost/program_options/value_semantic.hpp>
 
@@ -89,6 +90,7 @@ Application::Application() :
     configuration_(),
     verbose_(false),
     testing_(false),
+    compilerTestingOutput_(false),
     testNames_(),
     pyConfigPatches_(),
     options_(),
@@ -131,6 +133,10 @@ Application::Application() :
         ("unit-tests,t",
          boost::program_options::bool_switch(&testing_),
          "test mode: run unit tests specified with -T or default suite if no tests with -T given")
+
+        ("compiler-unit-tests,c",
+         boost::program_options::bool_switch(&compilerTestingOutput_),
+         "the test output is made compiler compatible to improve interworking with your IDE, use with -t")
 
         ("named-unit-tests,T",
          boost::program_options::value<TestNameContainer>(&testNames_),
@@ -373,6 +379,11 @@ Application::doRun()
         }
         runner.eventManager().addListener(listener.get());
         runner.addTest(masterSuite);
+
+        if(compilerTestingOutput_)
+        {
+            runner.setOutputter(new CppUnit::CompilerOutputter(&runner.result(), std::cerr));
+        }
 
         // Built tests (either all, or only specific ones given on the
         // command line)

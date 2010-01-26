@@ -25,50 +25,33 @@
  *
  ******************************************************************************/
 
-#include <WNS/ldk/harq/softcombining/Container.hpp>
+#ifndef WNS_DISTRIBUTION_TEST_LOGNORM_HPP
+#define WNS_DISTRIBUTION_TEST_LOGNORM_HPP
 
-using namespace wns::ldk::harq::softcombining;
+#include <WNS/distribution/LogNorm.hpp>
 
-Container::Container(int numRVs)
-{
-    receivedCompounds_.resize(numRVs);
-}
+#include <WNS/TestFixture.hpp>
 
-void
-Container::clear()
-{
-    int size = receivedCompounds_.size();
-    receivedCompounds_.clear();
-    receivedCompounds_.resize(size);
-}
+namespace wns { namespace distribution { namespace test {
 
-int
-Container::getNumRVs() const
-{
-    return receivedCompounds_.size();
-}
+      class LogNormTest :
+    public CppUnit::TestFixture
+      {
+	CPPUNIT_TEST_SUITE( LogNormTest );
+	CPPUNIT_TEST( testIt );
+	CPPUNIT_TEST( testVar );
+	CPPUNIT_TEST_SUITE_END();
+      public:
+	void setUp();
+	void tearDown();
 
-Container::CompoundList
-Container::getCompoundsForRV(int rv) const
-{
-    checkIfValidRV(rv);
+	void testIt();
+	void testVar();
 
-    return receivedCompounds_[rv];
-}
+	};
 
-void
-Container::appendCompoundForRV(int rv, wns::ldk::CompoundPtr compound)
-{
-    checkIfValidRV(rv);
+    } // test
+  } // distribution
+} // wns
 
-    receivedCompounds_[rv].push_back(compound);
-}
-
-void
-Container::checkIfValidRV(int rv) const
-{
-    if (rv < 0 || rv >= getNumRVs())
-    {
-        throw Container::InvalidRV();
-    }
-}
+#endif // NOT defined WNS_DISTRIBUTION_TEST_LOGNORM_HPP

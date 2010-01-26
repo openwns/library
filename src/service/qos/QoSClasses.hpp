@@ -34,11 +34,7 @@ namespace wns {
   namespace service {
     namespace qos {
 
-        /** @brief there is a Python equivalent in qos.py
-            For each system, there is a system-specific setting.
-            There should be a mapping of enum/ENUM to int and conversions from/to string
-            See WinProSt QoSClasses.hpp for example. */
-        typedef int QoSClass;
+      typedef int QoSClass;
 
     }
   }

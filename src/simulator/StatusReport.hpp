@@ -73,6 +73,7 @@ namespace wns { namespace simulator {
 		std::string progressFileName;
 
         wns::probe::bus::ContextCollectorPtr memoryConsumption;
+        wns::probe::bus::ContextCollectorPtr simTimePerRealTime;
 
         void
         probe();

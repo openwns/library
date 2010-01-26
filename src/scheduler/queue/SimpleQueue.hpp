@@ -71,7 +71,7 @@ namespace wns { namespace scheduler { namespace queue {
 
                 bool isEmpty() const;
                 bool hasQueue(ConnectionID cid);
-                bool queueHasPDUs(ConnectionID cid);
+                bool queueHasPDUs(ConnectionID cid) const;
                 ConnectionSet filterQueuedCids(ConnectionSet connections);
 
                 void setColleagues(RegistryProxyInterface* _registry);
@@ -90,6 +90,12 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::ldk::CompoundPtr getHeadOfLinePDUSegment(ConnectionID cid, int bits) { throw wns::Exception("getHeadOfLinePDUSegment() is unsupported"); return wns::ldk::CompoundPtr(); }
                 /** @brief if supportsDynamicSegmentation, this is the minimum size of a segment in bits */
                 int getMinimumSegmentSize() const { throw wns::Exception("getHeadOfLinePDUSegment() is unsupported"); return 0; };
+
+                /** @brief Retrieves a copy of the queue for a CID. Queued compounds are not copied but
+                * point to the same ones as in the original queue!
+                **/
+                std::queue<wns::ldk::CompoundPtr> 
+                getQueueCopy(ConnectionID cid);                
 
             protected:
                 void

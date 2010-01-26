@@ -19,6 +19,7 @@
 #include <WNS/ldk/SinglePort.hpp>
 #include <WNS/ldk/Port.hpp>
 #include <WNS/ldk/fun/FUN.hpp>
+#include <WNS/ldk/CommandTypeSpecifierInterface.hpp>
 
 #include <WNS/Assure.hpp>
 
@@ -87,14 +88,13 @@ namespace wns { namespace ldk {
         template <typename CLASS>
         class HasDelivererReceptacle<CLASS, SinglePort>
             : public virtual IDelivererReceptacle,
-              public virtual DelivererReceptacleRegistry
+              public virtual DelivererReceptacleRegistry,
+            public virtual CommandTypeSpecifierInterface
         {
         public:
             HasDelivererReceptacle()
                 : DelivererReceptacleRegistry()
             {
-                //                assureNotNull(dynamic_cast<CLASS*>(this));
-                //                fu_ = dynamic_cast<CLASS*>(this);
                 addToDelivererReceptacleRegistry(SinglePort().name, this);
             }
 
@@ -112,7 +112,7 @@ namespace wns { namespace ldk {
             virtual void
             onData(const CompoundPtr& compound)
             {
-                dynamic_cast<CLASS*>(this)->getFUN()->getLinkHandler()->onData(this, compound);
+                getFUN()->getLinkHandler()->onData(this, compound);
             }
 
             virtual FunctionalUnit*

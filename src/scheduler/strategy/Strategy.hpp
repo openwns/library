@@ -38,6 +38,8 @@
 #include <WNS/service/phy/phymode/PhyModeInterface.hpp>
 #include <WNS/logger/Logger.hpp>
 
+namespace wns { namespace scheduler { namespace harq { class HARQInterface; }}}
+
 namespace wns { namespace scheduler { namespace strategy {
 
             const simTimeType slotLengthRoundingTolerance = 1e-12;
@@ -95,8 +97,8 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief Colleagues are required to communicate with the environment */
                 virtual void setColleagues(queue::QueueInterface* _queue,
                                            grouper::GroupingProviderInterface* _grouper,
-                                           RegistryProxyInterface* _registry
-                                           //wns::ldk::harq::HARQ* _harq
+                                           RegistryProxyInterface* _registry,
+                                           wns::scheduler::harq::HARQInterface* _harq
                     );
 
                 /** @brief can be overloaded by derived classes to perform initialization code.
@@ -191,8 +193,7 @@ namespace wns { namespace scheduler { namespace strategy {
                     queue::QueueInterface* queue;
                     grouper::GroupingProviderInterface* grouper;
                     RegistryProxyInterface* registry;
-                    //wns::ldk::harq::HARQ* harq;
-                    void* harq; // dummy until HARQ is ready
+                    wns::scheduler::harq::HARQInterface* harq;
                     dsastrategy::DSAStrategyInterface* dsastrategy;
                     dsastrategy::DSAStrategyInterface* dsafbstrategy;
                     apcstrategy::APCStrategyInterface* apcstrategy;

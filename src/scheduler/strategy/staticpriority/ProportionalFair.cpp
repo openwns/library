@@ -294,8 +294,7 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
 {
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
     UserSet allUsersInQueue = colleagues.queue->getQueuedUsers();
-    int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
-	UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue, frameNr);
+    UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue);
     ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
 
     MESSAGE_SINGLE(NORMAL, logger, "activeUsers= "<< activeUsers.size()<<" , currentConnections= "<<printConnectionSet(currentConnections)<<" ");
@@ -305,6 +304,16 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
     simTimeType slotLength = schedulingMap->getSlotLength();
     bool txStrategy = schedulerState->isTx;
     std::map<UserID, float> bitsBeforeThisFrame = calculateBitsForConnections(currentConnections);
+
+    MESSAGE_BEGIN(NORMAL, logger, m, "ProportionalFair");
+    for (std::map<UserID, float>::const_iterator iter = bitsBeforeThisFrame.begin();
+         iter != bitsBeforeThisFrame.end(); ++iter)
+    {
+        m << "\n User " << iter->first->getName() << " has " << iter->second;
+        m << " queued bits.";
+    }
+    MESSAGE_END();
+
     std::map<UserID, float> pastDataRates;
     // make preferences a member, then no return value needed
     std::priority_queue<UserPreference> preferences = calculateUserPreferences(activeUsers, txStrategy);
@@ -335,6 +344,16 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
     MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection="<<mapInfoCollection.getPtr()<<" of size="<<mapInfoCollection->size());
 
     std::map<UserID, float> bitsAfterThisFrame = calculateBitsForConnections(currentConnections);
+    
+    MESSAGE_BEGIN(NORMAL, logger, m, "ProportionalFair");
+    for (std::map<UserID, float>::const_iterator iter = bitsAfterThisFrame.begin();
+         iter != bitsAfterThisFrame.end(); ++iter)
+    {
+        m << "\n User " << iter->first->getName() << " has " << iter->second;
+        m << " queued bits left after this frame.";
+    }
+    MESSAGE_END();
+
     assure(bitsBeforeThisFrame.size() == bitsAfterThisFrame.size(), "bitsBeforeThisFrame and bitsAfterThisFrame do not have the same number of users!");
     updatePastDataRates(bitsBeforeThisFrame, bitsAfterThisFrame, slotLength);
     return mapInfoCollection;

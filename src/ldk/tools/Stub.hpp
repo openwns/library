@@ -58,6 +58,7 @@ namespace wns { namespace ldk { namespace tools {
 			this->magic.sendDataTime = -1.0;
 			// initialize to something invalid
 			this->magic.onDataTime = -1.0;
+                        this->magic.sequenceNumber = 0;
 		}
 
 		struct {
@@ -71,6 +72,7 @@ namespace wns { namespace ldk { namespace tools {
 			simTimeType sendDataTime;
 			// when has onData been called?
 			simTimeType onDataTime;
+                    int sequenceNumber;
 		} magic;
 	};
 
@@ -100,6 +102,12 @@ namespace wns { namespace ldk { namespace tools {
 		 */
 		void
 		setSizes(Bit addToPCISize, Bit addToPDUSize);
+
+		/**
+		 * @brief Accept only compounds with total size smaller or equal compoundSize
+		 */
+		void
+		setAcceptanceSize(Bit compoundSize);
 
 		/**
 		 * @brief Empty the receive and sent buffer
@@ -179,6 +187,7 @@ namespace wns { namespace ldk { namespace tools {
 
 		int addToPCISize;
 		int addToPDUSize;
+            int compoundAcceptanceSize;
 	}; // StubBase
 
 
@@ -216,6 +225,8 @@ namespace wns { namespace ldk { namespace tools {
 
 		virtual void
 		doOnData(const CompoundPtr& sdu);
+
+            int sequenceNumber;
 	}; // Stub
 
 }}}

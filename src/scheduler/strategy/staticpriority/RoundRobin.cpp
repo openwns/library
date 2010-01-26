@@ -84,7 +84,6 @@ RoundRobin::getNextConnection(const ConnectionSet &currentConnections, Connectio
     // uses state var currentConnections
     wns::scheduler::ConnectionSet::iterator iter =
         currentConnections.upper_bound(cid);
-
     if ( iter != currentConnections.end() ) { // exists
         return *iter;
     } else { // continue with next higher cid

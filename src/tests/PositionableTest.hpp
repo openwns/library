@@ -82,6 +82,7 @@ namespace wns { namespace tests {
 		CPPUNIT_TEST( getPosition );
 		CPPUNIT_TEST( setPosition );
 		CPPUNIT_TEST( getDistance );
+        CPPUNIT_TEST( getAngle );
 		CPPUNIT_TEST_SUITE_END();
 	public:
                 PositionableTest();
@@ -91,6 +92,7 @@ namespace wns { namespace tests {
 		void getPosition();
 		void setPosition();
 		void getDistance();
+        void getAngle();
 	};
 
 } // tests

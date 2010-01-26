@@ -77,7 +77,6 @@ void SimpleQueue::setFUN(wns::ldk::fun::FUN* fun)
 
 bool SimpleQueue::isAccepting(const wns::ldk::CompoundPtr&  compound ) const {
     int size = compound->getLengthInBits();
-    std::string myName = colleagues.registry->getNameForUser(colleagues.registry->getMyUserID());
 
     ConnectionID cid = colleagues.registry->getCIDforPDU(compound);
 
@@ -226,6 +225,13 @@ SimpleQueue::getHeadOfLinePDUbits(ConnectionID cid)
     return queues[cid].pduQueue.front()->getLengthInBits();
 }
 
+std::queue<wns::ldk::CompoundPtr> 
+SimpleQueue::getQueueCopy(ConnectionID cid)
+{
+    assure(queues.find(cid) != queues.end(), "getQueueCopy called for non-existent CID");
+    return queues[cid].pduQueue;
+}
+
 bool
 SimpleQueue::isEmpty() const
 {
@@ -243,10 +249,10 @@ SimpleQueue::hasQueue(ConnectionID cid)
 }
 
 bool
-SimpleQueue::queueHasPDUs(ConnectionID cid) {
+SimpleQueue::queueHasPDUs(ConnectionID cid) const {
     if (queues.find(cid) == queues.end())
         return false;
-    return (queues[cid].pduQueue.size() != 0);
+    return (queues.find(cid)->second.pduQueue.size() != 0);
 }
 
 ConnectionSet

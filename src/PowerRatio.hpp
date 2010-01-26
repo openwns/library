@@ -35,6 +35,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdint.h>
+#include <WNS/Assure.hpp>
 
 namespace wns {
 	class Ratio;
@@ -117,6 +118,7 @@ namespace wns {
 
 	protected:
 		double factor;
+
 	private:
 		inline Ratio(double aValue);
 	};
@@ -228,14 +230,14 @@ namespace wns {
 // Implementation
 //! Sets the Ration to 0.0 dB
 	inline  Ratio::Ratio()
-		: factor(1.0) {}
+    : factor(1.0) {}
 
 //! Sets the Ration to the value of r
 	inline  Ratio::Ratio(const Ratio &r)
 		: factor(r.factor) {}
 
 	inline  Ratio::Ratio(double aValue)
-		: factor(aValue) {
+    : factor(aValue) {
 		assert(aValue>=0);
 	}
 
@@ -284,19 +286,23 @@ namespace wns {
 	inline Ratio Ratio::operator -(const Ratio& r) const {
 		assert(factor>=0);
 		assert(r.factor>=0);
-		return Ratio(factor/r.factor);
+        Ratio re(factor/r.factor);
+		return re;
 	}
 
 	inline void Ratio::operator -=(const Ratio& r) {
 		assert(factor>=0);
 		assert(r.factor>=0);
-		factor /= r.factor;
+
+        factor /= r.factor;
 	}
 
 	inline Ratio Ratio::operator +(const Ratio& r) const {
 		assert(factor>=0);
 		assert(r.factor>=0);
-		return Ratio(factor*r.factor);
+
+        Ratio re(factor*r.factor);
+        return re;
 	}
 
 	inline void Ratio::operator +=(const Ratio& r) {

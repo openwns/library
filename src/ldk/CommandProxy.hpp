@@ -115,6 +115,7 @@ namespace wns { namespace ldk {
 			commandTypeSpecifiers(),
 			commandTypeSpecifierCloned()
 		{
+            wns::simulator::getResetSignal()->connect(&wns::ldk::CommandProxy::clearRegistries); 
 		}
 
 		CommandProxy(const wns::pyconfig::View& config);
@@ -224,6 +225,14 @@ namespace wns { namespace ldk {
 		void
 		commitSizes(CommandPool* commandPool,
 			    const CommandTypeSpecifierInterface* commiter = NULL) const;
+
+        /**
+         * @brief Commit the current sizes
+         */
+        void
+        commitSizes(CommandPool* commandPool,
+                    const CommandIDType& id) const;
+
 		/**
 		 * @brief Return a reference to a Command instance within a CommandPool.
 		 *

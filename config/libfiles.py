@@ -121,6 +121,10 @@ srcFiles = [
     'src/distribution/TimeDependent.cpp',
     'src/distribution/Operation.cpp',
     'src/distribution/Rice.cpp',
+    'src/distribution/Weibull.cpp',
+    'src/distribution/LogNorm.cpp',
+    'src/distribution/Cauchy.cpp',
+
 
     'src/queuingsystem/Job.cpp',
     'src/queuingsystem/JobContextProvider.cpp',
@@ -241,6 +245,9 @@ srcFiles = [
     'src/service/phy/phymode/MI2PERInterface.cpp',
     'src/service/phy/phymode/PhyModeMapperInterface.cpp',
 
+    'src/search/SimpleBinarySearch.cpp',
+    'src/search/tests/SimpleBinarySearchTest.cpp',
+
     # scheduler framework
     # the groupers
     'src/scheduler/grouper/NoGrouper.cpp',
@@ -305,7 +312,10 @@ srcFiles = [
     # the Queues
     'src/scheduler/queue/SimpleQueue.cpp',
     'src/scheduler/queue/SegmentingQueue.cpp',
-
+    'src/scheduler/queue/detail/InnerQueue.cpp',
+    'src/scheduler/queue/detail/IInnerCopyQueue.cpp',
+    'src/scheduler/queue/QueueProxy.cpp',
+    'src/scheduler/harq/HARQ.cpp',
     'src/scheduler/strategy/tests/StrategyTest.cpp',
     'src/scheduler/tests/PhyModeStub.cpp',
     'src/scheduler/tests/PhyModeMapperStub.cpp',
@@ -314,6 +324,7 @@ srcFiles = [
     'src/scheduler/strategy/tests/ResultsContainer.cpp',
     'src/scheduler/queue/tests/SimpleQueueTest.cpp',
     'src/scheduler/queue/tests/SegmentingQueueTest.cpp',
+    'src/scheduler/queue/detail/tests/InnerQueueTest.cpp',
     'src/scheduler/tests/ClassifierPolicyDropIn.cpp',
 
     'src/distribution/tests/FixedTest.cpp',
@@ -331,6 +342,9 @@ srcFiles = [
     'src/distribution/tests/RiceTest.cpp',
     'src/distribution/tests/TimeDependentTest.cpp',
     'src/distribution/tests/OperationTest.cpp',
+    'src/distribution/tests/LogNormTest.cpp',
+    'src/distribution/tests/WeibullTest.cpp',
+    'src/distribution/tests/CauchyTest.cpp',
     
     'src/geometry/Point.cpp',
     'src/geometry/Vector.cpp',
@@ -398,7 +412,6 @@ srcFiles = [
 
     # ldk.HARQ
     'src/ldk/harq/HARQ.cpp',
-    'src/ldk/harq/softcombining/Container.cpp',
     'src/ldk/harq/softcombining/UniformRandomDecoder.cpp',
 
     # ldk.CRC
@@ -408,6 +421,14 @@ srcFiles = [
     # ldk.SAR
     'src/ldk/sar/Fixed.cpp',
     'src/ldk/sar/Soft.cpp',
+    'src/ldk/sar/DynamicSAR.cpp',
+    'src/ldk/sar/SegAndConcat.cpp',
+    'src/ldk/sar/tests/SACSegmentingQueueIntegrationTest.cpp',
+    'src/ldk/sar/tests/SegAndConcatTest.cpp',
+    'src/ldk/sar/reassembly/ReassemblyBuffer.cpp',
+    'src/ldk/sar/reassembly/ReorderingWindow.cpp',
+    'src/ldk/sar/reassembly/tests/ReassemblyBufferTest.cpp',
+    'src/ldk/sar/reassembly/tests/ReorderingWindowTest.cpp',
 
     # ldk.Concatenation
     'src/ldk/concatenation/Concatenation.cpp',
@@ -416,6 +437,7 @@ srcFiles = [
     'src/ldk/tools/Synchronizer.cpp',
     'src/ldk/tools/Bridge.cpp',
     'src/ldk/tools/Stub.cpp',
+    'src/ldk/tools/InSequenceChecker.cpp',
     'src/ldk/tools/PERProviderStub.cpp',
     'src/ldk/tools/Forwarder.cpp',
     'src/ldk/tools/Padding.cpp',
@@ -433,6 +455,7 @@ srcFiles = [
     'src/ldk/probe/ErrorRate.cpp',
     'src/ldk/probe/bus/Packet.cpp',
     'src/ldk/probe/bus/Window.cpp',
+    'src/ldk/probe/TickTack.cpp',
 
     # ldk.Command
     'src/ldk/command/FlowControl.cpp',
@@ -500,6 +523,7 @@ srcFiles = [
     'src/ldk/buffer/tests/BoundedTest.cpp',
     'src/ldk/buffer/tests/DroppingTest.cpp',
     'src/ldk/sar/tests/FixedTest.cpp',
+    'src/ldk/sar/tests/DynamicSARTest.cpp',
     'src/ldk/tools/tests/ForwarderTest.cpp',
     'src/ldk/tools/tests/ProducerTest.cpp',
     'src/ldk/tools/tests/ConsumerTest.cpp',
@@ -516,6 +540,7 @@ srcFiles = [
     'src/ldk/fcf/tests/NewFrameProviderObserverTest.cpp',
     'src/ldk/probe/tests/PacketTest.cpp',
     'src/ldk/probe/tests/WindowTest.cpp',
+    'src/ldk/probe/tests/TickTackConstDelayTest.cpp',
     
     'src/fsm/tests/FSMTest.cpp',
 ]
@@ -561,6 +586,9 @@ hppFiles = [
 'src/distribution/Poisson.hpp',
 'src/distribution/RNGConfigCreator.hpp',
 'src/distribution/Rice.hpp',
+'src/distribution/Weibull.hpp',
+'src/distribution/LogNorm.hpp',
+'src/distribution/Cauchy.hpp',
 'src/distribution/TimeDependent.hpp',
 'src/distribution/Uniform.hpp',
 'src/distribution/tests/CDFTableTest.hpp',
@@ -576,6 +604,9 @@ hppFiles = [
 'src/distribution/tests/RiceTest.hpp',
 'src/distribution/tests/UniformTest.hpp',
 'src/distribution/tests/VarEstimator.hpp',
+'src/distribution/tests/LogNormTest.hpp',
+'src/distribution/tests/WeibullTest.hpp',
+'src/distribution/tests/CauchyTest.hpp',
 'src/fsm/FSMConfigCreator.hpp',
 'src/fsm/FSM.hpp',
 'src/DoubleDispatcher.hpp',
@@ -693,6 +724,7 @@ hppFiles = [
 'src/ldk/probe/Packet.hpp',
 'src/ldk/probe/Probe.hpp',
 'src/ldk/probe/Window.hpp',
+'src/ldk/probe/TickTack.hpp',
 'src/ldk/Processor.hpp',
 'src/ldk/PyConfigCreator.hpp',
 'src/ldk/RandomAccessLink.hpp',
@@ -704,6 +736,10 @@ hppFiles = [
 'src/ldk/sar/Fixed.hpp',
 'src/ldk/sar/SAR.hpp',
 'src/ldk/sar/Soft.hpp',
+'src/ldk/sar/DynamicSAR.hpp',
+'src/ldk/sar/SegAndConcat.hpp',
+'src/ldk/sar/reassembly/ReassemblyBuffer.hpp',
+'src/ldk/sar/reassembly/ReorderingWindow.hpp',
 'src/ldk/SequentlyCallingLinkHandler.hpp',
 'src/ldk/SimpleLinkHandler.hpp',
 'src/ldk/SingleConnector.hpp',
@@ -743,6 +779,7 @@ hppFiles = [
 'src/ldk/tools/Synchronizer.hpp',
 'src/ldk/tools/ConstantDelay.hpp',
 'src/ldk/tools/Compressor.hpp',
+'src/ldk/tools/InSequenceChecker.hpp',
 'src/ldk/tools/tests/BridgeTest.hpp',
 'src/ldk/tools/tests/ConsumerTest.hpp',
 'src/ldk/tools/tests/ForwarderTest.hpp',
@@ -856,6 +893,7 @@ hppFiles = [
 'src/probe/bus/ContextProviderCollection.hpp',
 'src/probe/bus/utils.hpp',
 'src/probe/bus/CompoundContextProvider.hpp',
+'src/probe/bus/CommandContextProvider.hpp',
 'src/service/Service.hpp',
 'src/service/dll/Address.hpp',
 'src/service/dll/DataTransmission.hpp',
@@ -894,6 +932,9 @@ hppFiles = [
 'src/service/phy/copper/DataTransmission.hpp',
 'src/service/phy/copper/Handler.hpp',
 'src/service/phy/copper/Notification.hpp',
+'src/search/ISearch.hpp',
+'src/search/SearchCreator.hpp',
+'src/search/SimpleBinarySearch.hpp',
 'src/scheduler/CallBackInterface.hpp',
 'src/scheduler/grouper/AllPossibleGroupsGrouper.hpp',
 'src/scheduler/grouper/DoAGrouper.hpp',
@@ -916,6 +957,12 @@ hppFiles = [
 'src/scheduler/queue/SegmentingQueue.hpp',
 'src/scheduler/queue/tests/SimpleQueueTest.hpp',
 'src/scheduler/queue/ISegmentationCommand.hpp',
+'src/scheduler/queue/IQueueManager.hpp',
+'src/scheduler/queue/QueueProxy.hpp',
+'src/scheduler/queue/detail/InnerQueue.hpp',
+'src/scheduler/queue/detail/IInnerCopyQueue.hpp',
+'src/scheduler/harq/HARQInterface.hpp',
+'src/scheduler/harq/HARQ.hpp',
 'src/scheduler/RegistryProxyInterface.hpp',
 'src/scheduler/strategy/StaticPriority.hpp',
 'src/scheduler/SchedulingMap.hpp',

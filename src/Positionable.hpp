@@ -60,6 +60,9 @@ namespace wns
 
 		virtual double
 		getDistance(const PositionableInterface& p) = 0;
+
+        virtual double
+        getAngle(const PositionableInterface& p) = 0;
 	};
 
 	class Positionable :
@@ -89,6 +92,9 @@ namespace wns
 
 		virtual double
 		getDistance(const PositionableInterface& p);
+
+        virtual double
+        getAngle(const PositionableInterface& p);
 
 	protected:
 		/**

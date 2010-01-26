@@ -69,6 +69,15 @@ public:
     increasePaddingSize(Bit size) = 0;
 
     virtual Bit
+    headerSize() = 0;
+
+    virtual Bit
+    dataSize() = 0;
+
+    virtual Bit
+    paddingSize() = 0;
+
+    virtual Bit
     totalSize() = 0;
 
     virtual void
