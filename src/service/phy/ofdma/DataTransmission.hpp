@@ -86,10 +86,16 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
         stopTransmission(osi::PDUPtr pdu, int subBand) = 0;
 
         /**
-		 * @brief informs whether station is currently receiving data or not
-		 */
+         * @brief informs whether station is currently receiving data or not
+         */
         virtual bool
         isReceiving() const = 0;
+
+        /**
+         * @brief returns all active transmissions (for debugging)
+         */
+        virtual std::string
+        printActiveTransmissions() const = 0;
     };
 
     /** @brief Interface for Non-beamforming Transmission */
