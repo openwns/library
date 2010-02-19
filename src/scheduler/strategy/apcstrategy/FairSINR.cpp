@@ -86,7 +86,7 @@ FairSINR::doStartAPC(RequestForResource& request,
         apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
         apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
     } else {
-        if (schedulerState->isTx)
+        if (schedulerState->schedulerSpot = wns::scheduler::SchedulerSpot::DLMaster())
         {
             fair_sinr.set_dB(fair_sinrdl);
         }

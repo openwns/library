@@ -442,6 +442,25 @@ PhysicalResourceBlock::getTxPower() const
 }
 
 void
+PhysicalResourceBlock::setTxPower(wns::Power power)
+{
+    txPower=power;
+    // adjust contents
+    if (scheduledCompounds.size() > 0)
+    {
+        for ( ScheduledCompoundsList::iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+        {
+            SchedulingCompound& schedulingCompound = *iter;
+            schedulingCompound.txPower = power;
+            // can we and do we have to adjust something inside the compound?
+            // we cannot access the command here.
+            // So the PhyUser is responsible for setting the power of the compounds.
+            //schedulingCompound.compoundPtr->...;
+        }
+    }
+}
+
+void
 PhysicalResourceBlock::deleteCompounds()
 {
     scheduledCompounds.clear();
@@ -631,6 +650,16 @@ SchedulingTimeSlot::getTxPower() const
             return txPower;
     }
     return txPower;
+}
+
+void
+SchedulingTimeSlot::setTxPower(wns::Power power)
+{
+    // adjust contents
+    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    {
+        physicalResources[beamIndex].setTxPower(power);
+    }
 }
 
 // dumpContents(): machine-readable format (table for Matlab,Gnuplot,etc)
@@ -1050,8 +1079,28 @@ SchedulingMap::getFreeTime() const
 } // getFreeTime
 
 wns::Power
+SchedulingMap::getUsedPower(int timeSlot) const
+{
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
+    wns::Power usedPower; // = 0W
+    for(unsigned int subChannelIndex=0; subChannelIndex<numberOfSubChannels; subChannelIndex++)
+    {
+        // what is the right handling of MIMO? Do we count=add txPower per beam or do we assume this is all "one" power?
+        //wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].txPower;
+        // we assume that txPower is the same on all PRBs, so reading the first is sufficient:
+        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first beam*/].txPower;
+        // if we have no PDU allocated on this channel, just skip it.
+        if (usedTxPowerOnThisChannel == wns::Power())
+            continue;
+        usedPower += usedTxPowerOnThisChannel;
+    }
+    return usedPower;
+} // getUsedPower
+
+wns::Power
 SchedulingMap::getRemainingPower(wns::Power totalPower, int timeSlot) const
 {
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
     wns::Power remainingPower = totalPower;
     for(unsigned int subChannelIndex=0; subChannelIndex<numberOfSubChannels; subChannelIndex++)
     {
@@ -1075,7 +1124,7 @@ wns::service::phy::phymode::PhyModeInterfacePtr
 SchedulingMap::getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int beam) const
 {
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
-    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
     assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
     return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].phyModePtr;
 }
@@ -1084,9 +1133,13 @@ wns::Power
 SchedulingMap::getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int beam) const
 {
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
-    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"numberOfTimeSlots="<<numberOfTimeSlots);
+    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
     assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
-    return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].txPower;
+    //return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].txPower;
+    wns::Power powerInResource = subChannels[subChannelIndex].temporalResources[timeSlot]->getTxPower();
+    assure(fabs(subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].txPower.get_mW() - powerInResource.get_mW())<1e-3,
+           "mismatch in powerInResource="<<powerInResource);
+    return powerInResource;
 }
 
 void

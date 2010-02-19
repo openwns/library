@@ -73,7 +73,7 @@ UseNominalTxPower::doStartAPC(RequestForResource& request,
 		apcResult.txPower = schedulerState->defaultTxPower;
 	} else {
 		wns::scheduler::PowerCapabilities powerCapabilities =
-			schedulerState->strategy->getPowerCapabilities(request.user);
+                    schedulerState->strategy->getPowerCapabilities(request.user);
 		// is the constant nominalPowerPerSubChannel really correct?
 		//assure(nominalPowerPerSubChannel == (schedulerState->strategy->getPowerCapabilities(request.user)).nominalPerSubband,"wrong nominalPowerPerSubChannel="<<nominalPowerPerSubChannel<<" vs "<<(schedulerState->strategy->getPowerCapabilities(request.user)).nominalPerSubband);
 		apcResult.txPower = powerCapabilities.nominalPerSubband;

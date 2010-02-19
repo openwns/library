@@ -696,6 +696,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 
     wns::Power txPower;
     apcstrategy::APCResult apcResult;
+    /** @todo: instead of this if-clause we could also use the "APCSlave" strategy instead */
     if (schedulerState->powerControlType!=PowerControlULSlave)
     { // Master
         // do adaptive power allocation

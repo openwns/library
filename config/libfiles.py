@@ -306,6 +306,8 @@ srcFiles = [
     'src/scheduler/strategy/apcstrategy/APCStrategy.cpp',
     'src/scheduler/strategy/apcstrategy/DoNotUseAPC.cpp',
     'src/scheduler/strategy/apcstrategy/UseNominalTxPower.cpp',
+    'src/scheduler/strategy/apcstrategy/UseMaxTxPower.cpp',
+    'src/scheduler/strategy/apcstrategy/APCSlave.cpp',
     'src/scheduler/strategy/apcstrategy/FCFSMaxPhyMode.cpp',
     'src/scheduler/strategy/apcstrategy/FairSINR.cpp',
     
@@ -999,6 +1001,8 @@ hppFiles = [
 'src/scheduler/strategy/apcstrategy/APCStrategy.hpp',
 'src/scheduler/strategy/apcstrategy/DoNotUseAPC.hpp',
 'src/scheduler/strategy/apcstrategy/UseNominalTxPower.hpp',
+'src/scheduler/strategy/apcstrategy/UseMaxTxPower.hpp',
+'src/scheduler/strategy/apcstrategy/APCSlave.hpp',
 'src/scheduler/strategy/apcstrategy/FCFSMaxPhyMode.hpp',
 'src/scheduler/strategy/apcstrategy/FairSINR.hpp',
 'src/scheduler/tests/ClassifierPolicyDropIn.hpp',

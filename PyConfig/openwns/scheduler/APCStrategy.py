@@ -55,6 +55,18 @@ class UseNominalTxPower(APCStrategy):
         self.nameInAPCStrategyFactory = "UseNominalTxPower"
         super(UseNominalTxPower,self).__init__(**kw)
 
+class UseMaxTxPower(APCStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInAPCStrategyFactory = "UseMaxTxPower"
+        super(UseMaxTxPower,self).__init__(**kw)
+
+class APCSlave(APCStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInAPCStrategyFactory = "APCSlave"
+        super(APCSlave,self).__init__(**kw)
+
 class FCFSMaxPhyMode(APCStrategy):
     requiresCQI = True
     def __init__(self, **kw):

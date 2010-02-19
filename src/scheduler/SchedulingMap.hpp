@@ -174,6 +174,11 @@ namespace wns { namespace scheduler {
             /** @brief get txPower assigned to this resource.
                 Assumes that all contents are for ONE user only and have all equal power. */
             wns::Power getTxPower() const;
+            /** @brief set txPower assigned to this resource.
+                Assumes that all contents are for ONE user only.
+                All contents get the same power.
+                Must only be used by APC styrategies. */
+            void setTxPower(wns::Power power);
 
             /** @brief Delete all compounds. But keep all other info (PhyMode, usedTime).
                 This is called by the UL master scheduler,
@@ -250,6 +255,11 @@ namespace wns { namespace scheduler {
             /** @brief get txPower assigned to this resource.
                 Assumes that all contents are for ONE user only and have all equal power. */
             wns::Power getTxPower() const;
+            /** @brief set txPower assigned to this resource.
+                Assumes that all contents are for ONE user only.
+                All contents get the same power.
+                Must only be used by APC styrategies. */
+            void setTxPower(wns::Power power);
             /** @brief true if compound can be put into the ResourceBlock */
             bool pduFitsInto(strategy::RequestForResource& request,
                              MapInfoEntryPtr mapInfoEntry) const;
@@ -398,7 +408,7 @@ namespace wns { namespace scheduler {
 
             /** @brief returns number of bits that fit into the SchedulingSubChannel.
                 Depends on PhyMode provided by mapInfoEntry. */ 
-           int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
+            int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
 
             /** @brief put scheduled compound (one after another) into the SchedulingMap
                 @return true if successful, false if not enough space.
@@ -446,6 +456,11 @@ namespace wns { namespace scheduler {
             simTimeType
             getFreeTime() const;
 
+            /** @brief total used power.
+                (count over frequency=subChannel, but not over timeslots) */
+            wns::Power
+            getUsedPower(int timeSlot) const;
+
             /** @brief total leftover power.
                 (limitation over frequency=subChannel, but not over time) */
             wns::Power
@@ -453,6 +468,7 @@ namespace wns { namespace scheduler {
 
             simTimeType getSlotLength()  const { return slotLength; }
             int getNumberOfSubChannels() const { return numberOfSubChannels; }
+            int getNumberOfTimeSlots()   const { return numberOfTimeSlots; }
             int getNumberOfBeams()       const { return numberOfBeams; }
             int getNumberOfCompounds()   const { return numberOfCompounds; }
 
