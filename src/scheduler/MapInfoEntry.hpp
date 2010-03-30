@@ -76,7 +76,7 @@ namespace wns { namespace scheduler {
             /** @brief number of resource blocks in time-direction (TDMA) */
             int timeSlot;
             /** @brief spatial channel (either beamforming or MIMO) */
-            int beam;
+            int spatialLayer;
             /** @brief for Adaptive Power Control (APC) */
             wns::Power txPower;
             /** @brief all compound must use the same phyMode */

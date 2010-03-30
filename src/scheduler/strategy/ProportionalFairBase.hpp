@@ -57,7 +57,7 @@ namespace wns { namespace scheduler { namespace strategy {
 		typedef std::pair<float, Group> GroupPrefPair; // the float is a preference weight
 	protected:
 		virtual void
-		doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength) = 0;
+		doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength) = 0;
 
 		/** @brief preference=f(minRate,groupRate) */
 		float

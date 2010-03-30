@@ -65,8 +65,8 @@ ProportionalFairUL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
 	std::map<UserID, MapInfoEntryPtr> userBursts;
 	std::map<UserID, simTimeType> timeMarkers;
 	std::map<UserID, bool> finished;
-	std::map<UserID, int> beamId;
-	int beam = 0;
+	std::map<UserID, int> spatialLayerId;
+	int spatialLayer = 0;
 	simTimeType burstLengthMax = burstLength;
 	simTimeType currentBurstEnd = 0.0;
 
@@ -101,8 +101,8 @@ ProportionalFairUL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
 		finished[user] = false;
 
 		// this is just for plotting purposes:
-		beamId[user] = beam;
-		beam++;
+		spatialLayerId[user] = spatialLayer;
+		spatialLayer++;
 	}
 
 	do // while not everybody finished or some user without data
@@ -149,7 +149,7 @@ ProportionalFairUL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
                 userBursts[earliest]->start = burstStart;
                 userBursts[earliest]->user = earliest;
                 userBursts[earliest]->subBand = subBand;
-                userBursts[earliest]->beam = beamId[earliest];
+                userBursts[earliest]->spatialLayer = spatialLayerId[earliest];
                 userBursts[earliest]->txPower = txPowerPerStream;
                 userBursts[earliest]->phyModePtr = userPhyModes[earliest];
                 userBursts[earliest]->pattern = patterns[earliest];
@@ -222,10 +222,10 @@ ProportionalFairUL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
 }
 
 void
-ProportionalFairUL::doStartScheduling(int subBands, int maxBeams, simTimeType slotLength)
+ProportionalFairUL::doStartScheduling(int subBands, int maxSpatialLayers, simTimeType slotLength)
 {
 	const simTimeType symbolDuration = getSchedulerState()->symbolDuration;
-	MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(subBands="<<subBands<<", maxBeams="<<maxBeams<<", slotLength="<<slotLength);
+	MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(subBands="<<subBands<<", maxSpatialLayers="<<maxSpatialLayers<<", slotLength="<<slotLength);
 
 	UserSet allUsersInQueue = colleagues.queue->getQueuedUsers();
 	UserSet activeUsers     = colleagues.registry->filterReachable(allUsersInQueue);
@@ -274,7 +274,7 @@ ProportionalFairUL::doStartScheduling(int subBands, int maxBeams, simTimeType sl
 		if (activeUsers.size() == 0)
 			return;
 
-		Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxBeams);
+		Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxSpatialLayers);
 		// grouping contains only all possible groups here.
 
 		MESSAGE_SINGLE(NORMAL, logger, "startScheduling(round="<<roundNumber<<"): retrieved grouping:\n" << grouping.getDebugOutput());

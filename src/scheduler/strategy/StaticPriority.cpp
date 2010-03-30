@@ -146,16 +146,16 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
 
     // prepare grouping here before going into priorities (subschedulers).
     // This code block could also be moved into the base class Strategy::startScheduling()
-    if (groupingRequired() && !colleagues.queue->isEmpty()) // only if (maxBeams>1)
+    if (groupingRequired() && !colleagues.queue->isEmpty()) // only if (maxSpatialLayers>1)
     {   // grouping needed for beamforming & its antenna pattern
         GroupingPtr sdmaGrouping = schedulerState->currentState->getNewGrouping(); // also stored in schedulerState
-        int maxBeams = schedulerState->currentState->strategyInput->maxBeams;
+        int maxSpatialLayers = schedulerState->currentState->strategyInput->maxSpatialLayers;
         allUsers = colleagues.queue->getQueuedUsers();
         UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
         if ( schedulerState->isTx ) // transmitter grouping
-            sdmaGrouping = colleagues.grouper->getTxGroupingPtr(activeUsers, maxBeams);
+            sdmaGrouping = colleagues.grouper->getTxGroupingPtr(activeUsers, maxSpatialLayers);
         else // receiver grouping
-            sdmaGrouping = colleagues.grouper->getRxGroupingPtr(activeUsers, maxBeams);
+            sdmaGrouping = colleagues.grouper->getRxGroupingPtr(activeUsers, maxSpatialLayers);
         assure(schedulerState->currentState->getGrouping() == sdmaGrouping,"invalid grouping");
         // ^ otherwise we have to set it here.
         MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Number of Groups = " << sdmaGrouping->groups.size());

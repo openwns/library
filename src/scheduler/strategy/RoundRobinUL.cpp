@@ -47,12 +47,12 @@ doStartScheduling(SchedulerStatePtr schedulerState,
 }
 
 void
-RoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+RoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 {
 
 	MESSAGE_SINGLE(NORMAL, logger,"RoundRobinUL::startScheduling called - Rx"
 				   << "\n\t Channels:   " << fChannels
-				   << "\n\t maxBeams:   " << maxBeams
+				   << "\n\t maxSpatialLayers:   " << maxSpatialLayers
 				   << "\n\t slotLength: " << slotLength);
 
 	assure(dynamic_cast<queue::QueueInterface*>(colleagues.queue), "Need access to the queue");
@@ -78,7 +78,7 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLen
 	}
 
 	// We are going to schedule a burst for every user
-	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxBeams);
+	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxSpatialLayers);
 
 	MESSAGE_SINGLE(NORMAL, logger,"RoundRobinUL::startScheduling Rx - retrieved grouping from grouper:\n" << grouping.getDebugOutput());
 
@@ -151,7 +151,7 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLen
 				posInSubBand = burstEnd;
 				assure( burstEnd <= slotLength + slotLengthRoundingTolerance, "RoundRobinUL: Burst end exceeds slotLength");
 				MESSAGE_SINGLE(NORMAL, logger,"RoundRobinUL: Allocating Burst with "<<numBlocks<<" blocks on subBand "<<currentSubBand);
-				int beam = 0;
+				int spatialLayer = 0;
 				// for every user we provide one MapInfoEntry and tell the parent to set
 				// the timingcommand for the dummy pdu so that the patterns get set
 				for (Group::iterator iter = currentGroup.begin();
@@ -189,7 +189,7 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLen
 						  << "\n\tburstStart: " << burstStart
 						  << "\n\tburstEnd: " << burstEnd
 						  << "\n\tuser: " << user->getName()
-						  << "\n\tbeam: " << beam
+						  << "\n\tspatialLayer: " << spatialLayer
 						  << "\n\tphyMode: " << *phyModePtr
 						  << "\n\ttxPower: " << getTxPower()
 						  << "\n\tcarrierEst: " << currentGroup[user].C
@@ -201,13 +201,13 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLen
 							      burstEnd,
 							      user,
 							      pdu,
-							      beam,
+							      spatialLayer,
 							      grouping.patterns[user],
 							      currentBurst,
 							      *phyModePtr,
 							      power.nominalPerSubband,
 							      currentGroup[user]);
-						beam++;
+						spatialLayer++;
 					} else {
 						MESSAGE_SINGLE(NORMAL, logger,"RR UL scheduler ignoring user with zero PhyMode");
 					}

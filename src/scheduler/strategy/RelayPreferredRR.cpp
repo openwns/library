@@ -42,15 +42,15 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 
 
 #if defined(WNS_NDEBUG) && defined(WNS_NO_LOGGING)
-void RelayPreferredRR::doStartScheduling(int /*fChannels*/, int maxBeams, simTimeType slotLength)
+void RelayPreferredRR::doStartScheduling(int /*fChannels*/, int maxSpatialLayers, simTimeType slotLength)
 #else
-void RelayPreferredRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+void RelayPreferredRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 #endif
 {
 
 	MESSAGE_SINGLE(NORMAL, logger,"RelayPreferredRoundRobin::startScheduling called - Rx"
 				   << "\n\t Channels:   " << fChannels
-				   << "\n\t maxBeams:   " << maxBeams
+				   << "\n\t maxSpatialLayers:   " << maxSpatialLayers
 				   << "\n\t slotLength: " << slotLength);
 
 	assure(fChannels == 1, "this scheduler does only work with 1 fChannel");
@@ -62,7 +62,7 @@ void RelayPreferredRR::doStartScheduling(int fChannels, int maxBeams, simTimeTyp
 
 	// We are going to schedule a burst for every user
 
-	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxBeams);
+	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxSpatialLayers);
 
 	MESSAGE_SINGLE(NORMAL, logger,"RoundRobin::startScheduling Rx - retrieved grouping from grouper:\n" << grouping.getDebugOutput());
 
@@ -114,7 +114,7 @@ void RelayPreferredRR::doStartScheduling(int fChannels, int maxBeams, simTimeTyp
 
 		// for every user we provide one MapInfoEntry and tell the parent to set
 		// the timingcommand for the dummy pdu so that the patterns get set
-		int beam = 0;
+		int spatialLayer = 0;
 		for (Group::iterator iter = currentGroup.begin();
 		     iter != currentGroup.end(); ++iter) {
 			UserID user = iter->first;
@@ -150,13 +150,13 @@ void RelayPreferredRR::doStartScheduling(int fChannels, int maxBeams, simTimeTyp
 					      burstEnd,
 					      user,
 					      pdu,
-					      beam,
+					      spatialLayer,
 					      grouping.patterns[user],
 					      currentBurst,
 					      *phyMode,
 					      txPowerPerStream,
 					      currentGroup[user]);
-				beam++;
+				spatialLayer++;
 			} else {
 				MESSAGE_SINGLE(NORMAL, logger,"RR UL scheduler ignoring user with bad PhyMode or too low SINR");
 			}

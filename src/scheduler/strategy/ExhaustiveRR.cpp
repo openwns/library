@@ -58,7 +58,7 @@ ExhaustiveRR::everyGroupMemberWasServed(Group group)
 
 
 void
-ExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+ExhaustiveRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 {
 	std::vector<double> nextFreeSlot;
 	std::set<UserID> usersServedThisFrame;
@@ -68,7 +68,7 @@ ExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLen
 
 	MESSAGE_BEGIN(NORMAL, logger, m,"ExhaustiveRR::startScheduling called - Tx");
 	m << "\n\t Channels:   " << fChannels
-	  << "\n\t maxBeams:   " << maxBeams
+	  << "\n\t maxSpatialLayers:   " << maxSpatialLayers
 	  << "\n\t slotLength: " << slotLength;
 	MESSAGE_END();
 
@@ -95,7 +95,7 @@ ExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLen
 		// do not schedule anything if there is nobody active
 		if (activeUsers.size() == 0) break;
 
-		Grouping grouping = colleagues.grouper->getTxGrouping(activeUsers, maxBeams);
+		Grouping grouping = colleagues.grouper->getTxGrouping(activeUsers, maxSpatialLayers);
 
 		// extract the users that are actually servable; we need this to assure
 		// some fairness; every user gets a pattern so use the map of patterns
@@ -193,7 +193,7 @@ ExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLen
 							   << " currently has " << connectionsPerUser[usersInGroup[i]].size() << " active connections");
 			}
 
-			// serve all users from a group in parallel beams
+			// serve all users from a group in parallel spatialLayers
 			for (unsigned int user = 0; user < currentGroup.size(); ++user) {
 				MESSAGE_SINGLE(NORMAL, logger,"ExhaustiveRR::startScheduling - now scheduling user number " << user);
 

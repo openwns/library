@@ -232,7 +232,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief old interface to support the old scheduler strategies.
                     Please do not use anymore. */
                 virtual void
-                doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength);
+                doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength);
 
                 /** @brief helper method to support the old scheduler strategies.
                     Replaces
@@ -255,7 +255,7 @@ namespace wns { namespace scheduler { namespace strategy {
                     Old method. Obsolete for new strategies. */
                 void compoundReady(unsigned int fSlot,
                                    simTimeType startTime, simTimeType endTime, UserID user,
-                                   const wns::ldk::CompoundPtr& pdu, unsigned int beam,
+                                   const wns::ldk::CompoundPtr& pdu, unsigned int spatialLayer,
                                    wns::service::phy::ofdma::PatternPtr pattern,
                                    MapInfoEntryPtr burst,
                                    const wns::service::phy::phymode::PhyModeInterface& phyMode,

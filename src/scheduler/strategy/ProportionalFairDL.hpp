@@ -52,7 +52,7 @@ namespace wns { namespace scheduler { namespace strategy {
 		getResourceUsage() const { return resourceUsage; }
 
 	private:
-		virtual void doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength);
+		virtual void doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength);
 
 		simTimeType
 		scheduleOneBurst(simTimeType burstStart, simTimeType burstLength, Group group, int subBand,

@@ -69,14 +69,14 @@ APCSlave::doStartAPC(RequestForResource& request,
 	APCResult apcResult;
 	assure(request.subChannel>=0,"need a valid subChannel");
 	assure(request.timeSlot  >=0,"need a valid timeSlot");
-	assure(request.beam      >=0,"need a valid beam");
+	assure(request.spatialLayer      >=0,"need a valid spatialLayer");
         if (request.phyModePtr == wns::service::phy::phymode::PhyModeInterfacePtr()) 
         { // not given? Hmm.
-            request.phyModePtr = schedulingMap->getPhyModeUsedInResource(request.subChannel,request.timeSlot,request.beam);
+            request.phyModePtr = schedulingMap->getPhyModeUsedInResource(request.subChannel,request.timeSlot,request.spatialLayer);
             assure(request.phyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr(),
                    "APCSlave requires given phyMode");
         }
-        wns::Power txPower = schedulingMap->getTxPowerUsedInResource(request.subChannel,request.timeSlot,request.beam);
+        wns::Power txPower = schedulingMap->getTxPowerUsedInResource(request.subChannel,request.timeSlot,request.spatialLayer);
         assure(schedulerState->defaultTxPower!=wns::Power(),
              "APCSlave requires defaultTxPower");
         assure(txPower!=wns::Power(),

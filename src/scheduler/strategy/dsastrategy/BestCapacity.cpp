@@ -99,7 +99,7 @@ BestCapacity::getSubChannelWithDSA(RequestForResource& request,
     }
     MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel);
 
-    int beam=0;
+    int spatialLayer=0;
     bool found  = false;
     bool giveUp = false;
     if (!schedulerState->isTx
@@ -180,14 +180,14 @@ BestCapacity::getSubChannelWithDSA(RequestForResource& request,
                             = (*channelQualitiesOnAllSubBands)[tryThisSubChannel];
                         if (channelIsUsable(tryThisSubChannel, tryThisTimeSlot, request, schedulerState, schedulingMap))
                         {
-                            beam = getBeamForSubChannel(tryThisSubChannel, tryThisTimeSlot, request, schedulerState, schedulingMap);
+                            spatialLayer = getBeamForSubChannel(tryThisSubChannel, tryThisTimeSlot, request, schedulerState, schedulingMap);
                         }
                         else
                         {
                             continue;
                         }
 
-                        remainingTimeOnthisChannel = schedulingMap->subChannels[tryThisSubChannel].temporalResources[tryThisTimeSlot]->physicalResources[beam].getFreeTime();
+                        remainingTimeOnthisChannel = schedulingMap->subChannels[tryThisSubChannel].temporalResources[tryThisTimeSlot]->physicalResources[spatialLayer].getFreeTime();
                         wns::Ratio sinr = nominalPower/(channelQuality.interference * channelQuality.pathloss.get_factor());
                         wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> bestPhyMode = phyModeMapper->getBestPhyMode(sinr);
                         channelCapacity = bestPhyMode->getDataRate() * remainingTimeOnthisChannel;
@@ -205,8 +205,8 @@ BestCapacity::getSubChannelWithDSA(RequestForResource& request,
             { // one complete round already done
                 giveUp=true; break;
             }
-            // best subChannel and beam found; now check if usable:
-            if (channelIsUsable(subChannel, timeSlot, beam, request, schedulerState, schedulingMap))
+            // best subChannel and spatialLayer found; now check if usable:
+            if (channelIsUsable(subChannel, timeSlot, spatialLayer, request, schedulerState, schedulingMap))
             { // PDU fits in
                 found=true; break;
             } else { // mark unusable
@@ -223,7 +223,7 @@ BestCapacity::getSubChannelWithDSA(RequestForResource& request,
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel);
         userInfo.lastUsedSubChannel = subChannel;
         dsaResult.subChannel = subChannel;
-        dsaResult.beam = beam;
+        dsaResult.spatialLayer = spatialLayer;
         return dsaResult;
     }
     return dsaResult; // empty with subChannel=DSAsubChannelNotFound

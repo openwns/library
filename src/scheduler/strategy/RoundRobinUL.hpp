@@ -59,7 +59,7 @@ namespace wns { namespace scheduler { namespace strategy {
 	private:
 		/** @brief old interface. Please use new one for new strategies. */
 		virtual void
-		doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength);
+		doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength);
 
 		simTimeType blockDuration;
 	};

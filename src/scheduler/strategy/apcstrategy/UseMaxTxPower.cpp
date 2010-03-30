@@ -126,7 +126,7 @@ UseMaxTxPower::postProcess(SchedulerStatePtr schedulerState,
                            <<": reducing power from "<<powerOnSubchannel<<" by "<<reductionRatio<<" to "<<reducedPowerOnSubchannel);
             timeSlotPtr->setTxPower(reducedPowerOnSubchannel);
             /** @todo: check whether PhyModes still have enough SINR to perform well. Write warnings or even assure in debug mode, if so. */
-            //for ( int spatialIndex = 0; spatialIndex < numberOfBeams; ++spatialIndex )
+            //for ( int spatialIndex = 0; spatialIndex < numSpatialLayers; ++spatialIndex )
             //{
             //  wns::Ratio estimatedSINR = ...
             //  wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr = getPhyModeUsedInResource(subChannelIndex, timeSlotIndex, spatialIndex);

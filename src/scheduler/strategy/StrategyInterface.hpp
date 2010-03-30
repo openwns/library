@@ -69,7 +69,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 StrategyInput(int _fChannels,
                               double _slotLength,
                               int _numberOfTimeSlots,
-                              int _maxBeams,
+                              int _maxSpatialLayers,
                               CallBackInterface* _callBackObject);
                 /** @brief constructor for slave scheduling */
                 StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
@@ -78,7 +78,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 StrategyInput(int _fChannels,
                               double _slotLength,
                               int _numberOfTimeSlots,
-                              int _maxBeams,
+                              int _maxSpatialLayers,
                               MapInfoEntryPtr _mapInfoEntryFromMaster,
                               CallBackInterface* _callBackObject);
                 StrategyInput();
@@ -89,7 +89,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 virtual int getFChannels() const { return fChannels; };
                 virtual double getSlotLength() const { return slotLength; };
                 virtual int getNumberOfTimeSlots() const { return numberOfTimeSlots; };
-                virtual int getMaxBeams() const { return maxBeams; };
+                virtual int getMaxSpatialLayers() const { return maxSpatialLayers; };
                 virtual bool frameNrIsValid() const;
                 /** @brief set (optional!) parameter defaultPhyMode
                     If this is set, no other PhyMode will be used.
@@ -114,13 +114,15 @@ namespace wns { namespace scheduler { namespace strategy {
                 double slotLength;
                 /** @brief number of resource blocks in time-direction */
                 int numberOfTimeSlots;
-                /** @brief true: use beamforming if(maxBeams>1).
-                    false: use MIMO if(maxBeams>1) */
+                /** @brief Number of antenna elements at this transceiver (Tx+Rx) */
+                int numberOfAntennas;
+                /** @brief true: use beamforming if(maxSpatialLayers>1).
+                    false: use MIMO if(maxSpatialLayers>1) */
                 bool beamforming;
                 /** @brief size of resources in spatial direction.
-                    This can be beamforming beams (available for WiMAC)
+                    This can be beamforming spatialLayers (available for WiMAC)
                     or MIMO paths (not yet available). */
-                int maxBeams;
+                int maxSpatialLayers; // aka. maxSpatialLayers
                 /** @brief pointer to caller which has callBack() implemented.
                     A value of NULL means: don't use. */
                 CallBackInterface* callBackObject;
@@ -230,7 +232,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 virtual void
                 startScheduling(int fChannels,
                                 //int numberOfTimeSlots,
-                                int maxBeams,
+                                int maxSpatialLayers,
                                 double slotLength,
                                 CallBackInterface* parent);
                 /** @brief OBSOLETE!
@@ -276,7 +278,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief (non-virtual-interface) called in startScheduling(..)
                     @param SchedulerStatePtr schedulerState
                 */
-                //virtual void doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength) = 0;
+                //virtual void doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength) = 0;
                 virtual StrategyResult
                 doStartScheduling(SchedulerStatePtr schedulerState,
                                   SchedulingMapPtr schedulingMap) = 0;
@@ -284,7 +286,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief old interface to support the old scheduler strategies.
                     Please do not use anymore. */
                 virtual void
-                doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength) = 0;
+                doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength) = 0;
 
                 /** @brief The strategies need a new state.
                     Implement this in the derived classes. */

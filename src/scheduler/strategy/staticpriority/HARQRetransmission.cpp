@@ -159,13 +159,13 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                         // at this point timeSlotPtr is no longer valid for use! Only resourceBlock
                         resourceBlock->subChannelIndex = subChannelIndex;
                         resourceBlock->timeSlotIndex = timeSlotIndex;
-                        assure(resourceBlock->physicalResources.size()==resourceBlock->numberOfBeams,
-                               "mismatch in spatial domain: "<<resourceBlock->physicalResources.size()<<"!="<<resourceBlock->numberOfBeams);
+                        assure(resourceBlock->physicalResources.size()==resourceBlock->numSpatialLayers,
+                               "mismatch in spatial domain: "<<resourceBlock->physicalResources.size()<<"!="<<resourceBlock->numSpatialLayers);
                         // foreach PRB... fix subChannelIndex
                         for ( PhysicalResourceBlockVector::iterator iterPRB = resourceBlock->physicalResources.begin();
                               iterPRB != resourceBlock->physicalResources.end(); ++iterPRB)
                         {
-                            int spatialIndex = iterPRB->beamIndex;
+                            int spatialIndex = iterPRB->spatialIndex;
                             MESSAGE_SINGLE(NORMAL, logger, subChannelIndex<<"."<<timeSlotIndex<<".PRB["<<spatialIndex<<"]: Adjusting subChannelIndex from "<<iterPRB->subChannelIndex<<" to "<<subChannelIndex);
                             iterPRB->subChannelIndex = subChannelIndex;
                             iterPRB->timeSlotIndex = timeSlotIndex;

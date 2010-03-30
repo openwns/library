@@ -64,7 +64,7 @@ namespace wns { namespace scheduler {
             SchedulingCompound();
             SchedulingCompound(int _subChannel,
                                int _timeSlot,
-                               int _beam,
+                               int _spatialLayer,
                                simTimeType _startTime,
                                simTimeType _endTime,
                                wns::scheduler::ConnectionID _connectionID,
@@ -84,8 +84,8 @@ namespace wns { namespace scheduler {
             int subChannel;
             /** @brief index of time slot (TDMA component) */
             int timeSlot;
-            /** @brief for MIMO; in [0..(maxBeams-1)] */
-            int beam;
+            /** @brief for MIMO; in [0..(maxSpatialLayers-1)] */
+            int spatialLayer;
             simTimeType startTime;
             simTimeType endTime;
             wns::scheduler::ConnectionID connectionID;
@@ -116,7 +116,7 @@ namespace wns { namespace scheduler {
         {
         public:
             PhysicalResourceBlock();
-            PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _beam, simTimeType _slotLength);
+            PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _spatialLayer, simTimeType _slotLength);
             //PhysicalResourceBlock(const PhysicalResourceBlock&);
 
             ~PhysicalResourceBlock();
@@ -201,9 +201,9 @@ namespace wns { namespace scheduler {
             int subChannelIndex;
             /** @brief index of time slot (TDMA component) */
             int timeSlotIndex;
-            /** @brief my own beamIndex as seen from outside (container).
-                For MIMO; in [0..(maxBeams-1)] */
-            int beamIndex;
+            /** @brief my own spatialIndex as seen from outside (container).
+                For MIMO; in [0..(maxSpatialLayers-1)] */
+            int spatialIndex;
             /** @brief fixed frame/slot length given from outside */
             simTimeType slotLength;
             /** @brief remaining time on this subChannel for new compounds */
@@ -235,7 +235,7 @@ namespace wns { namespace scheduler {
         {
         public:
             SchedulingTimeSlot();
-            SchedulingTimeSlot(int _subChannel, int _timeSlot, int _numberOfBeams, simTimeType _slotLength);
+            SchedulingTimeSlot(int _subChannel, int _timeSlot, int _numSpatialLayers, simTimeType _slotLength);
             //SchedulingTimeSlot(const SchedulingTimeSlot&);
 
             ~SchedulingTimeSlot();
@@ -289,7 +289,7 @@ namespace wns { namespace scheduler {
             /** @brief size of resources in spatial direction.
                 This can be beamforming beams (available for WiMAC)
                 or MIMO paths. */
-            int numberOfBeams;
+            int numSpatialLayers;
             /** @brief fixed frame/slot length given from outside */
             simTimeType slotLength;
             /** @brief fixed frame/slot length given from outside */
@@ -318,7 +318,7 @@ namespace wns { namespace scheduler {
         {
         public:
             SchedulingSubChannel();
-            SchedulingSubChannel(int _subChannelIndex, int _numberOfTimeSlots, int _numberOfBeams, simTimeType _slotLength);
+            SchedulingSubChannel(int _subChannelIndex, int _numberOfTimeSlots, int _numSpatialLayers, simTimeType _slotLength);
             ~SchedulingSubChannel();
             /** @brief doToString(): human-readable format */
             std::string toString() const;
@@ -342,9 +342,9 @@ namespace wns { namespace scheduler {
             int getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const;
 
             //wns::service::phy::phymode::PhyModeInterfacePtr
-            //getPhyModeUsedInResource(int timeSlot, int beam) const;
+            //getPhyModeUsedInResource(int timeSlot, int spatialLayer) const;
             //wns::Power
-            //getTxPowerUsedInResource(int timeSlot, int beam) const;
+            //getTxPowerUsedInResource(int timeSlot, int spatialLayer) const;
 
             /** @brief true if there is nothing reserved(scheduled) in this block.
                 For the uplink the master map entries have isEmpty==false.
@@ -370,7 +370,7 @@ namespace wns { namespace scheduler {
             /** @brief size of resources in spatial direction.
                 This can be beamforming beams (available for WiMAC)
                 or MIMO paths. */
-            int numberOfBeams;
+            int numSpatialLayers;
             /** @brief fixed frame/slot length given from outside */
             simTimeType slotLength;
             /** @brief isUsable = flag to exclude certain subchannels from DSA */
@@ -398,7 +398,7 @@ namespace wns { namespace scheduler {
             SchedulingMap() {};
 
             /** @brief construct a new empty SchedulingMap which contains a number of SchedulingSubChannel's */
-            SchedulingMap(simTimeType _slotLength, int _numberOfSubChannels, int _numberOfTimeSlots, int _numberOfBeams, int _frameNr);
+            SchedulingMap(simTimeType _slotLength, int _numberOfSubChannels, int _numberOfTimeSlots, int _numSpatialLayers, int _frameNr);
 
             ~SchedulingMap();
 
@@ -415,7 +415,7 @@ namespace wns { namespace scheduler {
             */
             bool addCompound(int subChannelIndex,
                              int timeSlot,
-                             int beam,
+                             int spatialLayer,
                              simTimeType compoundDuration,
                              wns::scheduler::ConnectionID connectionID,
                              wns::scheduler::UserID userID,
@@ -438,7 +438,7 @@ namespace wns { namespace scheduler {
                 );
 
             /** @brief get "offset for new compounds" == used time for already scheduled compounds. Zero for empty subChannel */
-            simTimeType getNextPosition(int subChannel, int timeSlot, int beam) const;
+            simTimeType getNextPosition(int subChannel, int timeSlot, int spatialLayer) const;
 
             /** @brief statistics for the percentage of resources used.
                 (correcly counts partially filled subChannels).
@@ -469,13 +469,13 @@ namespace wns { namespace scheduler {
             simTimeType getSlotLength()  const { return slotLength; }
             int getNumberOfSubChannels() const { return numberOfSubChannels; }
             int getNumberOfTimeSlots()   const { return numberOfTimeSlots; }
-            int getNumberOfBeams()       const { return numberOfBeams; }
+            int getNumberOfSpatialLayers()       const { return numSpatialLayers; }
             int getNumberOfCompounds()   const { return numberOfCompounds; }
 
             wns::service::phy::phymode::PhyModeInterfacePtr
-            getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int beam) const;
+            getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int spatialLayer) const;
             wns::Power
-            getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int beam) const;
+            getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int spatialLayer) const;
 
             /** @brief mask out certain subChannels (e.g. for resource partitioning) */
             void maskOutSubChannels(const UsableSubChannelVector& usableSubChannels);
@@ -533,7 +533,7 @@ namespace wns { namespace scheduler {
             /** @brief size of resources in spatial direction.
                 This can be beamforming beams (available for WiMAC)
                 or MIMO paths (not yet available). */
-            int numberOfBeams;
+            int numSpatialLayers;
             /** @brief just counting compounds as they are inserted */
             int numberOfCompounds;
             /** @brief result of getResourceUsage() stored for convenience and efficiency */

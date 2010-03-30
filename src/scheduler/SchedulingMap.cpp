@@ -39,7 +39,7 @@ using namespace wns::scheduler;
 SchedulingCompound::SchedulingCompound()
   : subChannel(0),
     timeSlot(0),
-    beam(0),
+    spatialLayer(0),
     startTime(0.0),
     endTime(0.0),
     connectionID(-1),
@@ -53,7 +53,7 @@ SchedulingCompound::SchedulingCompound()
 /*SchedulingCompound::SchedulingCompound(const SchedulingCompound& other):
     subChannel(other.subChannel),
     timeSlot(other.timeSlot),
-    beam(other.beam),
+    spatialLayer(other.spatialLayer),
     startTime(other.startTime),
     endTime(other.endTime),
     connectionID(other.connectionID),
@@ -70,7 +70,7 @@ SchedulingCompound::SchedulingCompound()
 
 SchedulingCompound::SchedulingCompound(int _subChannel,
                                        int _timeSlot,
-                                       int _beam,
+                                       int _spatialLayer,
                                        simTimeType _startTime,
                                        simTimeType _endTime,
                                        wns::scheduler::ConnectionID _connectionID,
@@ -82,7 +82,7 @@ SchedulingCompound::SchedulingCompound(int _subChannel,
     )
     : subChannel(_subChannel),
       timeSlot(_timeSlot),
-      beam(_beam),
+      spatialLayer(_spatialLayer),
       startTime(_startTime),
       endTime(_endTime),
       connectionID(_connectionID),
@@ -122,7 +122,7 @@ SchedulingCompound::toString() const
 PhysicalResourceBlock::PhysicalResourceBlock()
     : subChannelIndex(0),
       timeSlotIndex(0),
-      beamIndex(0),
+      spatialIndex(0),
       slotLength(0.0),
       freeTime(0.0),
       nextPosition(0.0),
@@ -133,10 +133,10 @@ PhysicalResourceBlock::PhysicalResourceBlock()
 {
 }
 
-PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _beam, simTimeType _slotLength)
+PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _spatialLayer, simTimeType _slotLength)
     : subChannelIndex(_subChannelIndex),
       timeSlotIndex(_timeSlotIndex),
-      beamIndex(_beam),
+      spatialIndex(_spatialLayer),
       slotLength(_slotLength),
       freeTime(_slotLength),
       nextPosition(0.0),
@@ -151,7 +151,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
 /*PhysicalResourceBlock::PhysicalResourceBlock(const PhysicalResourceBlock& other):
     subChannelIndex(other.subChannelIndex),
     timeSlotIndex(other.timeSlotIndex),
-    beamIndex(other.beamIndex),
+    spatialIndex(other.spatialIndex),
     slotLength(other.slotLength),
     freeTime(other.freeTime),
     nextPosition(other.nextPosition),
@@ -265,7 +265,7 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
     antennaPattern = _pattern; // all compounds should have the same antenna pattern
     SchedulingCompound newScheduledCompound(this->subChannelIndex,
                                             this->timeSlotIndex,
-                                            this->beamIndex,
+                                            this->spatialIndex,
                                             startTime,
                                             endTime,
                                             connectionID,
@@ -334,7 +334,7 @@ PhysicalResourceBlock::dumpContents(const std::string& prefix) const
     std::stringstream s;
     s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
     s.precision(4);
-    //s << prefix << subChannelIndex << "\t" << beamIndex;
+    //s << prefix << subChannelIndex << "\t" << spatialIndex;
     s << prefix;
     if (phyModePtr != PhyModePtr())
     {
@@ -377,7 +377,7 @@ PhysicalResourceBlock::toString() const
     s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
     s.precision(1);
     s << "PhysicalResourceBlock(";
-    s << "#"<<subChannelIndex<<"."<<timeSlotIndex<<"."<<beamIndex;
+    s << "#"<<subChannelIndex<<"."<<timeSlotIndex<<"."<<spatialIndex;
     if ( nextPosition>0.0 ) { // not empty
         if (userID!=NULL)
             s << ", user="<<userID->getName();
@@ -520,7 +520,7 @@ PhysicalResourceBlock::getNetBlockSizeInBits() const
 SchedulingTimeSlot::SchedulingTimeSlot()
     : subChannelIndex(0),
       timeSlotIndex(0),
-      numberOfBeams(0),
+      numSpatialLayers(0),
       slotLength(0.0),
       timeSlotStartTime(0.0)
 {
@@ -528,21 +528,21 @@ SchedulingTimeSlot::SchedulingTimeSlot()
 
 SchedulingTimeSlot::SchedulingTimeSlot(int _subChannel,
                                        int _timeSlot,
-                                       int _numberOfBeams,
+                                       int _numSpatialLayers,
                                        simTimeType _slotLength
     )
     : subChannelIndex(_subChannel),
       timeSlotIndex(_timeSlot),
-      numberOfBeams(_numberOfBeams),
+      numSpatialLayers(_numSpatialLayers),
       slotLength(_slotLength),
       timeSlotStartTime(_slotLength*_timeSlot),
       timeSlotIsUsable(true)
 {
-    for ( int beamIndex = 0; beamIndex < numberOfBeams; ++beamIndex )
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        // create one PhysicalResourceBlock object per beam (MIMO channel)
-        PhysicalResourceBlock emptyPRB(subChannelIndex,timeSlotIndex,beamIndex,slotLength);
-        // available as physicalResources[beamIndex]
+        // create one PhysicalResourceBlock object per spatialLayer (MIMO channel)
+        PhysicalResourceBlock emptyPRB(subChannelIndex,timeSlotIndex,spatialIndex,slotLength);
+        // available as physicalResources[spatialIndex]
         physicalResources.push_back(emptyPRB); // object copied
     }
 }
@@ -550,7 +550,7 @@ SchedulingTimeSlot::SchedulingTimeSlot(int _subChannel,
 /*SchedulingTimeSlot::SchedulingTimeSlot(const SchedulingTimeSlot& other):
     subChannelIndex(other.subChannelIndex),
     timeSlotIndex(other.timeSlotIndex),
-    numberOfBeams(other.numberOfBeams),
+    numSpatialLayers(other.numSpatialLayers),
     slotLength(other.slotLength),
     timeSlotStartTime(other.timeSlotStartTime),
     timeSlotIsUsable(other.timeSlotIsUsable)
@@ -574,9 +574,9 @@ SchedulingTimeSlot::getUsedTime() const
 {
     //if (!IsUsable) return 0.0; // must be different result than getFreeTime()
     simTimeType usedTime = 0.0;
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        usedTime += physicalResources[beamIndex].getUsedTime();
+        usedTime += physicalResources[spatialIndex].getUsedTime();
     }
     return usedTime;
 }
@@ -586,9 +586,9 @@ SchedulingTimeSlot::getFreeTime() const
 {
     //if (!IsUsable) return 0.0; // must be different result than getUsedTime()
     simTimeType freeTime = 0.0;
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        freeTime += physicalResources[beamIndex].getFreeTime();
+        freeTime += physicalResources[spatialIndex].getFreeTime();
     }
     return freeTime;
 }
@@ -597,9 +597,9 @@ int
 SchedulingTimeSlot::countScheduledCompounds() const
 {
     int count=0;
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        count += physicalResources[beamIndex].countScheduledCompounds();
+        count += physicalResources[spatialIndex].countScheduledCompounds();
     }
     return count;
 }
@@ -607,9 +607,9 @@ SchedulingTimeSlot::countScheduledCompounds() const
 bool
 SchedulingTimeSlot::isEmpty() const
 {
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        if (!physicalResources[beamIndex].isEmpty()) return false;
+        if (!physicalResources[spatialIndex].isEmpty()) return false;
     }
     return true;
 }
@@ -621,18 +621,18 @@ SchedulingTimeSlot::pduFitsInto(strategy::RequestForResource& request,
 {
     //if (!IsUsable) return false;
     // is it correct to ask like this?
-    // or do we have to loop over all beams?
-    int beam = mapInfoEntry->beam;
-    assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
-    return physicalResources[beam].pduFitsInto(request,mapInfoEntry);
+    // or do we have to loop over all spatialLayers?
+    int spatialLayer = mapInfoEntry->spatialLayer;
+    assure(spatialLayer>=0 && spatialLayer<numSpatialLayers,"spatialLayer="<<spatialLayer<<" is out of bounds");
+    return physicalResources[spatialLayer].pduFitsInto(request,mapInfoEntry);
 } // pduFitsInto (ResourceBlock)
 
 wns::scheduler::UserID
 SchedulingTimeSlot::getUserID() const
 {
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        wns::scheduler::UserID userID = physicalResources[beamIndex].getUserID();
+        wns::scheduler::UserID userID = physicalResources[spatialIndex].getUserID();
         if (userID!=NULL)
             return userID;
     }
@@ -643,9 +643,9 @@ wns::Power
 SchedulingTimeSlot::getTxPower() const
 {
     wns::Power txPower;
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        txPower = physicalResources[beamIndex].getTxPower();
+        txPower = physicalResources[spatialIndex].getTxPower();
         if (txPower!=wns::Power())
             return txPower;
     }
@@ -656,9 +656,9 @@ void
 SchedulingTimeSlot::setTxPower(wns::Power power)
 {
     // adjust contents
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        physicalResources[beamIndex].setTxPower(power);
+        physicalResources[spatialIndex].setTxPower(power);
     }
 }
 
@@ -667,14 +667,14 @@ std::string
 SchedulingTimeSlot::dumpContents(const std::string& prefix) const
 {
     std::stringstream s;
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
         std::stringstream p;
-        p << prefix << beamIndex << "\t";
+        p << prefix << spatialIndex << "\t";
         if (timeSlotIsUsable) {
-            s << physicalResources[beamIndex].dumpContents(p.str());
+            s << physicalResources[spatialIndex].dumpContents(p.str());
         } else {
-            s << prefix << beamIndex << "\t" << "LOCKED" << std::endl;
+            s << prefix << spatialIndex << "\t" << "LOCKED" << std::endl;
         }
     }
     return s.str();
@@ -686,9 +686,9 @@ SchedulingTimeSlot::toString() const
 {
     std::stringstream s;
     if (timeSlotIsUsable) {
-        for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+        for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
         {
-            s << physicalResources[beamIndex].toString();
+            s << physicalResources[spatialIndex].toString();
         }
     } else {
         s << "TimeSlot(#"<<timeSlotIndex<<"): locked/unusable" << std::endl;
@@ -699,36 +699,36 @@ SchedulingTimeSlot::toString() const
 void
 SchedulingTimeSlot::deleteCompounds()
 {
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        physicalResources[beamIndex].deleteCompounds();
+        physicalResources[spatialIndex].deleteCompounds();
     }
 }
 
 void
 SchedulingTimeSlot::grantFullResources()
 {
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        physicalResources[beamIndex].grantFullResources();
+        physicalResources[spatialIndex].grantFullResources();
     }
 }
 
 void
 SchedulingTimeSlot::processMasterMap()
 {
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        physicalResources[beamIndex].processMasterMap();
+        physicalResources[spatialIndex].processMasterMap();
     }
 }
 
 bool
 SchedulingTimeSlot::hasResourcesForUser(wns::scheduler::UserID user) const
 {
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        if (physicalResources[beamIndex].hasResourcesForUser(user))
+        if (physicalResources[spatialIndex].hasResourcesForUser(user))
             return true;
     }
     return false;
@@ -738,9 +738,9 @@ int
 SchedulingTimeSlot::getNetBlockSizeInBits() const
 {
     int netBits = 0;
-    for(int beamIndex=0; beamIndex<numberOfBeams; beamIndex++)
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
-        netBits += physicalResources[beamIndex].getNetBlockSizeInBits();
+        netBits += physicalResources[spatialIndex].getNetBlockSizeInBits();
     }
     return netBits;
 }
@@ -749,23 +749,23 @@ SchedulingTimeSlot::getNetBlockSizeInBits() const
 
 SchedulingSubChannel::SchedulingSubChannel()
     : subChannelIndex(0),
-      numberOfBeams(0),
+      numSpatialLayers(0),
       slotLength(0.0),
       subChannelIsUsable(true)
 {
 }
 
-SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfTimeSlots, int _numberOfBeams, simTimeType _slotLength)
+SchedulingSubChannel::SchedulingSubChannel(int _subChannelIndex, int _numberOfTimeSlots, int _numSpatialLayers, simTimeType _slotLength)
     : subChannelIndex(_subChannelIndex),
       numberOfTimeSlots(_numberOfTimeSlots),
-      numberOfBeams(_numberOfBeams),
+      numSpatialLayers(_numSpatialLayers),
       slotLength(_slotLength),
       subChannelIsUsable(true)
 {
     for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
     {
         SchedulingTimeSlotPtr emptyTimeSlotPtr // SmartPtr...
-            = SchedulingTimeSlotPtr(new SchedulingTimeSlot(subChannelIndex,timeSlotIndex,numberOfBeams,slotLength));
+            = SchedulingTimeSlotPtr(new SchedulingTimeSlot(subChannelIndex,timeSlotIndex,numSpatialLayers,slotLength));
         temporalResources.push_back(emptyTimeSlotPtr); // SmartPtr copied
     }
 }
@@ -842,9 +842,9 @@ SchedulingSubChannel::pduFitsInto(strategy::RequestForResource& request,
     int timeSlot = mapInfoEntry->timeSlot;
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" is out of bounds");
     // is it correct to ask like this?
-    // or do we have to loop over all beams?
-    int beam = mapInfoEntry->beam;
-    assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
+    // or do we have to loop over all spatialLayers?
+    int spatialLayer = mapInfoEntry->spatialLayer;
+    assure(spatialLayer>=0 && spatialLayer<numSpatialLayers,"spatialLayer="<<spatialLayer<<" is out of bounds");
     return temporalResources[timeSlot]->pduFitsInto(request,mapInfoEntry);
 } // pduFitsInto (SubChannel)
 
@@ -855,10 +855,10 @@ SchedulingSubChannel::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) cons
     int timeSlot = mapInfoEntry->timeSlot;
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" is out of bounds");
     // is it correct to ask like this?
-    // or do we have to loop over all beams?
-    int beam = mapInfoEntry->beam;
-    assure(beam>=0 && beam<numberOfBeams,"beam="<<beam<<" is out of bounds");
-    return temporalResources[timeSlot]->physicalResources[beam].getFreeBitsOnPhysicalResourceBlock(mapInfoEntry);
+    // or do we have to loop over all spatialLayers?
+    int spatialLayer = mapInfoEntry->spatialLayer;
+    assure(spatialLayer>=0 && spatialLayer<numSpatialLayers,"spatialLayer="<<spatialLayer<<" is out of bounds");
+    return temporalResources[timeSlot]->physicalResources[spatialLayer].getFreeBitsOnPhysicalResourceBlock(mapInfoEntry);
 } // getFreeBitsOnSubChannel
 
 bool
@@ -910,12 +910,12 @@ bool SchedulingSubChannel::hasResourcesForUser(wns::scheduler::UserID user) cons
 
 /**************************************************************/
 
-SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfTimeSlots, int _numberOfBeams, int _frameNr )
+SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfTimeSlots, int _numSpatialLayers, int _frameNr )
     : frameNr(_frameNr),
       slotLength(_slotLength),
       numberOfSubChannels(_numberOfSubChannels),
       numberOfTimeSlots(_numberOfTimeSlots),
-      numberOfBeams(_numberOfBeams),
+      numSpatialLayers(_numSpatialLayers),
       numberOfCompounds(0),
       resourceUsage(0.0)
 {
@@ -923,7 +923,7 @@ SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels,
     assure(slotLength>0.0,"slotLength="<<slotLength);
     for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
     {
-        SchedulingSubChannel subChannel(subChannelIndex,numberOfTimeSlots,numberOfBeams,slotLength);
+        SchedulingSubChannel subChannel(subChannelIndex,numberOfTimeSlots,numSpatialLayers,slotLength);
         subChannels.push_back(subChannel); // object copied
     }
     //#include <WNS/logger/Logger.hpp>
@@ -944,9 +944,9 @@ SchedulingMap::pduFitsInto(strategy::RequestForResource& request,
     //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
     int subChannelIndex = mapInfoEntry->subBand;
     //int timeSlot = mapInfoEntry->timeSlot;
-    //int beam = mapInfoEntry->beam;
+    //int spatialLayer = mapInfoEntry->spatialLayer;
     return subChannels[subChannelIndex].pduFitsInto(request,mapInfoEntry);
-    //return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].pduFitsInto(request,mapInfoEntry);
+    //return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].pduFitsInto(request,mapInfoEntry);
 } // pduFitsInto (SubChannel)
 
 int
@@ -956,14 +956,14 @@ SchedulingMap::getFreeBitsOnSubChannel(MapInfoEntryPtr mapInfoEntry) const
     //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
     int subChannelIndex = mapInfoEntry->subBand;
     //int timeSlot = mapInfoEntry->timeSlot;
-    //int beam = mapInfoEntry->beam;
+    //int spatialLayer = mapInfoEntry->spatialLayer;
     return subChannels[subChannelIndex].getFreeBitsOnSubChannel(mapInfoEntry);
 }
 
 bool
 SchedulingMap::addCompound(int subChannelIndex,
                            int timeSlot,
-                           int beam,
+                           int spatialLayer,
                            simTimeType compoundDuration,
                            wns::scheduler::ConnectionID connectionID,
                            wns::scheduler::UserID userID,
@@ -975,7 +975,7 @@ SchedulingMap::addCompound(int subChannelIndex,
     )
 {
     bool ok =
-        subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].addCompound(
+        subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].addCompound(
             compoundDuration,
             connectionID,
             userID,
@@ -1002,9 +1002,9 @@ SchedulingMap::addCompound(strategy::RequestForResource& request,
     //assure(mapInfoEntry->compounds.empty(),"mapInfoEntry->compounds must be empty here");
     int subChannelIndex = mapInfoEntry->subBand;
     int timeSlot = mapInfoEntry->timeSlot;
-    int beam = mapInfoEntry->beam;
+    int spatialLayer = mapInfoEntry->spatialLayer;
     bool ok =
-        subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].addCompound(
+        subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].addCompound(
             request,
             mapInfoEntry,
             compoundPtr
@@ -1017,12 +1017,12 @@ SchedulingMap::addCompound(strategy::RequestForResource& request,
 } // addCompound
 
 simTimeType
-SchedulingMap::getNextPosition(int subChannel, int timeSlot, int beam) const
+SchedulingMap::getNextPosition(int subChannel, int timeSlot, int spatialLayer) const
 {
     assure(subChannel<numberOfSubChannels,"subChannel="<<subChannel<<" >= numberOfSubChannels="<<numberOfSubChannels);
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
-    assure(beam<numberOfBeams,"beam="<<beam<<" >= numberOfBeams="<<numberOfBeams);
-    return subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam].getNextPosition();
+    assure(spatialLayer<numSpatialLayers,"spatialLayer="<<spatialLayer<<" >= numSpatialLayers="<<numSpatialLayers);
+    return subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].getNextPosition();
 }
 
 bool
@@ -1039,7 +1039,7 @@ double
 SchedulingMap::getResourceUsage()
 {
     simTimeType totalUsedTime = getUsedTime();
-    simTimeType totalTimeResources = slotLength * numberOfSubChannels * numberOfBeams * numberOfTimeSlots;
+    simTimeType totalTimeResources = slotLength * numberOfSubChannels * numSpatialLayers * numberOfTimeSlots;
     double result = totalUsedTime / totalTimeResources;
     assure(numberOfSubChannels==subChannels.size(),"mismatch in numberOfSubChannels: "<<numberOfSubChannels<<" != "<<subChannels.size());
     assure((result >= -0.01)/*tolerance*/
@@ -1085,10 +1085,10 @@ SchedulingMap::getUsedPower(int timeSlot) const
     wns::Power usedPower; // = 0W
     for(unsigned int subChannelIndex=0; subChannelIndex<numberOfSubChannels; subChannelIndex++)
     {
-        // what is the right handling of MIMO? Do we count=add txPower per beam or do we assume this is all "one" power?
+        // what is the right handling of MIMO? Do we count=add txPower per spatialLayer or do we assume this is all "one" power?
         //wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].txPower;
         // we assume that txPower is the same on all PRBs, so reading the first is sufficient:
-        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first beam*/].txPower;
+        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first spatialLayer*/].txPower;
         // if we have no PDU allocated on this channel, just skip it.
         if (usedTxPowerOnThisChannel == wns::Power())
             continue;
@@ -1104,10 +1104,10 @@ SchedulingMap::getRemainingPower(wns::Power totalPower, int timeSlot) const
     wns::Power remainingPower = totalPower;
     for(unsigned int subChannelIndex=0; subChannelIndex<numberOfSubChannels; subChannelIndex++)
     {
-        // what is the right handling of MIMO? Do we count=add txPower per beam or do we assume this is all "one" power?
+        // what is the right handling of MIMO? Do we count=add txPower per spatialLayer or do we assume this is all "one" power?
         //wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].txPower;
         // we assume that txPower is the same on all PRBs, so reading the first is sufficient:
-        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first beam*/].txPower;
+        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first spatialLayer*/].txPower;
         // if we have no PDU allocated on this channel, just skip it.
         if (usedTxPowerOnThisChannel == wns::Power())
             continue;
@@ -1121,23 +1121,23 @@ SchedulingMap::getRemainingPower(wns::Power totalPower, int timeSlot) const
 } // getRemainingPower
 
 wns::service::phy::phymode::PhyModeInterfacePtr
-SchedulingMap::getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int beam) const
+SchedulingMap::getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int spatialLayer) const
 {
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
-    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
-    return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].phyModePtr;
+    assure(spatialLayer>=0 && spatialLayer < numSpatialLayers,"spatialLayer="<<spatialLayer);
+    return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].phyModePtr;
 }
 
 wns::Power
-SchedulingMap::getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int beam) const
+SchedulingMap::getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int spatialLayer) const
 {
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
-    assure(beam>=0 && beam < numberOfBeams,"beam="<<beam);
-    //return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].txPower;
+    assure(spatialLayer>=0 && spatialLayer < numSpatialLayers,"spatialLayer="<<spatialLayer);
+    //return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].txPower;
     wns::Power powerInResource = subChannels[subChannelIndex].temporalResources[timeSlot]->getTxPower();
-    assure(fabs(subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[beam].txPower.get_mW() - powerInResource.get_mW())<1e-3,
+    assure(fabs(subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].txPower.get_mW() - powerInResource.get_mW())<1e-3,
            "mismatch in powerInResource="<<powerInResource);
     return powerInResource;
 }
@@ -1188,7 +1188,7 @@ SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*retu
                         currentBurst->user           = compound.userID;
                         currentBurst->subBand        = compound.subChannel;
                         currentBurst->timeSlot       = compound.timeSlot;
-                        currentBurst->beam           = compound.beam;
+                        currentBurst->spatialLayer           = compound.spatialLayer;
                         currentBurst->txPower        = compound.txPower;
                         currentBurst->phyModePtr     = compound.phyModePtr;
                         //currentBurst->estimatedCandI = ? how to get it here?
@@ -1205,7 +1205,7 @@ SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*retu
                     // compoundReady() // cannot do this here.
                     lastScheduledUserID = compound.userID;
                 } // end while ( !iterSubChannel->scheduledCompounds.empty() )
-            } // end for ( beams )
+            } // end for ( spatialLayers )
         } // end for ( timeSlots )
     } // end for ( SubChannels )
 } // convertToMapInfoCollection
@@ -1325,9 +1325,9 @@ SchedulingMap::writeHeaderToFile(std::ofstream& f)
         f << "##### SchedulingMap over time #####" << std::endl;
         //f << "# numberOfSubChannels="<<numberOfSubChannels << std::endl;
         //f << "# numberOfTimeSlots="<<numberOfTimeSlots << std::endl;
-        //f << "# numberOfBeams="<<numberOfBeams << std::endl;
+        //f << "# numSpatialLayers="<<numSpatialLayers << std::endl;
         //f << "# slotLength="<<slotLength << std::endl;
-        f << "# (time[s]) frameNr subChannel timeSlot stream/beam bits/symbol txPower[dBm] filled% #compounds userID cidList(#bits), totalbits" << std::endl;
+        f << "# (time[s]) frameNr subChannel timeSlot stream/spatialLayer bits/symbol txPower[dBm] filled% #compounds userID cidList(#bits), totalbits" << std::endl;
     } else {
         throw wns::Exception("cannot write to file");
     }

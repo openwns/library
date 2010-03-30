@@ -78,25 +78,25 @@ DSASlave::getSubChannelWithDSA(RequestForResource& request,
     //MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): d="<<requestedCompoundDuration<<"s");
     int subChannel = lastUsedSubChannel;
     int timeSlot = lastUsedTimeSlot;
-    int beam = lastUsedBeam;
+    int spatialLayer = lastUsedBeam;
     int maxSubChannel = schedulerState->currentState->strategyInput->getFChannels();
     int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
-    int maxBeams = schedulerState->currentState->strategyInput->getMaxBeams();
+    int maxSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
     assure(subChannel<maxSubChannel,"invalid subChannel="<<subChannel);
     assure(timeSlot<numberOfTimeSlots,"invalid timeSlot="<<timeSlot);
-    assure(beam<maxBeams,"invalid beam="<<beam);
+    assure(spatialLayer<maxSpatialLayers,"invalid spatialLayer="<<spatialLayer);
     MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel);
     bool found  = false;
     bool giveUp = false;
     // TODO:
     while(!found && !giveUp) {
-        if (channelIsUsable(subChannel, timeSlot, beam, request, schedulerState, schedulingMap))
+        if (channelIsUsable(subChannel, timeSlot, spatialLayer, request, schedulerState, schedulingMap))
         { // PDU fits in
             found=true; break;
         }
-        if (++beam>=maxBeams)
-        { // all beams full; take next timeSlot
-            beam=0;
+        if (++spatialLayer>=maxSpatialLayers)
+        { // all spatialLayers full; take next timeSlot
+            spatialLayer=0;
             if (++timeSlot>=numberOfTimeSlots)
             { // all timeSlots full; take next subChannel
                 timeSlot=0;
@@ -115,13 +115,13 @@ DSASlave::getSubChannelWithDSA(RequestForResource& request,
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): no free subchannel");
         return dsaResult; // empty with subChannel=DSAsubChannelNotFound
     } else {
-        MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel<<"."<<timeSlot<<"."<<beam);
+        MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel<<"."<<timeSlot<<"."<<spatialLayer);
         lastUsedSubChannel = subChannel;
         lastUsedTimeSlot = timeSlot;
-        lastUsedBeam = beam;
+        lastUsedBeam = spatialLayer;
         dsaResult.subChannel = subChannel;
         dsaResult.timeSlot = timeSlot;
-        dsaResult.beam = beam;
+        dsaResult.spatialLayer = spatialLayer;
         return dsaResult;
     }
 } // getSubChannelWithDSA

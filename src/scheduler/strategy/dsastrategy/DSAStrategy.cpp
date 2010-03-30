@@ -111,30 +111,30 @@ DSAStrategy::getBeamForSubChannel(int subChannel,
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
 	assure(timeSlot>=0,"need a valid timeSlot");
 	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
-	int numberOfBeams = schedulerState->currentState->strategyInput->getMaxBeams();
+	int numSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
 	int getBeam = 0;
 	bool ok;
-	for ( int beam = 0; beam < numberOfBeams; ++beam )
-	{ // only for MIMO. For SISO simply beam=0
+	for ( int spatialLayer = 0; spatialLayer < numSpatialLayers; ++spatialLayer )
+	{ // only for MIMO. For SISO simply spatialLayer=0
 		PhysicalResourceBlock& prbDescriptor =
-			schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam];
+			schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
 		// can be different if "sort" has been applied:
 		assure(subChannel==prbDescriptor.subChannelIndex,
 		       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
 		assure(timeSlot==prbDescriptor.timeSlotIndex,
 		       "timeSlot="<<timeSlot<<" !=timeSlotIndex="<<prbDescriptor.timeSlotIndex);
-		assure(beam==prbDescriptor.beamIndex,
-		       "beam="<<beam<<" != beamIndex="<<prbDescriptor.beamIndex);
+		assure(spatialLayer==prbDescriptor.spatialIndex,
+		       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.spatialIndex);
 		// an empty subChannel can always be used:
 		if (prbDescriptor.scheduledCompounds.empty())
-			{ return beam; }
+			{ return spatialLayer; }
 		// now we are sure that the subChannel is used by at least one packet
 		// check if another user is blocking the subChannel:
 		if (oneUserOnOneSubChannel)
 		{	// checking the first packet is sufficient:
 			UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
 			if (otherUser != request.user)
-				return beam;
+				return spatialLayer;
 		}
 		// check if the PhyMode is already fixed:
 		wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
@@ -146,7 +146,7 @@ DSAStrategy::getBeamForSubChannel(int subChannel,
 		simTimeType remainingTimeOnthisChannel = prbDescriptor.getFreeTime();
 		ok = (remainingTimeOnthisChannel - compoundDuration) >= -wns::scheduler::strategy::slotLengthRoundingTolerance;
 		if (ok){
-			getBeam = beam;
+			getBeam = spatialLayer;
 			break;
 		}
 	}
@@ -167,19 +167,19 @@ DSAStrategy::channelIsUsable(int subChannel,
 	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
 	//int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
 	int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
-	int numberOfBeams = schedulerState->currentState->strategyInput->getMaxBeams();
+	int numSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
 	bool ok;
 	//for ( int timeSlot = 0; timeSlot < numberOfTimeSlots; ++timeSlot )
 	//{
-		for ( int beam = 0; beam < numberOfBeams; ++beam )
-		{ // only for MIMO. For SISO simply beam=0
+		for ( int spatialLayer = 0; spatialLayer < numSpatialLayers; ++spatialLayer )
+		{ // only for MIMO. For SISO simply spatialLayer=0
 			PhysicalResourceBlock& prbDescriptor =
-				schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam];
+				schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
 			// can be different if "sort" has been applied:
 			assure(subChannel==prbDescriptor.subChannelIndex,
 			       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
-			assure(beam==prbDescriptor.beamIndex,
-			       "beam="<<beam<<" != beamIndex="<<prbDescriptor.beamIndex);
+			assure(spatialLayer==prbDescriptor.spatialIndex,
+			       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.spatialIndex);
 			// TODO: copy code from other channelIsUsable() method...
 			// an empty subChannel can always be used:
 			if (prbDescriptor.scheduledCompounds.empty())
@@ -205,7 +205,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 				UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
 				if (otherUser != request.user)
 				{
-					MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): tSlot="<<timeSlot<<", beam="<<beam<<": otherUser="<<otherUser->getName()<<" != request.user="<<request.user->getName());
+					MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): tSlot="<<timeSlot<<", spatialLayer="<<spatialLayer<<": otherUser="<<otherUser->getName()<<" != request.user="<<request.user->getName());
 					return false;
 				}
 			}
@@ -217,12 +217,12 @@ DSAStrategy::channelIsUsable(int subChannel,
 			simTimeType compoundDuration = getCompoundDuration(requestWithGivenPhyMode);
 			// check if there is enough space (time) left:
 			simTimeType remainingTimeOnthisChannel =
-				//schedulingMap->subChannels[subChannel].physicalResources[beam].getFreeTime();
+				//schedulingMap->subChannels[subChannel].physicalResources[spatialLayer].getFreeTime();
 				prbDescriptor.getFreeTime();
 			ok = (remainingTimeOnthisChannel - compoundDuration) >= -wns::scheduler::strategy::slotLengthRoundingTolerance;
 			MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): d="<<compoundDuration*1e6<<"us <= "<<remainingTimeOnthisChannel*1e6<<"us remaining: ok="<<ok);
 			if (ok) break;
-		} // forall beams/streams of this subChannel
+		} // forall spatialLayers/streams of this subChannel
 	//} // forall timeSlots of this subChannel
 	return ok;
 } // channelIsUsable
@@ -230,7 +230,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 bool
 DSAStrategy::channelIsUsable(int subChannel,
 			     int timeSlot,
-			     int beam,
+			     int spatialLayer,
 			     RequestForResource& request,
 			     SchedulerStatePtr schedulerState,
 			     SchedulingMapPtr schedulingMap) const
@@ -239,18 +239,18 @@ DSAStrategy::channelIsUsable(int subChannel,
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
 	assure(timeSlot>=0,"need a valid timeSlot");
 	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
-	assure(beam>=0,"need a valid beam");
-	assure(beam<schedulerState->currentState->strategyInput->getMaxBeams(),"invalid beam="<<beam);
+	assure(spatialLayer>=0,"need a valid spatialLayer");
+	assure(spatialLayer<schedulerState->currentState->strategyInput->getMaxSpatialLayers(),"invalid spatialLayer="<<spatialLayer);
 	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
 	// TODO: should we introduce
 	// bool allBeamsUsedByOneUserOnly
 	PhysicalResourceBlock& prbDescriptor =
-		schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam];
+		schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
 	// can be different if "sort" has been applied:
 	assure(subChannel==prbDescriptor.subChannelIndex,
 	       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
-	assure(beam==prbDescriptor.beamIndex,
-	       "beam="<<beam<<" != beamIndex="<<prbDescriptor.beamIndex);
+	assure(spatialLayer==prbDescriptor.spatialIndex,
+	       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.spatialIndex);
 	// check if another user is blocking the subChannel:
 	if (oneUserOnOneSubChannel)
 	{	// checking the first packet is sufficient:
@@ -262,39 +262,39 @@ DSAStrategy::channelIsUsable(int subChannel,
 			if (otherUser == NULL)
 			{
 				// an empty subChannel can always be used:
-				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): myUser="<<myUserID->getName()<<", other=NULL => unusableInUL");
+				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID->getName()<<", other=NULL => unusableInUL");
 				return false;
 			}
 			if (otherUser != myUserID)
 			{
 				assure(otherUser!=NULL,"otherUser==NULL");
-				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): myUser="<<myUserID->getName()<<", other="<<otherUser->getName()<<", request="<<request.user->getName()<<": unusable");
+				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID->getName()<<", other="<<otherUser->getName()<<", request="<<request.user->getName()<<": unusable");
 				return false;
 			}
 			// at this point I'm sure that this resource is principially usable by me.
-			MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): myUser="<<myUserID->getName()<<", other="<<otherUser->getName()<<" is ok");
+			MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID->getName()<<", other="<<otherUser->getName()<<" is ok");
 		} else { // master scheduler (DL|UL)
 			// an empty subChannel can always be used:
 			if (prbDescriptor.scheduledCompounds.empty())
 			{
-				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): empty channel; can always be used");
+				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used");
 				return true;
 			}
 			// now we are sure that the subChannel is used by at least one packet
 			if (otherUser != request.user)
 			{
-				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): otherUser="<<otherUser->getName()<<" != request.user="<<request.user->getName());
+				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): otherUser="<<otherUser->getName()<<" != request.user="<<request.user->getName());
 				return false;
 			}
 			// at this point I'm sure that this resource is principially usable by me.
 		} // slave|master
 	} else { // oneUserOnOneSubChannel==false
 		// we will have a problem with different txPower and PhyMode on this subChannel
-		MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): WARNING: oneUserOnOneSubChannel="<<oneUserOnOneSubChannel<<" is NEW and untested");
+		MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): WARNING: oneUserOnOneSubChannel="<<oneUserOnOneSubChannel<<" is NEW and untested");
 		// an empty subChannel can always be used:
 		if (prbDescriptor.scheduledCompounds.empty())
 		{
-			MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): empty channel; can always be used");
+			MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used");
 			return true;
 		}
 	}
@@ -321,12 +321,12 @@ DSAStrategy::channelIsUsable(int subChannel,
 	simTimeType compoundDuration = getCompoundDuration(requestWithGivenPhyMode);
 	// check if there is enough space (time) left:
 	simTimeType remainingTimeOnthisChannel =
-		//schedulingMap->subChannels[subChannel][beam].getFreeTime();
+		//schedulingMap->subChannels[subChannel][spatialLayer].getFreeTime();
 			prbDescriptor.getFreeTime();
 	bool ok = (remainingTimeOnthisChannel - compoundDuration) >= -wns::scheduler::strategy::slotLengthRoundingTolerance;
-	MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<beam<<"): d="<<compoundDuration*1e6<<"us <=? "<<remainingTimeOnthisChannel*1e6<<"us remaining: ok="<<ok);
+	MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): d="<<compoundDuration*1e6<<"us <=? "<<remainingTimeOnthisChannel*1e6<<"us remaining: ok="<<ok);
 	return ok;
-} // channelIsUsable(subChannel,timeSlot,beam)
+} // channelIsUsable(subChannel,timeSlot,spatialLayer)
 
 /*
   Local Variables:

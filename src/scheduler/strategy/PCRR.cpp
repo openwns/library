@@ -42,13 +42,13 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(PCRR, StrategyInterface, "PCRR", wns::PyCon
 
 
 void
-PCRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 {
 	this->resourceUsage = 0.0;
 
 	MESSAGE_SINGLE(NORMAL, logger,"PCRR::startScheduling called - Rx"
 		       << "\n\t Channels:   " << fChannels
-		       << "\n\t maxBeams:   " << maxBeams
+		       << "\n\t maxSpatialLayers:   " << maxSpatialLayers
 		       << "\n\t slotLength: " << slotLength);
 
 	assure(dynamic_cast<queue::QueueInterface*>(colleagues.queue), "Need access to the queue");
@@ -74,7 +74,7 @@ PCRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 		return;
 	}
 
-	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxBeams);
+	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxSpatialLayers);
 	MESSAGE_SINGLE(NORMAL, logger,"PCRR::startScheduling Rx - retrieved grouping from grouper:\n" << grouping.getDebugOutput());
 
 	PowerMap powerMap = colleagues.registry->calcULResources(activeUsers, fChannels);
@@ -90,7 +90,7 @@ PCRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 	uint32_t blocksPerChannel = uint32_t(((1000 * slotLength / this->blockDuration) + 0.5)/1000);
 	uint32_t blocksPerSpatialLayer = fChannels * blocksPerChannel;
 #if !defined(WNS_NO_LOGGING) || !defined(NDEBUG)
-	uint32_t totalBlocks = maxBeams * blocksPerSpatialLayer;
+	uint32_t totalBlocks = maxSpatialLayers * blocksPerSpatialLayer;
 #endif
 	MESSAGE_SINGLE(NORMAL, logger,"PCRR::partitioned the UL Frame"
 		       << "\n\t scheduling period per channel:   " << slotLength
@@ -245,7 +245,7 @@ PCRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 				posInSubBand = burstEnd;
 				assure( burstEnd <= slotLength + slotLengthRoundingTolerance, "PCRR: Burst end exceeds slotLength");
 				MESSAGE_SINGLE(NORMAL, logger,"PCRR: Allocating Burst with "<<numBlocks<<" blocks on subBand "<<currentSubBand);
-				int beam = 0;
+				int spatialLayer = 0;
 				// for every user we provide one MapInfoEntry and tell the parent to set
 				// the timingcommand for the dummy pdu so that the patterns get set
 				for (Group::iterator iter = currentGroup.begin();
@@ -278,7 +278,7 @@ PCRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 						  << "\n\tburstStart: " << burstStart
 						  << "\n\tburstEnd: " << burstEnd
 						  << "\n\tuser: " << user->getName()
-						  << "\n\tbeam: " << beam
+						  << "\n\tspatialLayer: " << spatialLayer
 						  << "\n\tPhyMode: " << *phyMode
 						  << "\n\ttxPower: " << powerMap[user].txPowerPerSubband
 						  << "\n\tcarrierEst: " << currentGroup[user].C
@@ -290,13 +290,13 @@ PCRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
 							      burstEnd,
 							      user,
 							      pdu,
-							      beam,
+							      spatialLayer,
 							      grouping.patterns[user],
 							      currentBurst,
 							      *(phyMode),
 							      powerMap[user].txPowerPerSubband,
 							      currentGroup[user]);
-						beam++;
+						spatialLayer++;
 					} else {
 						MESSAGE_SINGLE(NORMAL, logger,"RR UL scheduler ignoring user with zero PhyMode");
 					}

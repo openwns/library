@@ -86,7 +86,7 @@ namespace wns { namespace scheduler { namespace strategy {
 	private:
 
 		virtual void
-		doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength);
+		doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength);
 
 		simTimeType blockDuration;
 		float resourceUsage;

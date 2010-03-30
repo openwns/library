@@ -313,17 +313,17 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
     if (strategyInput.slotLength < 0.0)        throw wns::Exception("Invalid slotLength");
     if (strategyInput.slotLength < schedulerState->symbolDuration)    throw wns::Exception("Can't schedule on slot shorter than OFDM symbol");
     if (strategyInput.numberOfTimeSlots < 1)   throw wns::Exception("Need at least one TimeSlot");
-    if (strategyInput.maxBeams   < 1)          throw wns::Exception("Need at least one beam");
-    // ^ strategyInput.maxBeams>1 means beamforming or MIMO
+    if (strategyInput.maxSpatialLayers   < 1)          throw wns::Exception("Need at least one spatialLayer");
+    // ^ strategyInput.maxSpatialLayers>1 means beamforming or MIMO
     assure(isNewStrategy()
            || strategyInput.beamforming
-           || strategyInput.maxBeams==1,
-           "beamforming="<<strategyInput.beamforming<<" && maxBeams="<<strategyInput.maxBeams<<": MIMO not supported in old strategies");
+           || strategyInput.maxSpatialLayers==1,
+           "beamforming="<<strategyInput.beamforming<<" && maxSpatialLayers="<<strategyInput.maxSpatialLayers<<": MIMO not supported in old strategies");
     assure(!isNewStrategy()
            || !strategyInput.beamforming
-           //|| strategyInput.maxBeams==1
+           //|| strategyInput.maxSpatialLayers==1
            ,
-           "beamforming="<<strategyInput.beamforming<<" && maxBeams="<<strategyInput.maxBeams<<": beamforming not (yet) working in new strategies");
+           "beamforming="<<strategyInput.beamforming<<" && maxSpatialLayers="<<strategyInput.maxSpatialLayers<<": beamforming not (yet) working in new strategies");
     // prepare a new state for this timeFrame:
     schedulerState = revolveSchedulerState(strategyInput);
     if (strategyInput.inputSchedulingMap == wns::scheduler::SchedulingMapPtr()) // empty
@@ -343,7 +343,7 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
         if (strategyInput.frameNrIsValid())
             m << "frameNr=" << strategyInput.frameNr << ", ";
         m << "fChannels="   << strategyInput.fChannels
-          << ", maxBeams="   << strategyInput.maxBeams
+          << ", maxSpatialLayers="   << strategyInput.maxSpatialLayers
           << ", slotLength=" << strategyInput.slotLength;
         MESSAGE_END();
         // not necessary but these defaults may be optionally provided by the caller:
@@ -414,11 +414,11 @@ Strategy::doStartScheduling(SchedulerStatePtr schedulerState,
     const StrategyInput* strategyInput = schedulerState->currentState->strategyInput;
     if (strategyInput->fChannels  < 1)   throw wns::Exception("Need at least one subBand");
     if (strategyInput->slotLength < 0.0) throw wns::Exception("Invalid slotLength");
-    if (strategyInput->maxBeams   < 1)   throw wns::Exception("Need at least one beam");
+    if (strategyInput->maxSpatialLayers   < 1)   throw wns::Exception("Need at least one spatialLayer");
     MESSAGE_SINGLE(NORMAL, logger, "Strategy::doStartScheduling(): old interface. Please overload and use new interface in strategies");
     assure(!isNewStrategy(),"default Strategy::doStartScheduling() only allowed for the old obsolete strategies");
     // call old interface (for convenience)
-    this->doStartScheduling(strategyInput->fChannels, strategyInput->maxBeams, strategyInput->slotLength);
+    this->doStartScheduling(strategyInput->fChannels, strategyInput->maxSpatialLayers, strategyInput->slotLength);
     //schedulingMapReady(strategyResult); // make the callBacks
     // An empty result for schedulingMap is returned.
     // That's ok because old implementations do not expect it.
@@ -438,7 +438,7 @@ Strategy::doStartScheduling(SchedulerStatePtr schedulerState,
 } // doStartScheduling backward compatibility wrapper
 
 void
-Strategy::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+Strategy::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 {
     throw wns::Exception("Strategy::doStartScheduling() is old interface and must be overloaded. Better use new interface");
 }
@@ -628,7 +628,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     dsastrategy::DSAResult dsaResult;
     int subChannel = dsastrategy::DSAsubChannelNotFound;
     int timeSlot = 0; // TDMA
-    int beam = 0; // MIMO
+    int spatialLayer = 0; // MIMO
     bool CQIrequired = colleagues.dsastrategy->requiresCQI();
     bool CQIavailable = (cqiForUser!=ChannelQualitiesOnAllSubBandsPtr())
         && (schedulerState->currentState->channelQualitiesOfAllUsers != ChannelQualitiesOfAllUsersPtr())
@@ -647,7 +647,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         dsaResult = colleagues.dsastrategy->getSubChannelWithDSA(request, schedulerState, schedulingMap);
         subChannel = dsaResult.subChannel;
         timeSlot   = dsaResult.timeSlot;
-        beam       = dsaResult.beam;
+        spatialLayer       = dsaResult.spatialLayer;
         if (subChannel==dsastrategy::DSAsubChannelNotFound)
             return resultMapInfoEntry; // empty means no result
         assure(cqiForUser!=ChannelQualitiesOnAllSubBandsPtr(), "cqiForUser["<<request.user->getName()<<"]==NULL");
@@ -667,7 +667,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         }
         subChannel = dsaResult.subChannel;
         timeSlot   = dsaResult.timeSlot;
-        beam       = dsaResult.beam;
+        spatialLayer       = dsaResult.spatialLayer;
         if (subChannel==dsastrategy::DSAsubChannelNotFound)
             return resultMapInfoEntry; // empty means no result
         // assume flat channel and nominal TxPower for this case
@@ -682,7 +682,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     } // with|without CQI information
     // Tell result of DSA: subChannel
     MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"):"
-                   <<" subChannel.tSlot.beam="<<subChannel<<"."<<timeSlot<<"."<<beam);
+                   <<" subChannel.tSlot.spatialLayer="<<subChannel<<"."<<timeSlot<<"."<<spatialLayer);
 
     if (subChannel==dsastrategy::DSAsubChannelNotFound)
         return resultMapInfoEntry; // empty means no result
@@ -692,7 +692,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     // fix the proposed subChannel value:
     request.subChannel = subChannel;
     request.timeSlot   = timeSlot;
-    request.beam       = beam;
+    request.spatialLayer       = spatialLayer;
 
     wns::Power txPower;
     apcstrategy::APCResult apcResult;
@@ -732,8 +732,8 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
             }
         }
     } else { // slave scheduling (PowerControlULSlave)
-        request.phyModePtr = schedulingMap->getPhyModeUsedInResource(subChannel,timeSlot,beam);
-        txPower = schedulingMap->getTxPowerUsedInResource(subChannel,timeSlot,beam);
+        request.phyModePtr = schedulingMap->getPhyModeUsedInResource(subChannel,timeSlot,spatialLayer);
+        txPower = schedulingMap->getTxPowerUsedInResource(subChannel,timeSlot,spatialLayer);
     }
 
     // This really fixes the proposed values of DSA and APC.
@@ -741,7 +741,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     resultMapInfoEntry->frameNr    = frameNr;
     resultMapInfoEntry->subBand    = subChannel;
     resultMapInfoEntry->timeSlot   = timeSlot;
-    resultMapInfoEntry->beam       = beam;
+    resultMapInfoEntry->spatialLayer       = spatialLayer;
     resultMapInfoEntry->user       = request.user;
     resultMapInfoEntry->txPower    = txPower; // apcResult.txPower;
     resultMapInfoEntry->phyModePtr = request.phyModePtr; // = apcResult.phyModePtr
@@ -781,7 +781,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 void
 Strategy::compoundReady(unsigned int fSlot,
                         simTimeType startTime, simTimeType endTime, UserID user,
-                        const wns::ldk::CompoundPtr& pdu, unsigned int beam,
+                        const wns::ldk::CompoundPtr& pdu, unsigned int spatialLayer,
                         wns::service::phy::ofdma::PatternPtr pattern,
                         MapInfoEntryPtr burst,
                         const wns::service::phy::phymode::PhyModeInterface& phyMode,
@@ -922,6 +922,6 @@ Strategy::groupingRequired() const
     assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
     assure(schedulerState->currentState->strategyInput!=NULL,"schedulerState->currentState->strategyInput must be valid");
     return ((schedulerState->currentState->strategyInput->beamforming)
-            && (schedulerState->currentState->strategyInput->getMaxBeams()>1))
+            && (schedulerState->currentState->strategyInput->getMaxSpatialLayers()>1))
         ? true:false;
 }
