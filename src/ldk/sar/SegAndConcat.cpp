@@ -76,10 +76,14 @@ SegAndConcat::SegAndConcat(const SegAndConcat& other):
     reorderingWindow_(other.reorderingWindow_),
     reassemblyBuffer_(other.reassemblyBuffer_),
     isSegmenting_(other.isSegmenting_),
-    segmentDropRatioCC_(other.segmentDropRatioCC_),
-    minDelayCC_(other.minDelayCC_),
-    maxDelayCC_(other.minDelayCC_),
-    sizeCC_(other.sizeCC_),
+    segmentDropRatioCC_(wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(*other.segmentDropRatioCC_))),
+    minDelayCC_(wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(*other.minDelayCC_))),
+    maxDelayCC_(wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(*other.minDelayCC_))),
+    sizeCC_(wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(*other.sizeCC_))),
     probeHeaderReader_(other.probeHeaderReader_)
 {
     reorderingWindow_.connectToReassemblySignal(boost::bind(&SegAndConcat::onReorderedPDU, this, _1, _2));
