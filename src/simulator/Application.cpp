@@ -66,6 +66,8 @@
 
 #include <boost/program_options/value_semantic.hpp>
 
+#include <sys/times.h>
+
 #include <csignal>
 #include <dlfcn.h>
 #include <iomanip>
@@ -323,7 +325,10 @@ Application::doInit()
         this->statusReport.writeStatus(false);
 
     }
-
+    // register CPU cycles probe
+    cpuCyclesProbe_ = wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(
+            wnsView.get<std::string>("cpuCyclesProbeBusName")));
 }
 
 void
@@ -459,7 +464,13 @@ Application::doRun()
 CALLGRIND_START_INSTRUMENTATION;
 #endif
 
+        struct tms start, stop;
+        times(&start);
+
     	wns::simulator::getEventScheduler()->start();
+
+        times(&stop);
+        cpuCyclesProbe_->put(stop.tms_utime - start.tms_utime);
 
 
 #ifdef CALLGRIND

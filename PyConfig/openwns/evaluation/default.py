@@ -11,3 +11,7 @@ def installEvaluation(sim):
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.appendChildren(TimeSeries())
     node.appendChildren(Moments())
+
+    sourceName = sim.cpuCyclesProbeBusName
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.appendChildren(Moments())

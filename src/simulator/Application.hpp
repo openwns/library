@@ -35,6 +35,7 @@
 #include <WNS/simulator/ISimulationModel.hpp>
 //#include <WNS/module/VersionInformation.hpp>
 #include <WNS/probe/bus/ProbeBusRegistry.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
 #include <WNS/simulator/StatusReport.hpp>
 #include <WNS/simulator/ProbeWriter.hpp>
 
@@ -336,6 +337,11 @@ namespace wns {  namespace simulator {
         StatusReport statusReport;
 
         ProbeWriter probeWriter;
+
+        /**
+        * @brief Probe CPU cycles spent in main event loop
+        */
+        wns::probe::bus::ContextCollectorPtr cpuCyclesProbe_;
     };
 
 } // simulator
