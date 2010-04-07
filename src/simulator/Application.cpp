@@ -478,6 +478,9 @@ CALLGRIND_START_INSTRUMENTATION;
 CALLGRIND_STOP_INSTRUMENTATION;
 #endif
 
+        MESSAGE_SINGLE(NORMAL, logger_, "Sending shutdown signal");
+        (*wns::simulator::getShutdownSignal())();
+
         // shutdown the simulation if it has been created before
         if (simulationModel_.get() != NULL)
         {

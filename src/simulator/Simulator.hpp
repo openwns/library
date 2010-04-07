@@ -122,6 +122,12 @@ namespace wns { namespace simulator {
         /**
          * @brief NVI forward
          */
+        virtual ShutdownSignal*
+        doGetShutdownSignal() const;
+
+        /**
+         * @brief NVI forward
+         */
         virtual wns::pyconfig::View
         doGetConfiguration() const;
 
@@ -183,6 +189,11 @@ namespace wns { namespace simulator {
          * @brief Container with reset signals
          */
         std::auto_ptr<ResetSignal> resetSignal_;
+
+        /**
+         * @brief Container with shutdown signals
+         */
+        std::auto_ptr<ShutdownSignal> shutdownSignal_;
     };
 
 } // namespace simulator

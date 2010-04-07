@@ -84,6 +84,14 @@ ISimulator::getResetSignal() const
     return rs;
 }
 
+ShutdownSignal*
+ISimulator::getShutdownSignal() const
+{
+    ShutdownSignal* sig = this->doGetShutdownSignal();
+    assure(sig != NULL, "No ShutdownSignal available");
+    return sig;
+}
+
 wns::pyconfig::View
 ISimulator::getConfiguration() const
 {
@@ -185,6 +193,12 @@ wns::simulator::ResetSignal*
 wns::simulator::getResetSignal()
 {
     return wns::simulator::getInstance()->getResetSignal();
+}
+
+wns::simulator::ShutdownSignal*
+wns::simulator::getShutdownSignal()
+{
+    return wns::simulator::getInstance()->getShutdownSignal();
 }
 
 wns::pyconfig::View
