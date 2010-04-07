@@ -67,6 +67,13 @@ namespace wns { namespace ldk {
                 addToDelivererRegistry(PORTID().name, &deliverer_);
             }
 
+        HasDeliverer( const HasDeliverer& other)
+                : DelivererRegistry(),
+                  deliverer_()
+            {
+                addToDelivererRegistry(PORTID().name, &deliverer_);
+            }
+
             HasDeliverer(DelivererRegistry* dr)
                 : DelivererRegistry(),
                   deliverer_()

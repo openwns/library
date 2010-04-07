@@ -163,4 +163,4 @@ class InSequenceChecker(openwns.FUN.FunctionalUnit):
 
     def __init__(self, enabled = True, parentLogger = None, **kw):
         self.logger = openwns.logger.Logger("WNS", "InSequenceChecker", enabled, parentLogger)
-        attrsetter(self, kw)
+        openwns.pyconfig.attrsetter(self, kw)

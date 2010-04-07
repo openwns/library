@@ -34,14 +34,23 @@ namespace wns { namespace ldk {
         public:
             HasReceptorReceptacle(CLASS* fu)
                 : ReceptorReceptacleRegistry(),
-                  receptorReceptacle_(fu)
+                  receptorReceptacle_(new ReceptorReceptacle(fu))
             {
-                addToReceptorReceptacleRegistry(PORTID().name, &receptorReceptacle_);
+                addToReceptorReceptacleRegistry(PORTID().name, receptorReceptacle_);
+            }
+
+            HasReceptorReceptacle(const HasReceptorReceptacle&)
+            {
+                wns::Exception e;
+                e << "The copy constructor of class HasReceptorReceptacle must not be called!";
+                throw e;
             }
 
             virtual
             ~HasReceptorReceptacle()
-            {}
+            {
+                delete receptorReceptacle_;
+            }
 
             class ReceptorReceptacle
                 : public virtual IReceptorReceptacle
@@ -78,10 +87,10 @@ namespace wns { namespace ldk {
             };
 
         private:
-            //            HasReceptorReceptacle()
-            //            {}
+            HasReceptorReceptacle()
+            {}
 
-            ReceptorReceptacle receptorReceptacle_;
+            ReceptorReceptacle* receptorReceptacle_;
         };
 
 
@@ -95,14 +104,17 @@ namespace wns { namespace ldk {
             HasReceptorReceptacle()
                 : ReceptorReceptacleRegistry()
             {
-                //                assureNotNull(dynamic_cast<CLASS*>(this));
-                //                fu_ = dynamic_cast<CLASS*>(this);
                 addToReceptorReceptacleRegistry(SinglePort().name, this);
             }
 
-            HasReceptorReceptacle(FunctionalUnit* fu)
-                : ReceptorReceptacleRegistry(),
-                  fu_(fu)
+            HasReceptorReceptacle(FunctionalUnit*)
+                : ReceptorReceptacleRegistry()
+            {
+                addToReceptorReceptacleRegistry(SinglePort().name, this);
+            }
+
+            HasReceptorReceptacle(const HasReceptorReceptacle&)
+                : ReceptorReceptacleRegistry()
             {
                 addToReceptorReceptacleRegistry(SinglePort().name, this);
             }
@@ -122,9 +134,6 @@ namespace wns { namespace ldk {
             {
                 return dynamic_cast<CLASS*>(this);
             }
-
-        private:
-            CLASS* fu_;
         };
 
 

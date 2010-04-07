@@ -28,17 +28,33 @@ namespace wns { namespace ldk {
                 : theRegistry_()
             {}
 
+            ReceptorReceptacleRegistry(const ReceptorReceptacleRegistry&)
+                : theRegistry_()
+            {}
+
             virtual
             ~ReceptorReceptacleRegistry()
             {}
 
             IReceptorReceptacle*
-            getFromReceptorReceptacleRegistry(std::string portname)
+            getFromReceptorReceptacleRegistry(std::string portname) const
             {
                 return theRegistry_.find(portname);
             }
 
+            std::list<std::string>
+            getKeysFromReceptorReceptacleRegistry() const
+            {
+                return theRegistry_.keys();
+            }
+
         protected:
+            void
+            updateReceptorReceptacleRegistry(const std::string portname, IReceptorReceptacle* cr)
+            {
+                theRegistry_.update(portname, cr);
+            }
+
             void
             addToReceptorReceptacleRegistry(std::string portname, IReceptorReceptacle* cr)
             {
