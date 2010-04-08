@@ -70,6 +70,13 @@ class LinearFFirst(DSAStrategy):
         super(LinearFFirst,self).__init__(**kw)
         self.useRandomChannelAtBeginning = useRandomChannel
 
+#random DSA
+class Random(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, useRandomChannel = False, **kw):
+        self.nameInDSAStrategyFactory = "Random"
+        super(Random,self).__init__(**kw)
+
 # CQI-aware subchannel assignment
 class BestChannel(DSAStrategy):
     requiresCQI = True
