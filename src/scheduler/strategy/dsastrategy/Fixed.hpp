@@ -25,19 +25,19 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_RANDOM_HPP
-#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_RANDOM_HPP
+#ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_FIXED_HPP
+#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_FIXED_HPP
 
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategy.hpp>
 
 namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy {
 
-                class Random : public DSAStrategy
+                class Fixed : public DSAStrategy
                 {
                 public:
-                    Random(const wns::pyconfig::View& config);
+                    Fixed(const wns::pyconfig::View& config);
 
-                    ~Random();
+                    ~Fixed();
 
                     virtual void initialize(SchedulerStatePtr schedulerState,
                                             SchedulingMapPtr schedulingMap);
@@ -48,10 +48,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
                                          SchedulingMapPtr schedulingMap);
 
                     bool requiresCQI() const { return false; };
-
-                private:
-                    wns::distribution::StandardUniform* randomDist;
                 };
 
             }}}} // namespace wns::scheduler::strategy::dsastrategy
-#endif // WNS_SCHEDULER_DSASTRATEGY_RANDOM_HPP
+#endif // WNS_SCHEDULER_DSASTRATEGY_FIXED_HPP
