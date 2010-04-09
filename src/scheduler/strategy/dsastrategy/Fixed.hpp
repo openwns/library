@@ -29,26 +29,47 @@
 #define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_FIXED_HPP
 
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategy.hpp>
+#include <vector>
 
 namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy {
+                
+    class FreqFirst
+    {
+        public:
+            bool 
+            operator()(DSAResult a, DSAResult b) const;
+    };
 
-                class Fixed : public DSAStrategy
-                {
-                public:
-                    Fixed(const wns::pyconfig::View& config);
 
-                    ~Fixed();
+    /** @brief DSA startegy equally distributing available resources between users.
+        If there are n resources and m users: m1 = n mod m users get floor(n/m) + 1 resources,
+        m - m1 users get floor(n/m) resources.
+        The resources are then granted to a user by first increasing the subChannel number, 
+        then the timeSlot, then the spatialLayer.
+        TODO: Make it configurable in which order time, frequency and space domain are used
+        for resource sorting.
+    */
+    class Fixed : public DSAStrategy
+    {
+    public:
+        Fixed(const wns::pyconfig::View& config);
 
-                    virtual void initialize(SchedulerStatePtr schedulerState,
-                                            SchedulingMapPtr schedulingMap);
+        ~Fixed();
 
-                    virtual DSAResult
-                    getSubChannelWithDSA(RequestForResource& request,
-                                         SchedulerStatePtr schedulerState,
-                                         SchedulingMapPtr schedulingMap);
+        virtual void initialize(SchedulerStatePtr schedulerState,
+                                SchedulingMapPtr schedulingMap);
 
-                    bool requiresCQI() const { return false; };
-                };
+        virtual DSAResult
+        getSubChannelWithDSA(RequestForResource& request,
+                                SchedulerStatePtr schedulerState,
+                                SchedulingMapPtr schedulingMap);
 
-            }}}} // namespace wns::scheduler::strategy::dsastrategy
+        bool requiresCQI() const { return false; };
+    private:
+        std::set<DSAResult, FreqFirst> sortedResources_;
+        std::map<unsigned int, std::set<DSAResult>::iterator > resStart_;
+        std::map<unsigned int, int > resAmount_;
+    };
+
+}}}} // namespace wns::scheduler::strategy::dsastrategy
 #endif // WNS_SCHEDULER_DSASTRATEGY_FIXED_HPP
