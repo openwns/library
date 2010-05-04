@@ -187,10 +187,16 @@ ReorderingWindow::onTReorderingExpired()
 
     if (vrUH_ > vrUR_)
     {
-        wns::simulator::getEventScheduler()->scheduleDelay(boost::lambda::bind(&ReorderingWindow::onTReorderingExpired, this), tReordering_);
+        reorderingTimer_ = wns::simulator::getEventScheduler()->scheduleDelay(boost::lambda::bind(&ReorderingWindow::onTReorderingExpired, this), tReordering_);
         vrUX_ = vrUH_;
         MESSAGE_SINGLE(NORMAL, logger_, "onTReorderingExpired: tReordering started (vrUX = " << vrUX_ << ")");
     }
+    else
+    {
+        MESSAGE_SINGLE(VERBOSE, logger_, "onTReorderingExpired: Clearing reorderingTimer handle");
+        reorderingTimer_ = wns::events::scheduler::IEventPtr();
+    }
+        
 }
 
 void

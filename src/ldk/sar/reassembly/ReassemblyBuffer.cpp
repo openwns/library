@@ -73,7 +73,9 @@ ReassemblyBuffer::getNextExpectedSN()
 bool
 ReassemblyBuffer::isNextExpectedSegment(const wns::ldk::CompoundPtr& c)
 {
-    if (isEmpty() && readCommand(c)->getBeginFlag())
+    // accept if the buffer is empty and either the begin flag is set
+    // or the segment contains at least one other SDU which must be the beginning of a fragment
+    if (isEmpty() && (readCommand(c)->getBeginFlag() || readCommand(c)->peer.pdus_.size() > 1))
     {
         return true;
     }
@@ -97,7 +99,9 @@ ReassemblyBuffer::accepts(const wns::ldk::CompoundPtr& c)
     SegAndConcatCommand* command = NULL;
     command = readCommand(c);
 
-    if (isEmpty() && command->getBeginFlag())
+    // accept if the buffer is empty and either the begin flag is set
+    // or the segment contains at least one other SDU which must be the beginning of a fragment
+    if (isEmpty() && (readCommand(c)->getBeginFlag() || readCommand(c)->peer.pdus_.size() > 1))
     {
         return true;
     }
@@ -111,6 +115,14 @@ void
 ReassemblyBuffer::insert(wns::ldk::CompoundPtr c)
 {
     assure(accepts(c), "Trying to insert an unacceptable compound");
+
+    if(isEmpty() && !readCommand(c)->getBeginFlag())
+    {
+        assure(readCommand(c)->peer.pdus_.size() > 1, "Buffer Emtpy, isBegin flag set to false and segment contains only fragments of one SDU: should have been dropped by accepts()");
+        readCommand(c)->peer.pdus_.pop_front();
+        readCommand(c)->setBeginFlag();
+    }
+
     buffer_.push_back(c);
 
     integrityCheck();
