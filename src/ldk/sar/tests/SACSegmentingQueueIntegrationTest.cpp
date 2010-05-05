@@ -35,8 +35,10 @@
 #include <WNS/scheduler/tests/RegistryProxyStub.hpp>
 #include <WNS/ldk/helper/FakePDU.hpp>
 #include <WNS/pyconfig/Parser.hpp>
+#include <WNS/events/NoOp.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>
+
 
 #define NEWPDU wns::ldk::helper::FakePDUPtr(new wns::ldk::helper::FakePDU())
 
@@ -49,6 +51,10 @@ class SACSegmentingQueueIntegrationTest:
     CPPUNIT_TEST( testIncomingOneSegment );
     CPPUNIT_TEST( testIncomingTwoSegments );
     CPPUNIT_TEST( testIncomingFourSegments );
+    CPPUNIT_TEST( testFirstSegmentLost );
+    CPPUNIT_TEST( testSecondSegmentLost );
+    CPPUNIT_TEST( testThirdSegmentLost );
+    CPPUNIT_TEST( testClearingTReordering );
     CPPUNIT_TEST_SUITE_END();
 
     wns::ldk::ILayer* layer_;
@@ -59,6 +65,12 @@ class SACSegmentingQueueIntegrationTest:
     wns::scheduler::queue::SegmentingQueue* segmentingQueue_;
     wns::ldk::tools::Stub* lower_;
     wns::scheduler::tests::RegistryProxyStub* registryProxy_;
+
+    wns::ldk::CompoundPtr compoundA;
+    wns::ldk::CompoundPtr compoundB;
+    wns::ldk::CompoundPtr compoundC;
+    wns::ldk::CompoundPtr compoundD;
+
 
 public:
 
@@ -82,6 +94,21 @@ public:
 
     void
     testIncomingFourSegments();
+
+    void
+    prepareFourCompounds();
+
+    void
+    testFirstSegmentLost();
+
+    void
+    testSecondSegmentLost();
+
+    void
+    testThirdSegmentLost();
+
+    void
+    testClearingTReordering();
 
     std::string alternateConfiguration;
 };
@@ -116,6 +143,7 @@ void SACSegmentingQueueIntegrationTest::latePrepare()
             "testee = SegAndConcat(segmentSize=24, headerSize=16, commandName=\"testee\")\n"
             "testee.logger.level = 3\n"
             "testee.isSegmenting = False\n"
+            "testee.reorderingWindow.tReordering = 0.015"
         );
 
         wns::pyconfig::View configView(config, "testee");
@@ -292,4 +320,281 @@ SACSegmentingQueueIntegrationTest::testIncomingFourSegments()
     lower_->onData(c);
 
     CPPUNIT_ASSERT_EQUAL((size_t) 1, upper_->received.size());
+}
+
+
+
+/*
+
+  We add 4 PDUs A (70 bits), B (80 bits), C (90 bits), D (50 bits) to
+  the queue and set the fixed header size to 16 and the extension
+  header size to 8 bits.
+
+  What the queue shows is the "brutto" bits and they are computed
+  taking one full header and 3 extension headers: (16 + 70) + (8 + 80) +
+  (8 + 90) + (8 + 50) = 330 bits
+
+  When we take segments out, the first SDU is supposed to have a 16bit
+  header and subsequent SDUs (fragments) in the same segment take an
+  additional 8 bits.
+
+  Now we ask for the first 126 bits so we get (16 + 70) + (8 + 32) =
+  126 which is the complete 70 bits of PDU A and 32 bits of PDU B with
+  a fixed header and an extension header.
+
+  Now we ask for the next 126 bits and get (16 + 48) + (8 + 54) = 126
+  which is the remaining 48 bits of PDU B and the first 54 bits of PDU C
+  again with a fixed header and an extension header.
+
+  Now we ask for the next 126 bits and get (16 + 36) + (8 + 50) = 110
+  bits which is the rest of PDU C and the complete PDU D of only 50 bits
+  again with a fixed header and an extension header.
+
+
+ Segment 1    Segment 2      Segment 3
++----------+ +------------+ +----------+
+| A    | B1| | B2  | C1   | | C2 |  D  |
++----------* +------------+ +----------+
+
+If segment 1 is lost, we want to be able to retrieve C and D. If
+segment 2 is lost, we want to see A and D and if segement 3 is lost,
+we expect A nd B.
+
+*/
+
+void
+SACSegmentingQueueIntegrationTest::prepareFourCompounds()
+{
+    // compound A
+    wns::ldk::helper::FakePDUPtr innerPDUA = NEWPDU;
+    innerPDUA->setLengthInBits(70);
+    compoundA = wns::ldk::CompoundPtr(new wns::ldk::Compound(fuNet_->createCommandPool(), innerPDUA));
+    registryProxy_->setCIDforPDU(compoundA, 1);
+    segmentingQueue_->put(compoundA);
+
+     // compound B
+    wns::ldk::helper::FakePDUPtr innerPDUB = NEWPDU;
+    innerPDUB->setLengthInBits(80);
+    compoundB =  wns::ldk::CompoundPtr(new wns::ldk::Compound(fuNet_->createCommandPool(), innerPDUB));
+    registryProxy_->setCIDforPDU(compoundB, 1);
+    segmentingQueue_->put(compoundB);
+
+     // compound C
+    wns::ldk::helper::FakePDUPtr innerPDUC = NEWPDU;
+    innerPDUC->setLengthInBits(90);
+    compoundC =  wns::ldk::CompoundPtr(new wns::ldk::Compound(fuNet_->createCommandPool(), innerPDUC));
+    registryProxy_->setCIDforPDU(compoundC, 1);
+    segmentingQueue_->put(compoundC);
+
+     // compound D
+    wns::ldk::helper::FakePDUPtr innerPDUD = NEWPDU;
+    innerPDUD->setLengthInBits(50);
+    compoundD =  wns::ldk::CompoundPtr(new wns::ldk::Compound(fuNet_->createCommandPool(), innerPDUD));
+    registryProxy_->setCIDforPDU(compoundD, 1);
+    segmentingQueue_->put(compoundD);
+}
+
+void
+SACSegmentingQueueIntegrationTest::testFirstSegmentLost()
+{
+    latePrepare();
+    prepareFourCompounds();
+
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), lower_->sent.size());
+
+    CPPUNIT_ASSERT(segmentingQueue_->queueHasPDUs(1)); // queue with CID=1
+
+    // remove the "lost" segment from the queue
+    wns::ldk::CompoundPtr lost = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 126, lost->getLengthInBits());
+    wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+    wns::simulator::getEventScheduler()->processOneEvent();
+
+    // now at t=0.001, second segement arrives
+    wns::ldk::CompoundPtr segment2 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 126, segment2->getLengthInBits());
+    lower_->onData(segment2);
+
+    // no complete SDU in there, nothing to be received
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
+
+    // now at t=0.002, third segement arrives
+    wns::ldk::CompoundPtr segment3 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 110, segment3->getLengthInBits());
+    lower_->onData(segment3);
+
+    // make sure queue is empty:
+    CPPUNIT_ASSERT(!segmentingQueue_->queueHasPDUs(1));
+
+    // with segment 1 lost, only SDUs C and D should arrive but not until tReordering has expired
+    // at t=0.002 nothing has arrived:
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
+
+    // after tReordering == 0.015 the SDUs C and D are retrieved:
+    wns::simulator::getEventScheduler()->processOneEvent();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL((double)wns::simulator::getEventScheduler()->getTime(), (double) 0.016, 0.00001);
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, upper_->received.size());
+    CPPUNIT_ASSERT_EQUAL(compoundC->getLengthInBits(), upper_->received.front()->getLengthInBits()); // PDU C of size 90
+    CPPUNIT_ASSERT_EQUAL(compoundD->getLengthInBits(), upper_->received.back()->getLengthInBits()); // PDU D of size 50
+}
+
+void
+SACSegmentingQueueIntegrationTest::testSecondSegmentLost()
+{
+    latePrepare();
+    prepareFourCompounds();
+
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), lower_->sent.size());
+
+    CPPUNIT_ASSERT(segmentingQueue_->queueHasPDUs(1)); // queue with CID=1
+
+    // get the first segment from the queue
+    wns::ldk::CompoundPtr segment1 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 126, segment1->getLengthInBits());
+    lower_->onData(segment1);
+
+    wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+    wns::simulator::getEventScheduler()->processOneEvent();
+
+    // complete SDU A should have already arrived
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, upper_->received.size());
+    CPPUNIT_ASSERT_EQUAL(compoundA->getLengthInBits(), upper_->received.front()->getLengthInBits()); // SDU A with 70 bits
+
+    // now at t=0.001, take the "lost" segement out of the queue
+    wns::ldk::CompoundPtr lost = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 126, lost->getLengthInBits());
+
+
+    wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+    wns::simulator::getEventScheduler()->processOneEvent();
+
+    // now at t=0.002, third segement arrives
+    wns::ldk::CompoundPtr segment3 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 110, segment3->getLengthInBits());
+    lower_->onData(segment3);
+
+    // as segment 2 was lost, only SDU A should have arrived until tReorder expires
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, upper_->received.size());
+
+    // after tReordering == 0.015 the SDUs D is retrieved in addition to A
+    wns::simulator::getEventScheduler()->processOneEvent();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL((double)wns::simulator::getEventScheduler()->getTime(), (double) 0.017, 0.00001);
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, upper_->received.size());
+    CPPUNIT_ASSERT_EQUAL(compoundA->getLengthInBits(), upper_->received.front()->getLengthInBits()); // SDU A with 70 bits
+    CPPUNIT_ASSERT_EQUAL(compoundD->getLengthInBits(), upper_->received.back()->getLengthInBits()); // SDU D with 50 bits
+}
+
+void
+SACSegmentingQueueIntegrationTest::testThirdSegmentLost()
+{
+    latePrepare();
+    prepareFourCompounds();
+
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), lower_->sent.size());
+
+    CPPUNIT_ASSERT(segmentingQueue_->queueHasPDUs(1)); // queue with CID=1
+
+    // get the first segment from the queue
+    wns::ldk::CompoundPtr segment1 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 126, segment1->getLengthInBits());
+    lower_->onData(segment1);
+
+    wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+    wns::simulator::getEventScheduler()->processOneEvent();
+
+    // complete SDU A should have already arrived
+    CPPUNIT_ASSERT_EQUAL(compoundA->getLengthInBits(), upper_->received.front()->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((size_t) 1, upper_->received.size());
+
+     // now at t=0.001, second segement arrives
+    wns::ldk::CompoundPtr segment2 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 126, segment2->getLengthInBits());
+    lower_->onData(segment2);
+
+    // now SDU A and B should be received:
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, upper_->received.size());
+    CPPUNIT_ASSERT_EQUAL(compoundA->getLengthInBits(), upper_->received.front()->getLengthInBits()); // SDU A with 70 bits
+    CPPUNIT_ASSERT_EQUAL(compoundB->getLengthInBits(), upper_->received.back()->getLengthInBits()); // SDU B with 80 bits
+    wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+    wns::simulator::getEventScheduler()->processOneEvent();
+
+    // now at t=0.002, third segement gets lost
+    wns::ldk::CompoundPtr lost = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 110, lost->getLengthInBits());
+
+    // as segment 3 was lost, no tReorder timer was started
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, upper_->received.size());
+}
+
+void
+SACSegmentingQueueIntegrationTest::testClearingTReordering()
+{
+    // here we want to test if the t-reordering timer gets cleared
+    // after the first expiration
+
+    latePrepare();
+    prepareFourCompounds();
+
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), lower_->sent.size());
+
+    CPPUNIT_ASSERT(segmentingQueue_->queueHasPDUs(1)); // queue with CID=1
+
+    // get the first segment from the queue which is lost, this affects PDU A
+    wns::ldk::CompoundPtr lost = segmentingQueue_->getHeadOfLinePDUSegment(1, 80);
+    CPPUNIT_ASSERT_EQUAL((Bit) 80, lost->getLengthInBits());
+
+    wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+    wns::simulator::getEventScheduler()->processOneEvent();
+
+    // nothing should have arrived
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
+
+    // now at t=0.001, second segement arrives which should trigger t-reordering timer
+    // this segement contains the rest of A, the entire B and some C bits
+    wns::ldk::CompoundPtr segment2 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
+    CPPUNIT_ASSERT_EQUAL((Bit) 126, segment2->getLengthInBits());
+    lower_->onData(segment2);
+
+    // nothing should have arrived
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
+
+    // make the simulation time jump to t-reorder timer expiration
+    wns::simulator::getEventScheduler()->processOneEvent();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL((double)wns::simulator::getEventScheduler()->getTime(), (double) 0.016, 0.00001);
+
+    // now we should see PDU B
+    CPPUNIT_ASSERT_EQUAL(compoundB->getLengthInBits(), upper_->received.front()->getLengthInBits()); // SDU B with 80 bits
+
+
+    // now at t=0.016, we get a third segment which contains some C bits
+    wns::ldk::CompoundPtr segment3 = segmentingQueue_->getHeadOfLinePDUSegment(1, 30);
+    CPPUNIT_ASSERT_EQUAL((Bit) 30, segment3->getLengthInBits());
+    lower_->onData(segment3);
+
+    // we should still only see 1 PDU:
+     CPPUNIT_ASSERT_EQUAL((size_t) 1, upper_->received.size());
+
+     wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+     wns::simulator::getEventScheduler()->processOneEvent();
+
+     // now at t=0.017, we get a fourth segment which contains some C bits that go lost
+    wns::ldk::CompoundPtr lost2 = segmentingQueue_->getHeadOfLinePDUSegment(1, 30);
+    CPPUNIT_ASSERT_EQUAL((Bit) 30, lost2->getLengthInBits());
+
+    wns::simulator::getEventScheduler()->scheduleDelay(events::NoOp(), 0.001);
+    wns::simulator::getEventScheduler()->processOneEvent();
+
+    // now at t=0.018, we get a fifth segment which contains the rest of C and all D
+    wns::ldk::CompoundPtr segment5 = segmentingQueue_->getHeadOfLinePDUSegment(1, 128);
+    CPPUNIT_ASSERT_EQUAL((Bit) 128, segment5->getLengthInBits());
+    lower_->onData(segment5);
+
+    // this should start t-reordering again, which should expire 0.015s later::
+    wns::simulator::getEventScheduler()->processOneEvent();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL((double)wns::simulator::getEventScheduler()->getTime(), (double) 0.033, 0.00001);
+
+    // now SDU D should also be receibed:
+    CPPUNIT_ASSERT_EQUAL((size_t) 2, upper_->received.size());
+    CPPUNIT_ASSERT_EQUAL(compoundB->getLengthInBits(), upper_->received.front()->getLengthInBits()); // SDU B with 80 bits
+    CPPUNIT_ASSERT_EQUAL(compoundD->getLengthInBits(), upper_->received.back()->getLengthInBits()); // SDU D with 50 bits
 }
