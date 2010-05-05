@@ -101,7 +101,7 @@ DSAStrategy::getCompoundDuration(RequestForResource& request) const
 } // getCompoundDuration
 
 int
-DSAStrategy::getBeamForSubChannel(int subChannel,
+DSAStrategy::getSpatialLayerForSubChannel(int subChannel,
 				  int timeSlot,
 				  RequestForResource& request,
 				  SchedulerStatePtr schedulerState,

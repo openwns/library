@@ -180,7 +180,7 @@ BestCapacity::getSubChannelWithDSA(RequestForResource& request,
                             = (*channelQualitiesOnAllSubBands)[tryThisSubChannel];
                         if (channelIsUsable(tryThisSubChannel, tryThisTimeSlot, request, schedulerState, schedulingMap))
                         {
-                            spatialLayer = getBeamForSubChannel(tryThisSubChannel, tryThisTimeSlot, request, schedulerState, schedulingMap);
+                            spatialLayer = getSpatialLayerForSubChannel(tryThisSubChannel, tryThisTimeSlot, request, schedulerState, schedulingMap);
                         }
                         else
                         {

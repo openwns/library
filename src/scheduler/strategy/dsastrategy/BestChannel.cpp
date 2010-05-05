@@ -195,7 +195,7 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
         return dsaResult; // empty with subChannel=DSAsubChannelNotFound
     } else {
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel);
-        spatialLayer = getBeamForSubChannel(subChannel, timeSlot, request, schedulerState, schedulingMap);
+        spatialLayer = getSpatialLayerForSubChannel(subChannel, timeSlot, request, schedulerState, schedulingMap);
         userInfo.lastUsedSubChannel = subChannel;
         dsaResult.subChannel = subChannel;
         dsaResult.spatialLayer = spatialLayer;

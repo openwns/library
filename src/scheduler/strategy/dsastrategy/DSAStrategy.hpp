@@ -64,7 +64,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
 
                     /** @brief true if requested PDU can be scheduled on that subChannel */
                     int
-                    getBeamForSubChannel(int subChannel,
+                    getSpatialLayerForSubChannel(int subChannel,
                                          int timeSlot,
                                          RequestForResource& request,
                                          SchedulerStatePtr schedulerState,
