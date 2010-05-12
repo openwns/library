@@ -35,13 +35,13 @@ using namespace wns::scheduler::strategy;
 StrategyInput::StrategyInput(int _fChannels,
                              double _slotLength,
                              int _numberOfTimeSlots,
-                             int _maxBeams,
+                             int _maxSpatialLayers,
                              CallBackInterface* _callBackObject)
     : fChannels(_fChannels),
       slotLength(_slotLength),
       numberOfTimeSlots(_numberOfTimeSlots), // TODO
-      beamforming(_maxBeams>1), // in the old strategies we assume "beamforming" if maxBeams>1.
-      maxBeams(_maxBeams),
+      beamforming(_maxSpatialLayers>1), // in the old strategies we assume "beamforming" if maxSpatialLayers>1.
+      maxSpatialLayers(_maxSpatialLayers),
       callBackObject(_callBackObject),
       mapInfoEntryFromMaster(), // empty SmartPtr
       frameNr(-1)
@@ -58,7 +58,7 @@ StrategyInput::StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
       slotLength(_mapInfoEntryFromMaster->end - _mapInfoEntryFromMaster->start),
       beamforming(false),
       numberOfTimeSlots(1),
-      maxBeams(1),
+      maxSpatialLayers(1),
       callBackObject(_callBackObject),
       mapInfoEntryFromMaster(_mapInfoEntryFromMaster), // SmartPtr
       inputSchedulingMap(), // SmartPtr
@@ -73,14 +73,14 @@ StrategyInput::StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
 StrategyInput::StrategyInput(int _fChannels,
                              double _slotLength,
                              int _numberOfTimeSlots,
-                             int _maxBeams,
+                             int _maxSpatialLayers,
                              MapInfoEntryPtr _mapInfoEntryFromMaster,
                              CallBackInterface* _callBackObject)
     : fChannels(_fChannels),
       slotLength(_slotLength),
       numberOfTimeSlots(_numberOfTimeSlots),
-      beamforming(_maxBeams>1), // in the old strategies we assume "beamforming" if maxBeams>1.
-      maxBeams(_maxBeams),
+      beamforming(_maxSpatialLayers>1), // in the old strategies we assume "beamforming" if maxSpatialLayers>1.
+      maxSpatialLayers(_maxSpatialLayers),
       callBackObject(_callBackObject),
       mapInfoEntryFromMaster(_mapInfoEntryFromMaster), // SmartPtr
       frameNr(-1)
@@ -125,7 +125,7 @@ StrategyInput::toString() const
     s << "\tfChannels="<<fChannels<<std::endl;
     s << "\tslotLength="<<slotLength<<std::endl;
     s << "\ttimeSlots="<<numberOfTimeSlots<<std::endl;
-    s << "\tmaxBeams="<<maxBeams<<std::endl;
+    s << "\tmaxSpatialLayers="<<maxSpatialLayers<<std::endl;
     s << "\tcallBackObject="<<callBackObject<<std::endl;
     //s << "\t"<<std::endl;
     return s.str();
@@ -136,7 +136,7 @@ StrategyInput::getEmptySchedulingMap() const
 {
     // make SmartPtr here
     SchedulingMapPtr schedulingMap = wns::scheduler::SchedulingMapPtr(
-        new wns::scheduler::SchedulingMap(slotLength, fChannels, numberOfTimeSlots, maxBeams, frameNr));
+        new wns::scheduler::SchedulingMap(slotLength, fChannels, numberOfTimeSlots, maxSpatialLayers, frameNr));
     return schedulingMap;
 }
 
@@ -224,12 +224,12 @@ StrategyResult::getResourceUsage() const
 void
 StrategyInterface::startScheduling(int fChannels,
                                    //int numberOfTimeSlots,
-                                   int maxBeams,
+                                   int maxSpatialLayers,
                                    double slotLength,
                                    CallBackInterface* parent)
 {
     int numberOfTimeSlots=1; // old strategies don't support (more) numberOfTimeSlots
-    StrategyInput strategyInput(fChannels, slotLength, numberOfTimeSlots, maxBeams, MapInfoEntryPtr(), parent);
+    StrategyInput strategyInput(fChannels, slotLength, numberOfTimeSlots, maxSpatialLayers, MapInfoEntryPtr(), parent);
     startScheduling(strategyInput);
 }
 

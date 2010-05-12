@@ -67,6 +67,13 @@ namespace wns { namespace ldk {
                 addToReceptorRegistry(PORTID().name, &upper_);
             }
 
+            HasReceptor(const HasReceptor& other)
+                : ReceptorRegistry(),
+                  upper_()
+            {
+                addToReceptorRegistry(PORTID().name, &upper_);
+            }
+
             HasReceptor(ReceptorRegistry* rr)
                 : ReceptorRegistry(),
                   upper_()

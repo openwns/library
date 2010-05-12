@@ -165,7 +165,7 @@ Context::getInt(const std::string& key) const
         throw up;
     }
 
-    int32_t value = PyInt_AsLong(pyValue);
+    long int value = PyInt_AsLong(pyValue);
 
     Py_DECREF(pyKey);
 

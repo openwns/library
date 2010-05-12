@@ -34,14 +34,23 @@ namespace wns { namespace ldk {
         public:
             HasConnectorReceptacle(CLASS* fu)
                 : ConnectorReceptacleRegistry(),
-                  connectorReceptacle_(fu)
+                  connectorReceptacle_(new ConnectorReceptacle(fu))
             {
-                addToConnectorReceptacleRegistry(PORTID().name, &connectorReceptacle_);
+                addToConnectorReceptacleRegistry(PORTID().name, connectorReceptacle_);
+            }
+
+            HasConnectorReceptacle(const HasConnectorReceptacle&)
+            {
+                wns::Exception e;
+                e << "The copy constructor of class HasConnectorReceptacle must not be called!";
+                throw e;
             }
 
             virtual
             ~HasConnectorReceptacle()
-            {}
+            {
+                delete connectorReceptacle_;
+            }
 
             class ConnectorReceptacle
                 : public virtual IConnectorReceptacle
@@ -93,7 +102,7 @@ namespace wns { namespace ldk {
             HasConnectorReceptacle()
             {}
 
-            ConnectorReceptacle connectorReceptacle_;
+            ConnectorReceptacle* connectorReceptacle_;
         };
 
 
@@ -110,9 +119,14 @@ namespace wns { namespace ldk {
                 addToConnectorReceptacleRegistry(SinglePort().name, this);
             }
 
-            HasConnectorReceptacle(CLASS* fu)
-                : ConnectorReceptacleRegistry(),
-                  fu_(fu)
+            HasConnectorReceptacle(FunctionalUnit*)
+                : ConnectorReceptacleRegistry()
+            {
+                addToConnectorReceptacleRegistry(SinglePort().name, this);
+            }
+
+            HasConnectorReceptacle(const HasConnectorReceptacle&)
+                : ConnectorReceptacleRegistry()
             {
                 addToConnectorReceptacleRegistry(SinglePort().name, this);
             }
@@ -138,9 +152,6 @@ namespace wns { namespace ldk {
             {
                 return dynamic_cast<CLASS*>(this);
             }
-
-        private:
-            CLASS* fu_;
         };
 
 

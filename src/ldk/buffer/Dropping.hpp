@@ -119,7 +119,7 @@ namespace wns { namespace ldk { namespace buffer {
 		public fu::Plain<Dropping>,
 		public Delayed<Dropping>
 	{
-		typedef uint32_t PDUCounter;
+		typedef unsigned long int PDUCounter;
 
 	public:
 
@@ -160,18 +160,18 @@ namespace wns { namespace ldk { namespace buffer {
 		//
 		// Buffer interface
 		//
-		virtual uint32_t
+		virtual unsigned long int
 		getSize();
 
-		virtual uint32_t
+		virtual unsigned long int
 		getMaxSize();
 
 	protected:
 		dropping::ContainerType buffer;
 
 	private:
-		uint32_t maxSize;
-		uint32_t currentSize;
+		unsigned long int maxSize;
+		unsigned long int currentSize;
 
 		std::auto_ptr<SizeCalculator> sizeCalculator;
 		std::auto_ptr<dropping::Drop> dropper;

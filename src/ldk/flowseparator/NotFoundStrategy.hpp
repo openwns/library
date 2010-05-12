@@ -58,6 +58,10 @@ namespace wns { namespace ldk { namespace flowseparator {
 		 */
 		virtual void
 		onFUNCreated() = 0;
+
+            virtual FunctionalUnit*
+            createPrototype() const = 0;
+
 	}; // class NotFoundStrategy
 
 	/**
@@ -75,6 +79,9 @@ namespace wns { namespace ldk { namespace flowseparator {
 
 		FunctionalUnit*
 		ifNotFound(const ConstKeyPtr& key) const;
+
+            FunctionalUnit*
+            createPrototype() const;
 
 		void
 		onFUNCreated();
@@ -96,6 +103,10 @@ namespace wns { namespace ldk { namespace flowseparator {
 		~CreateOnFirstCompound();
 
 		FunctionalUnit* ifNotFound(const ConstKeyPtr& key) const;
+
+            FunctionalUnit*
+            createPrototype() const;
+
 		void onFUNCreated();
 
 	private:
@@ -121,6 +132,9 @@ namespace wns { namespace ldk { namespace flowseparator {
 
 		virtual
 		~CreateOnValidFlow();
+
+            FunctionalUnit*
+            createPrototype() const;
 
 		FunctionalUnit*
 		ifNotFound(const ConstKeyPtr& key) const;

@@ -34,14 +34,14 @@ using namespace wns::ldk::buffer;
 using namespace wns::ldk::buffer::sizecalculators;
 
 // Size calculation stategies
-uint32_t
+unsigned long int
 PerPDU::operator()(const CompoundPtr& /* pdu */) const
 {
 	return 1;
 }
 STATIC_FACTORY_REGISTER(PerPDU, SizeCalculator, "PDU");
 
-uint32_t
+unsigned long int
 PerBit::operator()(const CompoundPtr& compound) const
 {
 	return compound->getLengthInBits();
@@ -64,7 +64,7 @@ Buffer::Buffer(fun::FUN* _fun, const pyconfig::View& _config) :
 	for (int ii = 0; ii<_config.len("localIDs.keys()"); ++ii)
 	{
 		std::string key = _config.get<std::string>("localIDs.keys()",ii);
-		uint32_t value  = _config.get<uint32_t>("localIDs.values()",ii);
+		unsigned long int value  = _config.get<unsigned long int>("localIDs.values()",ii);
 		localContext.addProvider( wns::probe::bus::contextprovider::Constant(key, value) );
 	}
 

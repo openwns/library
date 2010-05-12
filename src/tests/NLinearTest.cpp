@@ -197,13 +197,13 @@ NLinearTest::Bilinear::ValueType NLinearTest::bilinearInterpolation(const NLinea
     const Linear::InitType::ValueType& fQ22 = m[x2][y2];
     // R1 = (x, y1), R2 = (x, y2)
     const Bilinear::ValueType fR1 = (x1 == x2) ? fQ11 :
-                                      ((x - x2)/(double)(int32_t)(x1 - x2)) * fQ11
-				    + ((x - x1)/(double)(int32_t)(x2 - x1)) * fQ21;
+                                      ((x - x2)/(double)(long int)(x1 - x2)) * fQ11
+				    + ((x - x1)/(double)(long int)(x2 - x1)) * fQ21;
     const Bilinear::ValueType fR2 = (x1 == x2) ? fQ12 :
-                                      ((x - x2)/(double)(int32_t)(x1 - x2)) * fQ12
-				    + ((x - x1)/(double)(int32_t)(x2 - x1)) * fQ22;
-    return (y1 == y2) ? fR1 : ((y - y2)/(double)(int32_t)(y1 - y2)) * fR1
-                            + ((y - y1)/(double)(int32_t)(y2 - y1)) * fR2;
+                                      ((x - x2)/(double)(long int)(x1 - x2)) * fQ12
+				    + ((x - x1)/(double)(long int)(x2 - x1)) * fQ22;
+    return (y1 == y2) ? fR1 : ((y - y2)/(double)(long int)(y1 - y2)) * fR1
+                            + ((y - y1)/(double)(long int)(y2 - y1)) * fR2;
 }
 
 NLinearTest::Trilinear::ValueType NLinearTest::trilinearInterpolation(const NLinearTest::Trilinear::CoordType& x,

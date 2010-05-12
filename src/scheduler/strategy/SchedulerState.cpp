@@ -58,7 +58,7 @@ RequestForResource::RequestForResource(ConnectionID _cid, UserID _user, Bits _bi
       phyModePtr(), // empty means undefined, still open, freely selectable
       subChannel(wns::scheduler::subChannelNotFound),
       timeSlot(0),
-      beam(0),
+      spatialLayer(0),
       cqiOnSubChannel()
 {
 }

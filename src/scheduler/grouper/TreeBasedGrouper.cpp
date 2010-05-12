@@ -98,7 +98,7 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 				meanBsInterference += colleagues.registry->estimateRxSINROf(*user).I;
 			}
 			assure(combination.size() == group.size(), "we estimate SINRs for a different set of users than we were asked to do");
-			meanBsInterference /= static_cast<unsigned int>(combination.size());
+			meanBsInterference /= static_cast<unsigned long int>(combination.size());
 
 			candis = friends.ofdmaProvider->calculateCandIsRx(combination, meanBsInterference);
 		}
@@ -200,7 +200,7 @@ TreeBasedGrouper::convertTreeLevelToGrouping(TreeLevel level, ModeType mode)
 				     user != users.end(); ++user) {
 					meanBsInterference += colleagues.registry->estimateRxSINROf(*user).I;
 				}
-				meanBsInterference /= static_cast<unsigned int>(users.size());
+				meanBsInterference /= static_cast<unsigned long int>(users.size());
 
 				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
 					calculateAndSetBeam(usersInGroup[d], undesireds, meanBsInterference);

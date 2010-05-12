@@ -62,7 +62,7 @@ namespace wns { namespace evaluation { namespace statistics {
 
                 PDF(double minXValue,
                     double maxXValue,
-                    uint32_t resolution,
+                    unsigned long int resolution,
                     scaleType scaleType,
                     formatType format,
                     std::string name,
@@ -98,7 +98,7 @@ namespace wns { namespace evaluation { namespace statistics {
                  * @brief Return statistical information of the given interval
                  */
                 void
-                getResult(uint32_t index,
+                getResult(unsigned long int index,
                           double& abscissa,
                           double& f,
                           double& G,
@@ -107,14 +107,14 @@ namespace wns { namespace evaluation { namespace statistics {
                 /**
                  * @brief Calculate the index in the array for the given Value
                  */
-                uint32_t
+                unsigned long int
                 getIndex(double value) const;
 
                 /**
                  * @brief Calculate the abscissa value for the given index
                  */
                 double
-                getAbscissa(uint32_t index) const;
+                getAbscissa(unsigned long int index) const;
 
                 class PercentileError : public std::exception
                 {};
@@ -151,7 +151,7 @@ namespace wns { namespace evaluation { namespace statistics {
                 /**
                  * @brief Resolution of the x-axis
                  */
-                uint32_t resolution_;
+                unsigned long int resolution_;
 
                 /**
                  * @breif Scale of the x-axis

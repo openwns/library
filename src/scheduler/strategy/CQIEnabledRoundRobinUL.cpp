@@ -81,9 +81,9 @@ CQIEnabledRoundRobinUL::getRemainedTxPower(int /*channel*/, double beginTime, wn
 }
 
 void
-CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 {
-	MESSAGE_SINGLE(NORMAL, logger,"CQIEnabledRoundRobinUL::startScheduling("<< "fChannels="<<fChannels<< ",maxBeams="<<maxBeams<<",slotLength="<<slotLength<<")");
+	MESSAGE_SINGLE(NORMAL, logger,"CQIEnabledRoundRobinUL::startScheduling("<< "fChannels="<<fChannels<< ",maxSpatialLayers="<<maxSpatialLayers<<",slotLength="<<slotLength<<")");
 
 	assure(dynamic_cast<queue::QueueInterface*>(colleagues.queue), "Need access to the queue");
 	assure(dynamic_cast<grouper::GroupingProviderInterface*>(colleagues.grouper), "Need access to the grouper");
@@ -95,15 +95,15 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 	if (activeUsers.empty()) { return; }
 
 	// We are going to schedule a burst for every user
-	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxBeams);
+	Grouping grouping = colleagues.grouper->getRxGrouping(activeUsers, maxSpatialLayers);
 
 	// We give every group the same amount of overall blocks and
 	//distribute them over all the subbands,
-	uint32_t numGroups = grouping.groups.size();
-	uint32_t blocksPerChannel = uint32_t(slotLength / this->blockDuration);
-	//uint32_t blocksPerChannel = uint32_t( (slotLength + slotLengthRoundingTolerance) / this->blockDuration); // TODO
-	uint32_t totalBlocks = fChannels * blocksPerChannel;
-	uint32_t blocksPerGroup = uint32_t(totalBlocks / numGroups);
+	unsigned long int numGroups = grouping.groups.size();
+	unsigned long int blocksPerChannel = (unsigned long int)(slotLength / this->blockDuration);
+	//unsigned long int blocksPerChannel = unsigned long int( (slotLength + slotLengthRoundingTolerance) / this->blockDuration); // TODO
+	unsigned long int totalBlocks = fChannels * blocksPerChannel;
+	unsigned long int blocksPerGroup = (unsigned long int)(totalBlocks / numGroups);
 
 	assure(blocksPerGroup >= 1, "Not enough Resource Allocation Blocks or too many Spatial Groups to allow CQIEnabledRoundRobinUL Scheduling");
 
@@ -126,7 +126,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 	for(int i = 0; i < fChannels; i++)
 	{
 		used[i] = new bool[blocksPerChannel];
-		for(uint32_t j = 0; j < blocksPerChannel; j++ )
+		for(unsigned long int j = 0; j < blocksPerChannel; j++ )
 		{
 			used[i][j] = false;
 		}
@@ -160,7 +160,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 
 		MESSAGE_SINGLE(NORMAL, logger,"PowerLimit for "<<colleagues.registry->getNameForUser(userInGroup)<<": maxSummedPower: "<<maxSummedPower<<" maxPowerPerSubChannel="<< maxPowerPerSubChannel<<" nominalPowerPerSubChannel="<<nominalPowerPerSubChannel);
 
-		uint32_t blocksRemaining = blocksPerGroup;
+		unsigned long int blocksRemaining = blocksPerGroup;
 		// SmartPtr:
 		ChannelQualitiesOnAllSubBandsPtr channelQualities = colleagues.registry->getChannelQualities4UserOnUplink(userInGroup, 0/*frameNr*/);
 
@@ -186,12 +186,12 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 				    continue;
 				}
 
-				for(uint32_t j = 0; j < blocksPerChannel; j++ )
+				for(unsigned long int j = 0; j < blocksPerChannel; j++ )
 				{
 					if(used[currentChannel][j] == false)
 					{
 						simTimeType burstStart = j * blockDuration;
-						uint32_t numBlocks = blocksPerChannel - j;
+						unsigned long int numBlocks = blocksPerChannel - j;
 
 						//the number of  remaining blocks of this user is less  than the rest bloks on this channel
 						if (blocksRemaining < numBlocks)
@@ -232,7 +232,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 						}
 
 						assure(phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyModePtr=NULL");
-						int beam = 0;
+						int spatialLayer = 0;
 
 						// for every user we provide one MapInfoEntry and tell the parent to set
 						// the timingcommand for the dummy pdu so that the patterns get set
@@ -264,7 +264,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 								      burstEnd,
 								      user,
 								      pdu,
-								      beam,
+								      spatialLayer,
 								      grouping.patterns[user],
 								      currentBurst,
 								      *phyModePtr,
@@ -273,7 +273,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 
 							MESSAGE_SINGLE(NORMAL, logger,"Channel: "<<currentChannel<<" PhyMode: "<<  *phyModePtr<<" txPower: "<<requiredTxPower<<" startT: "<<burstStart<<" endT: "<<burstEnd);
 
-							for(uint32_t k = j; k < numBlocks; k++)
+							for(unsigned long int k = j; k < numBlocks; k++)
 							{
 								used[currentChannel][k] = true;
 							}
@@ -304,12 +304,12 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 				}
 
 				int currentChannel = i;
-				for(uint32_t j = 0; j < blocksPerChannel; j++)
+				for(unsigned long int j = 0; j < blocksPerChannel; j++)
 				{
 					if(used[currentChannel][j] == false)
 					{
 						simTimeType burstStart = j * blockDuration;
-						uint32_t numBlocks = blocksPerChannel - j;
+						unsigned long int numBlocks = blocksPerChannel - j;
 
 						if (blocksRemaining < numBlocks)
 						{
@@ -336,7 +336,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 							requiredTxPower = (nominalPowerPerSubChannel > remainedTxPowerOnAllChannels ? remainedTxPowerOnAllChannels : nominalPowerPerSubChannel );
 						}
 
-						int beam = 0;
+						int spatialLayer = 0;
 						// for every user we provide one MapInfoEntry and tell the parent to set
 						// the timingcommand for the dummy pdu so that the patterns get set
 
@@ -369,7 +369,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 								      burstEnd,
 								      user,
 								      pdu,
-								      beam,
+								      spatialLayer,
 								      grouping.patterns[user],
 								      currentBurst,
 								      *phyMode,
@@ -378,7 +378,7 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 
 							MESSAGE_SINGLE(NORMAL, logger,"Channel: "<<currentChannel<<" PhyMode: "<< phyMode<<" txPower: "<<requiredTxPower<<" startT: "<<burstStart<<" endT: "<<burstEnd);
 
-							for(uint32_t k = j; k < numBlocks; k++)
+							for(unsigned long int k = j; k < numBlocks; k++)
 							{
 								used[currentChannel][k] = true;
 							}

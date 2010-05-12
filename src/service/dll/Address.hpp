@@ -61,7 +61,7 @@ namespace wns { namespace service { namespace dll {
 		/**
 		 * @brief Used to mark invalid addresses
 		 */
-		static const int32_t invalid;
+		static const long int invalid;
 
 		/**
 		 * @brief Address will be intialized to UnicastAddres::invalid
@@ -69,10 +69,10 @@ namespace wns { namespace service { namespace dll {
 		UnicastAddress();
 
 		/**
-		 * @brief Construct Address from int32_t
+		 * @brief Construct Address from long int
 		 */
 		explicit
-		UnicastAddress(int32_t _address);
+		UnicastAddress(long int _address);
 
 		/**
 		 * @brief Destructor
@@ -114,7 +114,7 @@ namespace wns { namespace service { namespace dll {
 		friend std::istream&
 		operator>>(std::istream &str, UnicastAddress& address)
 		{
-			int32_t tmp;
+			long int tmp;
 			str >> tmp;
 
 			address.address = tmp;
@@ -136,14 +136,14 @@ namespace wns { namespace service { namespace dll {
 		/**
 		 * @brief Returns the internal representation (for SDL)
 		 */
-		int32_t
+		long int
 		getInteger() const;
 
 	private:
 		/**
 		 * @brief Internal representation
 		 */
-		int32_t address;
+		long int address;
 	}; // UnicastAddress
 
 	/**

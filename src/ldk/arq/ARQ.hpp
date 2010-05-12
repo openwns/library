@@ -63,7 +63,7 @@ namespace wns { namespace ldk { namespace arq {
 		 * @note This sequence number does not wrap around, as normal
 		 * sequence numbers in a real ARQ implementation would do.
 		 */
-		typedef int64_t SequenceNumber;
+		typedef long long int SequenceNumber;
 
 		virtual bool
 		isACK() const = 0;
@@ -255,7 +255,7 @@ namespace wns { namespace ldk { namespace arq {
 // 		 *
 // 		 * @intern This method enables different implementations of
 // 		 * sequence numbers. For the implementation we're currently
-// 		 * using (int64_t) the method is very easy. For real sequence
+// 		 * using (long long int) the method is very easy. For real sequence
 // 		 * numbers, that warp around, it's a little bit harder (see
 // 		 * commented code below).
 // 		 */

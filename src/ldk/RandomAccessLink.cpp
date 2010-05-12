@@ -49,7 +49,7 @@ RandomAccessLink::clear()
 }
 
 
-uint32_t
+unsigned long int
 RandomAccessLink::size() const
 {
 	return fus.size();

@@ -62,7 +62,7 @@ void SimpleQueue::setFUN(wns::ldk::fun::FUN* fun)
     for (int ii = 0; ii<config.len("localIDs.keys()"); ++ii)
     {
         std::string key = config.get<std::string>("localIDs.keys()",ii);
-        uint32_t value  = config.get<uint32_t>("localIDs.values()",ii);
+        unsigned long int value  = config.get<unsigned long int>("localIDs.values()",ii);
         localContext.addProvider( wns::probe::bus::contextprovider::Constant(key, value) );
     }
     probeContextProviderForCid  = new wns::probe::bus::contextprovider::Variable("cid", 0);
@@ -161,7 +161,7 @@ SimpleQueue::getActiveConnections() const
     return result;
 }
 
-uint32_t
+unsigned long int
 SimpleQueue::numCompoundsForCid(ConnectionID cid) const
 {
     QueueContainer::const_iterator iter = queues.find(cid);
@@ -169,7 +169,7 @@ SimpleQueue::numCompoundsForCid(ConnectionID cid) const
     return iter->second.pduQueue.size();
 }
 
-uint32_t
+unsigned long int
 SimpleQueue::numBitsForCid(ConnectionID cid) const
 {
     QueueContainer::const_iterator iter = queues.find(cid);

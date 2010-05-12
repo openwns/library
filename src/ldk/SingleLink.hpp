@@ -68,7 +68,7 @@ namespace wns { namespace ldk {
                 rec = it;
             }
 
-            virtual size_t
+            virtual unsigned long int
             size() const
             {
                 return rec == NULL ? 0 : 1;

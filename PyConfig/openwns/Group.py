@@ -25,9 +25,16 @@
 #
 ###############################################################################
 
+import openwns.FUN
 from openwns.pyconfig import attrsetter
 
-class Group(object):
+class PortConnector(object):
+    def __init__(self, fuName, fuPort, groupPort):
+        self.fuName = fuName
+        self.fuPort = fuPort
+        self.groupPort = groupPort
+
+class Group(openwns.FUN.FunctionalUnit):
     __plugin__ = "wns.Group"
     name = "Group"
 
@@ -40,9 +47,16 @@ class Group(object):
     bottom = None
     """Bottom FU in the SubFUN"""
 
-    def __init__(self, fun, top, bottom, **kw):
+    def __init__(self, fun, top = None, bottom = None, **kw):
+        super(Group, self).__init__()
         self.fun = fun
         self.top = top
         self.bottom = bottom
+
+        self.topPorts = []
+        """Contains a list of PortConnectors"""
+
+        self.bottomPorts = []
+        """Contains a list of PortConnectors"""
 
         attrsetter(self, kw)

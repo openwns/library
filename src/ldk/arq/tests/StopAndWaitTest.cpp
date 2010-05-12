@@ -185,7 +185,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 
 		getLowerStub()->onData(compound);
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(0), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(0), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(2), compoundsSent());
 	} // sendOnAck
 

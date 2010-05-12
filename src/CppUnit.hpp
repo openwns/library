@@ -79,7 +79,7 @@ namespace wns {
 	void assertMeanValue(
 		double expected,
 		SAMPLEGENERATOR& sampleGenerator,
-		uint32_t maxTrials,
+		unsigned long int maxTrials,
 		const std::string sourceFile,
 		const std::string sourceLine)
 	{

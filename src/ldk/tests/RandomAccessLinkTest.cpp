@@ -102,11 +102,11 @@ RandomAccessLinkTest::cleanup()
 void
 RandomAccessLinkTest::testAdd()
 {
-        CPPUNIT_ASSERT_EQUAL(size_t(0), candidate->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(0), candidate->size());
         candidate->add(fu1);
-        CPPUNIT_ASSERT_EQUAL(size_t(1), candidate->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(1), candidate->size());
         candidate->add(fu2);
-        CPPUNIT_ASSERT_EQUAL(size_t(2), candidate->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(2), candidate->size());
 } // testAdd
 
 
@@ -116,7 +116,7 @@ RandomAccessLinkTest::testClear()
         candidate->add(fu1);
         candidate->add(fu2);
         candidate->clear();
-        CPPUNIT_ASSERT_EQUAL(size_t(0), candidate->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(0), candidate->size());
 } // testClear
 
 

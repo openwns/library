@@ -93,9 +93,9 @@ void Power_RatioTest::testArithmeticPowerOperators()
 	CPPUNIT_ASSERT( ( p_res == p2) );
 	p_res = p1 * (float)10;
 	CPPUNIT_ASSERT( ( p_res == p2) );
-	p_res = p1 * (int32_t)10;
+	p_res = p1 * (long int)10;
 	CPPUNIT_ASSERT( ( p_res == p2) );
-	p_res = p1 * (uint32_t)10;
+	p_res = p1 * (unsigned long int)10;
 	CPPUNIT_ASSERT( ( p_res == p2) );
 
 	p_res.set_mW(1.0);
@@ -105,10 +105,10 @@ void Power_RatioTest::testArithmeticPowerOperators()
 	p_res *= (float)10;
 	CPPUNIT_ASSERT( ( p_res == p2) );
 	p_res.set_mW(1.0);
-	p_res *= (int32_t)10;
+	p_res *= (long int)10;
 	CPPUNIT_ASSERT( ( p_res == p2) );
 	p_res.set_mW(1.0);
-	p_res *= (uint32_t)10;
+	p_res *= (unsigned long int)10;
 	CPPUNIT_ASSERT( ( p_res == p2) );
 	p_res.set_mW(1.0);
 
@@ -116,9 +116,9 @@ void Power_RatioTest::testArithmeticPowerOperators()
 	CPPUNIT_ASSERT( ( p_res == p1) );
 	p_res = p2 / (float)10;
 	CPPUNIT_ASSERT( ( p_res == p1) );
-	p_res = p2 / (int32_t)10;
+	p_res = p2 / (long int)10;
 	CPPUNIT_ASSERT( ( p_res == p1) );
-	p_res = p2 / (uint32_t)10;
+	p_res = p2 / (unsigned long int)10;
 	CPPUNIT_ASSERT( ( p_res == p1) );
 
 	p3 = p1 + p2;

@@ -50,7 +50,7 @@ namespace wns { namespace ldk { namespace buffer {
 		typedef wns::Creator<SizeCalculator> Creator;
 		typedef wns::StaticFactory<Creator> Factory;
 
-		virtual uint32_t
+		virtual unsigned long int
 		operator()(const CompoundPtr& compound) const = 0;
 
 		virtual
@@ -68,7 +68,7 @@ namespace wns { namespace ldk { namespace buffer {
 			public SizeCalculator,
 			public Cloneable<PerPDU>
 		{
-			virtual uint32_t
+			virtual unsigned long int
 			operator()(const CompoundPtr& compound) const;
 		};
 
@@ -76,7 +76,7 @@ namespace wns { namespace ldk { namespace buffer {
 			public SizeCalculator,
 			public Cloneable<PerBit>
 		{
-			virtual uint32_t
+			virtual unsigned long int
 			operator()(const CompoundPtr& compound) const;
 		};
 	}
@@ -89,7 +89,7 @@ namespace wns { namespace ldk { namespace buffer {
 		virtual public FunctionalUnit,
 		public events::PeriodicTimeout
 	{
-		typedef uint32_t PDUCounter;
+		typedef unsigned long int PDUCounter;
 
 	public:
 		Buffer(fun::FUN* fuNet, const pyconfig::View& config);
@@ -100,10 +100,10 @@ namespace wns { namespace ldk { namespace buffer {
 		virtual void
 		onFunCreated();
 
-		virtual uint32_t
+		virtual unsigned long int
 		getSize() = 0;
 
-		virtual uint32_t
+		virtual unsigned long int
 		getMaxSize() = 0;
 
 	protected:

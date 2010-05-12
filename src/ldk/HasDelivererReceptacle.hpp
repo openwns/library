@@ -34,14 +34,23 @@ namespace wns { namespace ldk {
         public:
             HasDelivererReceptacle(CLASS* fu)
                 : DelivererReceptacleRegistry(),
-                  delivererReceptacle_(fu)
+                  delivererReceptacle_(new DelivererReceptacle(fu))
             {
-                addToDelivererReceptacleRegistry(PORTID().name, &delivererReceptacle_);
+                addToDelivererReceptacleRegistry(PORTID().name, delivererReceptacle_);
+            }
+
+            HasDelivererReceptacle(const HasDelivererReceptacle&)
+            {
+                wns::Exception e;
+                e << "The copy constructor of class HasDelivererReceptacle must not be called!";
+                throw e;
             }
 
             virtual
             ~HasDelivererReceptacle()
-            {}
+            {
+                delete delivererReceptacle_;
+            }
 
             class DelivererReceptacle
                 : public virtual IDelivererReceptacle
@@ -81,7 +90,7 @@ namespace wns { namespace ldk {
             HasDelivererReceptacle()
             {}
 
-            DelivererReceptacle delivererReceptacle_;
+            DelivererReceptacle* delivererReceptacle_;
         };
 
 
@@ -98,9 +107,14 @@ namespace wns { namespace ldk {
                 addToDelivererReceptacleRegistry(SinglePort().name, this);
             }
 
-            HasDelivererReceptacle(FunctionalUnit* fu)
-                : DelivererReceptacleRegistry(),
-                  fu_(fu)
+            HasDelivererReceptacle(FunctionalUnit*)
+                : DelivererReceptacleRegistry()
+            {
+                addToDelivererReceptacleRegistry(SinglePort().name, this);
+            }
+
+            HasDelivererReceptacle(const HasDelivererReceptacle&)
+                : DelivererReceptacleRegistry()
             {
                 addToDelivererReceptacleRegistry(SinglePort().name, this);
             }
@@ -120,9 +134,6 @@ namespace wns { namespace ldk {
             {
                 return dynamic_cast<CLASS*>(this);
             }
-
-        private:
-            CLASS* fu_;
         };
 
 

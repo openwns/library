@@ -66,6 +66,8 @@
 
 #include <boost/program_options/value_semantic.hpp>
 
+#include <sys/times.h>
+
 #include <csignal>
 #include <dlfcn.h>
 #include <iomanip>
@@ -296,7 +298,7 @@ Application::doInit()
 		}
 	}
 
-	int32_t nModules = wnsView.len("modules");
+	long int nModules = wnsView.len("modules");
 	for(int i=0; i<nModules; ++i)
 	{
 		moduleViews_.push_back(wnsView.getView("modules", i));
@@ -323,7 +325,10 @@ Application::doInit()
         this->statusReport.writeStatus(false);
 
     }
-
+    // register CPU cycles probe
+    cpuCyclesProbe_ = wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(
+            wnsView.get<std::string>("cpuCyclesProbeBusName")));
 }
 
 void
@@ -459,13 +464,22 @@ Application::doRun()
 CALLGRIND_START_INSTRUMENTATION;
 #endif
 
+        struct tms start, stop;
+        times(&start);
+
     	wns::simulator::getEventScheduler()->start();
+
+        times(&stop);
+        cpuCyclesProbe_->put(stop.tms_utime - start.tms_utime);
 
 
 #ifdef CALLGRIND
 // Stop tracing profiling information
 CALLGRIND_STOP_INSTRUMENTATION;
 #endif
+
+        MESSAGE_SINGLE(NORMAL, logger_, "Sending shutdown signal");
+        (*wns::simulator::getShutdownSignal())();
 
         // shutdown the simulation if it has been created before
         if (simulationModel_.get() != NULL)

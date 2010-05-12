@@ -176,7 +176,7 @@ Moments::getConfidenceIntervalMean(double x) const
     }
 
     double std = sqrt(this->variance());
-    uint32_t n = this->trials();
+    unsigned long int n = this->trials();
 
     double cimu = (2*x*std)/(sqrt(n));
     return cimu;

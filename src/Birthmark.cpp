@@ -31,7 +31,7 @@
 using namespace wns;
 
 
-int64_t Birthmark::globalId = 0;
+long long int Birthmark::globalId = 0;
 
 
 Birthmark::Birthmark() :

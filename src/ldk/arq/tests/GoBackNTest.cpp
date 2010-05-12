@@ -215,7 +215,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 			getUpperStub()->sendData(getFUN()->createCompound());
 
 		CPPUNIT_ASSERT_EQUAL(1, (int) buffer->getSize() );
-		CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize));
+		CPPUNIT_ASSERT(compoundsSent() == (unsigned long int)(windowSize));
 	} // fillWindow
 
 
@@ -226,13 +226,13 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 			getUpperStub()->sendData(getFUN()->createCompound());
 
 		CPPUNIT_ASSERT_EQUAL(1, (int) buffer->getSize() );
-		CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize));
+		CPPUNIT_ASSERT(compoundsSent() == (unsigned long int)(windowSize));
 
 		CompoundPtr ackFrame = createACKFrame(getLowerStub()->sent[0]);
 		getLowerStub()->onData(ackFrame);
 
 		CPPUNIT_ASSERT_EQUAL(0, (int) buffer->getSize() );
-		CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize + 1));
+		CPPUNIT_ASSERT(compoundsSent() == (unsigned long int)(windowSize + 1));
 	} // sendOnAck
 
 
@@ -242,7 +242,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		for (int i = 0; i < 3*windowSize+1 ; i++)
 			getUpperStub()->sendData(getFUN()->createCompound());
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(2*windowSize+1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(2*windowSize+1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(windowSize), compoundsSent());
 
 		for (int i = 0; i < windowSize; i++){
@@ -250,7 +250,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 			getLowerStub()->onData(ackFrame);
 		}
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(windowSize+1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(windowSize+1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(2*windowSize), compoundsSent());
 
 		for (int i = 0; i < windowSize; i++){
@@ -258,7 +258,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 			getLowerStub()->onData(ackFrame);
 		}
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(3*windowSize), compoundsSent());
 	} // multipleFillWindow
 
@@ -395,7 +395,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		// ^ one frame too many for arq
 		// buffer is above arq and stores frames that don't fit into arq
 		CPPUNIT_ASSERT_EQUAL(1, (int) buffer->getSize() );
-		CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize));
+		CPPUNIT_ASSERT(compoundsSent() == (unsigned long int)(windowSize));
 
 		// send an out-of-sequence ACK (the third, index 2)
 		// this implicitely acks 0+1+2
@@ -404,8 +404,8 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		// -> LA=2
 
 		CPPUNIT_ASSERT_EQUAL(0, (int) buffer->getSize() );
-		//CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize) + 1);
-		CPPUNIT_ASSERT_EQUAL( (int) uint32_t(windowSize) + 1, (int) compoundsSent() );
+		//CPPUNIT_ASSERT(compoundsSent() == unsigned long int(windowSize) + 1);
+		CPPUNIT_ASSERT_EQUAL( (int)(windowSize) + 1, (int) compoundsSent() );
 		// no retransmission for GoBackN
 	} // outOfSeqRetransmission
 
@@ -596,7 +596,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		ARQCommand::SequenceNumber missingSN(0);
 		getLowerStub()->onData(createIFrame(missingSN));
 
-		CPPUNIT_ASSERT( compoundsSent()     == uint32_t(windowSize)); // all NAK/ACKs sent?
+		CPPUNIT_ASSERT( compoundsSent()     == (unsigned long int)(windowSize)); // all NAK/ACKs sent?
 		CPPUNIT_ASSERT( compoundsDelivered() == 1); // 1 Frames delivered?
 	} // outOfSeqIFrames
 
@@ -688,13 +688,13 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		for (int i = 0; i < windowSize; i++)
 			getLowerStub()->onData(getLowerStub()->sent[i]);
 
-		CPPUNIT_ASSERT_EQUAL(uint32_t(windowSize+1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL((unsigned long int)(windowSize+1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), getUpperStub()->received.size());
 
 		for (int i = 0; i < windowSize; i++)
 			getLowerStub()->onData(getLowerStub()->sent[i+windowSize]);
 
-		CPPUNIT_ASSERT_EQUAL(uint32_t(1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL((unsigned long int)(1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), getUpperStub()->received.size());
 
 		getTestee<GoBackN>()->doDeliver();

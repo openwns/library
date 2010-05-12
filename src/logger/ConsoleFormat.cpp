@@ -81,7 +81,7 @@ std::string ConsoleFormat::highlightModuleName(const std::string& module)
 
 std::string ConsoleFormat::formatMessage(const RawMessage& m)
 {
-	int32_t n;
+	long int n;
 
 	std::stringstream formattedMessage;
 	formattedMessage << "("
@@ -110,7 +110,7 @@ std::string ConsoleFormat::formatMessage(const RawMessage& m)
 
 	// insert spaces after each "\n" to have a nice output
         std::string ret = formattedMessage.str();
-	uint32_t i = 0;
+	unsigned long int i = 0;
 	while ((i = ret.find("\n", i) + 1) < ret.length())
 	{
 		ret.insert(i, std::string(15 + debugTimeWidth + currentLocationLength, ' '));

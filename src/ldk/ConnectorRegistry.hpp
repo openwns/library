@@ -28,20 +28,37 @@ namespace wns { namespace ldk {
                 : theRegistry_()
             {}
 
+            ConnectorRegistry(const ConnectorRegistry&)
+                : theRegistry_()
+            {}
+
             virtual
             ~ConnectorRegistry()
             {}
 
             Connector*
-            getFromConnectorRegistry(std::string portname)
+            getFromConnectorRegistry(std::string portname) const
             {
                 return theRegistry_.find(portname);
+            }
+
+            std::list<std::string>
+            getKeysFromConnectorRegistry() const
+            {
+                return theRegistry_.keys();
             }
 
             void
             addToConnectorRegistry(std::string portname, Connector* cr)
             {
                 theRegistry_.insert(portname, cr);
+            }
+
+        protected:
+            void
+            updateConnectorRegistry(const std::string portname, Connector* cr)
+            {
+                theRegistry_.update(portname, cr);
             }
 
         private:

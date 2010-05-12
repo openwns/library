@@ -152,10 +152,10 @@ SegAndConcatTest::testOutgoingOneSegment()
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), lower_->sent.size());
 
     // Full segment + 16 bit header = 40 bit
-    CPPUNIT_ASSERT_EQUAL(40, lower_->sent[0]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(40), lower_->sent[0]->getLengthInBits());
     SegAndConcatCommand* command = testee_->getCommand(lower_->sent[0]);
 
-    CPPUNIT_ASSERT_EQUAL(24, command->peer.dataSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(24), command->peer.dataSize_);
     CPPUNIT_ASSERT_EQUAL(true, command->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(true, command->getEndFlag());
 }
@@ -173,18 +173,18 @@ SegAndConcatTest::testOutgoingTwoSegments()
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(2), lower_->sent.size());
 
     // Full segment + 16 bit header = 40 bit
-    CPPUNIT_ASSERT_EQUAL(40, lower_->sent[0]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(40), lower_->sent[0]->getLengthInBits());
     SegAndConcatCommand* command = testee_->getCommand(lower_->sent[0]);
 
-    CPPUNIT_ASSERT_EQUAL(24, command->peer.dataSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(24), command->peer.dataSize_);
     CPPUNIT_ASSERT_EQUAL(true, command->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(false, command->getEndFlag());
 
     // Last segment of size 22 bit + 16 bit header = 38 bit
-    CPPUNIT_ASSERT_EQUAL(38, lower_->sent[1]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(38), lower_->sent[1]->getLengthInBits());
     command = testee_->getCommand(lower_->sent[1]);
 
-    CPPUNIT_ASSERT_EQUAL(22, command->peer.dataSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(22), command->peer.dataSize_);
     CPPUNIT_ASSERT_EQUAL(false, command->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(true, command->getEndFlag());
 }
@@ -202,26 +202,26 @@ SegAndConcatTest::testOutgoingThreeSegments()
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(3), lower_->sent.size());
 
     // Full segment + 16 bit header = 40 bit
-    CPPUNIT_ASSERT_EQUAL(40, lower_->sent[0]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(40), lower_->sent[0]->getLengthInBits());
     SegAndConcatCommand* command = testee_->getCommand(lower_->sent[0]);
 
-    CPPUNIT_ASSERT_EQUAL(24, command->peer.dataSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(24), command->peer.dataSize_);
     CPPUNIT_ASSERT_EQUAL(true, command->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(false, command->getEndFlag());
 
     // Full segment + 16 bit header = 40 bit
-    CPPUNIT_ASSERT_EQUAL(40, lower_->sent[1]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(40), lower_->sent[1]->getLengthInBits());
     command = testee_->getCommand(lower_->sent[1]);
 
-    CPPUNIT_ASSERT_EQUAL(24, command->peer.dataSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(24), command->peer.dataSize_);
     CPPUNIT_ASSERT_EQUAL(false, command->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(false, command->getEndFlag());
 
     // Last segment of size 22 bit + 16 bit header = 38 bit
-    CPPUNIT_ASSERT_EQUAL(38, lower_->sent[2]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(38), lower_->sent[2]->getLengthInBits());
     command = testee_->getCommand(lower_->sent[2]);
 
-    CPPUNIT_ASSERT_EQUAL(22, command->peer.dataSize_);
+    CPPUNIT_ASSERT_EQUAL(Bit(22), command->peer.dataSize_);
     CPPUNIT_ASSERT_EQUAL(false, command->getBeginFlag());
     CPPUNIT_ASSERT_EQUAL(true, command->getEndFlag());
 }
@@ -269,7 +269,7 @@ SegAndConcatTest::testReassembly()
     lower_->onData(lower_->sent[0]);
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), upper_->received.size());
 
-    CPPUNIT_ASSERT_EQUAL(70, upper_->received[0]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(70), upper_->received[0]->getLengthInBits());
 }
 
 void
@@ -359,7 +359,7 @@ SegAndConcatTest::testMissingSegments()
     lower_->onData(lower_->sent[19]);
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), upper_->received.size());
 
-    CPPUNIT_ASSERT_EQUAL(90, upper_->received[0]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(90), upper_->received[0]->getLengthInBits());
 }
 
 void
@@ -404,5 +404,5 @@ SegAndConcatTest::testMissingSegmentsTimeout()
     lower_->onData(lower_->sent[5]);
     CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), upper_->received.size());
 
-    CPPUNIT_ASSERT_EQUAL(90, upper_->received[0]->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(90), upper_->received[0]->getLengthInBits());
 }

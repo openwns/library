@@ -164,14 +164,14 @@ namespace wns { namespace scheduler { namespace queue {
                  * Returns the number of Compounds the Queue has stored for a
                  * certain user
                  */
-                virtual uint32_t numCompoundsForCid(ConnectionID cid) const = 0;
+                virtual unsigned long int numCompoundsForCid(ConnectionID cid) const = 0;
 
                 /**
                  * @brief
                  *
                  * Returns the number of Bits schedules for one user
                  */
-                virtual uint32_t numBitsForCid(ConnectionID cid) const = 0;
+                virtual unsigned long int numBitsForCid(ConnectionID cid) const = 0;
 
                 /**
                  * @brief

@@ -38,13 +38,13 @@ ResultsContainer::callBack(MapInfoEntryPtr mapInfoEntry)
   simTimeType startTime = mapInfoEntry->start;
   simTimeType endTime = mapInfoEntry->end;
   int fSlot = mapInfoEntry->subBand;
-  int beam = mapInfoEntry->beam;
+  int spatialLayer = mapInfoEntry->spatialLayer;
   wns::scheduler::UserID user = mapInfoEntry->user;
   int userID = user->getNodeID();
   std::list<wns::ldk::CompoundPtr> compounds = mapInfoEntry->compounds;
 	if (framePlotting) {
 		*plotFiles[fSlot] << startTime << "\t" << endTime << "\t"
-				  << float(beam) << "\t" << float(userID)/100.0 << "\t\"";
+				  << float(spatialLayer) << "\t" << float(userID)/100.0 << "\t\"";
 		*plotFiles[fSlot] << userID << "\"\n";
 	}
 	// only take first one (assume that it only contains one pdu)
@@ -63,7 +63,7 @@ void ResultsContainer::callBack(unsigned int fSlot,
 				wns::scheduler::UserID /* user */,
 				const wns::ldk::CompoundPtr& pdu,
 				float cidColor,
-				unsigned int beam,
+				unsigned int spatialLayer,
 				wns::service::phy::ofdma::PatternPtr /* pattern */,
 				wns::scheduler::MapInfoEntryPtr /* burst */,
 				const wns::service::phy::phymode::PhyModeInterface& /*phyMode*/,
@@ -73,7 +73,7 @@ void ResultsContainer::callBack(unsigned int fSlot,
 {
 	if (framePlotting) {
 		*plotFiles[fSlot] << startTime << "\t" << endTime << "\t"
-				  << float(beam) << "\t" << cidColor << "\t\"";
+				  << float(spatialLayer) << "\t" << cidColor << "\t\"";
 		if (measureInterference)
 			*plotFiles[fSlot] << int(nearbyint(cidColor*100.0)) << "\"\n";
 		else
@@ -95,7 +95,7 @@ void ResultsContainer::reset()
 }
 
 void ResultsContainer::plotNextFrame(int fChannels,
-				     int maxBeams,
+				     int maxSpatialLayers,
 				     simTimeType slotDuration,
 				     std::string name)
 {
@@ -114,7 +114,7 @@ void ResultsContainer::plotNextFrame(int fChannels,
 	     << name << "\"\n";
 	conf << "[main]\n"
 	     << "FreqChannels=" << plotChannels << "\n"
-	     << "Beams=" << maxBeams << "\n"
+	     << "Beams=" << maxSpatialLayers << "\n"
 	     << "StartTime=0.0\n"
 	     << "EndTime=" << slotDuration << "\n";
 	conf.close();

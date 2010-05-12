@@ -60,8 +60,8 @@ namespace wns { namespace scheduler { namespace queue {
                 UserSet getQueuedUsers() const;
                 ConnectionSet getActiveConnections() const;
 
-                uint32_t numCompoundsForCid(ConnectionID cid) const;
-                uint32_t numBitsForCid(ConnectionID cid) const;
+                unsigned long int numCompoundsForCid(ConnectionID cid) const;
+                unsigned long int numBitsForCid(ConnectionID cid) const;
 
                 QueueStatusContainer getQueueStatus() const;
 

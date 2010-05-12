@@ -59,7 +59,7 @@ LogNormTest::testIt()
   LogNorm dis(config.get("dist"));
 
   Average<double> average;
-  for(int32_t i = 0; i < 1000000; ++i)
+  for(long int i = 0; i < 1000000; ++i)
     {
       average.put((dis)());
     }
@@ -74,7 +74,7 @@ LogNormTest::testVar()
   LogNorm dis = LogNorm(1.0, 2.0);
 
   VarEstimator var;
-  for(int32_t i = 0; i < 5000000; ++i)
+  for(long int i = 0; i < 5000000; ++i)
     {
       var.put(dis());
     }

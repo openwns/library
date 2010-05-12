@@ -221,7 +221,7 @@ namespace wns { namespace node {
 		 * but we need to double check. If an ID is configured
 		 * that is already recorded here, we throw.
 		 */
-		static std::list<uint32_t> ids;
+		static std::list<unsigned long int> ids;
 
 	};
 

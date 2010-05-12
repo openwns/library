@@ -61,10 +61,10 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::scheduler::ConnectionSet 
                 getActiveConnections() const;
 
-                uint32_t 
+                unsigned long int 
                 numCompoundsForCid(wns::scheduler::ConnectionID cid) const;
 
-                uint32_t 
+                unsigned long int 
                 numBitsForCid(wns::scheduler::ConnectionID cid) const;
 
                 wns::scheduler::QueueStatusContainer 

@@ -94,9 +94,9 @@ namespace wns { namespace container { namespace tests {
 		void testReturnReference();
 		void testEqual();
 	private:
-		typedef Matrix<int32_t, 1> Matrix1D;
-		typedef Matrix<int32_t, 2> Matrix2D;
-		typedef Matrix<int32_t, 3> Matrix3D;
+		typedef Matrix<long int, 1> Matrix1D;
+		typedef Matrix<long int, 2> Matrix2D;
+		typedef Matrix<long int, 3> Matrix3D;
 	};
 
 }

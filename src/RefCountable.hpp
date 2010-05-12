@@ -56,7 +56,7 @@ namespace wns {
 		 * @brief Return the current number of SmartPtr pointing to this
 		 * object
 		 */
-		int32_t
+		long int
 		getRefCount() const
 		{
 			return count;
@@ -122,7 +122,7 @@ namespace wns {
 		/**
 		 * @brief Stores the reference count
 		 */
-		mutable int32_t count;
+		mutable long int count;
 	};
 } // wns
 

@@ -41,7 +41,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(PDF,
 
 PDF::PDF(double minXValue,
          double maxXValue,
-         uint32_t resolution,
+         unsigned long int resolution,
          scaleType scaleType,
          formatType format,
          std::string name,
@@ -121,9 +121,9 @@ PDF::print(std::ostream& stream) const
 
     std::string separator;
 
-    uint32_t i = 0;
+    unsigned long int i = 0;
 
-    uint32_t numTrials = 0;
+    unsigned long int numTrials = 0;
 
     double x = 0.0;
     double f = 0.0;
@@ -276,14 +276,14 @@ PDF::put(double value)
 }
 
 
-uint32_t
+unsigned long int
 PDF::getIndex(double value) const
 {
     assert((value >= minXValue_ && value <= maxXValue_) && "Huge, Fat Error!");
 
     if (this->scaleType_ == PDF::linear)
     {
-        return uint32_t(
+        return (unsigned long int)(
             ceil((value - minXValue_) * double(resolution_) /
                  (maxXValue_ - minXValue_)));
     }
@@ -294,7 +294,7 @@ PDF::getIndex(double value) const
         double logValue = log10(value);
         double logXStep = (logXMax - logXMin)/double(resolution_);
 
-        return  uint32_t( ceil ((logValue - logXMin)/logXStep) );
+        return  (unsigned long int)( ceil ((logValue - logXMin)/logXStep) );
     }
 
     throw wns::Exception("Unknown scaleType in PDF!");
@@ -309,7 +309,7 @@ PDF::reset()
 }
 
 double
-PDF::getAbscissa(uint32_t index) const
+PDF::getAbscissa(unsigned long int index) const
 {
     if (this->scaleType_ == PDF::linear)
     {
@@ -403,14 +403,14 @@ PDF::printPercentile(int p, std::ostream& stream) const
 
 
 void
-PDF::getResult(uint32_t index,
+PDF::getResult(unsigned long int index,
                double& abscissa,
                double& F,
                double& G,
                double& P) const
 {
-    uint32_t i;
-    uint32_t numTrials = underFlows_;
+    unsigned long int i;
+    unsigned long int numTrials = underFlows_;
 
     assert(resolution_);
 

@@ -105,7 +105,7 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
     //std::stable_sort(schedulingPar.channelQualities.begin(), schedulingPar.channelQualities.end(),
     //wns::scheduler::strategy::betterChannelQuality());
 
-    int beam=0;
+    int spatialLayer=0;
     bool found  = false;
     bool giveUp = false;
     if (!schedulerState->isTx
@@ -195,10 +195,10 @@ BestChannel::getSubChannelWithDSA(RequestForResource& request,
         return dsaResult; // empty with subChannel=DSAsubChannelNotFound
     } else {
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel);
-        beam = getBeamForSubChannel(subChannel, timeSlot, request, schedulerState, schedulingMap);
+        spatialLayer = getSpatialLayerForSubChannel(subChannel, timeSlot, request, schedulerState, schedulingMap);
         userInfo.lastUsedSubChannel = subChannel;
         dsaResult.subChannel = subChannel;
-        dsaResult.beam = beam;
+        dsaResult.spatialLayer = spatialLayer;
         return dsaResult;
     }
     return dsaResult; // empty with subChannel=DSAsubChannelNotFound

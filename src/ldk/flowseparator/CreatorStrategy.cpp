@@ -71,6 +71,12 @@ PrototypeCreator::create() const
 }
 
 
+FunctionalUnit*
+PrototypeCreator::createPrototype() const
+{
+	return dynamic_cast<FunctionalUnit*>(prototype->clone());
+}
+
 
 ConfigCreator::ConfigCreator(fun::FUN* _fun, const pyconfig::View& _config) :
 	fun(_fun),
@@ -92,5 +98,12 @@ ConfigCreator::create() const
 	FunctionalUnit* fu = FunctionalUnitFactory::creator(creatorName)->create(fun, config);
 	fun->getProxy()->addFunctionalUnit(commandName, fu);
 	fu->onFUNCreated();
+	return fu;
+}
+
+FunctionalUnit*
+ConfigCreator::createPrototype() const
+{
+	FunctionalUnit* fu = FunctionalUnitFactory::creator(creatorName)->create(fun, config);
 	return fu;
 }

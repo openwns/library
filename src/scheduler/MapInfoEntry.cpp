@@ -38,7 +38,7 @@ MapInfoEntry::MapInfoEntry() :
     frameNr(-1),
     subBand(-1),
     timeSlot(0),
-    beam(0),
+    spatialLayer(0),
     txPower(),
     phyModePtr(),
     estimatedCandI(),
@@ -60,7 +60,7 @@ MapInfoEntry::toString() const
     s << "\n\t frameNr:      " << frameNr
       << "\n\t subBand:      " << subBand
       << "\n\t timeSlot:     " << timeSlot
-      << "\n\t beam:         " << beam
+      << "\n\t spatialLayer: " << spatialLayer
       << "\n\t timespan:     [" << start*1e6 << "-" << end*1e6 << "]us";
     s << "\n\t duration:     " << (end-start)*1e6 << "us";
     if (phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr()

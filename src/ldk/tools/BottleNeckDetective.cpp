@@ -105,7 +105,7 @@ BottleNeckDetective::processOutgoing(const CompoundPtr&)
 void
 BottleNeckDetective::processIncoming(const CompoundPtr& compound)
 {
-	int64_t id = this->getCommand(compound->getCommandPool())->magic.id;
+	long long int id = this->getCommand(compound->getCommandPool())->magic.id;
 	BottleNeckDetective* sender = this->getCommand(compound->getCommandPool())->magic.sender;
 	// remove this compound from sender, it's no longer in the FUN
 	sender->compounds.erase(id);
@@ -127,7 +127,7 @@ BottleNeckDetective::periodically()
 		itr != compounds.end();
 		++itr)
 	{
-        if(!itr->second->getJourney().empty())
+        if(itr->second->getJourney().size() > 0)
         {
 		    Visit v = *(itr->second->getJourney().rbegin());
 		    if(countCompounds.find(v.location) != countCompounds.end())

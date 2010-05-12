@@ -69,8 +69,8 @@ namespace wns { namespace ldk { namespace arq {
 		struct {} local;
 		struct {
 			FrameType type;
-			uint32_t NS;
-			uint32_t NR; /// in case of AckPDU the number of the received PDU
+			unsigned long int NS;
+			unsigned long int NR; /// in case of AckPDU the number of the received PDU
 		} peer;
 		struct {} magic;
 
@@ -167,13 +167,13 @@ namespace wns { namespace ldk { namespace arq {
 		///ACK PDU
 		wns::ldk::CompoundPtr ackCompound;
 		/// Window size.
-		uint32_t wS;
+		unsigned long int wS;
 		/// Sequence number of the next packet to be sent.
-		uint32_t NS;
+		unsigned long int NS;
 		/// Sequence number of the first packet expected to  be acknowledged.
-		uint32_t NSack;
+		unsigned long int NSack;
 		/// Sequence number of the next packet expected to be received.
-		uint32_t NR;
+		unsigned long int NR;
 		/// Divisor for Sequence Numbers.
 		int sequenceNumberSize;
 		/// Container for compounds with their Atributes.

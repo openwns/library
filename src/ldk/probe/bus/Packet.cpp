@@ -55,7 +55,7 @@ Packet::Packet(fun::FUN* fuNet, const wns::pyconfig::View& config) :
 	for (int ii = 0; ii<config.len("localIDs.keys()"); ++ii)
 	{
 		std::string key = config.get<std::string>("localIDs.keys()",ii);
-		uint32_t value  = config.get<uint32_t>("localIDs.values()",ii);
+		unsigned long int value  = config.get<unsigned long int>("localIDs.values()",ii);
 		registry.addProvider(wns::probe::bus::contextprovider::Constant(key, value));
 		MESSAGE_SINGLE(VERBOSE, logger, "Using Local IDName '"<<key<<"' with value: "<<value);
 	}
@@ -77,7 +77,7 @@ Packet::processOutgoing(const CompoundPtr& compound)
 	const simTimeType now = wns::simulator::getEventScheduler()->getTime();
 
 	// record that we processed this compound
-	int32_t compoundLength = getLengthInBits(compound);
+	long int compoundLength = getLengthInBits(compound);
 	if(sizeOutgoing)
 		sizeOutgoing->put(compound, compoundLength);
 
@@ -98,7 +98,7 @@ Packet::processIncoming(const CompoundPtr& compound)
 {
 	PacketCommand* command = getCommand(compound->getCommandPool());
 	simTimeType now = wns::simulator::getEventScheduler()->getTime();
-	int32_t compoundLength = getLengthInBits(compound);
+	long int compoundLength = getLengthInBits(compound);
 
 	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
 	m << " sent " << command->magic.t

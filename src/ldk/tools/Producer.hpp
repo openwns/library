@@ -98,7 +98,7 @@ namespace wns { namespace ldk { namespace tools {
 			wakeup();
 		} // doOnData
 
-		uint32_t sent;
+		unsigned long int sent;
 
 	private:
 		//

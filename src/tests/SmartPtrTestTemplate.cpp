@@ -49,7 +49,7 @@ namespace wns { namespace tests {
 			A()
 			{}
 
-			int32_t foo()
+			long int foo()
 			{
 				return 42;
 			};
@@ -186,18 +186,18 @@ namespace wns { namespace tests {
 	void SmartPtrTest::refCountable()
 	{
 		A a;
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(0), a.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(0), a.getRefCount() );
 	}
 
 	void SmartPtrTest::STLContainer()
 	{
 		SmartPtr<A> spt(new A);
 		std::map<SmartPtr<A>, int> container;
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), spt.getPtr()->getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), spt.getPtr()->getRefCount() );
 		container[spt] = 5;
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), spt.getPtr()->getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), spt.getPtr()->getRefCount() );
 		container.clear();
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), spt.getPtr()->getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), spt.getPtr()->getRefCount() );
 	}
 
 	void SmartPtrTest::constructor()
@@ -209,38 +209,38 @@ namespace wns { namespace tests {
 
 		{
 			SmartPtr<A> a(new A);
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), a.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), a.getRefCount() );
 		}
 		{
 			SmartPtr<A> a(new A);
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), a.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), a.getRefCount() );
 			SmartPtr<A> a2(a);
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), a.getRefCount() );
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), a2.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), a.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), a2.getRefCount() );
 		}
 
 		{
 			A* aPtr = new A;
 			SmartPtr<A> a(aPtr);
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), a.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), a.getRefCount() );
 		}
 	}
 
 	void SmartPtrTest::operators()
 	{
 		SmartPtr<A> a(new A);
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(42), a->foo() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(42), a->foo() );
 		SmartPtr<A> a2 = a;
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), a2.getRefCount() );
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), a.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), a2.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), a.getRefCount() );
 		CPPUNIT_ASSERT( a==a2 );
 		a2 = SmartPtr<A>(new A);
 		CPPUNIT_ASSERT( a!=a2 );
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), a2.getRefCount() );
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), a.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), a2.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), a.getRefCount() );
 		A copyOfA = *a;
 		// make sure a copy of the object has refcount 0;
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(0), copyOfA.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(0), copyOfA.getRefCount() );
 
 		CPPUNIT_ASSERT( a );
 		SmartPtr<A> a3;
@@ -254,15 +254,15 @@ namespace wns { namespace tests {
 		CPPUNIT_ASSERT( !destructorHasBeenCalled );
 		{
 			SmartPtr<B> b(bPtr);
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), b.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), b.getRefCount() );
 			CPPUNIT_ASSERT( !destructorHasBeenCalled );
 			{
 				SmartPtr<B> b2 = b;
-				CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), b2.getRefCount() );
-				CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), b.getRefCount() );
+				CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), b2.getRefCount() );
+				CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), b.getRefCount() );
 				CPPUNIT_ASSERT( !destructorHasBeenCalled );
 			}
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), b.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), b.getRefCount() );
 			CPPUNIT_ASSERT( !destructorHasBeenCalled );
 		}
 		CPPUNIT_ASSERT( destructorHasBeenCalled );
@@ -271,7 +271,7 @@ namespace wns { namespace tests {
 		D* dPtr = new D(this);
 		{
 			SmartPtr<D> d(dPtr);
-			CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), d.getRefCount() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), d.getRefCount() );
 		}
 		CPPUNIT_ASSERT( destructorHasBeenCalled );
 	}
@@ -279,13 +279,13 @@ namespace wns { namespace tests {
 	void SmartPtrTest::upCast()
 	{
 		SmartPtr<A> a(new C);
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), a.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), a.getRefCount() );
 		SmartPtr<C> c(new C);
 		CPPUNIT_ASSERT( a!=c );
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), c.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), c.getRefCount() );
 		a = c;
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), a.getRefCount() );
-		CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), c.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), a.getRefCount() );
+		CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), c.getRefCount() );
 		CPPUNIT_ASSERT( a==c );
 	}
 
@@ -394,10 +394,10 @@ namespace wns { namespace tests {
 	  object2->peer = object1;
 	  //std::cout<<"cyclicDependencyTest: object1.getRefCount()="<<object1.getRefCount()<<std::endl;
 	  //std::cout<<"cyclicDependencyTest: object2.getRefCount()="<<object1.getRefCount()<<std::endl;
-	  CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), object1.getRefCount() );
-	  CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(2), object2.getRefCount() );
+	  CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), object1.getRefCount() );
+	  CPPUNIT_ASSERT_EQUAL( static_cast<long int>(2), object2.getRefCount() );
 	  object1 = SmartPtr<F1>(); // empty
-	  CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(1), object2->peer.getRefCount() );
+	  CPPUNIT_ASSERT_EQUAL( static_cast<long int>(1), object2->peer.getRefCount() );
 	  object2 = SmartPtr<F2>(); // empty
 	  // here the SmartPtrs do not call their contained destructors automatically
 	  // because there is a cyclic dependency

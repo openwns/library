@@ -123,7 +123,7 @@ CQIEnabledExhaustiveRR::getBestChannel(ChannelQualitiesOnAllSubBandsPtr channelQ
 	// here we assume that we get channel qualities on all the channels
 	for (unsigned int i = 0; i < channelQualities->size(); i++ )
 	{
-		uint32_t currentChannel = i;
+		unsigned long int currentChannel = i;
 		if (currentChannel < nextFreeSlot.size())
 		{
 			double remainedTimeOnthisChannel = slotLength - nextFreeSlot[currentChannel];
@@ -158,7 +158,7 @@ CQIEnabledExhaustiveRR::getBestChannel(ChannelQualitiesOnAllSubBandsPtr channelQ
 
 
 void
-CQIEnabledExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+CQIEnabledExhaustiveRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 {
 	std::vector<double> nextFreeSlot;
 	std::set<UserID> usersServedThisFrame;
@@ -167,7 +167,7 @@ CQIEnabledExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 
 	MESSAGE_BEGIN(NORMAL, logger, m,"CQIExhaustiveRR::startScheduling called - Tx");
 	m << "\n\t Channels:   " << fChannels
-	  << "\n\t maxBeams:   " << maxBeams
+	  << "\n\t maxSpatialLayers:   " << maxSpatialLayers
 	  << "\n\t slotLength: " << slotLength;
 	MESSAGE_END();
 
@@ -197,7 +197,7 @@ CQIEnabledExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 		if (activeUsers.size() == 0)
 			break;
 
-		Grouping grouping = colleagues.grouper->getTxGrouping(activeUsers, maxBeams);
+		Grouping grouping = colleagues.grouper->getTxGrouping(activeUsers, maxSpatialLayers);
 
 		// extract the users that are actually servable; we need this to assure
 		// some fairness; every user gets a pattern so use the map of patterns
@@ -442,7 +442,7 @@ CQIEnabledExhaustiveRR::doStartScheduling(int fChannels, int maxBeams, simTimeTy
 							      usedTimeOnTheChannel+HoLms[cid],
 							      userInGroup,
 							      pdu,
-							      0,  //0 beams
+							      0,  //0 spatialLayers
 							      grouping.patterns[userInGroup],
 							      currentBurst,
 							      *(mode.first),

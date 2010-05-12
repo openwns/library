@@ -222,7 +222,7 @@ RegistryProxyStub::filterReachable(ConnectionSet connections, const int frameNr)
 }
 
 wns::scheduler::PowerMap
-RegistryProxyStub::calcULResources(const wns::scheduler::UserSet&, uint32_t) const
+RegistryProxyStub::calcULResources(const wns::scheduler::UserSet&, unsigned long int) const
 {
 	return wns::scheduler::PowerMap();
 }

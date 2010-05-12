@@ -71,17 +71,17 @@ namespace wns { namespace ldk { namespace tests {
 		testConstructor()
 		{
                     SingleLink<IConnectorReceptacle> testee;
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(0), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(0), testee.size() );
 		}
 
 		void
 		testSize()
 		{
 			SingleLink<IConnectorReceptacle> testee;
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(0), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(0), testee.size() );
 			tools::FakeFU fu;
 			testee.add(&fu);
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(1), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(1), testee.size() );
 		}
 
 		void
@@ -97,7 +97,7 @@ namespace wns { namespace ldk { namespace tests {
 			SingleLink<IConnectorReceptacle> testee;
 			tools::FakeFU fu;
 			testee.add(&fu);
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(1), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(1), testee.size() );
 		}
 
 		void
@@ -105,7 +105,7 @@ namespace wns { namespace ldk { namespace tests {
 		{
 			SingleLink<IConnectorReceptacle> testee;
 			testee.clear();
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(0), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(0), testee.size() );
 		}
 
 		void
@@ -123,7 +123,7 @@ namespace wns { namespace ldk { namespace tests {
 			tools::FakeFU fu;
 			lec.push_back(&fu);
 			testee.set(lec);
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(1), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(1), testee.size() );
 		}
 
 		void
@@ -144,7 +144,7 @@ namespace wns { namespace ldk { namespace tests {
 			tools::FakeFU fu;
 			testee.add(&fu);
 			testee.clear();
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(0), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(0), testee.size() );
 		}
 
 		void
@@ -166,7 +166,7 @@ namespace wns { namespace ldk { namespace tests {
 			tools::FakeFU fu2;
 			lec.push_back(&fu2);
 			testee.set(lec);
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(1), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(1), testee.size() );
 		}
 
 		void
@@ -179,7 +179,7 @@ namespace wns { namespace ldk { namespace tests {
 			lec.push_back(&fu);
 			lec.push_back(&fu2);
 			WNS_ASSERT_ASSURE_EXCEPTION( testee.set(lec) );
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(0), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(0), testee.size() );
 		}
 
 		void
@@ -194,7 +194,7 @@ namespace wns { namespace ldk { namespace tests {
 			lec.push_back(&fu);
 			lec.push_back(&fu2);
 			WNS_ASSERT_ASSURE_EXCEPTION( testee.set(lec) );
-			CPPUNIT_ASSERT_EQUAL( static_cast<size_t>(1), testee.size() );
+			CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(1), testee.size() );
 			CPPUNIT_ASSERT( &fu3 == testee.get()[0] );
 		}
 

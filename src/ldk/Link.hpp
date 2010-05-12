@@ -25,63 +25,77 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_LDK_LINK_HPP
-#define WNS_LDK_LINK_HPP
+#ifndef WNS_LDK_MULTILINK_HPP
+#define WNS_LDK_MULTILINK_HPP
 
-#include <WNS/ldk/Compound.hpp>
-
-#include <stdint.h>
+#include <WNS/ldk/Link.hpp>
 
 namespace wns { namespace ldk {
-        /**
-         * @brief Link between FUs.
-         *
-         * Link is the base class for all three different types of Links:
-         * Connector, Receptor and Deliverer.
-         *
-         * Every Link may contain a set of FUs, although implementations may choose
-         * to restrict the set size to some fixed values.
-         *
-         */
+
         template <typename RECEPTACLETYPE>
-        class Link
+        class MultiLink
+            : virtual public Link<RECEPTACLETYPE>
         {
         public:
-            typedef std::vector<RECEPTACLETYPE*> ExchangeContainer;
-
-            virtual ~Link()
+            MultiLink()
             {}
 
-            /**
-             * @brief Add a FU to the link set.
-             */
-            virtual void add(RECEPTACLETYPE* it) = 0;
+            virtual
+            ~MultiLink()
+            {}
 
-            /**
-             * @brief Erase all FUs.
-             */
-            virtual void clear() = 0;
+            /// Link interface realization
+            virtual void
+            add(RECEPTACLETYPE* it)
+            {
+                recs.push_back(it);
+            }
 
-            /**
-             * @brief Return number of FUs added.
-             */
-            virtual size_t size() const = 0;
+            virtual void
+            clear()
+            {
+                recs.clear();
+            }
 
-            /**
-             * @brief Return set of stored FUs.
-             */
-            virtual const ExchangeContainer get() const = 0;
+            virtual unsigned long int
+            size() const
+            {
+                return recs.size();
+            }
 
-            /**
-             * @brief Replace the current set of stored FUs.
-             */
-            virtual void set(const ExchangeContainer&) = 0;
+            virtual const typename Link<RECEPTACLETYPE>::ExchangeContainer
+            get() const
+            {
+                typename Link<RECEPTACLETYPE>::ExchangeContainer result;
+
+                for(typename Link<RECEPTACLETYPE>::ExchangeContainer::const_iterator it = recs.begin();
+                    it != recs.end();
+                    ++it)
+                {
+                    result.push_back(*it);
+                }
+
+                return result;
+            }
+
+            virtual void
+            set(const typename Link<RECEPTACLETYPE>::ExchangeContainer& src)
+            {
+                recs.clear();
+
+                for(typename Link<RECEPTACLETYPE>::ExchangeContainer::const_iterator it = src.begin();
+                    it != src.end();
+                    ++it)
+                {
+                    recs.push_back(*it);
+                }
+            }
+
+        protected:
+            typename Link<RECEPTACLETYPE>::ExchangeContainer recs;
         };
-
     } // ldk
 } // wns
 
-
-#endif // NOT defined WNS_LDK_LINK_HPP
-
+#endif // NOT defined  WNS_LDK_MULTILINK_HPP
 

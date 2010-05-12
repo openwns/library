@@ -121,11 +121,11 @@ namespace wns { namespace osi { namespace tests {
         CPPUNIT_ASSERT(NULL == emptyCopyPDU.getUserData());
 
 #ifndef NDEBUG
-        int32_t cnt = PDU::getExistingPDUs();
-        int32_t maxCnt = PDU::getMaxExistingPDUs();
+        long int cnt = PDU::getExistingPDUs();
+        long int maxCnt = PDU::getMaxExistingPDUs();
 
         /*Does a new PDU increase maxCnt*/
-        int32_t inc = 0;
+        long int inc = 0;
         if(maxCnt == cnt)
             inc = 1;
 
@@ -169,7 +169,7 @@ namespace wns { namespace osi { namespace tests {
         testPDU.setPCI(testPCI);
         CPPUNIT_ASSERT_EQUAL(testPCI->getPDUId(), testPDU.getPDUId());
         
-        uint32_t id = testPDU.getPDUId();
+        unsigned long int id = testPDU.getPDUId();
         PDU nextPDU = PDU(new PCI());
         CPPUNIT_ASSERT_EQUAL(id + 1, nextPDU.getPDUId());
     }
@@ -237,11 +237,11 @@ namespace wns { namespace osi { namespace tests {
     void
     PDUTest::DebugInfo()
     {
-        int32_t cnt = PDU::getExistingPDUs();
-        int32_t maxCnt = PDU::getMaxExistingPDUs();
+        long int cnt = PDU::getExistingPDUs();
+        long int maxCnt = PDU::getMaxExistingPDUs();
 
         /*Does a new PDU increase maxCnt*/
-        int32_t inc = 0;
+        long int inc = 0;
         if(maxCnt == cnt)
             inc = 1;
                         

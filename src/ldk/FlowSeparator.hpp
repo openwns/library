@@ -74,7 +74,7 @@ namespace wns { namespace ldk {
 	 * @image html FlowSeparator.png "" width=10cm
 	 */
 	class FlowSeparator :
-		public virtual FunctionalUnit,
+		public FunctionalUnit,
 		public CommandTypeSpecifier<>,
 		public HasReceptor<>,
 		public HasConnector<>,
@@ -100,8 +100,198 @@ namespace wns { namespace ldk {
 			ConstKeyPtr key;
 		};
 
+            template <class RECEPTACLETYPE>
+            class ReceptacleManagement
+            {
+            public:
+                typedef std::map<ConstKeyPtr, RECEPTACLETYPE*, DerefLess<ConstKeyPtr> > ReceptacleContainer;
+
+                ReceptacleManagement(FlowSeparator* fs)
+                    : fs_(fs),
+                      receptacleContainer_()
+                {}
+
+                ~ReceptacleManagement()
+                {}
+
+                void
+                addInstance(const ConstKeyPtr& key, RECEPTACLETYPE* receptacle)
+                {
+                    assure(NULL == getInstance(key),
+                           "trying to add an instance for an already known key.");
+
+                    MESSAGE_BEGIN(NORMAL, fs_->logger, m, fs_->getFUN()->getName());
+                    m <<": Add receptacle for Instance/Flow      Key: "<< key->str()
+                      << ";       FU: " << receptacle->getFU()->getName();
+                    MESSAGE_END();
+
+                    receptacleContainer_[key] = receptacle;
+                }
+
+                void
+                removeInstance(const ConstKeyPtr& key)
+                {
+                    typename ReceptacleContainer::iterator it = receptacleContainer_.find(key);
+                    assure(it != receptacleContainer_.end(),
+                           "trying to disintegrate receptacle for an unknown key.");
+
+                    assure(fs_->instanceBusy != fs_->instances.find(key)->second,
+                            "ReceptacleManagement::removeInstance: Can't remove busy Instance/Flow!");
+
+                    receptacleContainer_.erase(it);
+                }
+
+                RECEPTACLETYPE*
+                getInstance(const ConstKeyPtr& key) const
+                {
+                    typename ReceptacleContainer::const_iterator it = receptacleContainer_.find(key);
+
+                    if(it == receptacleContainer_.end())
+                    {
+                        return NULL;
+                    }
+
+                    return it->second;
+                } // getInstance
+
+                RECEPTACLETYPE*
+                _getInstance(const CompoundPtr& compound, int direction) const
+                {
+                    ConstKeyPtr key = (*(fs_->keyBuilder))(compound, direction);
+
+                    typename ReceptacleContainer::const_iterator it = receptacleContainer_.find(key);
+
+                    if(it == receptacleContainer_.end())
+                    {
+                        throw InstanceNotFound(key);
+                    }
+
+                    MESSAGE_BEGIN(VERBOSE, fs_->logger, m, fs_->getFUN()->getName());
+                    m << ": "
+                      << "reusing instance for key "
+                      << key->str();
+                    MESSAGE_END();
+
+                    return it->second;
+                } // getInstance
+
+                RECEPTACLETYPE*
+                tryGetInstanceAndInsertPermanent(const CompoundPtr& compound, int direction)
+                {
+                    RECEPTACLETYPE* receptacle = NULL;
+                    try
+                    {
+                        receptacle = _getInstance(compound, direction);
+                    }
+                    catch(const InstanceNotFound& ifn)
+                    {
+                        MESSAGE_SINGLE(
+                            VERBOSE,
+                            fs_->logger,
+                            fs_->getFUN()->getName()<<": " <<
+                            "adding new instance for key (" <<
+                            ifn.key->str() <<
+                            ") permanently to FlowSeparator");
+                        fs_->addInstance(ifn.key);
+
+                        // try, if we now get the missing instance
+                        try
+                        {
+                            receptacle = _getInstance(compound, direction);
+                        }
+                        catch(const InstanceNotFound& ifn)
+                        {
+                            wns::Exception e;
+                            e << "Creation of new instance failed";
+                            throw e;
+                        }
+                    }
+                    // throw on
+                    catch(...)
+                    {
+                        throw;
+                    }
+                    return receptacle;
+                }
+
+            protected:
+                FlowSeparator* fs_;
+                ReceptacleContainer receptacleContainer_;
+            };
+
+            class ConnectorReceptacleSeparator
+                : public ReceptacleManagement<IConnectorReceptacle>,
+                  public IConnectorReceptacle
+            {
+            public:
+
+                ConnectorReceptacleSeparator(FlowSeparator* fs, std::string portname);
+                ~ConnectorReceptacleSeparator();
+
+                virtual void
+                sendData(const CompoundPtr& compound);
+
+                virtual void
+                doSendData(const CompoundPtr& compound);
+
+                virtual bool
+                isAccepting(const CompoundPtr& compound);
+
+                virtual bool
+                doIsAccepting(const CompoundPtr& compound) const;
+
+                virtual FunctionalUnit*
+                getFU();
+
+            private:
+                std::string portname_;
+
+            };
+
+            class DelivererReceptacleSeparator
+                : public ReceptacleManagement<IDelivererReceptacle>,
+                  public IDelivererReceptacle
+            {
+            public:
+                DelivererReceptacleSeparator(FlowSeparator* fs);
+                ~DelivererReceptacleSeparator();
+
+                virtual void
+                onData(const CompoundPtr& compound);
+
+                virtual void
+                doOnData(const CompoundPtr& compound);
+
+                virtual FunctionalUnit*
+                getFU();
+            };
+
+            class ReceptorReceptacleSeparator
+                : public ReceptacleManagement<IReceptorReceptacle>,
+                  public IReceptorReceptacle
+            {
+            public:
+                ReceptorReceptacleSeparator(FlowSeparator* fs);
+                ~ReceptorReceptacleSeparator();
+
+                virtual void
+                wakeup();
+
+                virtual void
+                doWakeup();
+
+                virtual FunctionalUnit*
+                getFU();
+            };
+
 	public:
  		typedef std::map<ConstKeyPtr, FunctionalUnit*, DerefLess<ConstKeyPtr> > InstanceMap;
+            typedef std::list<std::string> StringList;
+            typedef std::list<ConnectorReceptacleSeparator*> ConnectorReceptacleSeparatorList;
+            typedef std::list<DelivererReceptacleSeparator*> DelivererReceptacleSeparatorList;
+            typedef std::list<ReceptorReceptacleSeparator*> ReceptorReceptacleSeparatorList;
+
+            friend class ConnectorReceptacleSeparator;
 
 		/**
 		 * @brief Constructor for FlowSeparator usage outside automatic FUN creation
@@ -120,6 +310,9 @@ namespace wns { namespace ldk {
 		FlowSeparator(
 			fun::FUN* fuNet,
 			const pyconfig::View& _config);
+
+            FlowSeparator(const FlowSeparator&);
+
 
 		virtual
 		~FlowSeparator();
@@ -178,6 +371,9 @@ namespace wns { namespace ldk {
 		removeInstance(const ConstKeyPtr& key);
 
 	private:
+            void
+            init();
+
 		/**
 		 * @name CompoundHandlerInterface
 		 *
@@ -205,14 +401,13 @@ namespace wns { namespace ldk {
 		//@}
 
 		/**
-		 * @brief Return the instance given a compound and the direction.
+		 * @brief Integrate FU instance.
 		 *
-		 * If no instance matching the key created by (compound, direction) is found,
-		 * behavior (and choice of return value) is delegated to the
-		 * NotFound strategy method.
+		 * Apply bookkeeping and link instance into the FUN.
+		 *
 		 */
-		virtual FunctionalUnit*
-		_getInstance(const CompoundPtr& compound, int direction) const;
+		void
+		connectFU(FunctionalUnit* functionalUnit) const;
 
 		/**
 		 * @brief Integrate FU instance.
@@ -231,12 +426,16 @@ namespace wns { namespace ldk {
 		void
 		disintegrate(const ConstKeyPtr& key);
 
-		FunctionalUnit*
-		tryGetInstanceAndInsertPermanent(const CompoundPtr& compound, int direction);
-
 
 		InstanceMap instances;
+            ConnectorReceptacleSeparatorList crsList_;
+            DelivererReceptacleSeparatorList drsList_;
+            ReceptorReceptacleSeparatorList rrsList_;
 
+            FunctionalUnit* prototypeFU_;
+            ConnectorReceptacleSeparator* connectorReceptacleSinglePort_;
+            DelivererReceptacleSeparator* delivererReceptacleSinglePort_;
+            ReceptorReceptacleSeparator* receptorReceptacleSinglePort_;
 		FunctionalUnit* instanceBusy;
 
 		pyconfig::View config;

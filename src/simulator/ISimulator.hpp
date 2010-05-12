@@ -51,6 +51,7 @@ namespace wns { namespace probe { namespace bus {
 namespace wns { namespace simulator {
 
     typedef boost::signal0<void> ResetSignal;
+    typedef boost::signal0<void> ShutdownSignal;
     typedef wns::container::UntypedRegistry<std::string> Registry;
 
     /**
@@ -126,6 +127,12 @@ namespace wns { namespace simulator {
         getResetSignal() const;
 
         /**
+         * @brief Register anything that should be executed on shutdown here
+         */
+        ShutdownSignal*
+        getShutdownSignal() const;
+
+        /**
          * @brief Reset the simulator to its initial state
          */
         void
@@ -173,6 +180,12 @@ namespace wns { namespace simulator {
          */
         virtual ResetSignal*
         doGetResetSignal() const = 0;
+
+        /**
+         * @brief NVI forward
+         */
+        virtual ShutdownSignal*
+        doGetShutdownSignal() const = 0;
 
         /**
          * @brief NVI forward
@@ -279,6 +292,12 @@ namespace wns { namespace simulator {
      */
     ResetSignal*
     getResetSignal();
+
+    /**
+     * @brief Provide access to global Shutdown Signal
+     */
+    ShutdownSignal*
+    getShutdownSignal();
 
 } // namespace simulator
 } // namesapce wns

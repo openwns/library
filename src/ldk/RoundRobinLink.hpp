@@ -56,7 +56,7 @@ namespace wns { namespace ldk {
                 recs.add(it);
             }
 
-            virtual size_t
+            virtual unsigned long int
             size() const
             {
                 return recs.size();

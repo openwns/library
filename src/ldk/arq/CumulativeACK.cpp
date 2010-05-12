@@ -45,7 +45,7 @@ CumulativeACK::CumulativeACK(fun::FUN* fuNet, const wns::pyconfig::View& config)
 	SuspendSupport(fuNet, config),
 	CanTimeout(),
 	ackCompound(CompoundPtr()),
-	wS(config.get<uint32_t>("windowSize")),
+	wS(config.get<unsigned long int>("windowSize")),
 	NS(0),
 	NSack(0),
 	NR(0),

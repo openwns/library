@@ -145,15 +145,15 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     Bit dataSize = 0;
                     getLowerStub()->calculateSizes(getLowerStub()->sent[0]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(192, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(192), dataSize);
 
                     commandPoolSize = 0;
                     dataSize = 0;
                     getLowerStub()->calculateSizes(getLowerStub()->sent[1]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(192, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(192), dataSize);
 
                     CPPUNIT_ASSERT_EQUAL(size_t(2), getLowerStub()->sent.size());
                 } // testSendSmallCompound
@@ -169,29 +169,29 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     Bit dataSize = 0;
                     getLowerStub()->calculateSizes(getLowerStub()->sent[0]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1024, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1024), dataSize);
 
                     commandPoolSize = 0;
                     dataSize = 0;
                     getLowerStub()->calculateSizes(getLowerStub()->sent[1]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(576, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(576), dataSize);
 
                     commandPoolSize = 0;
                     dataSize = 0;
                     getLowerStub()->calculateSizes(getLowerStub()->sent[2]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1024, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1024), dataSize);
 
                     commandPoolSize = 0;
                     dataSize = 0;
                     getLowerStub()->calculateSizes(getLowerStub()->sent[3]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(576, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(576), dataSize);
 
                     CPPUNIT_ASSERT_EQUAL(size_t(4), getLowerStub()->sent.size());
                 } // testSendLargeCompound
@@ -216,15 +216,15 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                         Bit dataSize = 0;
                         getLowerStub()->calculateSizes(getLowerStub()->sent[number-1]
                                                        ->getCommandPool(), commandPoolSize, dataSize);
-                        CPPUNIT_ASSERT_EQUAL(0, commandPoolSize);
+                        CPPUNIT_ASSERT_EQUAL(Bit(0), commandPoolSize);
                         if (number == 57)
                             // last segment of the first compound
-                            CPPUNIT_ASSERT_EQUAL(4, dataSize);
+                            CPPUNIT_ASSERT_EQUAL(Bit(4), dataSize);
                         else if (number == 81)
                             // last segment of the second compound
-                            CPPUNIT_ASSERT_EQUAL(13, dataSize);
+                            CPPUNIT_ASSERT_EQUAL(Bit(13), dataSize);
                         else
-                            CPPUNIT_ASSERT_EQUAL(number, dataSize);
+                            CPPUNIT_ASSERT_EQUAL(Bit(number), dataSize);
                     }
 
                     CPPUNIT_ASSERT_EQUAL(size_t(81), getLowerStub()->sent.size());
@@ -243,8 +243,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     Bit dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[0]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(128, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(128), dataSize);
                     CPPUNIT_ASSERT_EQUAL(0, getUpperStub()->getCommand(
                                              getUpperStub()->received[0])->magic.sequenceNumber);
 
@@ -252,8 +252,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[1]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(128, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(128), dataSize);
                     CPPUNIT_ASSERT_EQUAL(1, getUpperStub()->getCommand(
                                              getUpperStub()->received[1])->magic.sequenceNumber);
 
@@ -275,8 +275,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     Bit dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[0]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1536, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1536), dataSize);
                     CPPUNIT_ASSERT_EQUAL(0, getUpperStub()->getCommand(
                                              getUpperStub()->received[0])->magic.sequenceNumber);
 
@@ -284,8 +284,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[1]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1536, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1536), dataSize);
                     CPPUNIT_ASSERT_EQUAL(1, getUpperStub()->getCommand(
                                              getUpperStub()->received[1])->magic.sequenceNumber);
 
@@ -311,8 +311,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     Bit dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[0]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1536, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1536), dataSize);
                     CPPUNIT_ASSERT_EQUAL(0, getUpperStub()->getCommand(
                                              getUpperStub()->received[0])->magic.sequenceNumber);
 
@@ -320,8 +320,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[1]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1536, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1536), dataSize);
                     CPPUNIT_ASSERT_EQUAL(1, getUpperStub()->getCommand(
                                              getUpperStub()->received[1])->magic.sequenceNumber);
 
@@ -349,8 +349,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     Bit dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[0]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1536, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1536), dataSize);
                     CPPUNIT_ASSERT_EQUAL(0, getUpperStub()->getCommand(
                                              getUpperStub()->received[0])->magic.sequenceNumber);
 
@@ -391,8 +391,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     Bit dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[0]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1536, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1536), dataSize);
                     CPPUNIT_ASSERT_EQUAL(1, getUpperStub()->getCommand(
                                              getUpperStub()->received[0])->magic.sequenceNumber);
 
@@ -400,8 +400,8 @@ namespace wns { namespace ldk { namespace sar { namespace tests {
                     dataSize = 0;
                     getUpperStub()->calculateSizes(getUpperStub()->received[1]
                                                    ->getCommandPool(), commandPoolSize, dataSize);
-                    CPPUNIT_ASSERT_EQUAL(64, commandPoolSize);
-                    CPPUNIT_ASSERT_EQUAL(1536, dataSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(64), commandPoolSize);
+                    CPPUNIT_ASSERT_EQUAL(Bit(1536), dataSize);
                     CPPUNIT_ASSERT_EQUAL(0, getUpperStub()->getCommand(
                                              getUpperStub()->received[1])->magic.sequenceNumber);
 

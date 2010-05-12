@@ -62,7 +62,7 @@ CRC::CRC(fun::FUN* fuNet, const wns::pyconfig::View& config) :
 	for (int ii = 0; ii<config.len("localIDs.keys()"); ++ii)
 	{
 		std::string key = config.get<std::string>("localIDs.keys()",ii);
-		uint32_t value  = config.get<uint32_t>("localIDs.values()",ii);
+		unsigned long int value  = config.get<unsigned long int>("localIDs.values()",ii);
 		localContext.addProvider( wns::probe::bus::contextprovider::Constant(key, value) );
 	}
 

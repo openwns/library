@@ -86,7 +86,7 @@ namespace wns { namespace scheduler {
                 /** @brief index of time slot (TDMA component) */
                 int timeSlot;
                 /** @brief spatial channel (either beamforming or MIMO) */
-                int beam; // also called "stream" or better "spacialIndex"
+                int spatialLayer; // also called "stream" or better "spacialIndex"
                 /** @brief channel state (CQI) on the proposed subChannel.
                     Contains values even if CQI is not available (uses CandI estimateTxSINRAt in this case)
                     The values are set after DSA is finished.
@@ -119,7 +119,7 @@ namespace wns { namespace scheduler {
                     It is later asked for by getMapInfo() from outside (RRHandler) */
                 MapInfoCollectionPtr bursts;
                 /** @brief SchedulingMap is a hierarchical structure
-                    reflecting the OFDMA subChannels and beams;
+                    reflecting the OFDMA subChannels and spatialLayers;
                     this data structure collects all the results of one frame.
                     It can be asked for by getSchedulingMap() from outside */
                 wns::scheduler::SchedulingMapPtr schedulingMap;

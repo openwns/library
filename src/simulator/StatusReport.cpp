@@ -242,11 +242,11 @@ StatusReport::probe()
     if (memoryConsumption != NULL)
     {
 		std::ifstream in( "/proc/self/statm");
-		uint32_t sizeInPages(0);
+		unsigned long int sizeInPages(0);
 		in >> sizeInPages;
 		in.close();
-		uint32_t pagesize = getpagesize(); // value from /proc/self/statm is in "pages"
-		uint32_t vmemUsage = pagesize * sizeInPages / 1024; // express in kB
+		unsigned long int pagesize = getpagesize(); // value from /proc/self/statm is in "pages"
+		unsigned long int vmemUsage = pagesize * sizeInPages / 1024; // express in kB
  		memoryConsumption->put(vmemUsage);
 	}
 

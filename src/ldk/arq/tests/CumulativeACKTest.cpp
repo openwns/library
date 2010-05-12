@@ -101,14 +101,14 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 
 		buffer::Bounded* buffer;
 
-		static const uint32_t windowSize;
+		static const unsigned long int windowSize;
 	};
 
 
 
 	CPPUNIT_TEST_SUITE_REGISTRATION( CumulativeACKTest );
 
-	const uint32_t
+	const unsigned long int
 	CumulativeACKTest::windowSize = 6;
 
 	void
@@ -161,7 +161,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 	void
 	CumulativeACKTest::fillWindow()
 	{
-		for( uint32_t i = 1; i <= ( (windowSize) + 1 ); i++ )
+		for( unsigned long int i = 1; i <= ( (windowSize) + 1 ); i++ )
 			{
 				getUpperStub()->sendData(getFUN()->createCompound());
 			}

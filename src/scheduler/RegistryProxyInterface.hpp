@@ -181,7 +181,7 @@ namespace wns { namespace scheduler {
                 their requested share of the overall resources, the maximum number of subbands
                 that may be allocated to them and the ul txpower they may use. */
             virtual wns::scheduler::PowerMap
-            calcULResources(const wns::scheduler::UserSet&, uint32_t) const = 0;
+            calcULResources(const wns::scheduler::UserSet&, unsigned long int) const = 0;
 
             virtual wns::scheduler::UserSet
             getActiveULUsers() const = 0;

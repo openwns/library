@@ -82,7 +82,7 @@ ProbeBusStub::accepts(const wns::simulator::Time& /*timestamp*/,
 }
 
 void
-ProbeBusStub::setFilter(std::string _providerName, int32_t _filter)
+ProbeBusStub::setFilter(std::string _providerName, long int _filter)
 {
     providerName = _providerName;
     filter = _filter;

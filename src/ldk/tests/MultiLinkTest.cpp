@@ -67,11 +67,11 @@ MultiLinkTest::cleanup()
 void
 MultiLinkTest::testAdd()
 {
-        CPPUNIT_ASSERT_EQUAL(size_t(0), ml->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(0), ml->size());
         ml->add(fu1);
-        CPPUNIT_ASSERT_EQUAL(size_t(1), ml->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(1), ml->size());
         ml->add(fu2);
-        CPPUNIT_ASSERT_EQUAL(size_t(2), ml->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(2), ml->size());
 } // testAdd
 
 
@@ -82,7 +82,7 @@ MultiLinkTest::testClear()
         ml->add(fu1);
         ml->add(fu2);
         ml->clear();
-        CPPUNIT_ASSERT_EQUAL(size_t(0), ml->size());
+        CPPUNIT_ASSERT_EQUAL((unsigned long int)(0), ml->size());
 } // testClear
 
 

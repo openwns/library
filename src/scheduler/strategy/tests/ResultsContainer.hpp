@@ -51,7 +51,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace tests {
 
 		// old CallBackInterface
 		void callBack(unsigned int fSlot, simTimeType startTime, simTimeType endTime, wns::scheduler::UserID user,
-			      const wns::ldk::CompoundPtr& pdu, float cidColor, unsigned int beam,
+			      const wns::ldk::CompoundPtr& pdu, float cidColor, unsigned int spatialLayer,
 			      wns::service::phy::ofdma::PatternPtr pattern, wns::scheduler::MapInfoEntryPtr burst,
 			      const wns::service::phy::phymode::PhyModeInterface& phyMode,
 			      bool measureInterference, wns::Power txPowerPerStream,
@@ -66,7 +66,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace tests {
 		 * disabled.
 		 */
 		void plotNextFrame(int fChannels,
-				   int maxBeams,
+				   int maxSpatialLayers,
 				   simTimeType slotDuration,
 				   std::string name);
 

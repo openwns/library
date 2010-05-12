@@ -42,7 +42,8 @@ Simulator::Simulator(const wns::pyconfig::View& configuration) :
     rng_(NULL),
     registry_(new Registry()),
     probeBusRegistry_(NULL),
-    resetSignal_(new ResetSignal())
+    resetSignal_(new ResetSignal()),
+    shutdownSignal_(new ShutdownSignal())
 {
     this->configureEventScheduler(configuration_.getView("environment.eventScheduler"));
     this->configureMasterLogger(configuration_.getView("environment.masterLogger"));
@@ -91,6 +92,12 @@ Simulator::doGetResetSignal() const
     return resetSignal_.get();
 }
 
+ShutdownSignal*
+Simulator::doGetShutdownSignal() const
+{
+    return shutdownSignal_.get();
+}
+
 wns::pyconfig::View
 Simulator::doGetConfiguration() const
 {
@@ -128,7 +135,7 @@ Simulator::configureRNG(
 {
     assure(rng_.get() == NULL, "RNG already set / configured");
 	rng_.reset(new wns::rng::RNGen());
-    rng_->seed(rngConfiguration.get<uint32_t>("seed"));
+    rng_->seed(rngConfiguration.get<unsigned long int>("seed"));
 }
 
 void

@@ -104,16 +104,16 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     // Answer: which connection to choose is responsibility of the PacketScheduler (SubStrategy)
     int subChannel = mapInfoEntry->subBand;  // DSA result
     int timeSlot   = mapInfoEntry->timeSlot; // DSA result
-    int beam       = mapInfoEntry->beam;     // DSA result
-    simTimeType compoundStartTime = schedulingMap->getNextPosition(subChannel, timeSlot, beam);
+    int spatialLayer       = mapInfoEntry->spatialLayer;     // DSA result
+    simTimeType compoundStartTime = schedulingMap->getNextPosition(subChannel, timeSlot, spatialLayer);
     simTimeType allCompoundsEndTime = compoundStartTime;
-    assure(compoundStartTime==schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[beam].getNextPosition(),"mismatch in getNextPosition");
+    assure(compoundStartTime==schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].getNextPosition(),"mismatch in getNextPosition");
     mapInfoEntry->start = compoundStartTime;
     // ^ all the above is constant even if we schedule another compound of the same cid
     // this depends on phyMode and subChannel used so far:
     int freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry); // how much fits into the selected subChannel?
     // ^ can be used with DynamicSegmentation
-    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free on sc="<<mapInfoEntry->subBand<<"."<<mapInfoEntry->timeSlot<<"."<<mapInfoEntry->beam);
+    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free on sc="<<mapInfoEntry->subBand<<"."<<mapInfoEntry->timeSlot<<"."<<mapInfoEntry->spatialLayer);
     if (freeBits<=0) return false; // can be =0 if !subChannelIsUsable
     if (useDynamicSegmentation) {
         // modify to maximum possible value in order to fill the whole subchannel if possible

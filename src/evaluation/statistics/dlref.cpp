@@ -44,8 +44,8 @@ DLREF::DLREF(std::vector<double> xValuesArrPtr,
              std::string description,
              bool forceRMinusAOk,
              double fMin,
-             uint maxNrv,
-             uint skipInterval,
+             int maxNrv,
+             int skipInterval,
              formatType format)
     : DLRE(xValuesArrPtr, level, error, preFirst, name, description, forceRMinusAOk, maxNrv, skipInterval, format),
       fMin_(fMin)
@@ -63,8 +63,8 @@ DLREF::DLREF(double xMin,
              std::string description,
              bool forceRMinusAOk,
              double fMin,
-             uint32_t maxNrv,
-             uint32_t skipInterval,
+             int maxNrv,
+             int skipInterval,
              formatType format)
     : DLRE(xMin, xMax, intSize, error, preFirst, name, description, forceRMinusAOk, maxNrv, skipInterval, format),
       fMin_(fMin)

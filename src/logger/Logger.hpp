@@ -197,14 +197,14 @@ namespace wns { namespace logger {
 		/**
 		 * @brief get the the current Logger level
 		 */
-		int32_t
+		long int
 		getLevel() const;
 
 		/**
 		 * @brief set the the current Logger level
 		 */
 		void
-		setLevel(int32_t _level);
+		setLevel(long int _level);
 
 		/**
 		 * @brief get the the current Module name (e.g. "CONST")
@@ -255,7 +255,7 @@ namespace wns { namespace logger {
 		/**
 		 * @brief Verbosity Level of the Logger
 		 */
-		int32_t level;
+		long int level;
 
 		/**
 		 * @brief If enabled and the macro is used for printing shows

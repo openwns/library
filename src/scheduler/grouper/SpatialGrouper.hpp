@@ -38,6 +38,7 @@
 
 
 namespace wns { namespace scheduler { namespace grouper {
+
 	/// GroupingProviderInterface defines the functions to be provided by every
 	/// spatial grouper.
 

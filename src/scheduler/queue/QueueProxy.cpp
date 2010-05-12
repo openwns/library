@@ -139,7 +139,7 @@ QueueProxy::getActiveConnections() const
     return cs;
 }
 
-uint32_t
+unsigned long int
 QueueProxy::numCompoundsForCid(wns::scheduler::ConnectionID cid) const
 {
     assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");
@@ -155,7 +155,7 @@ QueueProxy::numCompoundsForCid(wns::scheduler::ConnectionID cid) const
     }
 }
 
-uint32_t
+unsigned long int
 QueueProxy::numBitsForCid(wns::scheduler::ConnectionID cid) const
 {
     assure(colleagues.queueManager_->getQueue(cid) != NULL, "No queue for this CID");

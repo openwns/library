@@ -39,7 +39,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(EqualTimeRR,
 
 
 void
-EqualTimeRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLength)
+EqualTimeRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength)
 {
 	UserSet allUsersInQueue = colleagues.queue->getQueuedUsers();
 	//UserSet activeUsers   = colleagues.registry->filterReachable(colleagues.queue->getQueuedUsers());
@@ -48,7 +48,7 @@ EqualTimeRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLeng
 
 	// We are going to schedule a burst for every group
 
-	Grouping grouping = colleagues.grouper->getTxGrouping(activeUsers, maxBeams);
+	Grouping grouping = colleagues.grouper->getTxGrouping(activeUsers, maxSpatialLayers);
 	MESSAGE_SINGLE(NORMAL, logger, "EqualTimeRR::doStartScheduling(): Tx - retrieved grouping from grouper:\n" << grouping.getDebugOutput());
 
 	// We give every group the same amount of time in one of the subBands.
@@ -72,7 +72,7 @@ EqualTimeRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLeng
 
 		simTimeType burstStart = double(posInSubBand) * burstLength;
 //		simTimeType burstEnd = burstStart + burstLength - slotLengthRoundingTolerance;
-		int beam = 0;
+		int spatialLayer = 0;
 
 		// adapt TxPower of each stream of the group
 		txPowerPerStream = getTxPower();
@@ -131,7 +131,7 @@ EqualTimeRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLeng
 									  burstStart + accumulatedTime + pduDuration, // endTime of PDU
 									  user,
 									  pdu, // the PDU
-									  beam, // also for plotting
+									  spatialLayer, // also for plotting
 									  grouping.patterns[user], // the BF pattern
 									  currentBurst, // the burst this PDU belongs to
 									  *phyMode,
@@ -156,8 +156,8 @@ EqualTimeRR::doStartScheduling(int fChannels, int maxBeams, simTimeType slotLeng
 			bursts_push_back(currentBurst);
 
 
-			beam++;
-			// now schedule the user group members with differnt beams
+			spatialLayer++;
+			// now schedule the user group members with differnt spatialLayers
 		}
 
 		// calculate the location of the next Burst

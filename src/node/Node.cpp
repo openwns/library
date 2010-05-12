@@ -37,13 +37,13 @@
 
 using namespace wns::node;
 
-std::list<uint32_t> Node::ids;
+std::list<unsigned long int> Node::ids;
 
 Node::Node(Registry* registry, const pyconfig::View& pyco) :
 	localServices(),
 	contextProviderRegistry(),
 	name(pyco.get<std::string>("name")),
-	nodeID(pyco.get<uint32_t>("nodeID")),
+	nodeID(pyco.get<unsigned long int>("nodeID")),
 	config(pyco),
 	log(pyco.get("logger")),
 	globalNodes(registry),

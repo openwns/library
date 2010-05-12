@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#include "utils.hpp"
+#include <WNS/ldk/utils.hpp>
 
 using namespace wns;
 using namespace wns::ldk;

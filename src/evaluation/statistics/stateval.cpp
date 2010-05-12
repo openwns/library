@@ -250,7 +250,7 @@ StatEval::relativeDeviation() const
             (var > getMaxError<double>())) ? sqrt(var) / m1 : 0.0;
 }
 
-uint32_t
+unsigned long int
 StatEval::trials() const
 {
     return numTrials_;

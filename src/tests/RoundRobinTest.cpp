@@ -59,12 +59,12 @@ void RoundRobinTest::notEmpty()
 void RoundRobinTest::remove()
 {
 	rr.remove(2);
-	CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(3), rr.size() );
+	CPPUNIT_ASSERT_EQUAL( static_cast<long int>(3), rr.size() );
 }
 
 void RoundRobinTest::size()
 {
-	CPPUNIT_ASSERT_EQUAL( static_cast<int32_t>(4), rr.size() );
+	CPPUNIT_ASSERT_EQUAL( static_cast<long int>(4), rr.size() );
 }
 
 void RoundRobinTest::startRound()
@@ -282,7 +282,7 @@ void
 RoundRobinTest::clear()
 {
 	rr.clear();
-	CPPUNIT_ASSERT_EQUAL(static_cast<int32_t>(0), rr.size());
+	CPPUNIT_ASSERT_EQUAL(static_cast<long int>(0), rr.size());
 }
 
 

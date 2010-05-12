@@ -34,8 +34,8 @@
 using namespace wns::osi;
 
 #ifndef NDEBUG
-int32_t PDU::existingPDUs = 0;
-int32_t PDU::maxExistingPDUs = 0;
+long int PDU::existingPDUs = 0;
+long int PDU::maxExistingPDUs = 0;
 #endif
 
 PDU::PDU(PCI* aPCIPtr, PDU* anSDUPtr) :
@@ -131,7 +131,7 @@ pduType PDU::getPDUType() const
 	return p_pciPtr->getPDUType();
 }
 
-uint32_t PDU::getPDUId() const
+unsigned long int PDU::getPDUId() const
 {
 	assure(p_pciPtr != NULL, "Can't get id of PDU without PCI!");
 	return p_pciPtr->getPDUId();
@@ -158,12 +158,12 @@ PDU::doGetLengthInBits() const
 
 #ifndef NDEBUG
 
-int32_t PDU::getExistingPDUs()
+long int PDU::getExistingPDUs()
 {
 	return existingPDUs;
 }
 
-int32_t PDU::getMaxExistingPDUs()
+long int PDU::getMaxExistingPDUs()
 {
 	return maxExistingPDUs;
 }

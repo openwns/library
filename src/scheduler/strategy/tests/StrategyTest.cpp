@@ -337,20 +337,20 @@ void StrategyTest::oneFrame()
 		// now to the actual scheduling:
 
 		int fChannels = 4;
-		int maxBeams = 1;
+		int maxSpatialLayers = 1;
 		simTimeType slotLength = 0.005;
 
 
 		if (FRAMEPLOTTING)
 			results->plotNextFrame(fChannels,
-					       maxBeams,
+					       maxSpatialLayers,
 					       slotLength,
 					       strategyName
 				);
 
 		// let the Strategy module do its work
 		strategy->startScheduling(fChannels,
-					  maxBeams,
+					  maxSpatialLayers,
 					  slotLength,
 					  results);
 
@@ -383,7 +383,7 @@ void StrategyTest::severalFrames()
 		compoundsToSchedule.clear();
 
 		int fChannels = 4;
-		int maxBeams = 1;
+		int maxSpatialLayers = 1;
 		simTimeType slotLength = 0.005;
 
 		// create pdus that should fill more or less five frames
@@ -400,14 +400,14 @@ void StrategyTest::severalFrames()
 
 			if (FRAMEPLOTTING)
 				results->plotNextFrame(fChannels,
-						       maxBeams,
+						       maxSpatialLayers,
 						       slotLength,
 						       ss.str()
 					);
 
 			// let the Strategy module do its work
 			strategy->startScheduling(fChannels,
-						  maxBeams,
+						  maxSpatialLayers,
 						  slotLength,
 						  results);
 

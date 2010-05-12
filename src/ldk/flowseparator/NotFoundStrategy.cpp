@@ -29,6 +29,7 @@
 #include <WNS/ldk/flowseparator/CreatorStrategy.hpp>
 #include <WNS/ldk/flowseparator/FlowInfoProvider.hpp>
 
+#include <WNS/ldk/tools/FakeFU.hpp>
 #include <WNS/ldk/FUNConfigCreator.hpp>
 #include <WNS/ldk/Layer.hpp>
 
@@ -74,6 +75,12 @@ Complain::ifNotFound(const ConstKeyPtr& /* key */) const
 	throw wns::Exception("flowseparator::Complain: no matching instance!");
 }
 
+FunctionalUnit*
+Complain::createPrototype() const
+{
+    return new wns::ldk::tools::FakeFU();
+}
+
 void
 Complain::onFUNCreated()
 {}
@@ -99,6 +106,12 @@ FunctionalUnit*
 CreateOnFirstCompound::ifNotFound(const ConstKeyPtr& /* key */) const
 {
 	return creator->create();
+}
+
+FunctionalUnit*
+CreateOnFirstCompound::createPrototype() const
+{
+	return creator->createPrototype();
 }
 
 void
@@ -141,6 +154,12 @@ CreateOnValidFlow::ifNotFound(const ConstKeyPtr& key) const
 		std::string error = "flowseparator::CreateOnValidFlow: Can't create FU for this flow: " + key->str() + ". FlowInfoProvider says flow is not valid.";
 		throw wns::Exception(error);
 	}
+}
+
+FunctionalUnit*
+CreateOnValidFlow::createPrototype() const
+{
+	return creator->createPrototype();
 }
 
 void

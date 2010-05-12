@@ -49,6 +49,12 @@ namespace wns { namespace ldk { namespace flowseparator {
 		 */
 		virtual FunctionalUnit*
 		create() const = 0;
+
+            /** @brief
+             * Return a prototype FU
+             */
+            virtual FunctionalUnit*
+            createPrototype() const = 0;
 	};
 
 	/**
@@ -66,6 +72,9 @@ namespace wns { namespace ldk { namespace flowseparator {
 		FunctionalUnit*
 		create() const;
 
+            FunctionalUnit*
+            createPrototype() const;
+
 	private:
 		FunctionalUnit* prototype;
 	};
@@ -82,6 +91,9 @@ namespace wns { namespace ldk { namespace flowseparator {
 
 		FunctionalUnit*
 		create() const;
+
+            FunctionalUnit*
+            createPrototype() const;
 
 	private:
 		wns::ldk::fun::FUN* fun;

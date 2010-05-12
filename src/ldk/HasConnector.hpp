@@ -33,6 +33,7 @@
 #include <WNS/ldk/SinglePort.hpp>
 #include <WNS/ldk/SingleConnector.hpp>
 
+
 namespace wns { namespace ldk {
 
         /**
@@ -67,6 +68,13 @@ namespace wns { namespace ldk {
                 addToConnectorRegistry(PORTID().name, &lower_);
             }
 
+        HasConnector(const HasConnector& other)
+                : ConnectorRegistry(),
+                  lower_()
+            {
+                addToConnectorRegistry(PORTID().name, &lower_);
+            }
+
             HasConnector(ConnectorRegistry* cr)
                 : ConnectorRegistry(),
                   lower_()
@@ -76,8 +84,7 @@ namespace wns { namespace ldk {
 
             virtual
             ~HasConnector()
-            {
-            }
+            {}
 
             CONNECTORTYPE*
             getConnector() const
