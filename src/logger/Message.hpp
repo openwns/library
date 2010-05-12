@@ -29,7 +29,6 @@
 #define WNS_LOGGER_MESSAGE_HPP
 
 #include <sstream>
-#include <stdint.h>
 
 namespace wns { namespace logger {
 

@@ -34,7 +34,6 @@
 
 #include <sstream>
 #include <string>
-#include <stdint.h>
 
 namespace wns { namespace pyconfig {
 

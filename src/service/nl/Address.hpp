@@ -33,7 +33,6 @@
 #include <ostream>
 #include <sstream>
 #include <string>
-#include <stdint.h>
 
 namespace wns { namespace service { namespace nl {
 

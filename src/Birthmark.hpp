@@ -29,7 +29,6 @@
 #define WNS_BIRTHMARK_HPP
 
 #include <WNS/PythonicOutput.hpp>
-#include <stdint.h>
 
 namespace wns {
 
