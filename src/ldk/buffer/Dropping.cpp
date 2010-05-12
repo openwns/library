@@ -199,14 +199,14 @@ Dropping::getSomethingToSend()
 // Buffer interface
 //
 
-uint32_t
+unsigned long int
 Dropping::getSize()
 {
 	return currentSize;
 } // getSize
 
 
-uint32_t
+unsigned long int
 Dropping::getMaxSize()
 {
 	return maxSize;

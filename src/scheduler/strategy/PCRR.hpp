@@ -40,8 +40,8 @@ namespace wns { namespace scheduler { namespace strategy {
 	class CallBackInterface;
 
 	struct GroupAlloc {
-		uint32_t group;
-		uint32_t blocks;
+		unsigned long int group;
+		unsigned long int blocks;
 	};
 
 	bool
@@ -50,10 +50,10 @@ namespace wns { namespace scheduler { namespace strategy {
 		return (a1.blocks < a2.blocks);
 	}
 
-	uint32_t
+	unsigned long int
 	countSumBlocks(const std::list<GroupAlloc>& aList)
 	{
-		uint32_t result = 0;
+		unsigned long int result = 0;
 		for (std::list<GroupAlloc>::const_iterator iter = aList.begin();
 		     iter != aList.end();
 		     ++iter)

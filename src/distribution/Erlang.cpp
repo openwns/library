@@ -74,7 +74,7 @@ Erlang::operator()()
 {
 	double product = 1.0;
         
-    for (uint32_t i = 0; i < shape_; i++)
+    for (unsigned long int i = 0; i < shape_; i++)
     {
         product *= dis_();
     }

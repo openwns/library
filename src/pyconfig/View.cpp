@@ -308,12 +308,12 @@ View::knows(const std::string& optionExpression) const
 	return true;
 } // knows
 
-int64_t
+long long int
 View::getId() const
 {
 	// id(object) returns long long since python2.5
 	// Using PY_LONG_LONG here yields a compile error
-	// if PY_LONG_LONG cannot be converted to int64_t,
+	// if PY_LONG_LONG cannot be converted to long long int,
 	// which moves the problem from runtime to compile time
 	// fixes bug lp:174730
 	return get<PY_LONG_LONG>("__id__");

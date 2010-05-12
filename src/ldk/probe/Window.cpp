@@ -102,7 +102,7 @@ Window::processOutgoing(const CompoundPtr& compound)
 	Bit commandPoolSize;
 	Bit dataSize;
 	this->getFUN()->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize, this);
-	const int32_t compoundLength = commandPoolSize + dataSize;
+	const long int compoundLength = commandPoolSize + dataSize;
 
 	MESSAGE_BEGIN(NORMAL, logger, m, this->getFUN()->getName());
 	m << " outgoing"
@@ -122,7 +122,7 @@ Window::processIncoming(const CompoundPtr& compound)
 	Bit commandPoolSize;
 	Bit dataSize;
 	this->getFUN()->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize, this);
-	const int32_t compoundLength = commandPoolSize + dataSize;
+	const long int compoundLength = commandPoolSize + dataSize;
 
 	MESSAGE_BEGIN(NORMAL, logger, m, this->getFUN()->getName());
 	m << " incoming"

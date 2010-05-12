@@ -138,13 +138,13 @@ namespace wns {
         conversion()
         {
             // This is more a compile test ...
-            const int32_t xx = 4711;
-            Chamaeleon<int32_t> aa(xx);
-            Chamaeleon<uint32_t> bb(aa);
+            const long int xx = 4711;
+            Chamaeleon<long int> aa(xx);
+            Chamaeleon<unsigned long int> bb(aa);
 
             bb = aa;
 
-            CPPUNIT_ASSERT_EQUAL( static_cast<uint32_t>(xx), bb.unHide() );
+            CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(xx), bb.unHide() );
 
             Chamaeleon<C*> cPtr(NULL);
             Chamaeleon<A*> aPtr(cPtr);

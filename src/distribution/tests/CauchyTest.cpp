@@ -60,7 +60,7 @@ CauchyTest::testCDF()
         wns::distribution::DistributionFactory::creator("Cauchy")
         ->create(config);
 
-    for(int32_t i = 0; i < total; ++i)
+    for(long int i = 0; i < total; ++i)
     {
         double x = (*dis)();
         if(x < 10.0)

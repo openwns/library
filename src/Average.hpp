@@ -78,7 +78,7 @@ namespace wns {
 		 * @brief The number of samples that have been used to compute
 		 * the mean
 		 */
-		uint32_t samples;
+		unsigned long int samples;
 	}; // AverageBase
 
 	/**

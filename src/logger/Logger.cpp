@@ -73,7 +73,7 @@ Logger::Logger(
 	lName(pyConfigView.get<std::string>("name")),
 	masterLogger(m),
 	enabled(pyConfigView.get<bool>("enabled")),
-	level(pyConfigView.get<int32_t>("level")),
+	level(pyConfigView.get<long int>("level")),
 	showFunction(pyConfigView.get<bool>("showFunction"))
 {
 	if(enabled && masterLogger) {
@@ -86,7 +86,7 @@ Logger::Logger(const pyconfig::View& pyConfigView) :
 	lName(pyConfigView.get<std::string>("name")),
 	masterLogger(wns::simulator::getMasterLogger()),
 	enabled(pyConfigView.get<bool>("enabled")),
-	level(pyConfigView.get<int32_t>("level")),
+	level(pyConfigView.get<long int>("level")),
 	showFunction(pyConfigView.get<bool>("showFunction"))
 {
 	if (enabled && masterLogger)
@@ -136,7 +136,7 @@ Logger::configure(const wns::pyconfig::View& config)
 	mName = config.get<std::string>("moduleName");
 	lName = config.get<std::string>("name");
 	enabled = config.get<bool>("enabled");
-	level = config.get<int32_t>("level");
+	level = config.get<long int>("level");
 	showFunction = config.get<bool>("showFunction");
 } // configure
 
@@ -152,14 +152,14 @@ Logger::switchOff()
 	enabled=false;
 } // switchOff
 
-int32_t
+long int
 Logger::getLevel() const
 {
 	return level;
 }
 
 void
-Logger::setLevel(int32_t _level)
+Logger::setLevel(long int _level)
 {
 	assure(_level >= OFF,"bad level");
 	assure(_level < MAXLEVEL,"bad level");

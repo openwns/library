@@ -374,8 +374,8 @@ void SimpleQueueTest::testSizes()
 
     // test for number of compounds in queues
     // obsolete. No more user-related questions
-    //CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(2), queue->numCompoundsForUser(user1));
-    //CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(1), queue->numCompoundsForUser(user2));
+    //CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(2), queue->numCompoundsForUser(user1));
+    //CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(1), queue->numCompoundsForUser(user2));
 
     // now remove them and check the sizes
     wns::ldk::CompoundPtr dummy = queue->getHeadOfLinePDU(cid1);

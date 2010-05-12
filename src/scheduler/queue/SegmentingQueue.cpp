@@ -46,7 +46,7 @@ SegmentingQueue::SegmentingQueue(wns::ldk::HasReceptorInterface*, const wns::pyc
       config(_config),
       myFUN(),
       maxSize(0),
-      minimumSegmentSize(_config.get<uint32_t>("minimumSegmentSize")),
+      minimumSegmentSize(_config.get<unsigned long int>("minimumSegmentSize")),
       fixedHeaderSize(_config.get<Bit>("fixedHeaderSize")),
       extensionHeaderSize(_config.get<Bit>("extensionHeaderSize")),
       usePadding(_config.get<bool>("usePadding")),
@@ -67,7 +67,7 @@ void SegmentingQueue::setFUN(wns::ldk::fun::FUN* fun)
     for (int ii = 0; ii<config.len("localIDs.keys()"); ++ii)
     {
         std::string key = config.get<std::string>("localIDs.keys()",ii);
-        uint32_t value  = config.get<uint32_t>("localIDs.values()",ii);
+        unsigned long int value  = config.get<unsigned long int>("localIDs.values()",ii);
         localContext.addProvider( wns::probe::bus::contextprovider::Constant(key, value) );
     }
 
@@ -186,7 +186,7 @@ SegmentingQueue::getActiveConnections() const
     return result;
 }
 
-uint32_t
+unsigned long int
 SegmentingQueue::numCompoundsForCid(ConnectionID cid) const
 {
     QueueContainer::const_iterator iter = queues.find(cid);
@@ -194,7 +194,7 @@ SegmentingQueue::numCompoundsForCid(ConnectionID cid) const
     return iter->second.queuedCompounds();
 }
 
-uint32_t
+unsigned long int
 SegmentingQueue::numBitsForCid(ConnectionID cid) const
 {
 

@@ -145,7 +145,7 @@ namespace wns {
 		/**
 		 * @brief Number of elements in the container
 		 */
-		int32_t
+		long int
 		size() const
 		{
 			return elements.size();
@@ -240,10 +240,10 @@ namespace wns {
 			++cursor %= size();
 		}
 		Container elements;
-		int32_t first;
+		long int first;
 		mutable bool inRound;
-		mutable int32_t cursor;
-		mutable int32_t countdown;
+		mutable long int cursor;
+		mutable long int countdown;
 	};
 } // wns
 

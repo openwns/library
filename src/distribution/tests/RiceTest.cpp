@@ -47,7 +47,7 @@ RiceTest::testIt()
         ->create(config));
 
     Average<double> average;
-    for(int32_t ii = 0; ii < 100000; ++ii) {
+    for(long int ii = 0; ii < 100000; ++ii) {
         average.put((*dis)());
     }
  
@@ -70,7 +70,7 @@ RiceTest::testVar()
         ->create(config));
 
     VarEstimator var;
-    for(int32_t ii = 0; ii < 100000; ++ii) {
+    for(long int ii = 0; ii < 100000; ++ii) {
         var.put((*dis)());
     }
  

@@ -226,7 +226,7 @@ namespace wns { namespace scheduler {
         struct PowerAllocation {
             wns::Power txPowerPerSubband;
             UserID user;
-            uint32_t maxNumSubbands;
+            unsigned long int maxNumSubbands;
             double resourceShare;
 
             PowerAllocation() :

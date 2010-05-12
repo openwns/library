@@ -60,7 +60,7 @@ namespace wns { namespace ldk { namespace tools {
 		} peer;
 		struct {
 			BottleNeckDetective* sender;
-			int64_t id;
+			long long int id;
 		} magic;
 	};
 
@@ -77,7 +77,7 @@ namespace wns { namespace ldk { namespace tools {
 		public wns::Cloneable<BottleNeckDetective>,
 		public wns::events::PeriodicTimeout
 	{
-		typedef std::map<int32_t, CompoundPtr> CompoundContainer;
+		typedef std::map<long int, CompoundPtr> CompoundContainer;
 	public:
 		explicit
 		BottleNeckDetective(fun::FUN* fuNet, const wns::pyconfig::View& config);
@@ -98,7 +98,7 @@ namespace wns { namespace ldk { namespace tools {
 		periodically();
 
 	private:
-		int64_t id;
+		long long int id;
 		CompoundContainer compounds;
 		logger::Logger logger;
 	}; // BottleNeckDetective

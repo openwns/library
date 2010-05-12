@@ -57,7 +57,7 @@ namespace wns {
 		/**
 		 * @brief Identifier type
 		 */
-		typedef int64_t Id;
+		typedef long long int Id;
 
 		/**
 		 * @brief Does bookkeeping for all SmartPtr for debugging support

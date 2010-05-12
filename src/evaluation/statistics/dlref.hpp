@@ -42,15 +42,15 @@ namespace wns { namespace evaluation { namespace statistics {
                  * @brief Constructor for non-equi-distant x-values
                  */
                 DLREF(std::vector<double> xValues,
-                      int32_t level,
+                      int level,
                       double error,
                       double preFirst,
                       std::string name,
                       std::string description,
                       bool forceRMinusAOk,
                       double fMin,
-                      uint32_t maxNrv,
-                      uint32_t skipInterval,
+                      int maxNrv,
+                      int skipInterval,
                       formatType format);
 
                 /**
@@ -65,8 +65,8 @@ namespace wns { namespace evaluation { namespace statistics {
                       std::string description,
                       bool forceRMinusAOk,
                       double fMin,
-                      uint32_t maxNrv,
-                      uint32_t skipInterval,
+                      int maxNrv,
+                      int skipInterval,
                       formatType format);
 
                 DLREF(const wns::pyconfig::View& config);

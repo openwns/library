@@ -123,7 +123,7 @@ SimpleInnerCopyQueue::setQueue(ConnectionID cid, std::queue<wns::ldk::CompoundPt
 
 SegmentingInnerCopyQueue::SegmentingInnerCopyQueue(const wns::pyconfig::View& _config) :
     fixedHeaderSize_(_config.get<Bit>("fixedHeaderSize")),
-    minimumSegmentSize_(_config.get<uint32_t>("minimumSegmentSize")),
+    minimumSegmentSize_(_config.get<unsigned long int>("minimumSegmentSize")),
     extensionHeaderSize_(_config.get<Bit>("extensionHeaderSize")),
     usePadding_(_config.get<bool>("usePadding")),
     byteAlignHeader_(_config.get<bool>("byteAlignHeader")),
@@ -220,7 +220,7 @@ SegmentingInnerCopyQueue::setQueue(ConnectionID cid, std::queue<wns::ldk::Compou
         queue_[cid].put(queue.front());
 }
 
-uint32_t 
+unsigned long int 
 SegmentingInnerCopyQueue::getMinimumSegmentSize()
 {
     return minimumSegmentSize_;

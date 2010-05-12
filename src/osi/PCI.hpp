@@ -57,7 +57,7 @@ public:
 
     //# Constructors and destructor
 	// Default constructor
-    PCI(pduType aPDUType = unknown, const uint32_t aPDULength = 0);
+    PCI(pduType aPDUType = unknown, const unsigned long int aPDULength = 0);
 
     // Default copy constructor is correct
     // Destructor
@@ -75,7 +75,7 @@ public:
     pduType getPDUType() const;
 
     // Get unique identifier
-    uint32_t getPDUId() const;
+    unsigned long int getPDUId() const;
 
     /**
      * @brief Set length of the SDU - DEPRECATED!
@@ -153,11 +153,11 @@ private:
     pduType p_pdu;
 
     //! All PCIs have a unique id.
-    uint32_t p_pduId;
+    unsigned long int p_pduId;
 
     /* Id counter, which is incremented whenever the default or the
       param constructor is used. */
-    static uint32_t p_pduIdCounter;
+    static unsigned long int p_pduIdCounter;
 
     //! Length of PDU
     Bit p_pduLength;

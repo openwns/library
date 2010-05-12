@@ -79,12 +79,12 @@ namespace wns {
 		/**
 		 * @brief Provides unique ids to make distinguish birthmarks
 		 */
-		static int64_t globalId;
+		static long long int globalId;
 
 		/**
 		 * @brief Local id (makes the birthmark unique)
 		 */
-		int64_t id;
+		long long int id;
 	};
 
 

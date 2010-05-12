@@ -71,11 +71,11 @@ namespace wns { namespace events { namespace scheduler {
         doOnAddEvent();
 
         wns::logger::Logger logger_;
-        int64_t processedEvents_;
-        int64_t canceledEvents_;
-        int64_t scheduledNowEvents_;
-        int64_t scheduledEvents_;
-        int64_t scheduledDelayEvents_;
+        long long int processedEvents_;
+        long long int canceledEvents_;
+        long long int scheduledNowEvents_;
+        long long int scheduledEvents_;
+        long long int scheduledDelayEvents_;
     };
 
 } // scheduler

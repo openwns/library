@@ -60,7 +60,7 @@ namespace wns { namespace ldk {
                 recs.clear();
             }
 
-            virtual uint32_t
+            virtual unsigned long int
             size() const
             {
                 return recs.size();

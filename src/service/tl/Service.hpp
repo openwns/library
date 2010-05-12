@@ -37,7 +37,7 @@ namespace wns { namespace service { namespace tl {
 	class ConnectionHandler;
 	class Connection;
 
-	typedef int32_t Port;
+	typedef long int Port;
 
 	/**
 	 * @brief tl service specification.

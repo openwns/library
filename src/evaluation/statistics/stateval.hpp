@@ -199,7 +199,7 @@ namespace wns { namespace evaluation { namespace statistics {
                 /**
                  * @brief Return number of trials
                  */
-                virtual uint32_t
+                virtual unsigned long int
                 trials() const;
 
                 /**
@@ -280,7 +280,7 @@ namespace wns { namespace evaluation { namespace statistics {
                 /**
                  * @brief number of collected trials
                  */
-                uint32_t numTrials_;
+                unsigned long int numTrials_;
 
                 /**
                  * @brief Sum of collected values

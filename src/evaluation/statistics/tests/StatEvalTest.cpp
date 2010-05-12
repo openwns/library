@@ -155,14 +155,14 @@ StatEvalTest::tester(StatEvalInterface* ifc) const
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, se->mean(), 1e-7);
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, se->min(), 1e-7);
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 3.0, se->max(), 1e-7);
-    CPPUNIT_ASSERT_EQUAL( static_cast<uint32_t>(3), se->trials() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(3), se->trials() );
 
     ifc->reset();
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, se->mean(), 1e-7);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(  DBL_MAX, se->min(), 1e-7);
     CPPUNIT_ASSERT_DOUBLES_EQUAL( -DBL_MAX, se->max(), 1e-7);
-    CPPUNIT_ASSERT_EQUAL( static_cast<uint32_t>(0), se->trials() );
+    CPPUNIT_ASSERT_EQUAL( static_cast<unsigned long int>(0), se->trials() );
 }
 
 void

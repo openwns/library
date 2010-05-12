@@ -71,7 +71,7 @@ Geometric::~Geometric()
 double
 Geometric::operator()()
 {
-	int32_t restarts;
+	long int restarts;
 
     double prob = 1.0 / (mean_ + 1.0);
 

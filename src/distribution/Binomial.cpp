@@ -70,8 +70,8 @@ Binomial::~Binomial()
 double
 Binomial::operator()()
 {
-	int32_t num_of_events = 0;
-    int32_t current_trial;
+	long int num_of_events = 0;
+    long int current_trial;
     
     for (current_trial = 0; current_trial < numberOfTrials_; current_trial++)
     {

@@ -103,7 +103,7 @@ namespace wns { namespace osi { namespace tests {
     PCITest::ID()
     {
         PCI testPCI1 = PCI();
-        uint32_t id = testPCI1.getPDUId();
+        unsigned long int id = testPCI1.getPDUId();
         PCI testPCI2 = PCI();
 
         /* Next ID should be greater by 1*/     

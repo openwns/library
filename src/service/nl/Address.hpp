@@ -66,10 +66,10 @@ namespace wns { namespace service { namespace nl {
 		{
 			std::stringstream tmp(addr);
 			char c;
-			uint32_t n1;
-			uint32_t n2;
-			uint32_t n3;
-			uint32_t n4;
+			unsigned long int n1;
+			unsigned long int n2;
+			unsigned long int n3;
+			unsigned long int n4;
 			tmp >> n1;
 			tmp >> c;
 			assure(c=='.', "Malformed IPAddress given!");
@@ -89,7 +89,7 @@ namespace wns { namespace service { namespace nl {
 			}
 
 		explicit
-		Address(uint32_t a)
+		Address(unsigned long int a)
 		{
 			address=a;
 		}
@@ -183,10 +183,10 @@ namespace wns { namespace service { namespace nl {
 		operator <<(std::ostream& str, const Address& a)
 		{
 			std::stringstream tmp;
-			uint32_t n1 = (a.address&(255<<24))>>24;
-			uint32_t n2 = (a.address&(255<<16))>>16;
-			uint32_t n3 = (a.address&(255<<8))>>8;
-			uint32_t n4 = a.address&255;
+			unsigned long int n1 = (a.address&(255<<24))>>24;
+			unsigned long int n2 = (a.address&(255<<16))>>16;
+			unsigned long int n3 = (a.address&(255<<8))>>8;
+			unsigned long int n4 = a.address&255;
 
 			// Write to tempory and then write to output
 			// You need this when someone outside uses manipulators on the stream
@@ -196,11 +196,11 @@ namespace wns { namespace service { namespace nl {
 			return str;
 		}
 
-		uint32_t
+		unsigned long int
 		getInteger() const { return this->address; }
 
 	private:
-		uint32_t address;
+		unsigned long int address;
 	};
 
 } // nl

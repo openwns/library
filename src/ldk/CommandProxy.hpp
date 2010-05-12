@@ -63,7 +63,7 @@ namespace wns { namespace ldk {
  	class CommandProxy
 	{
 	public:
-		typedef uint32_t CommandIDType;
+		typedef unsigned long int CommandIDType;
 	private:
 
 		// During registration, each FunctionalUnit will be tagged with

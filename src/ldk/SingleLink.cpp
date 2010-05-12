@@ -60,7 +60,7 @@ SingleLink::clear()
 }
 
 
-uint32_t
+unsigned long int
 SingleLink::size() const
 {
 	return this->fu == NULL ? 0 : 1;

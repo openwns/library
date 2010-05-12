@@ -68,7 +68,7 @@ namespace wns { namespace scheduler { namespace tests {
                 UserSet filterReachable(UserSet users); // soon obsolete
                 UserSet filterReachable(UserSet users, const int frameNr);
                 wns::scheduler::ConnectionSet filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr);
-                wns::scheduler::PowerMap calcULResources(const wns::scheduler::UserSet&, uint32_t) const;
+                wns::scheduler::PowerMap calcULResources(const wns::scheduler::UserSet&, unsigned long int) const;
                 wns::scheduler::UserSet getActiveULUsers() const;
                 int getTotalNumberOfUsers(const wns::scheduler::UserID user);
 

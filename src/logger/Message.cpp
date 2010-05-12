@@ -41,7 +41,7 @@ Message::Message(const std::string& m) :
 	message << m;
 }
 
-Message::Message(const std::string& m, int32_t _level) :
+Message::Message(const std::string& m, long int _level) :
 	message(),
 	level(_level)
 {
@@ -61,7 +61,7 @@ Message::getString() const
 	return message.str();
 }
 
-int32_t
+long int
 Message::getLevel() const
 {
 	return level;

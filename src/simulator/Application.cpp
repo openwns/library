@@ -298,7 +298,7 @@ Application::doInit()
 		}
 	}
 
-	int32_t nModules = wnsView.len("modules");
+	long int nModules = wnsView.len("modules");
 	for(int i=0; i<nModules; ++i)
 	{
 		moduleViews_.push_back(wnsView.getView("modules", i));

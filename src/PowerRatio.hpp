@@ -155,21 +155,21 @@ namespace wns {
 		inline void   operator -=(const Ratio& r);
 		inline void   operator *=(double d);
 		inline void   operator *=(float f);
-		inline void   operator *=(int32_t i);
-		inline void   operator *=(uint32_t i);
+		inline void   operator *=(long int i);
+		inline void   operator *=(unsigned long int i);
 		inline void   operator /=(double d);
 		inline void   operator /=(float f);
-		inline void   operator /=(int32_t i);
-		inline void   operator /=(uint32_t i);
+		inline void   operator /=(long int i);
+		inline void   operator /=(unsigned long int i);
 		inline Power  operator * (double d) const;
 		inline Power  operator * (float f) const;
-		inline Power  operator * (int32_t i) const;
-		inline Power  operator * (uint32_t i) const;
+		inline Power  operator * (long int i) const;
+		inline Power  operator * (unsigned long int i) const;
 		inline Power  operator * (const Ratio& r) const;
 		inline Power  operator / (double d) const;
 		inline Power  operator / (float f) const;
-		inline Power  operator / (int32_t i) const;
-		inline Power  operator / (uint32_t i) const;
+		inline Power  operator / (long int i) const;
+		inline Power  operator / (unsigned long int i) const;
 		inline Power  operator / (const Ratio& r) const;
 		inline Ratio  operator / (const Power& p) const;
 		inline bool   operator < (const Power& p) const;
@@ -442,11 +442,11 @@ namespace wns {
 		return Power(mW*(double)f);
 	}
 
-	inline Power Power::operator *(int32_t i) const {
+	inline Power Power::operator *(long int i) const {
 		return Power(mW*(double)i);
 	}
 
-	inline Power Power::operator *(uint32_t u) const {
+	inline Power Power::operator *(unsigned long int u) const {
 		return Power(mW*(double)u);
 	}
 
@@ -464,12 +464,12 @@ namespace wns {
 		assert(mW>=0);
 	}
 
-	inline void Power::operator *=(int32_t i) {
+	inline void Power::operator *=(long int i) {
 		mW*=i;
 		assert(mW>=0);
 	}
 
-	inline void Power::operator *=(uint32_t u) {
+	inline void Power::operator *=(unsigned long int u) {
 		mW*=u;
 	}
 
@@ -481,11 +481,11 @@ namespace wns {
 		return Power(mW/(double)f);
 	}
 
-	inline Power Power::operator /(int32_t i) const {
+	inline Power Power::operator /(long int i) const {
 		return Power(mW/(double)i);
 	}
 
-	inline Power Power::operator /(uint32_t u) const {
+	inline Power Power::operator /(unsigned long int u) const {
 		return Power(mW/(double)u);
 	}
 
@@ -503,12 +503,12 @@ namespace wns {
 		assert(mW>=0);
 	}
 
-	inline void Power::operator /=(int32_t i) {
+	inline void Power::operator /=(long int i) {
 		mW/=(double)i;
 		assert(mW>=0);
 	}
 
-	inline void Power::operator /=(uint32_t u) {
+	inline void Power::operator /=(unsigned long int u) {
 		mW/=(double)u;
 	}
 

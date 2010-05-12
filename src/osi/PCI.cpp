@@ -33,7 +33,7 @@ using namespace wns::osi;
 
 //! Default constructor
 
-PCI::PCI(pduType aPDUType, const uint32_t aPDULength) :
+PCI::PCI(pduType aPDUType, const unsigned long int aPDULength) :
       p_pdu(aPDUType),
       p_pduLength(aPDULength),
       p_sduPtr(PDUPtr())
@@ -89,7 +89,7 @@ pduType PCI::getPDUType() const
 }
 
 //! Get unique identifier
-uint32_t PCI::getPDUId() const
+unsigned long int PCI::getPDUId() const
 {
     return p_pduId;
 }
@@ -132,7 +132,7 @@ PCI::getSDU() const
 
 /*! Id counter, which is incremented whenever the default or the
    param constructor is used. */
-uint32_t PCI::p_pduIdCounter = 1;
+unsigned long int PCI::p_pduIdCounter = 1;
 
 /*
 Local Variables:

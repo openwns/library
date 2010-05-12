@@ -49,7 +49,7 @@ MultiLink::clear()
 
 
 
-uint32_t
+unsigned long int
 MultiLink::size() const
 {
 	return fus_.size();

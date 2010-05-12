@@ -210,7 +210,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		for (int i = 0; i< (windowSize+1) ; i++)
 			getUpperStub()->sendData(getFUN()->createCompound());
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(windowSize), compoundsSent());
 	} // fillWindow
 
@@ -222,13 +222,13 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 			getUpperStub()->sendData(getFUN()->createCompound());
 
 		CPPUNIT_ASSERT(buffer->getSize() == 1);
-		CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize));
+		CPPUNIT_ASSERT(compoundsSent() == (unsigned long int)(windowSize));
 
 		CompoundPtr ackFrame = createACKFrame(getLowerStub()->sent[0]);
 		getLowerStub()->onData(ackFrame);
 
 		CPPUNIT_ASSERT(buffer->getSize() == 0);
-		CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize + 1));
+		CPPUNIT_ASSERT(compoundsSent() == (unsigned long int)(windowSize + 1));
 	} // sendOnAck
 
 
@@ -238,7 +238,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		for (int i = 0; i < 3*windowSize+1 ; i++)
 			getUpperStub()->sendData(getFUN()->createCompound());
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(2*windowSize+1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(2*windowSize+1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(windowSize), compoundsSent());
 
 		for (int i = 0; i < windowSize; i++){
@@ -246,7 +246,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 			getLowerStub()->onData(ackFrame);
 		}
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(windowSize+1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(windowSize+1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(2*windowSize), compoundsSent());
 
 		for (int i = 0; i < windowSize; i++){
@@ -254,7 +254,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 			getLowerStub()->onData(ackFrame);
 		}
 
-		CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t>(1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned long int>(1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(3*windowSize), compoundsSent());
 	} // multipleFillWindow
 
@@ -365,13 +365,13 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		}
 
 		CPPUNIT_ASSERT(buffer->getSize() == 1);
-		CPPUNIT_ASSERT(compoundsSent() == uint32_t(windowSize));
+		CPPUNIT_ASSERT(compoundsSent() == (unsigned long int)(windowSize));
 
 		// send an out-of-sequence ACK (the third, index 2)
 		CompoundPtr ackFrame = createACKFrame(getLowerStub()->sent[2]);
 		getLowerStub()->onData(ackFrame);
 
-		CPPUNIT_ASSERT_EQUAL(uint32_t(1), buffer->getSize());
+		CPPUNIT_ASSERT_EQUAL((unsigned long int)(1), buffer->getSize());
 		CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(windowSize + 2), compoundsSent());
 
 		// Check if the first and second frame (index 0 and 1)  have been repeated
@@ -625,8 +625,8 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		ARQCommand::SequenceNumber missingSN = 0;
 		getLowerStub()->onData(createIFrame(missingSN));
 
-		CPPUNIT_ASSERT( compoundsSent()     == uint32_t(windowSize)); // all ACKs sent?
-		CPPUNIT_ASSERT( compoundsDelivered() == uint32_t(windowSize)); // all Frames delivered?
+		CPPUNIT_ASSERT( compoundsSent()     == (unsigned long int)(windowSize)); // all ACKs sent?
+		CPPUNIT_ASSERT( compoundsDelivered() == (unsigned long int)(windowSize)); // all Frames delivered?
 	} // outOfSeqIFrames
 
 

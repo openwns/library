@@ -65,7 +65,7 @@ namespace wns { namespace distribution {
 
 	private:
         double rate_;
-		uint32_t shape_;
+		unsigned long int shape_;
  		StandardUniform dis_;
 	}; // Erlang
 } // distribution

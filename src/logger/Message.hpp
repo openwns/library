@@ -55,7 +55,7 @@ namespace wns { namespace logger {
 		/**
 		 * @brief Constructor setting an initial message and verbosity level
 		 */
-		Message(const std::string& m, int32_t _level);
+		Message(const std::string& m, long int _level);
 
 		/**
 		 * @brief Copy constructor
@@ -95,7 +95,7 @@ namespace wns { namespace logger {
 		/**
 		 * @brief Return the verbosity level of the Message
 		 */
-		int32_t
+		long int
 		getLevel() const;
 
 	private:
@@ -107,7 +107,7 @@ namespace wns { namespace logger {
 		/**
 		 * @brief The verbosity level of the message
 		 */
-		int32_t level;
+		long int level;
 	}; // Message
 } // logger
 } // wns

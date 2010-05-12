@@ -154,14 +154,14 @@ Bounded::tryToSendOnce()
 // Buffer interface
 //
 
-uint32_t
+unsigned long int
 Bounded::getSize()
 {
 	return currentSize;
 } // size
 
 
-uint32_t
+unsigned long int
 Bounded::getMaxSize()
 {
 	return maxSize;

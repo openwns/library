@@ -58,8 +58,8 @@ namespace wns { namespace scheduler { namespace queue {
                 UserSet getQueuedUsers() const;
                 ConnectionSet getActiveConnections() const;
 
-                uint32_t numCompoundsForCid(ConnectionID cid) const;
-                uint32_t numBitsForCid(ConnectionID cid) const;
+                unsigned long int numCompoundsForCid(ConnectionID cid) const;
+                unsigned long int numBitsForCid(ConnectionID cid) const;
 
                 QueueStatusContainer getQueueStatus() const;
 
@@ -95,7 +95,7 @@ namespace wns { namespace scheduler { namespace queue {
                 std::queue<wns::ldk::CompoundPtr> 
                 getQueueCopy(ConnectionID cid);
 
-                uint32_t 
+                unsigned long int 
                 getMinimumSegmentSize(){ return minimumSegmentSize;};
 
                 Bit
@@ -124,7 +124,7 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::ldk::fun::FUN* myFUN;
 
                 long int maxSize;
-                uint32_t minimumSegmentSize;
+                unsigned long int minimumSegmentSize;
 
                 typedef std::map<ConnectionID, detail::InnerQueue> QueueContainer;
                 QueueContainer queues;

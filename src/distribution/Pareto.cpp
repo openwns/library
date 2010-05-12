@@ -85,7 +85,7 @@ Pareto::operator()()
     double f = 0.0;
     double x = scaleParamB_;
     // Avoid endless loops
-    uint32_t max_num_loops = 1000; 
+    unsigned long int max_num_loops = 1000; 
     
     while (max_num_loops--)
     {

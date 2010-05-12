@@ -47,7 +47,7 @@ RoundRobinLink::add(FunctionalUnit* it)
 }
 
 
-uint32_t
+unsigned long int
 RoundRobinLink::size() const
 {
 	return fus.size();

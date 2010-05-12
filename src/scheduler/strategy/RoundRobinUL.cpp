@@ -86,10 +86,10 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 	// sequentially distribute them over all the subbands, first in the
 	// f-direction, then in the t-direction. We try to allocate as many
 	// sequential blocks into one burst as possible.
-	uint32_t numGroups = grouping.groups.size();
-	uint32_t blocksPerChannel = uint32_t( (slotLength + slotLengthRoundingTolerance) / this->blockDuration);
-	uint32_t totalBlocks = fChannels * blocksPerChannel;
-	uint32_t blocksPerGroup = uint32_t(totalBlocks / numGroups);
+	unsigned long int numGroups = grouping.groups.size();
+	unsigned long int blocksPerChannel = (unsigned long int)( (slotLength + slotLengthRoundingTolerance) / this->blockDuration);
+	unsigned long int totalBlocks = fChannels * blocksPerChannel;
+	unsigned long int blocksPerGroup = (unsigned long int)(totalBlocks / numGroups);
 
 	assure(blocksPerGroup >= 1, "Not enough Resource Allocation Blocks or too many Spatial Groups to allow RoundRobinUL Scheduling");
 
@@ -115,7 +115,7 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 			colleagues.queue->resetQueues(iter->first);
 		}
 
-		uint32_t blocksRemaining = blocksPerGroup;
+		unsigned long int blocksRemaining = blocksPerGroup;
 		while (blocksRemaining != 0)
 		{
 			// create one burst per iteration
@@ -123,7 +123,7 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 
 			simTimeType burstStart = posInSubBand;
 			simTimeType remaining = slotLength - burstStart;
-			uint32_t numBlocks = uint32_t((remaining + slotLengthRoundingTolerance)/ this->blockDuration);
+			unsigned long int numBlocks = (unsigned long int)((remaining + slotLengthRoundingTolerance)/ this->blockDuration);
 			MESSAGE_SINGLE(NORMAL, logger,"RoundRobinUL: Time   remaining in subBand "<<currentSubBand<<": "<<remaining + slotLengthRoundingTolerance);
 			MESSAGE_SINGLE(NORMAL, logger,"RoundRobinUL: Blocks remaining in subBand "<<currentSubBand<<": "<<numBlocks);
 			if (blocksRemaining < numBlocks)

@@ -30,14 +30,14 @@
 
 using namespace wns::service::dll;
 
-const int32_t UnicastAddress::invalid = -1;
+const long int UnicastAddress::invalid = -1;
 
 UnicastAddress::UnicastAddress() :
 	address(invalid)
 {
 }
 
-UnicastAddress::UnicastAddress(int32_t _address) :
+UnicastAddress::UnicastAddress(long int _address) :
 	address(_address)
 {
 	if(!(this->address > 0)) {
@@ -75,7 +75,7 @@ UnicastAddress::isValid() const
 	return this->address != invalid;
 }
 
-int32_t
+long int
 UnicastAddress::getInteger() const
 {
 	return this->address;

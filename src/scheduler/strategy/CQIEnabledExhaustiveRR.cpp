@@ -123,7 +123,7 @@ CQIEnabledExhaustiveRR::getBestChannel(ChannelQualitiesOnAllSubBandsPtr channelQ
 	// here we assume that we get channel qualities on all the channels
 	for (unsigned int i = 0; i < channelQualities->size(); i++ )
 	{
-		uint32_t currentChannel = i;
+		unsigned long int currentChannel = i;
 		if (currentChannel < nextFreeSlot.size())
 		{
 			double remainedTimeOnthisChannel = slotLength - nextFreeSlot[currentChannel];

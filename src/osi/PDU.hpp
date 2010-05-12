@@ -46,7 +46,7 @@ typedef wns::SmartPtr<PDU> PDUPtr;
 /* We have to do that here not in PCI.hpp since typedefs can not be forward declared*/
 typedef wns::SmartPtr<PCI> PCIPtr;
 
-typedef uint32_t pduType;
+typedef unsigned long int pduType;
 /**
  * @brief Protocol Data Unit
  */
@@ -88,7 +88,7 @@ public:
 	pduType getPDUType() const;
 
 	// Get unique identifier
-	uint32_t  getPDUId() const;
+	unsigned long int  getPDUId() const;
 
 	// clone this PDU
 	virtual PDU* clone();
@@ -99,10 +99,10 @@ public:
 	Bit getLengthInBits() const;
 
 #ifndef NDEBUG
-	static int32_t
+	static long int
 	getExistingPDUs();
 
-	static int32_t
+	static long int
 	getMaxExistingPDUs();
 
 	virtual size_t
@@ -124,8 +124,8 @@ private:
     doToString() const;
 
 #ifndef NDEBUG
-	static int32_t existingPDUs;
-	static int32_t maxExistingPDUs;
+	static long int existingPDUs;
+	static long int maxExistingPDUs;
 #endif
 };
 

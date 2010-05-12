@@ -55,22 +55,22 @@ namespace wns { namespace logger {
 		/**
 		 * @brief The time is displayed in a field of this width
 		 */
-		uint32_t debugTimeWidth;
+		unsigned long int debugTimeWidth;
 
 		/**
 		 * @brief Number of digits after decimal point
 		 */
-		uint32_t debugTimePrecision;
+		unsigned long int debugTimePrecision;
 
 		/**
 		 * @brief The maximum length of the string of the location
 		 */
-		uint32_t maxLocationLength;
+		unsigned long int maxLocationLength;
 
 		/**
 		 * @brief The length of the string of the "longest" location
 		 */
-		uint32_t currentLocationLength;
+		unsigned long int currentLocationLength;
 
 	}; // ConsoleFormat
 

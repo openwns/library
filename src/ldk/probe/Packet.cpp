@@ -84,7 +84,7 @@ Packet::processOutgoing(const CompoundPtr& compound)
 	const wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
 
 	// record that we processed this compound
-	int32_t compoundLength = getLengthInBits(compound);
+	long int compoundLength = getLengthInBits(compound);
 	if(sizeOutgoingBus)
 		sizeOutgoingBus->put(compound, compoundLength);
 
@@ -105,7 +105,7 @@ Packet::processIncoming(const CompoundPtr& compound)
 {
 	PacketCommand* command = getCommand(compound->getCommandPool());
 	wns::simulator::Time now = wns::simulator::getEventScheduler()->getTime();
-	int32_t compoundLength = getLengthInBits(compound);
+	long int compoundLength = getLengthInBits(compound);
 
 	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
 	m << " sent " << command->magic.t

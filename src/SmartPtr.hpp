@@ -364,7 +364,7 @@ namespace wns {
 		 *
 		 * @returns Number of SmartPtrs pointing to a raw pointer
 		 */
-		int32_t
+		long int
 		getRefCount()
 		{
 			assert(ptr);
@@ -409,7 +409,7 @@ namespace wns {
 
 	private:
 #ifdef WNS_SMARTPTR_DEBUGGING
-		int64_t id;
+		long long int id;
 
 		std::string file;
 		int line;
@@ -428,10 +428,10 @@ namespace wns {
 			this->getAllPointers().remove(this);
 		}
 
-		static int64_t&
+		static long long int&
 		getCounter()
 		{
-			static int64_t counter = 0;
+			static long long int counter = 0;
 			return counter;
 		}
 
@@ -447,7 +447,7 @@ namespace wns {
 			return wns::TypeInfo::create<T>();
 		}
 
-		int64_t
+		long long int
 		getId() const
 	        {
 			return id;

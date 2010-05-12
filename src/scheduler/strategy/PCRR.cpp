@@ -87,10 +87,10 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 	// sequentially distribute them over all the subbands, first in the
 	// f-direction, then in the t-direction. We try to allocate as many
 	// sequential blocks into one burst as possible.
-	uint32_t blocksPerChannel = uint32_t(((1000 * slotLength / this->blockDuration) + 0.5)/1000);
-	uint32_t blocksPerSpatialLayer = fChannels * blocksPerChannel;
+	unsigned long int blocksPerChannel = (unsigned long int)(((1000 * slotLength / this->blockDuration) + 0.5)/1000);
+	unsigned long int blocksPerSpatialLayer = fChannels * blocksPerChannel;
 #if !defined(WNS_NO_LOGGING) || !defined(NDEBUG)
-	uint32_t totalBlocks = maxSpatialLayers * blocksPerSpatialLayer;
+	unsigned long int totalBlocks = maxSpatialLayers * blocksPerSpatialLayer;
 #endif
 	MESSAGE_SINGLE(NORMAL, logger,"PCRR::partitioned the UL Frame"
 		       << "\n\t scheduling period per channel:   " << slotLength
@@ -102,8 +102,8 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 	// Try to fairly distribute "totalBlocks" among the active users,
 	// considering their requests
 	std::vector<double> sharePerGroup(grouping.groups.size(), 0.0);
-	std::vector<uint32_t> blocksPerGroup(grouping.groups.size(), 0);
-	uint32_t sumAllocatedBlocks = 0;
+	std::vector<unsigned long int> blocksPerGroup(grouping.groups.size(), 0);
+	unsigned long int sumAllocatedBlocks = 0;
 
 
 	double sumShares = 0.0;
@@ -136,7 +136,7 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 		GroupAlloc a;
 		a.group = group;
 		// each group gets the requested share, but 1 block at minimum
-		uint32_t thisGroupBlocks = std::max<uint32_t>(1, uint32_t(sharePerGroup.at(group) * blocksPerSpatialLayer));
+		unsigned long int thisGroupBlocks = std::max<unsigned long int>(1, (unsigned long int)(sharePerGroup.at(group) * blocksPerSpatialLayer));
 		MESSAGE_SINGLE(NORMAL, logger, "Group " << group << " requests "
 			       << sharePerGroup.at(group)*100 << " percent of the resources =" << thisGroupBlocks <<" blocks");
 
@@ -172,12 +172,12 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 		// this sorts the list in ascending order according to the # of blocks
 		allocs.sort(wns::scheduler::strategy::LtAlloc);
 
-		uint32_t biggestChunk = allocs.back().blocks;
+		unsigned long int biggestChunk = allocs.back().blocks;
 		assure(biggestChunk>1, "No way to further reduce allocation share.");
 
 		for (size_t ii = 0; ii<allocs.size(); ++ii)
 		{
-			uint32_t thisChunk = allocs.back().blocks;
+			unsigned long int thisChunk = allocs.back().blocks;
 			if (thisChunk>1)
 			{
 				allocs.back().blocks = biggestChunk-1;
@@ -211,14 +211,14 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 			colleagues.queue->resetQueues(iter->first);
 		}
 
-		uint32_t blocksRemaining = blocksPerGroup.at(group);
+		unsigned long int blocksRemaining = blocksPerGroup.at(group);
 		while (blocksRemaining != 0)
 		{
 			// create one burst per iteration
 			assure(currentSubBand < fChannels, "Big confusion concerning total subBands and bursts");
 			simTimeType burstStart = posInSubBand;
 			simTimeType remaining = slotLength - burstStart;
-			uint32_t numBlocks = uint32_t((remaining + slotLengthRoundingTolerance)/ this->blockDuration);
+			unsigned long int numBlocks = (unsigned long int)((remaining + slotLengthRoundingTolerance)/ this->blockDuration);
 			MESSAGE_SINGLE(NORMAL, logger,"PCRR: Time   remaining in subBand "<<currentSubBand<<": "<<remaining + slotLengthRoundingTolerance);
 			MESSAGE_SINGLE(NORMAL, logger,"PCRR: Blocks remaining in subBand "<<currentSubBand<<": "<<numBlocks);
 			if (blocksRemaining < numBlocks)

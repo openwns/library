@@ -124,11 +124,11 @@ SegAndConcat::processOutgoing(const wns::ldk::CompoundPtr& sdu)
         return;
     }
 
-    int sduPCISize = 0;
-    int sduDataSize = 0;
-    int sduTotalSize = 0;
-    int cumSize = 0;
-    int nextSegmentSize = 0;
+    Bit sduPCISize = 0;
+    Bit sduDataSize = 0;
+    Bit sduTotalSize = 0;
+    Bit cumSize = 0;
+    Bit nextSegmentSize = 0;
 
     wns::ldk::CommandPool* commandPool = sdu->getCommandPool();
     getFUN()->calculateSizes(commandPool, sduPCISize, sduDataSize);

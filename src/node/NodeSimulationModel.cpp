@@ -48,7 +48,7 @@ NodeSimulationModel::~NodeSimulationModel()
 {
 	// Shut down the final part of the logger
 #ifndef NDEBUG
-	int32_t pdusAvailableBeforeNodesDeletd = wns::osi::PDU::getExistingPDUs();
+	long int pdusAvailableBeforeNodesDeletd = wns::osi::PDU::getExistingPDUs();
 #endif
 
 	MESSAGE_SINGLE(NORMAL, logger_, "Deleting all nodes");

@@ -69,7 +69,7 @@ namespace wns { namespace distribution {
 		paramString() const;
 
 	private:
-		int32_t numberOfTrials_;
+		long int numberOfTrials_;
 		double probability_;
 		StandardUniform dis_;
 	}; // Binomial

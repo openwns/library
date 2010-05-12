@@ -82,7 +82,7 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
         {
         public:
 
-            ObjectWithId(int32_t id,  EventHandlerStub* receiver) :
+            ObjectWithId(long int id,  EventHandlerStub* receiver) :
                 id_(id),
                 receiver_(receiver)
             {
@@ -95,7 +95,7 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
             {
             }
 
-            int32_t getID() const
+            long int getID() const
             {
                 return id_;
             }
@@ -111,7 +111,7 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
                 receiver_(NULL)
             {}
 
-            int32_t id_;
+            long int id_;
             EventHandlerStub* receiver_;
         };
 

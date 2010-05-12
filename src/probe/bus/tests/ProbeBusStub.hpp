@@ -56,7 +56,7 @@ namespace wns { namespace probe { namespace bus { namespace tests {
         accepts(const wns::simulator::Time&, const IContext&);
 
         virtual void
-        setFilter(std::string, int32_t);
+        setFilter(std::string, long int);
 
         int receivedCounter;
 
@@ -66,7 +66,7 @@ namespace wns { namespace probe { namespace bus { namespace tests {
 
         std::string providerName;
 
-        int32_t filter;
+        long int filter;
 
         std::string lastContext;
 

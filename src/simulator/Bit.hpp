@@ -30,6 +30,6 @@
 
 #include <stdint.h>
 
-typedef int32_t Bit;
+typedef long int Bit;
 
 #endif // WNS_SIMULATOR_BIT_HPP

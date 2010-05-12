@@ -78,7 +78,7 @@ Window::Window(fun::FUN* fuNet, const wns::pyconfig::View& config) :
 	for (int ii = 0; ii<config.len("localIDs.keys()"); ++ii)
 	{
 		std::string key = config.get<std::string>("localIDs.keys()",ii);
-		uint32_t value  = config.get<uint32_t>("localIDs.values()",ii);
+		unsigned long int value  = config.get<unsigned long int>("localIDs.values()",ii);
 		localContext.addProvider(wns::probe::bus::contextprovider::Constant(key, value));
 		MESSAGE_SINGLE(VERBOSE, logger, "Using Local IDName '"<<key<<"' with value: "<<value);
 	}
@@ -106,7 +106,7 @@ Window::processOutgoing(const CompoundPtr& compound)
 	Bit commandPoolSize;
 	Bit dataSize;
 	this->getFUN()->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize, this);
-	const int32_t compoundLength = commandPoolSize + dataSize;
+	const long int compoundLength = commandPoolSize + dataSize;
 
 	MESSAGE_BEGIN(NORMAL, logger, m, this->getFUN()->getName());
 	m << " outgoing"
@@ -126,7 +126,7 @@ Window::processIncoming(const CompoundPtr& compound)
 	Bit commandPoolSize;
 	Bit dataSize;
 	this->getFUN()->calculateSizes(compound->getCommandPool(), commandPoolSize, dataSize, this);
-	const int32_t compoundLength = commandPoolSize + dataSize;
+	const long int compoundLength = commandPoolSize + dataSize;
 
 	MESSAGE_BEGIN(NORMAL, logger, m, this->getFUN()->getName());
 	m << " incoming"

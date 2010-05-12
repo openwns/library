@@ -57,8 +57,8 @@ namespace wns { namespace ldk { namespace buffer {
 		//
 		// Buffer interface
 		//
-		virtual uint32_t getSize();
-		virtual uint32_t getMaxSize();
+		virtual unsigned long int getSize();
+		virtual unsigned long int getMaxSize();
 
 	protected:
 		void tryToSend();
@@ -72,8 +72,8 @@ namespace wns { namespace ldk { namespace buffer {
 		virtual void doWakeup();
 
 		ContainerType buffer;
-		uint32_t maxSize;
-		uint32_t currentSize;
+		unsigned long int maxSize;
+		unsigned long int currentSize;
 		SizeCalculator* sizeCalculator;
 		bool inWakeup;
 	};

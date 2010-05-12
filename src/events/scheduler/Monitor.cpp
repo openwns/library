@@ -44,7 +44,7 @@ void
 Monitor::logStatistics()
 {
     MESSAGE_BEGIN(QUIET, logger_, m, "\nStatistics for event scheduler:\n");
-    int64_t totalAddedEvents = scheduledNowEvents_ + scheduledEvents_ + scheduledDelayEvents_;
+    long long int totalAddedEvents = scheduledNowEvents_ + scheduledEvents_ + scheduledDelayEvents_;
     m << "--------------------------------------------------------------------------\n"
       << "processed events:  " << processedEvents_ << "\n"
       << "added events:      " << totalAddedEvents << "\n"
