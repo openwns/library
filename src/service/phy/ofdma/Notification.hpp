@@ -47,6 +47,15 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
         registerHandler(Handler* handler) = 0;
 
         virtual void
+        enableReception() = 0;
+
+        virtual void
+        disableReception() = 0;
+
+        virtual bool
+        isReceptionEnabled() const = 0;
+
+        virtual void
         registerRSSHandler(RSSHandler* rssHandler) = 0;
 
         virtual void
