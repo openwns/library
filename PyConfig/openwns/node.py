@@ -27,6 +27,7 @@
 
 from logger import Logger
 import openwns.probebus
+import scenarios.interfaces
 
 class NodeSimulationModel(object):
     __slots__ = ['nameInFactory', 'logger', 'nodes']
@@ -120,6 +121,21 @@ class Node(object):
     def setProperty(self, propertyName, propertyValue):
         self.property[propertyName] = propertyValue
 
+
+class NoRadio(scenarios.interfaces.INode):
+    
+    def setPosition(self, position):
+        assert False, "This node is not a mobile radio node"
+
+    def getPosition(self):
+        assert False, "This node is not a mobile radio node"
+        return None
+    def setAntenna(self, antenna):
+        assert False, "This node is not a mobile radio node"
+
+    def getAntenna(self):
+        assert False, "This node is not a mobile radio node"
+        return None
 
 class Component(object):
     """ A particular part of a Node (like Data Link Layer). Each
