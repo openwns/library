@@ -27,6 +27,7 @@
 
 from logger import Logger
 import openwns.probebus
+import scenarios.interfaces
 
 class NodeSimulationModel(object):
     __slots__ = ['nameInFactory', 'logger', 'nodes']
@@ -36,19 +37,22 @@ class NodeSimulationModel(object):
         self.logger = Logger("WNS", "NodeSimulationModel", True)
         self.nodes = []
 
-    def getNodesByType(self, nodeType):
+    def getNodesByProperty(self, propertyName, propertyValue):
         """
-        Get a list of nodes which are of the given type.
+        Get a property name and value. 
+        Return a list of nodes those property of the given name is the same
+        as the given value
+        
+        @type propertyName: str
+        @param propertyName: The property name
 
-        @type nodeType: str
-        @param nodeType: The nodeType
+        @type propertyValue: any type
+        @param propertyValue: The property value
 
         @rtype:  [openwns.node.Node]
         @return: A list of nodes
         """
-
-        r = [n for n in self.nodes if n.getNodeType() == nodeType]
-
+        r = [n for n in self.nodes if n.getProperty(propertyName) == propertyValue]
         return r
 
 class Node(object):
@@ -97,6 +101,7 @@ class Node(object):
         self.name = name
         self.components = []
         self.logger = Logger("WNS", self.name + str(self.nodeID), True)
+        self.property = dict()
 
     def addComponent(self, component):
         """ add a component
@@ -109,6 +114,28 @@ class Node(object):
         assert(type(value) == type(42))
         self.contextProviders.append(openwns.probebus.ConstantContextProvider(key, value))
 
+    def getProperty(self, propertyName):
+      
+        return self.property[propertyName]
+    
+    def setProperty(self, propertyName, propertyValue):
+        self.property[propertyName] = propertyValue
+
+
+class NoRadio(scenarios.interfaces.INode):
+    
+    def setPosition(self, position):
+        assert False, "This node is not a mobile radio node"
+
+    def getPosition(self):
+        assert False, "This node is not a mobile radio node"
+        return None
+    def setAntenna(self, antenna):
+        assert False, "This node is not a mobile radio node"
+
+    def getAntenna(self):
+        assert False, "This node is not a mobile radio node"
+        return None
 
 class Component(object):
     """ A particular part of a Node (like Data Link Layer). Each
