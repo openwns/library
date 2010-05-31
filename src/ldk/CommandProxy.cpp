@@ -241,7 +241,9 @@ CommandProxy::activateCommand(
 	assure(commandPool != NULL, "Invalid argument.");
 	assure(kind != NULL, "Invalid argument.");
 	assure(!commandPool->knows(kind->getPCIID()),
-	       "Command already added to command pool. Trying to activate an already activated Command.");
+	       "Command " << kind->getPCIID()  
+            << " already added to command pool. Trying to activate an already activated Command.\n"
+            << dumpCommandIDRegistry());
 
 	Command* command = kind->createCommand();
 
