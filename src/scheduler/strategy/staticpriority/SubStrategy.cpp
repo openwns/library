@@ -116,19 +116,19 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free on sc="<<mapInfoEntry->subBand<<"."<<mapInfoEntry->timeSlot<<"."<<mapInfoEntry->spatialLayer);
     if (freeBits<=0) return false; // can be =0 if !subChannelIsUsable
     if (useDynamicSegmentation) {
-        // modify to maximum possible value in order to fill the whole subchannel if possible
-        request.bits = (freeBits<queuedBits) ? freeBits:queuedBits; // minimum
+        request.bits = freeBits;
         MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free, get="<<request.bits);
-        // for UpLink:
-        //if (request.bits<minimumSegmentSize) request.bits=minimumSegmentSize; // maximum
         wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDUSegment(cid,request.bits);
-        // ^ beware if SegmentingQueue returns "padded" compounds. They contain "freeBits" bits instead of "queuedBits"
-        simTimeType compoundDuration = request.getDuration();
-        if (compoundPtr != wns::ldk::CompoundPtr()) { // no fake
-            int compoundBits = compoundPtr->getLengthInBits();
-            assure(compoundBits<=request.bits,"compoundLengthInBits="<<compoundBits<<" vs request.bits="<<request.bits);
-            MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): getHeadOfLinePDUSegment("<<request.bits<<") => "<<compoundBits<<" bits dequeued, d="<<compoundDuration*1e6<<"us");
+        if (compoundPtr != wns::ldk::CompoundPtr()) // no fake
+        { 
+            request.bits = compoundPtr->getLengthInBits();
         }
+        else // fake, use result from previous call to getHeadOfLinePDUbits or the free bit of resource if more data was queued
+        {
+            request.bits = freeBits < queuedBits?freeBits:queuedBits;
+        }
+        simTimeType compoundDuration = request.getDuration();
+        MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): getHeadOfLinePDUSegment("<<freeBits<<") => "<<request.bits<<" bits dequeued, d="<<compoundDuration*1e6<<"us");
         bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr, useHARQ);
         assure(ok,"schedulingMap->addCompound("<<request.toString()<<") failed. mapInfoEntry="<<mapInfoEntry->toString());
         mapInfoEntry->compounds.push_back(compoundPtr); // (currentBurst)
