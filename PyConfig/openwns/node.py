@@ -130,6 +130,7 @@ class NoRadio(scenarios.interfaces.INode):
     def getPosition(self):
         assert False, "This node is not a mobile radio node"
         return None
+    
     def setAntenna(self, antenna):
         assert False, "This node is not a mobile radio node"
 
