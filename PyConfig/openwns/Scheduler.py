@@ -227,6 +227,17 @@ class RoundRobin(SubStrategy):
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "RoundRobin", True, parentLogger)
 
+# As long as DSA has resources for any CID of a USER, try scheduling this USER.
+# If no more resources are left, try the next USER.
+class DSADrivenRR(SubStrategy):
+    __plugin__ = "DSADrivenRR"
+    
+    def __init__(self, parentLogger = None, **kw):
+        self.logger = openwns.logger.Logger("WNS", "DSADrivenRR", True, parentLogger)
+        attrsetter(self, kw)
+    def setParentLogger(self,parentLogger = None):
+        self.logger = openwns.logger.Logger("WNS", "DSADrivenRR", True, parentLogger)
+
 class ExhaustiveRoundRobin(SubStrategy):
     __plugin__ = "ExhaustiveRoundRobin"
     blockSize = 1000000 # don't ask.
