@@ -115,7 +115,9 @@ class Node(object):
         self.contextProviders.append(openwns.probebus.ConstantContextProvider(key, value))
 
     def getProperty(self, propertyName):
-      
+        if propertyName not in self.property:
+            return
+        
         return self.property[propertyName]
     
     def setProperty(self, propertyName, propertyValue):
