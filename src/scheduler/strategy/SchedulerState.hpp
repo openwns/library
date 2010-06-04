@@ -106,6 +106,7 @@ namespace wns { namespace scheduler {
                 virtual std::string toString() const;
                 virtual GroupingPtr getNewGrouping();
                 virtual bool groupingIsValid() const;
+                virtual bool sdmaGroupingIsValid() const;
                 virtual GroupingPtr getGrouping() const;
                 virtual void setGrouping(GroupingPtr groupingPtr);
                 virtual void setCurrentPriority(int priority);

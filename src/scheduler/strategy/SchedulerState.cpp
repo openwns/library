@@ -135,6 +135,11 @@ RevolvingState::groupingIsValid() const
     return (grouping!=GroupingPtr());
 }
 
+bool
+RevolvingState::sdmaGroupingIsValid() const
+{
+    return (groupingIsValid() && (strategyInput->getMaxSpatialLayers() > 1));
+}
 GroupingPtr
 RevolvingState::getGrouping() const
 {
