@@ -314,16 +314,11 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
     if (strategyInput.slotLength < schedulerState->symbolDuration)    throw wns::Exception("Can't schedule on slot shorter than OFDM symbol");
     if (strategyInput.numberOfTimeSlots < 1)   throw wns::Exception("Need at least one TimeSlot");
     if (strategyInput.maxSpatialLayers   < 1)          throw wns::Exception("Need at least one spatialLayer");
-    // ^ strategyInput.maxSpatialLayers>1 means beamforming or MIMO
+    // ^ strategyInput.maxSpatialLayers>1 means SDMA or MIMO
     assure(isNewStrategy()
            || strategyInput.beamforming
            || strategyInput.maxSpatialLayers==1,
            "beamforming="<<strategyInput.beamforming<<" && maxSpatialLayers="<<strategyInput.maxSpatialLayers<<": MIMO not supported in old strategies");
-    assure(!isNewStrategy()
-           || !strategyInput.beamforming
-           //|| strategyInput.maxSpatialLayers==1
-           ,
-           "beamforming="<<strategyInput.beamforming<<" && maxSpatialLayers="<<strategyInput.maxSpatialLayers<<": beamforming not (yet) working in new strategies");
     // prepare a new state for this timeFrame:
     schedulerState = revolveSchedulerState(strategyInput);
     if (strategyInput.inputSchedulingMap == wns::scheduler::SchedulingMapPtr()) // empty
@@ -349,6 +344,25 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
         // not necessary but these defaults may be optionally provided by the caller:
         schedulerState->setDefaultPhyMode(strategyInput.defaultPhyModePtr); // may be undefined (NULL) in most cases
         schedulerState->setDefaultTxPower(strategyInput.defaultTxPower); // may be undefined (0.0) in most cases
+        // only if master and beamforming
+        if (groupingRequired() && !colleagues.queue->isEmpty())
+        {   // grouping needed for beamforming & its antenna pattern
+            GroupingPtr sdmaGrouping = GroupingPtr(new Grouping());
+            UserSet allUsers;
+            allUsers = colleagues.queue->getQueuedUsers();
+            UserSet activeUsers = colleagues.registry->filterReachable(allUsers, strategyInput.getFrameNr());
+            if ( schedulerState->isTx ) // transmitter grouping
+                sdmaGrouping = colleagues.grouper->getTxGroupingPtr(activeUsers, strategyInput.maxSpatialLayers);
+            else // receiver grouping
+                sdmaGrouping = colleagues.grouper->getRxGroupingPtr(activeUsers, strategyInput.maxSpatialLayers);
+            schedulerState->currentState->setGrouping(sdmaGrouping);
+            assure(schedulerState->currentState->getGrouping() == sdmaGrouping,"invalid grouping");
+            // ^ otherwise we have to set it here.
+            MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Number of Groups = " << sdmaGrouping->groups.size());
+            MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): grouping.getDebugOutput = " << sdmaGrouping->getDebugOutput());
+        } else {
+            MESSAGE_SINGLE(VERBOSE, logger, "doStartScheduling(): no grouping required.");
+        }
     } else { // slave scheduling
         // two ways of master input:
         // 1. old way: mapInfoEntryFromMaster
@@ -921,7 +935,7 @@ Strategy::groupingRequired() const
     assure(schedulerState!=SchedulerStatePtr(),"schedulerState must be valid");
     assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
     assure(schedulerState->currentState->strategyInput!=NULL,"schedulerState->currentState->strategyInput must be valid");
-    return ((schedulerState->currentState->strategyInput->beamforming)
-            && (schedulerState->currentState->strategyInput->getMaxSpatialLayers()>1))
-        ? true:false;
+    bool isMaster = (schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::DLMaster() 
+        || schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster());
+    return (schedulerState->currentState->strategyInput->beamforming && isMaster);
 }

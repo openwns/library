@@ -122,48 +122,11 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
 
     MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): userSelection. getDL=" << schedulerState->isDL << ", isTX=" << schedulerState->isTx << ", schedulerSpot="<<wns::scheduler::SchedulerSpot::toString(schedulerState->schedulerSpot));
 
-    // user selection
-    UserSet allUsers;
-    //if ( !(schedulerState->isDL) && !schedulerState->isTx )
-    /*
-    if ( schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::ULMaster() )
-    {       // I am master scheduler for uplink (RS-RX)
-        allUsers = colleagues.registry->getActiveULUsers();
-        //allUsers = colleagues.queue->getQueuedUsers(); // soon possible with new queueInterface [rs]
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Master Rx-Scheduling...");
-    } else {
-        // get all users which have PDUs in their queues
-        allUsers = colleagues.queue->getQueuedUsers();
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Slave UL-Scheduling or Master DL-Scheduling...");
-    }
-    */
-    // the same for UL/DL:
-    //allUsers = colleagues.queue->getQueuedUsers();
-    //MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): allUsers.size()="<<allUsers.size()<<": Users="<<printUserSet(allUsers));
-    // filter reachable users
-    //UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
-    //MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): activeUsers.size()="<<activeUsers.size()<<": Users="<<printUserSet(activeUsers));
-
-    // prepare grouping here before going into priorities (subschedulers).
-    // This code block could also be moved into the base class Strategy::startScheduling()
     if (groupingRequired() && !colleagues.queue->isEmpty()) // only if (maxSpatialLayers>1)
-    {   // grouping needed for beamforming & its antenna pattern
-        GroupingPtr sdmaGrouping = schedulerState->currentState->getNewGrouping(); // also stored in schedulerState
-        int maxSpatialLayers = schedulerState->currentState->strategyInput->maxSpatialLayers;
-        allUsers = colleagues.queue->getQueuedUsers();
-        UserSet activeUsers = colleagues.registry->filterReachable(allUsers,frameNr);
-        if ( schedulerState->isTx ) // transmitter grouping
-            sdmaGrouping = colleagues.grouper->getTxGroupingPtr(activeUsers, maxSpatialLayers);
-        else // receiver grouping
-            sdmaGrouping = colleagues.grouper->getRxGroupingPtr(activeUsers, maxSpatialLayers);
-        assure(schedulerState->currentState->getGrouping() == sdmaGrouping,"invalid grouping");
-        // ^ otherwise we have to set it here.
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Number of Groups = " << sdmaGrouping->groups.size());
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): grouping.getDebugOutput = " << sdmaGrouping->getDebugOutput());
-        strategyResult.sdmaGrouping = sdmaGrouping; // set grouping into result output (needed later to set antennaPatterns)
-    } else {
-        MESSAGE_SINGLE(VERBOSE, logger, "doStartScheduling(): no grouping required.");
-    }
+    {
+        // set grouping into result output (needed later to set antennaPatterns)
+        strategyResult.sdmaGrouping =  schedulerState->currentState->getGrouping();
+    } 
     //if ( !activeUsers.empty() ) { // NO! go into all subStrategies anytime
     //ConnectionAttributes connectionAttributes; // NEW: std::map< ConnectionID, ConnectionsCharacteristics >
 

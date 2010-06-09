@@ -148,7 +148,7 @@ namespace wns { namespace scheduler { namespace strategy {
             }; // class StrategyInput
 
             /** @brief container for the basic datastructures
-                that contain the scheduler sdtrategy results */
+                that contain the scheduler strategy results */
             class StrategyResult // NEW [rs]
                     : virtual public wns::RefCountable
             {

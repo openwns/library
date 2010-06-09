@@ -111,6 +111,7 @@ DSAStrategy::getSpatialLayerForSubChannel(int subChannel,
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
 	assure(timeSlot>=0,"need a valid timeSlot");
 	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
+        assure(channelIsUsable(subChannel, timeSlot, request, schedulerState, schedulingMap),"invalid timeslot");
 	int numSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
 	int getBeam = 0;
 	bool ok;
@@ -127,13 +128,15 @@ DSAStrategy::getSpatialLayerForSubChannel(int subChannel,
 		       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.spatialIndex);
 		// an empty subChannel can always be used:
 		if (prbDescriptor.scheduledCompounds.empty())
-			{ return spatialLayer; }
+	        {
+                    return spatialLayer;
+                }
 		// now we are sure that the subChannel is used by at least one packet
 		// check if another user is blocking the subChannel:
 		if (oneUserOnOneSubChannel)
 		{	// checking the first packet is sufficient:
 			UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
-			if (otherUser != request.user)
+			if (otherUser == request.user)
 				return spatialLayer;
 		}
 		// check if the PhyMode is already fixed:
@@ -164,6 +167,8 @@ DSAStrategy::channelIsUsable(int subChannel,
 	assure(subChannel<schedulerState->currentState->strategyInput->getFChannels(),"invalid subChannel="<<subChannel);
 	assure(timeSlot>=0,"need a valid timeSlot");
 	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
+        if(schedulerState->currentState->groupingIsValid())
+            assure(oneUserOnOneSubChannel, "oneUserOnOneSubChannel required for beamforming/SDMA");
 	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
 	//int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
 	int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
@@ -183,22 +188,21 @@ DSAStrategy::channelIsUsable(int subChannel,
 			// TODO: copy code from other channelIsUsable() method...
 			// an empty subChannel can always be used:
 			if (prbDescriptor.scheduledCompounds.empty())
-			{ return true; }
-			// now we are sure that the subChannel is used by at least one packet
-			// check the grouping constraints:
-			//if (groupingRequired()) ? <- is this question enough ?
-		    if (schedulerState->currentState->groupingIsValid()) // grouping enabled
 			{
-				// check if request.user fulfils the grouping constraints...
-				// get otherUsers on this subchannel
-				// if one of them is in the same group as request.user, it's ok to continue
-				// if one of them is the same as request.user, this also proves it's ok
-				// if one of them in in another group, it's not ok -> return false
-				// so we see it's enough to only test one otherUser and not all of them
-				// UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
-				// if (!(otherUser is in same group as request.user))
-				// { return false; }
-			}
+                            //check the grouping constraints:
+                            //other user in the first spatial layer is the same group and not the same user 
+                            if (schedulerState->currentState->sdmaGroupingIsValid() && (spatialLayer != 0))
+                            {
+                                PhysicalResourceBlock& firstPrb = schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[0];
+                                UserID otherUser = firstPrb.getUserID();
+                                GroupingPtr grouping = schedulerState->currentState->getGrouping();
+                                if ((grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user]) 
+                                        || (otherUser == request.user))
+                                { return false; }
+                            } 
+                            return true;
+                        }
+			// now we are sure that the subChannel is used by at least one packet
 			// check if another user is blocking the subChannel:
 			if (oneUserOnOneSubChannel)
 			{	// checking the first packet is sufficient:
@@ -241,6 +245,8 @@ DSAStrategy::channelIsUsable(int subChannel,
 	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
 	assure(spatialLayer>=0,"need a valid spatialLayer");
 	assure(spatialLayer<schedulerState->currentState->strategyInput->getMaxSpatialLayers(),"invalid spatialLayer="<<spatialLayer);
+        if(schedulerState->currentState->groupingIsValid())
+            assure(oneUserOnOneSubChannel, "oneUserOnOneSubChannel required for beamforming/SDMA");
 	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
 	// TODO: should we introduce
 	// bool allBeamsUsedByOneUserOnly
@@ -277,7 +283,18 @@ DSAStrategy::channelIsUsable(int subChannel,
 			// an empty subChannel can always be used:
 			if (prbDescriptor.scheduledCompounds.empty())
 			{
-				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used");
+                                // check the grouping constraints:
+                                //other user in the first spatial layers is the same group and not the same user 
+                                if (schedulerState->currentState->sdmaGroupingIsValid() && (spatialLayer != 0))
+                                {
+                                    PhysicalResourceBlock& firstPrb = schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[0];
+                                    UserID otherUser = firstPrb.getUserID();
+                                    GroupingPtr grouping = schedulerState->currentState->getGrouping();
+                                    if ((grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user]) 
+                                            || (otherUser == request.user))
+                                    { return false; }
+                                }
+				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used (excluding SDMA)");
 				return true;
 			}
 			// now we are sure that the subChannel is used by at least one packet
@@ -297,20 +314,6 @@ DSAStrategy::channelIsUsable(int subChannel,
 			MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used");
 			return true;
 		}
-	}
-	// check the grouping constraints:
-	//if (groupingRequired()) ? <- is this question enough ?
-	if (schedulerState->currentState->groupingIsValid()) // grouping enabled
-	{
-		// check if request.user fulfils the grouping constraints...
-		// get otherUsers on this subchannel
-		// if one of them is in the same group as request.user, it's ok to continue
-		// if one of them is the same as request.user, this also proves it's ok
-		// if one of them in in another group, it's not ok -> return false
-		// so we see it's enough to only test one otherUser and not all of them
-		// UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
-		// if (!(otherUser is in same group as request.user))
-		// { return false; }
 	}
 	// This is the check if the PhyMode is already fixed:
 	wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
