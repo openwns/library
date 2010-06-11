@@ -85,7 +85,8 @@ namespace wns { namespace ldk { namespace probe { namespace bus {
 		wns::probe::bus::ContextCollectorPtr compoundsOutgoing;
 		wns::probe::bus::ContextCollectorPtr bitsAggregated;
 		wns::probe::bus::ContextCollectorPtr compoundsAggregated;
-
+        wns::probe::bus::ContextCollectorPtr relativeBitsGoodput;
+        wns::probe::bus::ContextCollectorPtr relativeCompoundsGoodput;
 
 		SlidingWindow cumulatedBitsIncoming;
 		SlidingWindow cumulatedPDUsIncoming;

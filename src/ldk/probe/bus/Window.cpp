@@ -58,6 +58,8 @@ Window::Window(fun::FUN* fuNet, const wns::pyconfig::View& config) :
 	compoundsOutgoing(),
 	bitsAggregated(),
 	compoundsAggregated(),
+    relativeBitsGoodput(),
+    relativeCompoundsGoodput(),
 
 	cumulatedBitsIncoming(config.get<simTimeType>("windowSize")),
 	cumulatedPDUsIncoming(config.get<simTimeType>("windowSize")),
@@ -89,6 +91,8 @@ Window::Window(fun::FUN* fuNet, const wns::pyconfig::View& config) :
 	this->compoundsOutgoing = wns::probe::bus::collector(localContext, config, "outgoingCompoundThroughputProbeName");
 	this->bitsAggregated = wns::probe::bus::collector(localContext, config, "aggregatedBitThroughputProbeName");
 	this->compoundsAggregated = wns::probe::bus::collector(localContext, config, "aggregatedCompoundThroughputProbeName");
+    this->relativeBitsGoodput = wns::probe::bus::collector(localContext, config, "relativeBitsGoodputProbeName");
+    this->relativeCompoundsGoodput = wns::probe::bus::collector(localContext, config, "relativeCompoundsGoodputProbeName");
 
 	// start after first window is full, then sample every sampleInterval seconds
 	this->startPeriodicTimeout(sampleInterval, config.get<simTimeType>("windowSize"));
@@ -153,6 +157,13 @@ Window::periodically()
 	this->compoundsIncoming->put(this->cumulatedPDUsIncoming.getPerSecond());
 	this->bitsAggregated->put(this->aggregatedThroughputInBit.getPerSecond());
 	this->compoundsAggregated->put(this->aggregatedThroughputInPDUs.getPerSecond());
+
+    if(this->cumulatedBitsOutgoing.getPerSecond() > 0)
+    {
+        this->relativeBitsGoodput->put(this->aggregatedThroughputInBit.getPerSecond()/this->cumulatedBitsOutgoing.getPerSecond());
+        this->relativeCompoundsGoodput->put(this->aggregatedThroughputInPDUs.getPerSecond()/this->cumulatedPDUsOutgoing.getPerSecond());
+    }
+
 } // periodically
 
 

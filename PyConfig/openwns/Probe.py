@@ -124,6 +124,13 @@ class Window(Probe):
     aggregatedCompoundThroughputProbeName = None
     """ Bus name for the aggregated compound throughput measurement """
 
+    relativeBitsGoodputProbeName = None
+    """ Bus name for the relative bit goodput (aggregated/outgoing) measurement """
+
+    relativeCompoundsGoodputProbeName = None
+    """ Bus name for the relative compounds goodput (aggregated/outgoing) measurement """
+    
+
     windowSize = None
     """ Length of the sliding window to use for averaging """
 
@@ -152,6 +159,8 @@ class Window(Probe):
         self.outgoingCompoundThroughputProbeName = self.prefix + ".window.outgoing.compoundThroughput"
         self.aggregatedBitThroughputProbeName = self.prefix + ".window.aggregated.bitThroughput"
         self.aggregatedCompoundThroughputProbeName = self.prefix + ".window.aggregated.compoundThroughput"
+        self.relativeBitsGoodputProbeName = self.prefix + ".window.relative.bitGoodput"
+        self.relativeCompoundsGoodputProbeName = self.prefix + ".window.relative.compoundGoodput"
 
         attrsetter(self, kw)
 
