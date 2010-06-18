@@ -193,7 +193,17 @@ class TextTrace(ITreeNodeGenerator):
         self.kwargs = kwargs
 
     def __call__(self, pathname):
-        t = openwns.probebus.TextProbeBus(*self.args, **self.kwargs)
+        t = openwns.probebus.TextProbeBus(pathname, *self.args, **self.kwargs)
+        t.prependSimTimeFlag = False
+        yield tree.TreeNode(wrappers.ProbeBusWrapper(t, ''))
+
+class JSONTrace(ITreeNodeGenerator):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, pathname):
+        t = openwns.probebus.JSONProbeBus(pathname, *self.args, **self.kwargs)
         t.prependSimTimeFlag = False
         yield tree.TreeNode(wrappers.ProbeBusWrapper(t, ''))
 

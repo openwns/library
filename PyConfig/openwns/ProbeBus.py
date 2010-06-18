@@ -263,9 +263,9 @@ class TextProbeBus(ProbeBus):
     simTimeWidth = None
     skipInterval = None
 
-    def __init__(self, name, description):
+    def __init__(self, name, key, description):
         ProbeBus.__init__(self)
-        self.key = name
+        self.key = key
         self.outputFilename = name
         self.evalConfig = openwns.evaluation.statistics.TextEval()
         self.evalConfig.name = name
@@ -275,3 +275,10 @@ class TextProbeBus(ProbeBus):
         self.simTimePrecision = 7
         self.simTimeWidth = 10
         self.skipInterval = 0
+        self.isJSON = False
+
+class JSONProbeBus(TextProbeBus):
+
+    def __init__(self, name, key, description):
+        TextProbeBus.__init__(self, name, key, description)
+        self.isJSON = True

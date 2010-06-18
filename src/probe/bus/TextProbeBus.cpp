@@ -47,15 +47,30 @@ TextProbeBus::TextProbeBus(const wns::pyconfig::View& pyco):
     outfileBase_(pyco.get<std::string>("outputFilename")),
     writeHeader_(pyco.get<bool>("writeHeader")),
     prependSimTimeFlag_(pyco.get<bool>("prependSimTimeFlag")),
+    isJSON_(pyco.get<bool>("isJSON")),
     simTimePrecision_(pyco.get<int>("simTimePrecision")),
     simTimeWidth_(pyco.get<int>("simTimeWidth")),
     skipInterval_(pyco.get<int>("skipInterval")),
-    numCalls_(0)
+    numCalls_(0),
+    jsonEntrySeparator_("")
 {
 }
 
 TextProbeBus::~TextProbeBus()
 {
+    if(isJSON_)
+    {
+        std::stringstream filename;
+        filename << outputPath_ << "/" << outfileBase_ << "_Text.dat";
+
+        // Try to append to existing file
+        std::ofstream existingFile(filename.str().c_str(), std::ios::app);
+        if (existingFile.good())
+        {
+            existingFile << "]}" << std::endl;
+        }
+        existingFile.close();
+    }
 }
 
 void
@@ -103,22 +118,30 @@ TextProbeBus::printText(std::ostream& theStream)
 
     if (writeHeader_)
     {
-        theStream << prefix + " PROBE TEXT RESULT (THIS IS A MAGIC LINE)"
-        << std::endl
-        << separator
-        << std::endl
-        << prefix + " Text file of data, any style "
-        << std::endl
-        << separator
-        << std::endl
-        << prefix + "        Name: "
-        << name_
-        << std::endl
-        << prefix + " Description: "
-        << description_
-        << std::endl
-        << separator
-        << std::endl;
+        if (!isJSON_)
+        {
+            theStream << prefix + " PROBE TEXT RESULT (THIS IS A MAGIC LINE)"
+            << std::endl
+            << separator
+            << std::endl
+            << prefix + " Text file of data, any style "
+            << std::endl
+            << separator
+            << std::endl
+            << prefix + "        Name: "
+            << name_
+            << std::endl
+            << prefix + " Description: "
+            << description_
+            << std::endl
+            << separator
+            << std::endl;
+        }
+        else
+        {
+            theStream << "{ \"content\" : [\n" << std::endl;
+        }
+
         if (!theStream.good())
         {
             throw(wns::Exception("Can't dump ProbeText data file"));
@@ -128,7 +151,7 @@ TextProbeBus::printText(std::ostream& theStream)
 
     while (! messages_.empty())
     {
-		if (output_time)
+        if (output_time && (!isJSON_))
 		{
 			time_t cur_time = time(NULL);
 
@@ -141,8 +164,16 @@ TextProbeBus::printText(std::ostream& theStream)
 				throw(wns::Exception("Can't dump ProbeText data file"));
 			}
 		}
+        theStream << jsonEntrySeparator_ << std::endl;
+
 		theStream << messages_.front()
 				   << std::endl;
+
+        if (isJSON_)
+        {
+            jsonEntrySeparator_ = ",";
+        }
+
 		if (!theStream.good())
 		{
 			throw(wns::Exception("Can't dump ProbeText data file"));

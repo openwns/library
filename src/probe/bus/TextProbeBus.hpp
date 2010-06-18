@@ -78,6 +78,8 @@ namespace wns { namespace probe { namespace bus {
 		/** @brief Wether to write the file header*/
         bool writeHeader_;
 
+        bool isJSON_;
+
         bool prependSimTimeFlag_;
 
         int simTimePrecision_;
@@ -93,6 +95,8 @@ namespace wns { namespace probe { namespace bus {
         int skipInterval_;
 
         int numCalls_;
+
+        std::string jsonEntrySeparator_;
     };
 } // bus
 } // probe
