@@ -42,7 +42,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 
 
 TextProbeBus::TextProbeBus(const wns::pyconfig::View& pyco):
-	key_(pyco.get<std::string>("key")),
+    key_(pyco.get<std::string>("key")),
     outputPath_(wns::simulator::getConfiguration().get<std::string>("outputDir")),
     outfileBase_(pyco.get<std::string>("outputFilename")),
     writeHeader_(pyco.get<bool>("writeHeader")),

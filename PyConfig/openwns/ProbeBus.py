@@ -263,13 +263,10 @@ class TextProbeBus(ProbeBus):
     simTimeWidth = None
     skipInterval = None
 
-    def __init__(self, name, key, description):
+    def __init__(self, outputFilename, key, description):
         ProbeBus.__init__(self)
         self.key = key
-        self.outputFilename = name
-        self.evalConfig = openwns.evaluation.statistics.TextEval()
-        self.evalConfig.name = name
-        self.evalConfig.description = description
+        self.outputFilename = outputFilename
         self.writeHeader = True
         self.prependSimTimeFlag = True
         self.simTimePrecision = 7

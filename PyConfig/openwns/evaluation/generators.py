@@ -188,22 +188,24 @@ class DLRE(ITreeNodeGenerator):
 
 class TextTrace(ITreeNodeGenerator):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, key, *args, **kwargs):
+        self.key = key
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, pathname):
-        t = openwns.probebus.TextProbeBus(pathname, *self.args, **self.kwargs)
+        t = openwns.probebus.TextProbeBus(pathname, self.key, *self.args, **self.kwargs)
         t.prependSimTimeFlag = False
         yield tree.TreeNode(wrappers.ProbeBusWrapper(t, ''))
 
 class JSONTrace(ITreeNodeGenerator):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, key, *args, **kwargs):
+        self.key = key
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, pathname):
-        t = openwns.probebus.JSONProbeBus(pathname, *self.args, **self.kwargs)
+        t = openwns.probebus.JSONProbeBus(pathname, self.key, *self.args, **self.kwargs)
         t.prependSimTimeFlag = False
         yield tree.TreeNode(wrappers.ProbeBusWrapper(t, ''))
 
