@@ -29,6 +29,7 @@
 
 #include <WNS/pyconfig/View.hpp>
 #include <WNS/StaticFactory.hpp>
+#include <WNS/scheduler/SchedulerTypes.hpp>
 
 #include <list>
 #include <math.h>
@@ -61,7 +62,8 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 			     iter != group.end(); ++iter) {
 				UserID user = *iter;
 
-				userNoiseIInterMap[user] = colleagues.registry->estimateTxSINRAt(user).I;
+				userNoiseIInterMap[user] = 
+                    colleagues.registry->estimateTxSINRAt(user).interference;
 			}
 
 			candis = friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower);
@@ -69,7 +71,9 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 		else{
 			assure(group.size() == 1, "We don't do beamforming, so only one-user groups are supported");
 			UserID user = *group.begin();
-			candis[user] = colleagues.registry->estimateTxSINRAt(user);
+            wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+                colleagues.registry->estimateTxSINRAt(user);
+			candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 
 		}
 		MESSAGE_BEGIN(VERBOSE, logger, m, colleagues.registry->getNameForUser(colleagues.registry->getMyUserID()));
@@ -95,7 +99,7 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 			for (UserSet::const_iterator user = group.begin();
 			     user != group.end(); ++user) {
 				combination.push_back(*user);
-				meanBsInterference += colleagues.registry->estimateRxSINROf(*user).I;
+				meanBsInterference += colleagues.registry->estimateRxSINROf(*user).interference;
 			}
 			assure(combination.size() == group.size(), "we estimate SINRs for a different set of users than we were asked to do");
 			meanBsInterference /= static_cast<unsigned long int>(combination.size());
@@ -106,7 +110,9 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 
 			assure(group.size() == 1, "We don't do beamforming, so only one-user groups are supported");
 			UserID user = *group.begin();
-			candis[user] = colleagues.registry->estimateRxSINROf(user);
+            wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+                colleagues.registry->estimateRxSINROf(user);
+            candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 		}
 
 		MESSAGE_BEGIN(VERBOSE, logger, m, colleagues.registry->getNameForUser(colleagues.registry->getMyUserID()));
@@ -198,7 +204,7 @@ TreeBasedGrouper::convertTreeLevelToGrouping(TreeLevel level, ModeType mode)
 				wns::Power meanBsInterference = wns::Power::from_mW(0.0);
 				for (UserSet::const_iterator user = users.begin();
 				     user != users.end(); ++user) {
-					meanBsInterference += colleagues.registry->estimateRxSINROf(*user).I;
+					meanBsInterference += colleagues.registry->estimateRxSINROf(*user).interference;
 				}
 				meanBsInterference /= static_cast<unsigned long int>(users.size());
 
@@ -206,7 +212,7 @@ TreeBasedGrouper::convertTreeLevelToGrouping(TreeLevel level, ModeType mode)
 					calculateAndSetBeam(usersInGroup[d], undesireds, meanBsInterference);
 // 				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
 // 			                calculateAndSetBeam(usersInGroup[d], undesireds,
-// 							    colleagues.registry->estimateRxSINROf(usersInGroup[d]).I);
+// 						    colleagues.registry->estimateRxSINROf(usersInGroup[d])->interference;
 			}
 
 			assure(grouping.patterns[usersInGroup[d]] !=

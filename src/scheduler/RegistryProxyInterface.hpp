@@ -138,8 +138,8 @@ namespace wns { namespace scheduler {
              * which is also needed for SINR estimation in the receive case.
              * This method assumes a flat channel. For frequency-selective channels better use CQI.
              */
-            virtual wns::CandI estimateTxSINRAt(const UserID user) = 0;
-            virtual wns::CandI estimateRxSINROf(const UserID user) = 0;
+            virtual ChannelQualityOnOneSubChannel estimateTxSINRAt(const UserID user) = 0;
+            virtual ChannelQualityOnOneSubChannel estimateRxSINROf(const UserID user) = 0;
             virtual wns::Power estimateInterferenceStdDeviation(const UserID user) = 0;
             /** @brief ??? */
             virtual Bits getQueueSizeLimitPerConnection() = 0;

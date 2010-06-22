@@ -71,7 +71,7 @@ ProportionalFair::initialize()
 std::priority_queue<ProportionalFair::UserPreference>
 ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy) const
 {
-    std::map<UserID, wns::CandI> sinrs;
+    std::map<UserID, ChannelQualityOnOneSubChannel> sinrs;
 
     // preference for every user in a priority queue which automatically sorts
     std::priority_queue<UserPreference> preferences;
@@ -94,7 +94,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
         }
 
         // calculate PhyModeRate for available users
-        wns::Ratio sinr(sinrs[user].C / sinrs[user].I);
+        wns::Ratio sinr(sinrs[user].carrier / sinrs[user].interference);
         wns::service::phy::phymode::PhyModeInterfacePtr phyMode = colleagues.registry->getPhyModeMapper()->getBestPhyMode(sinr);
         assure(phyMode->isValid(),"invalid PhyMode");
 

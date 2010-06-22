@@ -668,7 +668,6 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         // this writes into request structure:
         cqiOnSubChannel = (*cqiForUser)[subChannel]; // copy
         assure(&cqiOnSubChannel == &(request.cqiOnSubChannel),"copy failed: addresses don't match");
-        estimatedCandI.I = cqiOnSubChannel.interference;
         MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): subChannel="<<subChannel);
     } else { // no CQI required or available
         if (!CQIrequired) {
@@ -686,13 +685,10 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
             return resultMapInfoEntry; // empty means no result
         // assume flat channel and nominal TxPower for this case
         wns::Power nominalPowerPerSubChannel = getPowerCapabilities(request.user).nominalPerSubband;
-        estimatedCandI = (schedulerState->isTx)?
+        cqiOnSubChannel = (schedulerState->isTx)?
             (colleagues.registry->estimateTxSINRAt(request.user)) // Tx
             :
             (colleagues.registry->estimateRxSINROf(request.user)); // Rx
-        // this writes into request structure:
-        cqiOnSubChannel.interference = estimatedCandI.I;
-        cqiOnSubChannel.pathloss = nominalPowerPerSubChannel / estimatedCandI.C;
     } // with|without CQI information
     // Tell result of DSA: subChannel
     MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"):"
@@ -722,6 +718,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         request.phyModePtr = apcResult.phyModePtr;
         txPower = apcResult.txPower;
         // process result:
+        estimatedCandI.I = cqiOnSubChannel.interference;
         estimatedCandI.C = apcResult.txPower / cqiOnSubChannel.pathloss.get_factor(); // "- in dB" = "/ in Power"
         MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): txP="<<apcResult.txPower<<", pl="<<cqiOnSubChannel.pathloss<<", sinr="<<estimatedCandI.toSINR()<<", PhyMode="<<*(apcResult.phyModePtr));
         assure(std::fabs(estimatedCandI.C.get_dBm()-apcResult.estimatedCandI.C.get_dBm())<1e-6,"estimatedCandI mismatch: C="<<estimatedCandI.C<<" != "<<apcResult.estimatedCandI.C);

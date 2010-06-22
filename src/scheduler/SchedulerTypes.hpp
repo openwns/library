@@ -346,16 +346,22 @@ namespace wns { namespace scheduler {
         public:
             ChannelQualityOnOneSubChannel():
                 pathloss(),
-                interference()
+                interference(),
+                carrier()
             {
             }
 
-            ChannelQualityOnOneSubChannel(wns::Ratio _pathloss,  wns::Power _interference):
+            ChannelQualityOnOneSubChannel(wns::Ratio _pathloss,  
+                                        wns::Power _interference, 
+                                        wns::Power _carrier):
                 pathloss(_pathloss),
-                interference(_interference)
+                interference(_interference),
+                carrier(_carrier)
             {
             }
 
+            /** @brief measured RxPower */
+            wns::Power carrier;
             /** @brief measured pathloss (counted positive, i.e. x dB with x>0) */
             wns::Ratio pathloss;
             /** @brief measured (I + N) */

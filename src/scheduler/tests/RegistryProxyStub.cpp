@@ -162,20 +162,18 @@ RegistryProxyStub::getMyUserID()
 	return myUserID;
 }
 
-wns::CandI
+ChannelQualityOnOneSubChannel
 RegistryProxyStub::estimateTxSINRAt(const UserID user)
 {
-	//throw Exception("estimateTxSINRAt: Not implemented");
-	return wns::CandI(wns::Power::from_dBm(-80.0),
-			  wns::Power::from_dBm(-95.0));
+    return ChannelQualityOnOneSubChannel(wns::Ratio::from_dB(80.0),
+              wns::Power::from_dBm(-95.0), wns::Power::from_dBm(-80.0));
 }
 
-wns::CandI
+ChannelQualityOnOneSubChannel
 RegistryProxyStub::estimateRxSINROf(const UserID user)
 {
-	//throw Exception("estimateRxSINROf: Not implemented");
-	return wns::CandI(wns::Power::from_dBm(-80.0),
-			  wns::Power::from_dBm(-95.0));
+    return ChannelQualityOnOneSubChannel(wns::Ratio::from_dB(80.0),
+              wns::Power::from_dBm(-95.0), wns::Power::from_dBm(-80.0));
 }
 
 

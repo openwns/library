@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/grouper/NoGrouper.hpp>
+#include <WNS/scheduler/SchedulerTypes.hpp>
 
 using namespace wns::scheduler;
 using namespace wns::scheduler::grouper;
@@ -50,7 +51,9 @@ NoGrouper::getTxGrouping(const UserSet activeUsers, int)
 		 ++iter) {
 		UserID user = *iter;
 		assure(user, "No valid user");
-		wns::CandI sinrEstimation = registry->estimateTxSINRAt(user);
+        wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+            registry->estimateTxSINRAt(user);
+		wns::CandI sinrEstimation(cqi.carrier, cqi.interference); 
 		Group group;
 		group[user] = sinrEstimation;
 
@@ -72,7 +75,9 @@ NoGrouper::getRxGrouping(const UserSet activeUsers, int)
 		 ++iter) {
 		UserID user = *iter;
 		assure(user, "No valid user");
-		wns::CandI sinrEstimation = registry->estimateRxSINROf(user);
+        wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+            registry->estimateRxSINROf(user);
+		wns::CandI sinrEstimation(cqi.carrier, cqi.interference); 
 		Group group;
 		group[user] = sinrEstimation;
 

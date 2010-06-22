@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/grouper/TrivialGrouper.hpp>
+#include <WNS/scheduler/SchedulerTypes.hpp>
 
 using namespace wns::scheduler;
 using namespace wns::scheduler::grouper;
@@ -59,7 +60,7 @@ TrivialGrouper::getTxGrouping(const UserSet activeUsers, int /* maxBeams */) {
 
 			// make the one-user map for the SINR calculation
 			std::map<UserID, wns::Power> map;
-			map[user] = colleagues.registry->estimateTxSINRAt(user).I;
+			map[user] = colleagues.registry->estimateTxSINRAt(user).interference;
 
 			grouping.groups.push_back(friends.ofdmaProvider->calculateCandIsTx(map, x_friendliness, txPower));
 			grouping.userGroupNumber[user] = n;
@@ -80,7 +81,9 @@ TrivialGrouper::getTxGrouping(const UserSet activeUsers, int /* maxBeams */) {
 			assure(user, "No valid user");
 
 			std::map<UserID, wns::CandI> candis;
-			candis[user] = colleagues.registry->estimateTxSINRAt(user);
+            wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+                colleagues.registry->estimateTxSINRAt(user);
+			candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 			grouping.groups.push_back(candis);
 			grouping.userGroupNumber[user] = n;
 			grouping.patterns[user] = wns::service::phy::ofdma::PatternPtr();
@@ -114,12 +117,12 @@ Grouping TrivialGrouper::getRxGrouping(const UserSet activeUsers , int /* maxBea
 
 			grouping.groups.push_back(
 				friends.ofdmaProvider->calculateCandIsRx(combination,
-									 colleagues.registry->estimateRxSINROf(user).I));
+					colleagues.registry->estimateRxSINROf(user).interference));
 			grouping.userGroupNumber[user] = n;
 
 			std::vector<UserID> undesireds;
 			undesireds.clear();
-			grouping.patterns[user] = friends.ofdmaProvider->calculateAndSetBeam(user, undesireds, colleagues.registry->estimateRxSINROf(user).I);
+			grouping.patterns[user] = friends.ofdmaProvider->calculateAndSetBeam(user, undesireds, colleagues.registry->estimateRxSINROf(user).interference);
 			assure(grouping.patterns[user] != wns::service::phy::ofdma::PatternPtr(), "Invalid pattern returned");
 			n++;
 		}
@@ -133,7 +136,9 @@ Grouping TrivialGrouper::getRxGrouping(const UserSet activeUsers , int /* maxBea
 			assure(user, "No valid user");
 
 			std::map<UserID, wns::CandI> candis;
-			candis[user] = colleagues.registry->estimateRxSINROf(user);
+            wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+                colleagues.registry->estimateRxSINROf(user);
+			candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 			grouping.groups.push_back(candis);
 			grouping.userGroupNumber[user] = n;
 			grouping.patterns[user] = wns::service::phy::ofdma::PatternPtr();

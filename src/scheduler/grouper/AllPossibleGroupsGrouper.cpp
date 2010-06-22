@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/grouper/AllPossibleGroupsGrouper.hpp>
+#include <WNS/scheduler/SchedulerTypes.hpp>
 
 #include <WNS/service/phy/ofdma/Pattern.hpp>
 
@@ -58,14 +59,17 @@ AllPossibleGroupsGrouper::getCandIs(std::vector<UserID> allUsers,
 
 			for (unsigned int k = 0; k < noOfStations; ++k)
 				if (bitset.test(k)) {
-					userNoiseIInterMap[allUsers[k]] = colleagues.registry->estimateTxSINRAt(allUsers[k]).I;
+					userNoiseIInterMap[allUsers[k]] = 
+                        colleagues.registry->estimateTxSINRAt(allUsers[k]).interference;
 				}
 			candis = friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower);
 		}
 		else{ // no beamforming
 			assure(noOfStations == 1, "We don't do beamforming, so only one-user groups are supported");
 			UserID user = allUsers[0];
-			candis[user] = colleagues.registry->estimateTxSINRAt(user);
+            wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+                colleagues.registry->estimateTxSINRAt(user);
+			candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 		}
 
 		break;
@@ -81,7 +85,7 @@ AllPossibleGroupsGrouper::getCandIs(std::vector<UserID> allUsers,
 					combination.push_back(allUsers[k]);
 				}
 			candis = friends.ofdmaProvider->calculateCandIsRx(combination,
-									  colleagues.registry->estimateRxSINROf(allUsers[0]).I);
+			    colleagues.registry->estimateRxSINROf(allUsers[0]).interference);
 			//use estimated interference of user 0 for all other
 			//terminals as well, maybe average over all entries?
 			//see TreeBasedGrouper
@@ -90,7 +94,9 @@ AllPossibleGroupsGrouper::getCandIs(std::vector<UserID> allUsers,
 
 			assure(noOfStations == 1, "We don't do beamforming, so only one-user groups are supported");
 			UserID user = allUsers[0];
-			candis[user] = colleagues.registry->estimateRxSINROf(user);
+            wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+                colleagues.registry->estimateRxSINROf(user);
+			candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 		}
 
 		break;
@@ -225,7 +231,7 @@ AllPossibleGroupsGrouper::convertPartitionToGrouping(Partition partition, ModeTy
 			}
 			else{ // rx case
 				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
-					calculateAndSetBeam(usersInGroup[d], undesireds, colleagues.registry->estimateRxSINROf(usersInGroup[d]).I);
+					calculateAndSetBeam(usersInGroup[d], undesireds, colleagues.registry->estimateRxSINROf(usersInGroup[d]).interference);
 				//see TreeBasedGrouper
 
 			}
@@ -288,13 +294,15 @@ AllPossibleGroupsGrouper::getServableUserVectorFromSet(const UserSet userSet, Mo
 			if (beamforming){
 				std::map<UserID, wns::Power> userNoiseIInterMap;
 				userNoiseIInterMap.clear();
-				userNoiseIInterMap[*iter] = colleagues.registry->estimateTxSINRAt(*iter).I;
+				userNoiseIInterMap[*iter] = colleagues.registry->estimateTxSINRAt(*iter).interference;
 				candis = friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower);
 			}
 			else{ // no beamforming
 				assure(userSet.size() == 1, "We don't do beamforming, so only one-user groups are supported");
 				UserID user = *iter;
-				candis[user] = colleagues.registry->estimateTxSINRAt(user);
+                wns::scheduler::ChannelQualityOnOneSubChannel cqi =
+                    colleagues.registry->estimateTxSINRAt(user);
+				candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 			}
 		}
 		break;
@@ -306,13 +314,15 @@ AllPossibleGroupsGrouper::getServableUserVectorFromSet(const UserSet userSet, Mo
 				combination.push_back(*iter);
 
 				candis = friends.ofdmaProvider->calculateCandIsRx(combination,
-										  colleagues.registry->estimateRxSINROf(*iter).I);
+					colleagues.registry->estimateRxSINROf(*iter).interference);
 			}
 			else{ // no beamforming
 
 				assure(userSet.size() == 1, "We don't do beamforming, so only one-user groups are supported");
 				UserID user = *iter;
-				candis[user] = colleagues.registry->estimateRxSINROf(user);
+                wns::scheduler::ChannelQualityOnOneSubChannel cqi =
+                    colleagues.registry->estimateRxSINROf(user);
+				candis[user] = wns::CandI(cqi.carrier, cqi.interference);
 			}
 
 		}
