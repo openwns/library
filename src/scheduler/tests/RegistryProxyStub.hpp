@@ -84,6 +84,9 @@ namespace wns { namespace scheduler { namespace tests {
                 int
                 getNumberOfPriorities();
 
+                void
+                setNumberOfPriorities(int num);
+
                 virtual void
                 registerCID(wns::scheduler::ConnectionID cid, wns::scheduler::UserID userID/*nextHop!*/) {};
 
@@ -97,7 +100,7 @@ namespace wns { namespace scheduler { namespace tests {
                 getCIDListForPriority(int priority);
 
                 wns::scheduler::ConnectionSet
-                getConnectionsForPriority(int /*priority*/) {};
+                getConnectionsForPriority(int /*priority*/);
 
                 std::string
                 compoundInfo(const wns::ldk::CompoundPtr& compound);
@@ -127,6 +130,7 @@ namespace wns { namespace scheduler { namespace tests {
                 wns::service::phy::phymode::PhyModeMapperInterface *phyModeMapper;
                 UserID myUserID;
                 Bits queueSizeLimit;
+                int numberOfPriorities;
             };
         } // tests
     } // scheduler

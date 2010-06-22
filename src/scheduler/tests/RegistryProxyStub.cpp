@@ -54,7 +54,8 @@ RegistryProxyStub::RegistryProxyStub()
 	  phyMode(),
 	  phyModeMapper(NULL),
 	  myUserID(new wns::node::tests::Stub()),
-	  queueSizeLimit(100000)
+	  queueSizeLimit(100000),
+	  numberOfPriorities(1)
 {
 	wns::pyconfig::Parser parser;
 	parser.loadString("import openwns.PhyMode\n"
@@ -291,8 +292,15 @@ RegistryProxyStub::getPowerCapabilities() const
 int
 RegistryProxyStub::getNumberOfPriorities()
 {
-	return 0;
+	return numberOfPriorities;
 }
+
+void
+RegistryProxyStub::setNumberOfPriorities(int num)
+{
+	numberOfPriorities = num;
+}
+
 
 wns::scheduler::ConnectionList&
 RegistryProxyStub::getCIDListForPriority(int /*priority*/)
@@ -304,6 +312,16 @@ RegistryProxyStub::getCIDListForPriority(int /*priority*/)
 	return c;
 }
 
+wns::scheduler::ConnectionSet
+RegistryProxyStub::getConnectionsForPriority(int priority)
+{
+	wns::scheduler::ConnectionSet result;
+	for(wns::scheduler::ConnectionID cid = 1; cid < 13; ++cid)
+	{
+	    result.insert(cid);
+	}
+	return result;
+}
 
 const wns::service::phy::phymode::PhyModeInterfacePtr
 RegistryProxyStub::getPhyMode(ConnectionID /*cid*/)
@@ -333,6 +351,7 @@ RegistryProxyStub::getCQIAvailable() const
 {
 	return false;
 }
+
 
 /*
   Local Variables:

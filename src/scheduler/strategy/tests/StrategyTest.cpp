@@ -71,25 +71,26 @@ namespace wns { namespace scheduler { namespace strategy { namespace tests {
 		CPPUNIT_TEST( oneFrame );
 		CPPUNIT_TEST( severalFrames );
 		CPPUNIT_TEST( testEmptyQueues );
+		CPPUNIT_TEST( testPriority );
 		CPPUNIT_TEST_SUITE_END();
 	public:
 		StrategyTest();
 		~StrategyTest();
-		//void setUp();
-		//void tearDown();
-                void prepare();
-                void cleanup();
+		void prepare();
+		void cleanup();
 
 		// tests
 		void testConstructorDestructor();
 		void oneFrame();
 		void severalFrames();
 		void testEmptyQueues();
+		void testPriority();
 
 	private:
-		void setupStrategy(std::string strateyName);
-		void setupULStrategy(std::string strateyName);
-		void checkIfAllScheduled();
+		void setupSubStrategy(std::string strateyName);
+		void setupSubStrategyForPriority(std::string strateyName);
+		void checkIfAllScheduled(wns::scheduler::strategy::StrategyResult strategyResult);
+		bool pduBeenScheduled(wns::ldk::CompoundPtr, wns::scheduler::strategy::StrategyResult result);
 		void createPDUsToFillOneFrame();
 
 		bool useCout;
@@ -101,7 +102,8 @@ namespace wns { namespace scheduler { namespace strategy { namespace tests {
 		wns::ldk::fun::FUN* fuNet;
 
 		std::set<wns::ldk::CompoundPtr> compoundsToSchedule;
-		std::string strategyNames[4];
+		std::string substrategyNames[3];
+		std::string strategyName;
 	};
 
 } // tests
@@ -121,7 +123,7 @@ using namespace wns::scheduler::strategy::tests;
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( StrategyTest, wns::testsuite::Disabled() );
 
 StrategyTest::StrategyTest() : /* 1. */
-        wns::TestFixture(),
+	wns::TestFixture(),
 	useCout(false),
 	grouper(NULL),
 	queue(NULL),
@@ -141,10 +143,12 @@ StrategyTest::~StrategyTest()
 void StrategyTest::prepare()
 {
 	if (useCout) std::cout << "StrategyTest::prepare()" << std::endl;
-	strategyNames[0] = std::string("ProportionalFairDL");
-	strategyNames[1] = std::string("EqualTimeRR");
-	strategyNames[2] = std::string("ExhaustiveRR");
-	strategyNames[3] = std::string("ProportionalFairUL");
+
+	strategyName = std::string("StaticPriority");
+
+	substrategyNames[0] = std::string("ProportionalFair");
+	substrategyNames[1] = std::string("ExhaustiveRoundRobin");
+	substrategyNames[2] = std::string("RoundRobin");
 
 	fuNet = new wns::ldk::fun::Main(new wns::ldk::tests::LayerStub());
 
@@ -159,23 +163,23 @@ void StrategyTest::prepare()
 	   << "queue = SimpleQueue()\n";
 	queueConfig.loadString(ss.str());
 
-        queue = queueCreator->create(0, queueConfig.getView("queue"));
+	queue = queueCreator->create(0, queueConfig.getView("queue"));
 	assure(queue, "Queue creation failed");
 
 	// create ResultsContainer to store scheduled compounds
 	results = new ResultsContainer();
 
-
 	// setup RegistryProxyStub
 	registry = new wns::scheduler::tests::RegistryProxyStub();
 	// set queueSizeLimit so that 40 PDUs of size 3000 Bits fit
 	registry->setQueueSizeLimitPerConnection(125000);
-
+	// set only 1 priority at first
+	registry->setNumberOfPriorities(1);
 
 	// setup GrouperStub
 	grouper = new wns::scheduler::grouper::tests::GrouperStub();
 
-        // setup colleagues
+	// setup colleagues
 	queue->setColleagues(registry);
 	grouper->setColleagues(registry);
 	if (useCout) std::cout << "StrategyTest::prepare() ready" << std::endl;
@@ -184,13 +188,13 @@ void StrategyTest::prepare()
 void StrategyTest::testConstructorDestructor() /* 3. */
 {
 	if (useCout) std::cout << "StrategyTest::testConstructorDestructor()" << std::endl;
-	/*
+
 	CPPUNIT_ASSERT(fuNet != NULL);
 	CPPUNIT_ASSERT(queue != NULL);
 	CPPUNIT_ASSERT(results != NULL);
 	CPPUNIT_ASSERT(registry != NULL);
 	CPPUNIT_ASSERT(grouper != NULL);
-	*/
+
 }
 
 void StrategyTest::cleanup()
@@ -202,17 +206,18 @@ void StrategyTest::cleanup()
 }
 
 void
-StrategyTest::setupStrategy(std::string strategyName)
+StrategyTest::setupSubStrategy(std::string substrategyName)
 {
 	if (useCout) std::cout << "StrategyTest::setupStrategy()" << std::endl;
-        // create PyConfig for Strategy module creation
+	// create PyConfig for Strategy module creation
 	wns::pyconfig::Parser pyCoParser;
-        std::stringstream ss;
-        ss << "import openwns.logger\n"
+	std::stringstream ss;
+	ss << "import openwns.logger\n"
 	   << "import openwns.scheduler.APCStrategy\n"
 	   << "import openwns.scheduler.DSAStrategy\n"
+	   << "import wns \n"
 	   << "symbolDuration = 0.00001389\n"
-           << "txMode = True\n"
+	   << "txMode = True\n"
 	   << "logger = openwns.logger.Logger(\"WNS\", \"Scheduling Strategy Test\", True)\n"
 	   << "historyWeight = 0.9\n"
 	   << "maxBursts = 100\n"
@@ -222,7 +227,8 @@ StrategyTest::setupStrategy(std::string strategyName)
 	   << "excludeTooLowSINR = True\n"
 	   << "dsastrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
 	   << "dsafbstrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
-	   << "apcstrategy = openwns.scheduler.APCStrategy.UseNominalTxPower()\n";
+	   << "apcstrategy = openwns.scheduler.APCStrategy.UseNominalTxPower()\n"
+	   << "subStrategies = [wns.Scheduler."<<substrategyName<<"()] \n";
 	pyCoParser.loadString(ss.str());
 
 	// create Strategy module
@@ -236,15 +242,18 @@ StrategyTest::setupStrategy(std::string strategyName)
 } // setupStrategy
 
 void
-StrategyTest::setupULStrategy(std::string strategyName)
+StrategyTest::setupSubStrategyForPriority(std::string substrategyName)
 {
-	if (useCout) std::cout << "StrategyTest::setupULStrategy()" << std::endl;
-        // create PyConfig for Strategy module creation
+	if (useCout) std::cout << "StrategyTest::setupStrategy()" << std::endl;
+	// create PyConfig for Strategy module creation
 	wns::pyconfig::Parser pyCoParser;
-        std::stringstream ss;
-        ss << "import openwns.logger\n"
+	std::stringstream ss;
+	ss << "import openwns.logger\n"
+	   << "import openwns.scheduler.APCStrategy\n"
+	   << "import openwns.scheduler.DSAStrategy\n"
+	   << "import wns \n"
 	   << "symbolDuration = 0.00001389\n"
-           << "txMode = False\n"
+	   << "txMode = True\n"
 	   << "logger = openwns.logger.Logger(\"WNS\", \"Scheduling Strategy Test\", True)\n"
 	   << "historyWeight = 0.9\n"
 	   << "maxBursts = 100\n"
@@ -254,7 +263,8 @@ StrategyTest::setupULStrategy(std::string strategyName)
 	   << "excludeTooLowSINR = True\n"
 	   << "dsastrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
 	   << "dsafbstrategy = openwns.scheduler.DSAStrategy.LinearFFirst(oneUserOnOneSubChannel = True)\n"
-	   << "apcstrategy = openwns.scheduler.APCStrategy.UseNominalTxPower()\n";
+	   << "apcstrategy = openwns.scheduler.APCStrategy.UseNominalTxPower()\n"
+	   << "subStrategies = [wns.Scheduler."<<substrategyName<<"(),wns.Scheduler."<<substrategyName<<"()] \n";
 	pyCoParser.loadString(ss.str());
 
 	// create Strategy module
@@ -265,7 +275,7 @@ StrategyTest::setupULStrategy(std::string strategyName)
 	// configure Strategy module
 	strategy->setColleagues(queue, grouper, registry, NULL);
 	strategy->getPowerCapabilities(NULL); // trigger scheduler to ask RegistryProxy(Stub)
-} // setupULStrategy
+} // setupStrategy
 
 void StrategyTest::createPDUsToFillOneFrame()
 {
@@ -293,41 +303,59 @@ void StrategyTest::createPDUsToFillOneFrame()
 	}
 }
 
-void StrategyTest::checkIfAllScheduled()
+void StrategyTest::checkIfAllScheduled(wns::scheduler::strategy::StrategyResult strategyResult)
 {
 	if (useCout) std::cout << "StrategyTest::checkIfAllScheduled()" << std::endl;
 	// check if every pdu created has actually been scheduled
 	for (std::set<CompoundPtr>::const_iterator iter = compoundsToSchedule.begin();
-	     iter != compoundsToSchedule.end(); ++iter)
+		 iter != compoundsToSchedule.end(); ++iter)
 	{
-		CPPUNIT_ASSERT(results->hasBeenScheduled(*iter));
+		CPPUNIT_ASSERT(pduBeenScheduled(*iter, strategyResult));
 	}
 
 }
+
+bool StrategyTest::pduBeenScheduled(wns::ldk::CompoundPtr pdu , StrategyResult strategyResult)
+{
+	wns::scheduler::SchedulingMapPtr schedulingMap = strategyResult.schedulingMap;
+	// search in each subchannel
+	for (int fChannel = 0; fChannel < 15; ++fChannel)
+	{
+		// search in each time slot
+		for (int timeSlot = 0; timeSlot < 1; ++timeSlot)
+		{
+			// search in each spatial layer
+			for (int spatialIndex = 0; spatialIndex < 1; ++spatialIndex)
+			{
+				// search in scheduled compounds
+				for(wns::scheduler::ScheduledCompoundsList::iterator iterComps = schedulingMap->subChannels[fChannel].temporalResources[timeSlot]->physicalResources[spatialIndex].scheduledCompounds.begin(); iterComps != schedulingMap->subChannels[fChannel].temporalResources[timeSlot]->physicalResources[spatialIndex].scheduledCompounds.end(); ++iterComps)
+				{
+					if(iterComps->compoundPtr->getBirthmark() == pdu->getBirthmark())
+					{
+						// find pdu which was scheduled
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
 
 void StrategyTest::oneFrame()
 {
 	if (useCout) std::cout << "StrategyTest::oneFrame()" << std::endl;
 	// loop over all available strategyNames
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
-		std::string strategyName = strategyNames[i];
+		std::string substrategyName = substrategyNames[i];
 
 		results->reset(); //deletes scheduled PDUs from previous runs
 		queue->resetAllQueues();
 
-		if(i == 3)
-		{
-			setupULStrategy(strategyName);
-			// should be receiving by default
-			assure(!strategy->getSchedulerState()->isTx,"should be receiving by configuration");
-		}
-		else
-		{
-			setupStrategy(strategyName);
-			// should be transmitting by default
-			assure(strategy->getSchedulerState()->isTx,"should be transmitting by configuration");
-		}
+		setupSubStrategy(substrategyName);
+
 		// create some PDUs to schedule, log them, and feed them to the queue
 		compoundsToSchedule.clear();
 		createPDUsToFillOneFrame();
@@ -336,10 +364,12 @@ void StrategyTest::oneFrame()
 		// ****************************************************
 		// now to the actual scheduling:
 
-		int fChannels = 4;
+		int fChannels = 15;
 		int maxSpatialLayers = 1;
 		simTimeType slotLength = 0.005;
+		int numberOfTimeSlots = 1;
 
+		wns::scheduler::strategy::StrategyInput strategyInput(fChannels, slotLength, numberOfTimeSlots, maxSpatialLayers, results);
 
 		if (FRAMEPLOTTING)
 			results->plotNextFrame(fChannels,
@@ -349,15 +379,12 @@ void StrategyTest::oneFrame()
 				);
 
 		// let the Strategy module do its work
-		strategy->startScheduling(fChannels,
-					  maxSpatialLayers,
-					  slotLength,
-					  results);
+		wns::scheduler::strategy::StrategyResult strategyResult = strategy->startScheduling(strategyInput);
 
 		if (FRAMEPLOTTING)
 			results->finishPlotting();
 
-		checkIfAllScheduled();
+		checkIfAllScheduled(strategyResult);
 
 		delete strategy;
 	}
@@ -367,33 +394,29 @@ void StrategyTest::severalFrames()
 {
 	if (useCout) std::cout << "StrategyTest::severalFrames()" << std::endl;
         // loop over all available strategyNames
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
-		std::string strategyName = strategyNames[i];
+		std::string substrategyName = substrategyNames[i];
 
 		results->reset(); //deletes scheduled PDUs from previous runs
 		queue->resetAllQueues();
 
-		if(i == 3)
-			setupULStrategy(strategyName);
-		else
-			setupStrategy(strategyName);
+		setupSubStrategy(substrategyName);
 
-		// create some PDUs to schedule, log them, and feed them to the queue
-		compoundsToSchedule.clear();
-
-		int fChannels = 4;
+		int fChannels = 15;
 		int maxSpatialLayers = 1;
 		simTimeType slotLength = 0.005;
+		int numberOfTimeSlots = 1;
 
 		// create pdus that should fill more or less five frames
 		for (int j = 0; j < 5; ++j)
 		{
+			compoundsToSchedule.clear();
 			createPDUsToFillOneFrame();
 
 			std::stringstream ss;
 			ss.clear();
-			ss << strategyName
+			ss << substrategyName
 			   << "-"
 			   << j;
 
@@ -405,16 +428,16 @@ void StrategyTest::severalFrames()
 						       ss.str()
 					);
 
+			wns::scheduler::strategy::StrategyInput strategyInput(fChannels, slotLength, numberOfTimeSlots, maxSpatialLayers, results);
+
 			// let the Strategy module do its work
-			strategy->startScheduling(fChannels,
-						  maxSpatialLayers,
-						  slotLength,
-						  results);
+			wns::scheduler::strategy::StrategyResult strategyResult = strategy->startScheduling(strategyInput);
 
 			if (FRAMEPLOTTING)
 				results->finishPlotting();
+
+			checkIfAllScheduled(strategyResult);
 		}
-		checkIfAllScheduled();
 
 		delete strategy;
 	}
@@ -428,49 +451,91 @@ void StrategyTest::testEmptyQueues()
 	// we don't ASSERT anything here, we just check whether
 	// assures/exceptions are thrown when the strategy is called with empty
 	// queues and strange input parameters
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
+		std::string substrategyName = substrategyNames[i];
+
 		queue->resetAllQueues();
-		if(i == 3)
-			setupStrategy(strategyNames[i]);
-		else
-			setupStrategy(strategyNames[i]);
-		strategy->startScheduling(4,
-					  1,
-					  0.005,
-					  results);
 
-		CPPUNIT_ASSERT_THROW(
-			strategy->startScheduling(0,
-						  1,
-						  0.005,
-						  results),
-			wns::Exception );
+		setupSubStrategy(substrategyName);
 
-		CPPUNIT_ASSERT_THROW(
-			strategy->startScheduling(1,
-						  0,
-						  0.005,
-						  results),
-			wns::Exception );
+		wns::scheduler::strategy::StrategyInput strategyInput1(15, 0.005, 1, 1, results);
+		wns::scheduler::strategy::StrategyResult strategyResult = strategy->startScheduling(strategyInput1);
 
-		CPPUNIT_ASSERT_THROW(
-			strategy->startScheduling(0,
-						  0,
-						  0.005,
-						  results),
-			wns::Exception );
+		wns::scheduler::strategy::StrategyInput strategyInput2(0, 0.005, 1, 1, results);
+		CPPUNIT_ASSERT_THROW(strategyResult = strategy->startScheduling(strategyInput2), wns::Exception );
 
-		CPPUNIT_ASSERT_THROW(
-			strategy->startScheduling(1,
-						  1,
-						  0.0,
-						  results),
-			wns::Exception );
+		wns::scheduler::strategy::StrategyInput strategyInput3(1, 0.005, 0, 0, results);
+		CPPUNIT_ASSERT_THROW(strategyResult = strategy->startScheduling(strategyInput3), wns::Exception );
+
+		wns::scheduler::strategy::StrategyInput strategyInput4(0, 0.005, 0, 0, results);
+		CPPUNIT_ASSERT_THROW(strategyResult = strategy->startScheduling(strategyInput4), wns::Exception );
+
+		wns::scheduler::strategy::StrategyInput strategyInput5(1, 0.0, 1, 1, results);
+		CPPUNIT_ASSERT_THROW(strategyResult = strategy->startScheduling(strategyInput5), wns::Exception );
 
 		delete strategy;
 	}
 }
+
+void StrategyTest::testPriority()
+{
+	if (useCout) std::cout << "StrategyTest::testPriority()" << std::endl;
+
+	//now test two priorities
+	registry->setNumberOfPriorities(2);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		std::string substrategyName = substrategyNames[i];
+
+		results->reset(); //deletes scheduled PDUs from previous runs
+		queue->resetAllQueues();
+
+		//two priorities need to set two substrategies
+		setupSubStrategyForPriority(substrategyName);
+
+		int fChannels = 15;
+		int maxSpatialLayers = 1;
+		simTimeType slotLength = 0.005;
+		int numberOfTimeSlots = 1;
+
+		// create pdus that should fill more or less five frames
+		for (int j = 0; j < 5; ++j)
+		{
+			compoundsToSchedule.clear();
+			createPDUsToFillOneFrame();
+
+			std::stringstream ss;
+			ss.clear();
+			ss << substrategyName
+			   << "-"
+			   << j;
+
+			if (FRAMEPLOTTING)
+				results->plotNextFrame(fChannels,
+						       maxSpatialLayers,
+						       slotLength,
+						       ss.str()
+					);
+
+			wns::scheduler::strategy::StrategyInput strategyInput(fChannels, slotLength, numberOfTimeSlots, maxSpatialLayers, results);
+
+			// let the Strategy module do its work
+			wns::scheduler::strategy::StrategyResult strategyResult = strategy->startScheduling(strategyInput);
+
+			if (FRAMEPLOTTING)
+				results->finishPlotting();
+
+			checkIfAllScheduled(strategyResult);
+		}
+
+		delete strategy;
+	}
+
+}
+
+
 
 
 
