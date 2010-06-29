@@ -135,7 +135,9 @@ FlowSeparator::DelivererReceptacleSeparator::doOnData(const CompoundPtr& compoun
 {
     IDelivererReceptacle* receptacle = tryGetInstanceAndInsertPermanent(compound, Direction::INCOMING());
 
-    fs_->instanceBusy = receptacle->getFU();
+    // Mark this as the "Busy" instance. 
+    ConstKeyPtr key = (*(fs_->keyBuilder))(compound, Direction::INCOMING());
+    fs_->instanceBusy = fs_->instances[key];
     receptacle->onData(compound);
     fs_->instanceBusy = NULL;
 }
