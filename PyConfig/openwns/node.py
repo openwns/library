@@ -140,6 +140,10 @@ class NoRadio(scenarios.interfaces.INode):
         assert False, "This node is not a mobile radio node"
         return None
 
+    def setChannelModel(self, model):
+        assert False, "This node is not a mobile radio node"
+
+
 class Component(object):
     """ A particular part of a Node (like Data Link Layer). Each
         Module can contribute one or more Components to a Node
