@@ -98,7 +98,7 @@ namespace wns { namespace ldk { namespace arq {
 		{
 		public:
 		    CAElement();
-		    CAElement(CumulativeACK* _parent, uint Time=1 ):
+		    CAElement(CumulativeACK* _parent, unsigned int Time=1 ):
 				parent(_parent),
 				resendTimeout(Time),
 				compound(CompoundPtr()),
@@ -124,7 +124,7 @@ namespace wns { namespace ldk { namespace arq {
 		    wns::ldk::CompoundPtr getCompound(){return compound;};
 
 		    CumulativeACK* parent;
-		    uint resendTimeout;
+		    unsigned int resendTimeout;
 		    wns::ldk::CompoundPtr compound;
 		    //true if PDU is supposed to be sent. Not being used in case of receiving
 		    bool sendNow;

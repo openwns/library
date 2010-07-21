@@ -174,7 +174,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 	void
 	CumulativeACKTest::sendOnAck()
 	{
-		for( uint i = 1; i <= ( windowSize + 1 ); i++ )
+		for( unsigned int i = 1; i <= ( windowSize + 1 ); i++ )
 			{
 				getUpperStub()->sendData(getFUN()->createCompound());
 			}
@@ -196,7 +196,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 	void
 	CumulativeACKTest::sendOnAck2()
 	{
-		for( uint i = 1; i <= ( windowSize + 2 ); i++ )
+		for( unsigned int i = 1; i <= ( windowSize + 2 ); i++ )
 			{
 				getUpperStub()->sendData(getFUN()->createCompound());
 			}
@@ -315,7 +315,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 	void
 	CumulativeACKTest::speed()
 	{
-		const uint speedIterations = 10; // 1000000;
+		const unsigned int speedIterations = 10; // 1000000;
 
 		class LaLayer :
 	        public wns::ldk::tests::LayerStub
@@ -375,7 +375,7 @@ namespace wns { namespace ldk { namespace arq { namespace tests {
 		// with librt...
         // struct timespec t_start, t_end;
         // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t_start);
-		for(uint  l = 0; l < speedIterations; ++l) {
+		for(unsigned int  l = 0; l < speedIterations; ++l) {
 			//stepper->flush();
 			stepper->step();
 			CPPUNIT_ASSERT(rightUpper->received.size() == l+1);

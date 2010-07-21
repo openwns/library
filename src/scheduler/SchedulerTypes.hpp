@@ -269,7 +269,7 @@ namespace wns { namespace scheduler {
                 return ss.str();
             }
 
-            wns::Ratio shareOfPowerPerStreams(uint groupNumber){
+            wns::Ratio shareOfPowerPerStreams(unsigned int groupNumber){
 
                 return shareOfPowerPerStreams( groups.at(groupNumber) );
 
@@ -280,11 +280,11 @@ namespace wns { namespace scheduler {
                 // is shared among all streams
                 assure( !group.empty() , "group does not exists");
 
-                uint concurrentStreams = group.size();
+                unsigned int concurrentStreams = group.size();
                 return wns::Ratio().from_factor(1.0 / concurrentStreams);
             }
 
-            wns::Ratio eirpReductionOfPower(uint groupNumber){
+            wns::Ratio eirpReductionOfPower(unsigned int groupNumber){
 
                 return eirpReductionOfPower( groups.at(groupNumber) );
 

@@ -48,12 +48,12 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
 				return omniAttenuation;
 			}
 
-		double getEntry(uint i) const
+		double getEntry(unsigned int i) const
 			{
 				return pattern.at(i);
 			}
 
-		uint getSize() const
+		unsigned int getSize() const
 			{
 				return pattern.size();
 			}
@@ -62,7 +62,7 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
 			{
 				assure(!pattern.empty(), "empty pattern has no maximum gain");
 				double maxEntry = 0.0;
-				for (uint i = 0; i < pattern.size();  i++) {
+				for (unsigned int i = 0; i < pattern.size();  i++) {
 					if(pattern.at(i) > maxEntry)
 						maxEntry = pattern.at(i);
 				}
@@ -91,13 +91,13 @@ namespace wns { namespace service { namespace phy { namespace ofdma {
 				assure(other->getSize() > 0, "pattern to add is empty");
 				if(pattern.empty()){
 					pattern.reserve(other->getSize());
-					for (uint i = 0; i < other->getSize();  i++) {
+					for (unsigned int i = 0; i < other->getSize();  i++) {
 						pattern.push_back(other->getEntry(i));
 					}
 				}
 				else{
 					assure(pattern.size() == other->getSize(), "patterns do not have the same size");
-					for (uint i = 0; i < pattern.size();  i++) {
+					for (unsigned int i = 0; i < pattern.size();  i++) {
 						pattern[i] += other->getEntry(i);
 					}
 				}

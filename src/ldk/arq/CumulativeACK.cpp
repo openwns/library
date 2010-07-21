@@ -113,11 +113,11 @@ CumulativeACK::hasACK() const
 const wns::ldk::CompoundPtr
 CumulativeACK::hasData() const
 {
-	uint tmpNS = NS;
+	unsigned int tmpNS = NS;
 	int diff = NS - NSack ;
 	if(diff < 0)
 		tmpNS = NS + wS;
-	for(uint i = NSack; i < tmpNS; i++) {
+	for(unsigned int i = NSack; i < tmpNS; i++) {
 		if(sendingCompounds[i % wS].compound != CompoundPtr() && sendingCompounds[i % wS].sendNow)
 			return sendingCompounds[(i % wS)].compound;
 	}
@@ -141,11 +141,11 @@ CumulativeACK::getACK()
 wns::ldk::CompoundPtr
 CumulativeACK::getData()
 {
-	uint tmpNS = NS;
+	unsigned int tmpNS = NS;
 	int diff = NS-NSack;
 	if (diff < 0)
 		tmpNS = NS + wS;
-	for (uint i = NSack ; i <= tmpNS; i++ )	{
+	for (unsigned int i = NSack ; i <= tmpNS; i++ )	{
 		if( sendingCompounds[(i % wS)].compound != CompoundPtr() && sendingCompounds[(i % wS)].sendNow) {
 			sendingCompounds[(i % wS)].sendNow = false;
 			sendingCompounds[(i % wS)].setTimeout(resendTimeout);
@@ -180,7 +180,7 @@ void CumulativeACK::processIncoming(const wns::ldk::CompoundPtr& _compound)
 				receivingCompounds[command->peer.NS].compound = compound;
 
 				if(command->peer.NS == NR) {
-					uint tmpNR = NR;
+					unsigned int tmpNR = NR;
 					NR = (NR + 1) % wS;
 					for(; receivingCompounds[NR].compound != CompoundPtr(); NR = (NR + 1) % wS) {
 						tmpNR = NR;
@@ -203,7 +203,7 @@ void CumulativeACK::processIncoming(const wns::ldk::CompoundPtr& _compound)
 			if(command->peer.NS == NR) {
 				receivingCompounds[NR].compound = compound;
 				//Loop assures that RR-message refers to a not received PDU.
-				uint tmpNR = NR;
+				unsigned int tmpNR = NR;
 				NR = (NR + 1) % wS;
 				for(; receivingCompounds[NR].compound != CompoundPtr(); NR = (NR + 1) % wS) {
 					CompoundPtr tmpCompound = receivingCompounds[tmpNR].compound;
@@ -251,14 +251,14 @@ void CumulativeACK::processIncoming(const wns::ldk::CompoundPtr& _compound)
 		if ((command->peer.NR - NSack + wS - 1) % wS >= wS/2)
 			return;
 		//2.index helping to cope with indexHop
-		uint tmpNS = NS;
+		unsigned int tmpNS = NS;
 		//prevent warning
 		int dif = NS - NSack;
 		if (  dif < 0)
 			tmpNS = NS + wS;
 		//lower index by one
-		uint tmpI = NSack;
-		uint i;
+		unsigned int tmpI = NSack;
+		unsigned int i;
 
 		for ( i = (NSack + 1) % wS ; i <= tmpNS; ++i ) {
 			//assumes that no wrong command->peer.NS is received
