@@ -43,15 +43,18 @@ namespace wns { namespace scheduler {
         }
 
             struct HARQInfo {
-                HARQInfo() : NDI(true), enabled(false), processID(0), rv(0), retryCounter(0) {}
+                HARQInfo() : NDI(true), reservedForRetransmission(false), processID(0), rv(0), retryCounter(0), successfullyDecoded(false), transportBlockID(0) {}
+
                 /**
                  * @brief New Data Indication flag
                  */
                 bool NDI;
-                bool enabled;
+                bool reservedForRetransmission;
                 int processID;
                 int rv;
                 int retryCounter;
+                bool successfullyDecoded;
+                long int transportBlockID;
                 boost::function<void ()> ackCallback;
                 boost::function<void ()> nackCallback;
             };
@@ -62,6 +65,7 @@ namespace wns { namespace scheduler {
         {
         public:
             SchedulingCompound();
+            SchedulingCompound(const SchedulingCompound& other);
             SchedulingCompound(int _subChannel,
                                int _timeSlot,
                                int _spatialLayer,
@@ -69,10 +73,12 @@ namespace wns { namespace scheduler {
                                simTimeType _endTime,
                                wns::scheduler::ConnectionID _connectionID,
                                wns::scheduler::UserID _userID,
+                               wns::scheduler::UserID _sourceUserID,
                                wns::ldk::CompoundPtr _compoundPtr,
                                wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr,
                                wns::Power _txPower,
-                               wns::service::phy::ofdma::PatternPtr _pattern
+                               wns::service::phy::ofdma::PatternPtr _pattern,
+                               bool _harqEnabled
                 );
             //SchedulingCompound(const SchedulingCompound&);
 
@@ -91,6 +97,7 @@ namespace wns { namespace scheduler {
             wns::scheduler::ConnectionID connectionID;
             /** @brief usually all compounds in a PRB must have the same user */
             wns::scheduler::UserID userID;
+            wns::scheduler::UserID sourceUserID;
             wns::ldk::CompoundPtr compoundPtr;
             /** @brief usually all compounds in a subChannel must have the same phyMode */
             wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
@@ -103,7 +110,7 @@ namespace wns { namespace scheduler {
             /** @brief signal and noise+interference power assumed at receiver.
                 Just informational. Can be used in Receiver to calculate
                 the difference between real and estimated SINR. */
-            //wns::CandI estimatedCandI; // not supported yet
+            bool harqEnabled;
         }; // SchedulingCompound
 
         typedef SmartPtr<SchedulingCompound> SchedulingCompoundPtr;
@@ -116,6 +123,7 @@ namespace wns { namespace scheduler {
         {
         public:
             PhysicalResourceBlock();
+            PhysicalResourceBlock(const PhysicalResourceBlock& other);
             PhysicalResourceBlock(int _subChannelIndex, int _timeSlotIndex, int _spatialLayer, simTimeType _slotLength);
             //PhysicalResourceBlock(const PhysicalResourceBlock&);
 
@@ -126,6 +134,9 @@ namespace wns { namespace scheduler {
             simTimeType getFreeTime() const;
             /** @brief mark t=[0..nextPosition] as used by compounds. The rest is free. */
             //void setNextPosition(simTimeType _nextPosition);
+
+            void
+            consistencyCheck();
 
             /** @brief get "offset for new compounds" == used time for already scheduled compounds. Zero for empty subChannel */
             simTimeType getNextPosition() const;
@@ -142,10 +153,12 @@ namespace wns { namespace scheduler {
             bool addCompound(simTimeType compoundDuration,
                              wns::scheduler::ConnectionID connectionID,
                              wns::scheduler::UserID userID,
+                             wns::scheduler::UserID sourceUserID,
                              wns::ldk::CompoundPtr compoundPtr,
                              wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                              wns::Power txPower,
-                             wns::service::phy::ofdma::PatternPtr pattern
+                             wns::service::phy::ofdma::PatternPtr pattern,
+                             bool _useHARQ
                 );
 
             /** @brief put scheduled compound (one after another) into the PhysicalResourceBlock
@@ -155,7 +168,8 @@ namespace wns { namespace scheduler {
             */
             bool addCompound(strategy::RequestForResource& request,
                              MapInfoEntryPtr mapInfoEntry, // <- must not contain compounds yet
-                             wns::ldk::CompoundPtr compoundPtr
+                             wns::ldk::CompoundPtr compoundPtr,
+                             bool _useHARQ
                 );
 
             /** @brief doToString(): human-readable format */
@@ -196,7 +210,72 @@ namespace wns { namespace scheduler {
             /** @brief determine the length in bits stored in this resource */
             int getNetBlockSizeInBits() const;
 
-        public:
+            wns::service::phy::phymode::PhyModeInterfacePtr
+            getPhyMode() { return phyModePtr; }
+
+            wns::Power
+            getTxPower() { return txPower; }
+
+            int
+            getSubChannelIndex() const { return subChannelIndex; }
+
+            void
+            setSubChannelIndex(int scindex) { subChannelIndex = scindex; }
+
+            int
+            getTimeSlotIndex() const { return timeSlotIndex; }
+
+            void
+            setTimeSlotIndex(int tsindex) { timeSlotIndex = tsindex; }
+
+            int
+            getSpatialLayerIndex() const { return spatialIndex; }
+
+            bool
+            hasScheduledCompounds() const { return !scheduledCompounds.empty(); }
+
+            wns::scheduler::UserID
+            getUserIDOfScheduledCompounds()
+            {
+                if (hasScheduledCompounds())
+                {
+                    return scheduledCompounds.begin()->userID;
+                }
+                return wns::scheduler::UserID();
+            }
+
+            wns::scheduler::UserID
+            getSourceUserIDOfScheduledCompounds()
+            {
+                if (hasScheduledCompounds())
+                {
+                    return scheduledCompounds.begin()->sourceUserID;
+                }
+                return wns::scheduler::UserID();
+            }
+
+            ScheduledCompoundsList::const_iterator
+            scheduledCompoundsBegin()
+                {
+                    return scheduledCompounds.begin();
+                }
+
+            ScheduledCompoundsList::const_iterator
+            scheduledCompoundsEnd()
+                {
+                    return scheduledCompounds.end();
+                }
+
+            void
+            clearScheduledCompounds()
+                {
+                    scheduledCompounds.clear();
+                }
+
+            bool
+            isHARQEnabled() const;
+
+        private:
             /** @brief my own subChannelIndex as seen from outside (container) */
             int subChannelIndex;
             /** @brief index of time slot (TDMA component) */
@@ -235,10 +314,14 @@ namespace wns { namespace scheduler {
         {
         public:
             SchedulingTimeSlot();
+            SchedulingTimeSlot(const SchedulingTimeSlot& other);
             SchedulingTimeSlot(int _subChannel, int _timeSlot, int _numSpatialLayers, simTimeType _slotLength);
             //SchedulingTimeSlot(const SchedulingTimeSlot&);
 
             ~SchedulingTimeSlot();
+            void
+            consistencyCheck();
+
             /** @brief total used time in this SchedulingTimeSlot */
             simTimeType getUsedTime() const;
             /** @brief total free time on this SchedulingTimeSlot */
@@ -279,6 +362,8 @@ namespace wns { namespace scheduler {
             bool hasResourcesForUser(wns::scheduler::UserID user) const;
             /** @brief determine the length in bits stored in this resource */
             int getNetBlockSizeInBits() const;
+            bool isHARQEnabled() const;
+
         public:
             /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
             PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
@@ -419,6 +504,7 @@ namespace wns { namespace scheduler {
                              simTimeType compoundDuration,
                              wns::scheduler::ConnectionID connectionID,
                              wns::scheduler::UserID userID,
+                             wns::scheduler::UserID sourceUserID,
                              wns::ldk::CompoundPtr compoundPtr,
                              wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                              wns::Power txPower,
@@ -485,6 +571,11 @@ namespace wns { namespace scheduler {
 
             /** @brief true if there is nothing reserved(scheduled) in the whole schedulingMap. */
             bool isEmpty() const;
+            /**
+             * @brief Get the frame number for this frame
+             */
+            int
+            getFrameNr() const;
 
             /** @brief Delete all compounds from the map. But keep all other info (PhyMode, usedTime).
                 This is called by the UL master scheduler,

@@ -49,6 +49,10 @@ namespace wns { namespace service { namespace phy { namespace phymode {
 		/** @brief returns the Mutual Information value of a modulation symbol */
 	    virtual double convertSNR2MI(const wns::Ratio& snr, const wns::service::phy::phymode::PhyModeInterface& phyMode) const = 0;
 
+        /** @brief returns the effective SINR from MIB */
+        virtual wns::Ratio
+        convertMIB2SNR(const double& MI, const wns::service::phy::phymode::Modulation& mod) const = 0;
+
 		static SNR2MIInterface*
 		getSNR2MImapper(const wns::pyconfig::View& config);
 	};

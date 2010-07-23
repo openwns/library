@@ -47,7 +47,7 @@ TreeBasedGrouper::TreeBasedGrouper(const wns::pyconfig::View& config)
 std::map<UserID, wns::CandI>
 TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 {
-	std::map<UserID, wns::CandI> candis;
+    std::map<UserID, wns::CandI> candis;
 	candis.clear();
 
 	switch(mode) {
@@ -55,18 +55,18 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 	{
 		if(beamforming){
 
-			std::map<UserID, wns::Power> userNoiseIInterMap;
+            std::map<wns::node::Interface*, wns::Power> userNoiseIInterMap;
 			userNoiseIInterMap.clear();
 
 			for (UserSet::const_iterator iter = group.begin();
 			     iter != group.end(); ++iter) {
 				UserID user = *iter;
 
-				userNoiseIInterMap[user] = 
+				userNoiseIInterMap[user.getNode()] = 
                     colleagues.registry->estimateTxSINRAt(user).interference;
 			}
 
-			candis = friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower);
+            candis = convertMap(friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower));
 		}
 		else{
 			assure(group.size() == 1, "We don't do beamforming, so only one-user groups are supported");
@@ -78,10 +78,10 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 		}
 		MESSAGE_BEGIN(VERBOSE, logger, m, colleagues.registry->getNameForUser(colleagues.registry->getMyUserID()));
 
-		for (std::map<wns::node::Interface*, wns::CandI>::const_iterator iter = candis.begin();
+		for (std::map<UserID, wns::CandI>::const_iterator iter = candis.begin();
 		     iter != candis.end(); ++iter)
 			m << " Selecting TX grouping for "
-			  << colleagues.registry->getNameForUser(iter->first)
+              << colleagues.registry->getNameForUser(iter->first)
 			  << "\nAssumed TxPower: " << txPower
 			  << "\nEstimated Carrier: " <<  iter->second.C
 			  << "\nEstimated Interference: " << iter->second.I << "\n"
@@ -92,19 +92,19 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 	case rx:
 	{
 		if (beamforming){
-			std::vector<UserID> combination;
+            std::vector<wns::node::Interface*> combination;
 			combination.clear();
 			wns::Power meanBsInterference = wns::Power::from_mW(0.0);
 
 			for (UserSet::const_iterator user = group.begin();
 			     user != group.end(); ++user) {
-				combination.push_back(*user);
+                combination.push_back(user->getNode());
 				meanBsInterference += colleagues.registry->estimateRxSINROf(*user).interference;
 			}
 			assure(combination.size() == group.size(), "we estimate SINRs for a different set of users than we were asked to do");
 			meanBsInterference /= static_cast<unsigned long int>(combination.size());
 
-			candis = friends.ofdmaProvider->calculateCandIsRx(combination, meanBsInterference);
+            candis = convertMap(friends.ofdmaProvider->calculateCandIsRx(combination, meanBsInterference));
 		}
 		else{ // no beamforming
 
@@ -116,7 +116,7 @@ TreeBasedGrouper::getCandIsForGroup(const UserSet group, ModeType mode)
 		}
 
 		MESSAGE_BEGIN(VERBOSE, logger, m, colleagues.registry->getNameForUser(colleagues.registry->getMyUserID()));
-		for (std::map<wns::node::Interface*, wns::CandI>::const_iterator iter = candis.begin();
+		for (std::map<UserID, wns::CandI>::const_iterator iter = candis.begin();
 		     iter != candis.end(); ++iter)
 			m << " Selecting RX grouping for "
 			  << colleagues.registry->getNameForUser(iter->first)
@@ -174,26 +174,26 @@ TreeBasedGrouper::convertTreeLevelToGrouping(TreeLevel level, ModeType mode)
 		UserSet users = *iter;
 		groupCount++;
 
-		std::vector<UserID> usersInGroup;
+        std::vector<wns::node::Interface*> usersInGroup;
 		usersInGroup.clear();
 
 		// calculate the pattern for every user in the group:
 		for (UserSet::const_iterator iter2 = users.begin();
 			 iter2 != users.end(); ++iter2)
-			usersInGroup.push_back(*iter2);
+            usersInGroup.push_back(iter2->getNode());
 
 		///\todo this code is duplicate in AllPossibleGroupsGrouper
 		// for every user generate a pattern that has the other group members as
 		// undesired interferers
 		for (unsigned int d = 0; d < usersInGroup.size(); ++d) {
-			std::vector<UserID> undesireds;
+            std::vector<wns::node::Interface*> undesireds;
 			undesireds.clear();
 			for (unsigned int u = 0; u < usersInGroup.size(); ++u)
 				if (d != u)
 					undesireds.push_back(usersInGroup[u]);
 			// calculate users pattern with his co-scheduled users as undesireds
 			if(mode == tx){
-				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
+                grouping.patterns[UserID(usersInGroup[d])] = friends.ofdmaProvider->
 					calculateAndSetBeam(usersInGroup[d], undesireds,  x_friendliness);
 			}
 			else{
@@ -208,14 +208,14 @@ TreeBasedGrouper::convertTreeLevelToGrouping(TreeLevel level, ModeType mode)
 				}
 				meanBsInterference /= static_cast<unsigned long int>(users.size());
 
-				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
+                grouping.patterns[UserID(usersInGroup[d])] = friends.ofdmaProvider->
 					calculateAndSetBeam(usersInGroup[d], undesireds, meanBsInterference);
 // 				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
 // 			                calculateAndSetBeam(usersInGroup[d], undesireds,
 // 						    colleagues.registry->estimateRxSINROf(usersInGroup[d])->interference;
 			}
 
-			assure(grouping.patterns[usersInGroup[d]] !=
+            assure(grouping.patterns[UserID(usersInGroup[d])] !=
 				   wns::service::phy::ofdma::PatternPtr(), "Invalid pattern returned");
 		}
 		// calculate the SINR values for every user in the group
@@ -223,10 +223,10 @@ TreeBasedGrouper::convertTreeLevelToGrouping(TreeLevel level, ModeType mode)
 		// save it in grouping
 		grouping.groups.push_back(newGroup);
 		// and update the group look-up-table
-		for (std::vector<UserID>::const_iterator iter2 = usersInGroup.begin();
+        for (std::vector<wns::node::Interface*>::const_iterator iter2 = usersInGroup.begin();
 			 iter2 != usersInGroup.end();
 			 ++iter2)
-			grouping.userGroupNumber[*iter2] = groupCount;
+            grouping.userGroupNumber[UserID(*iter2)] = groupCount;
 	} // for all user groups in level
 	return grouping;
 }

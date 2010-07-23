@@ -92,7 +92,7 @@ BestCapacity::getSubChannelWithDSA(RequestForResource& request,
     assure(maxSubChannel==schedulerState->currentState->strategyInput->fChannels,"maxSubChannel="<<maxSubChannel<<"!=fChannels");
     ChannelQualitiesOnAllSubBandsPtr channelQualitiesOnAllSubBands = userInfo.channelQualitiesOnAllSubBands;
     if (channelQualitiesOnAllSubBands==ChannelQualitiesOnAllSubBandsPtr()) { // empty
-        assure(channelQualitiesOfAllUsers->knowsUser(user),"channelQualitiesOfAllUsers["<<user->getName()<<"] invalid");
+        assure(channelQualitiesOfAllUsers->knowsUser(user),"channelQualitiesOfAllUsers["<<user.getName()<<"] invalid");
         // ^ or should we ask the registryProxy for CQI here?
         channelQualitiesOnAllSubBands = channelQualitiesOfAllUsers->find(user)->second;
         userInfo.channelQualitiesOnAllSubBands = channelQualitiesOnAllSubBands;

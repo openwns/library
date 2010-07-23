@@ -106,7 +106,7 @@ namespace std {
                         const wns::scheduler::strategy::staticpriority::ProportionalFair::UserPreference & rhs) const
         {
             if(lhs.first == rhs.first) {
-                return lhs.second->getName() < rhs.second->getName();
+                return lhs.second.getName() < rhs.second.getName();
             }
             return lhs.first < rhs.first;
         }

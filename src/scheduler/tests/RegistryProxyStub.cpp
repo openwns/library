@@ -240,7 +240,7 @@ RegistryProxyStub::getTotalNumberOfUsers(wns::scheduler::UserID /*user*/)
 
 void
 RegistryProxyStub::associateCIDandUser(ConnectionID cid, UserID user) {
-	assure(user, "You have to specify a valid user id");
+	assure(user.isValid(), "You have to specify a valid user id");
 	assure(cid, "You have to specify a valid connection id");
 
 	User2CID[user].push_back(cid);

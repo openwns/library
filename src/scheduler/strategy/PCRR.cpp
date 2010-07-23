@@ -148,7 +148,7 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 			{
 				MESSAGE_BEGIN(NORMAL, logger, m, "");
 				m << "Max Nr of Blocks for Group " << group << "("<< thisGroupBlocks <<")"
-				  << " bounded by maximum Nr of subbands for user "<< user->getName() << "("
+				  << " bounded by maximum Nr of subbands for user "<< user.getName() << "("
 				  << powerMap[user].maxNumSubbands
 				  << ") --> using " << powerMap[user].maxNumSubbands * blocksPerChannel << " blocks.";
 				MESSAGE_END();
@@ -277,7 +277,7 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 						m << "\n\tcurrentSubBand: " << currentSubBand
 						  << "\n\tburstStart: " << burstStart
 						  << "\n\tburstEnd: " << burstEnd
-						  << "\n\tuser: " << user->getName()
+						  << "\n\tuser: " << user.getName()
 						  << "\n\tspatialLayer: " << spatialLayer
 						  << "\n\tPhyMode: " << *phyMode
 						  << "\n\ttxPower: " << powerMap[user].txPowerPerSubband

@@ -239,7 +239,7 @@ CQIEnabledExhaustiveRR::doStartScheduling(int fChannels, int maxSpatialLayers, s
 
 			MapInfoEntryPtr currentBurst(new MapInfoEntry());
 			// initialize user entry with invalid user ID and empty compound list.
-			currentBurst->user = NULL;
+            currentBurst->user = UserID();
 			currentBurst->compounds.clear();
 
 			Group currentGroup = grouping.groups[group];
@@ -419,7 +419,7 @@ CQIEnabledExhaustiveRR::doStartScheduling(int fChannels, int maxSpatialLayers, s
 
 						// update the burst info for the map
 						// if still the same user, update current burst end
-						if (userInGroup == currentBurst->user)
+                        if (userInGroup == UserID(currentBurst->user))
 							currentBurst->end = usedTimeOnTheChannel+HoLms[cid];
 						else // start new burst
 						{

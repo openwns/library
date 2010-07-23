@@ -49,17 +49,17 @@ NoGrouper::getTxGrouping(const UserSet activeUsers, int)
 	for (UserSet::iterator iter = activeUsers.begin();
 		 iter != activeUsers.end();
 		 ++iter) {
-		UserID user = *iter;
-		assure(user, "No valid user");
+		
+		assure(iter->isValid(), "No valid user");
         wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
-            registry->estimateTxSINRAt(user);
+            registry->estimateTxSINRAt(*iter);
 		wns::CandI sinrEstimation(cqi.carrier, cqi.interference); 
 		Group group;
-		group[user] = sinrEstimation;
+		group[*iter] = sinrEstimation;
 
-		grouping.patterns[user] = wns::service::phy::ofdma::PatternPtr();
+		grouping.patterns[*iter] = wns::service::phy::ofdma::PatternPtr();
 		grouping.groups.push_back(group);
-		grouping.userGroupNumber[user] = groupNumber++;
+		grouping.userGroupNumber[*iter] = groupNumber++;
 	}
 	return grouping;
 }
@@ -73,17 +73,17 @@ NoGrouper::getRxGrouping(const UserSet activeUsers, int)
 	for (UserSet::iterator iter = activeUsers.begin();
 		 iter != activeUsers.end();
 		 ++iter) {
-		UserID user = *iter;
-		assure(user, "No valid user");
+
+		assure(iter->isValid(), "No valid user");
         wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
-            registry->estimateRxSINROf(user);
+            registry->estimateRxSINROf(*iter);
 		wns::CandI sinrEstimation(cqi.carrier, cqi.interference); 
 		Group group;
-		group[user] = sinrEstimation;
+		group[*iter] = sinrEstimation;
 
-		grouping.patterns[user] = wns::service::phy::ofdma::PatternPtr();
+		grouping.patterns[*iter] = wns::service::phy::ofdma::PatternPtr();
 		grouping.groups.push_back(group);
-		grouping.userGroupNumber[user] = groupNumber++;
+		grouping.userGroupNumber[*iter] = groupNumber++;
 	}
 	return grouping;
 }

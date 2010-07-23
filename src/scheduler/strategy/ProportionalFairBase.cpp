@@ -172,7 +172,7 @@ ProportionalFairBase::updatePastDataRates(UserID user, Bits dataThisFrame, simTi
     } else { // new user
         pastDataRates[user] = currentRate;
     }
-    MESSAGE_SINGLE(NORMAL, logger, "updatePastDataRates("<<user->getName()<<","<<phaseLength<<"s): pastDataRate: new= "<< pastDataRates[user]<<" bit/s, old= "<<pastDataRate<<" bit/s, currentRate= "<<currentRate<<" bit/s");
+    MESSAGE_SINGLE(NORMAL, logger, "updatePastDataRates("<<user.getName()<<","<<phaseLength<<"s): pastDataRate: new= "<< pastDataRates[user]<<" bit/s, old= "<<pastDataRate<<" bit/s, currentRate= "<<currentRate<<" bit/s");
 }
 
 bool
@@ -194,7 +194,7 @@ ProportionalFairBase::everybodyFinished(std::map<UserID, bool> finishedUsers) co
 UserID
 ProportionalFairBase::getNextUnfinished(std::map<UserID, simTimeType> timeMarkers, std::map<UserID, bool> finishedUsers) const
 {
-    UserID next = 0;
+    UserID next;
     simTimeType min = 999999;
 
     for (std::map<UserID, simTimeType>::const_iterator iter = timeMarkers.begin();

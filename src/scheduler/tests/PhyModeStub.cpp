@@ -199,6 +199,11 @@ double PhyMode::getSINR2PER(const wns::Ratio& /*sinr*/, unsigned int /*bits*/) c
 	return 0.0; // best possible result
 }
 
+wns::Ratio PhyMode::getMIB2SINR(const double& mib) const
+{
+    return wns::Ratio::from_dB(0.0);
+}
+
 unsigned int
 PhyMode::getBitCapacityFractional(simTimeType duration) const
 {

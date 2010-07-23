@@ -46,7 +46,7 @@ DoATreeBasedGrouper::DoATreeBasedGrouper(const wns::pyconfig::View& config)
 float
 DoATreeBasedGrouper::getNormalizedDoA(UserID user)
 {
-	float angle = this->friends.ofdmaProvider->estimateDoA(user);
+	float angle = this->friends.ofdmaProvider->estimateDoA(user.getNode());
 
 	if (angle < 0.0)
 		angle += 2*M_PI;

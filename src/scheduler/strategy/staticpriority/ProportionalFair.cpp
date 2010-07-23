@@ -81,7 +81,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
           iter != activeUsers.end(); ++iter)
     {
         UserID user = *iter;
-        assure(user, "No valid user");
+        assure(user.isValid(), "No valid user");
 
         //determines the users SINRs depending on the tx/Rx mode of the strategy
         if (txStrategy)
@@ -117,7 +117,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
                 float dataRate = iter->second;
                 // a RN must get a better share of the bandwidth
                 // here: proportional to its number of users:
-                assure(weight>0, "numberOfUsers(" <<user->getName()<<")=" << weight);
+                assure(weight>0, "numberOfUsers(" <<user.getName()<<")=" << weight);
                 dataRate /= static_cast<float>(weight);
                 // dataRate now has the meaning of a weight.
                 pastDataRate = dataRate;
@@ -155,7 +155,7 @@ ProportionalFair::calculateUserPreferences(UserSet activeUsers, bool txStrategy)
             (1.0-scalingBetweenMaxTPandPFair) * resultMaxThroughput
             +scalingBetweenMaxTPandPFair  * resultPropFair;
 
-        MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user->getName()<<"): weight=" << weight << ", pastDataRate= "<<pastDataRate<<" bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
+        MESSAGE_SINGLE(NORMAL, logger, "getPreference("<<user.getName()<<"): weight=" << weight << ", pastDataRate= "<<pastDataRate<<" bit/s, UserPreference= "<<UserPref<<" (resultMaxThroughput="<<resultMaxThroughput<<",resultProportionalFair="<<resultPropFair<<")");
 
         // calculate preferences for users and order them
         preferences.push(UserPreference(UserPref, user));
@@ -206,7 +206,7 @@ ProportionalFair::getNextConnection(SchedulerStatePtr schedulerState,
         int priority = schedulerState->currentState->getCurrentPriority();
         const float preference = preferences.top().first;
         const UserID user = preferences.top().second;
-        MESSAGE_SINGLE(NORMAL, logger, "Selected user="<<user->getName());
+        MESSAGE_SINGLE(NORMAL, logger, "Selected user="<<user.getName());
 
         ConnectionVector currentPrioConns = getConnectionsForPrio(priority, user);
 
@@ -250,8 +250,8 @@ wns::scheduler::ConnectionID
 ProportionalFair::getRandomConnection(ConnectionVector currentPrioConns)
 {
     int numberOfConns = currentPrioConns.size();
-    wns::distribution::Uniform* randomPositionDistribution = new wns::distribution::Uniform(0.0, numberOfConns);
-    float randomNumber = (*randomPositionDistribution)();
+    wns::distribution::Uniform randomPositionDistribution(0.0, numberOfConns);
+    float randomNumber = (randomPositionDistribution)();
     int randomPosition = static_cast<int>(randomNumber);
     MESSAGE_SINGLE(NORMAL, logger, "Drew random number="<<randomNumber<< ", position="<< randomPosition << " out of "<< numberOfConns << " total connections.");
     assure(randomPosition<numberOfConns, "Random position of connections="<< randomPosition << " out of range of current connections size="<<numberOfConns);
@@ -283,7 +283,7 @@ ProportionalFair::updatePastDataRates(std::map<UserID, float> bitsBeforeThisFram
             // new user
             pastDataRates[user] = currentRate;
         }
-        MESSAGE_SINGLE(NORMAL, logger, "updatePastDataRates("<<user->getName()<<","<<phaseLength<<"s): pastDataRate: new= "<< pastDataRates[user]<<" bit/s, old= "<<pastDataRate<<" bit/s, currentRate= "<<currentRate<<" bit/s");
+        MESSAGE_SINGLE(NORMAL, logger, "updatePastDataRates("<<user.getName()<<","<<phaseLength<<"s): pastDataRate: new= "<< pastDataRates[user]<<" bit/s, old= "<<pastDataRate<<" bit/s, currentRate= "<<currentRate<<" bit/s");
     }
 }
 
@@ -309,7 +309,7 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
     for (std::map<UserID, float>::const_iterator iter = bitsBeforeThisFrame.begin();
          iter != bitsBeforeThisFrame.end(); ++iter)
     {
-        m << "\n User " << iter->first->getName() << " has " << iter->second;
+        m << "\n User " << iter->first.getName() << " has " << iter->second;
         m << " queued bits.";
     }
     MESSAGE_END();
@@ -349,7 +349,7 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
     for (std::map<UserID, float>::const_iterator iter = bitsAfterThisFrame.begin();
          iter != bitsAfterThisFrame.end(); ++iter)
     {
-        m << "\n User " << iter->first->getName() << " has " << iter->second;
+        m << "\n User " << iter->first.getName() << " has " << iter->second;
         m << " queued bits left after this frame.";
     }
     MESSAGE_END();

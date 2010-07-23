@@ -120,7 +120,7 @@ namespace std {
  		{
 			if(lhs.first == rhs.first) {
 				//UserID of the first User of a group is taken if floats(preferences) are equal
-				return lhs.second.begin()->first->getName() < rhs.second.begin()->first->getName();
+				return lhs.second.begin()->first.getName() < rhs.second.begin()->first.getName();
 			}
 			return lhs.first < rhs.first;
  		}

@@ -91,10 +91,10 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
         minimumSegmentSize // ask for any free space of at least this size (so that there is always a chance of space; the real request is extended later after we know the PhyMode)
         :
         queuedBits;
-    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<",#"<<pduCounter<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested");
+    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<",#"<<pduCounter<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested");
 
     // do resource scheduling here:
-    RequestForResource request(cid,userID,requestedBits);
+    RequestForResource request(cid,userID,requestedBits, queuedBits, useHARQ);
     MapInfoEntryPtr mapInfoEntry =
         colleagues.strategy->doAdaptiveResourceScheduling(request, schedulingMap);
     if (mapInfoEntry == MapInfoEntryPtr()) // no result
@@ -110,14 +110,16 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     assure(compoundStartTime==schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].getNextPosition(),"mismatch in getNextPosition");
     mapInfoEntry->start = compoundStartTime;
     // ^ all the above is constant even if we schedule another compound of the same cid
+    mapInfoEntry->sourceUser = schedulerState->myUserID;
+
     // this depends on phyMode and subChannel used so far:
     int freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry); // how much fits into the selected subChannel?
     // ^ can be used with DynamicSegmentation
-    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free on sc="<<mapInfoEntry->subBand<<"."<<mapInfoEntry->timeSlot<<"."<<mapInfoEntry->spatialLayer);
+    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free on sc="<<mapInfoEntry->subBand<<"."<<mapInfoEntry->timeSlot<<"."<<mapInfoEntry->spatialLayer);
     if (freeBits<=0) return false; // can be =0 if !subChannelIsUsable
     if (useDynamicSegmentation) {
         request.bits = freeBits;
-        MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free, get="<<request.bits);
+        MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): bits: "<<queuedBits<<" queued, "<<requestedBits<<" requested, "<<freeBits<<" free, get="<<request.bits);
         wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDUSegment(cid,request.bits);
         if (compoundPtr != wns::ldk::CompoundPtr()) // no fake
         { 
@@ -128,7 +130,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
             request.bits = freeBits < queuedBits?freeBits:queuedBits;
         }
         simTimeType compoundDuration = request.getDuration();
-        MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): getHeadOfLinePDUSegment("<<freeBits<<") => "<<request.bits<<" bits dequeued, d="<<compoundDuration*1e6<<"us");
+        MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): getHeadOfLinePDUSegment("<<freeBits<<") => "<<request.bits<<" bits dequeued, d="<<compoundDuration*1e6<<"us");
         bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr, useHARQ);
         assure(ok,"schedulingMap->addCompound("<<request.toString()<<") failed. mapInfoEntry="<<mapInfoEntry->toString());
         mapInfoEntry->compounds.push_back(compoundPtr); // (currentBurst)
@@ -137,7 +139,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
         freeBits -= request.bits;
     } else { // normal pre-segmented PDUs
         if (request.bits > freeBits) {
-            MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): request.bits="<<request.bits<<" do not fit into free "<<freeBits<<" bits.");
+            MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): request.bits="<<request.bits<<" do not fit into free "<<freeBits<<" bits.");
             return false;
         }
 
@@ -145,7 +147,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
         while (request.bits <= freeBits)
         { // try to put one (or more) pdus into this resource block
             wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDU(cid);
-            MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): request.bits="<<request.bits);
+            MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): request.bits="<<request.bits);
             bool ok = schedulingMap->addCompound(request, mapInfoEntry, compoundPtr, useHARQ);
             assure(ok,"schedulingMap->addCompound("<<request.toString()<<") failed. mapInfoEntry="<<mapInfoEntry->toString());
             mapInfoEntry->compounds.push_back(compoundPtr); // (currentBurst)
@@ -164,7 +166,7 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     } // no DynamicSegmentation
     mapInfoEntry->end = allCompoundsEndTime;
     mapInfoCollection->push_back(mapInfoEntry);
-    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): start..end[us]="<<mapInfoEntry->start*1e6<<".."<<mapInfoEntry->end*1e6);
-    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID->getName()<<"): next PDU on next subChannel...?");
+    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): start..end[us]="<<mapInfoEntry->start*1e6<<".."<<mapInfoEntry->end*1e6);
+    MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): next PDU on next subChannel...?");
     return true; // true means success
 } // scheduleCid

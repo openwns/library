@@ -144,7 +144,7 @@ ExhaustiveRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 
 			MapInfoEntryPtr currentBurst(new MapInfoEntry());
 			// initialize user entry with invalid user ID and empty compound list.
-			currentBurst->user = NULL;
+			currentBurst->user = UserID();
 			currentBurst->compounds.clear();
 
 			Group currentGroup = grouping.groups[group];
@@ -172,7 +172,7 @@ ExhaustiveRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 			for (Group::iterator iter = currentGroup.begin();
 				 iter != currentGroup.end();
 				 ++iter) {
-				MESSAGE_SINGLE(NORMAL, logger,"added to usersInGroup: " << iter->first);
+                MESSAGE_SINGLE(NORMAL, logger,"added to usersInGroup: " << iter->first.getName());
 				usersInGroup.push_back(iter->first);
 			}
 
@@ -263,7 +263,7 @@ ExhaustiveRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 
 							// update the burst info for the map
 							// if still the same user, update current burst end
-							if (usersInGroup[user] == currentBurst->user)
+                            if (usersInGroup[user] == UserID(currentBurst->user))
 							{
 							  currentBurst->end = usedInBeam[user]+HoLms[cid];
 							  //MESSAGE_SINGLE(NORMAL, logger,"ExhaustiveRR: a)  startTime " << currentBurst->start << ", stopTime = " << currentBurst->end);

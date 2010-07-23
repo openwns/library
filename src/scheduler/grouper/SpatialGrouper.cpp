@@ -68,14 +68,14 @@ SpatialGrouper::setColleagues(RegistryProxyInterface* _registry)
 			groupingGainProbeBus = wns::probe::bus::ContextCollectorPtr(
 				new wns::probe::bus::ContextCollector(
 					wns::probe::bus::ContextProviderCollection(
-						&colleagues.registry->getMyUserID()->getContextProviderCollection()),
+						&colleagues.registry->getMyUserID().getContextProviderCollection()),
 					"groupingGain"));
 		}
 		else{
 			groupingGainProbeBus = wns::probe::bus::ContextCollectorPtr(
 				new wns::probe::bus::ContextCollector(
 					wns::probe::bus::ContextProviderCollection(
-						&colleagues.registry->getMyUserID()->getContextProviderCollection()),
+						&colleagues.registry->getMyUserID().getContextProviderCollection()),
 					"groupingGainUL"));
 		}
 	}

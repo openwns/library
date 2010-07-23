@@ -47,19 +47,42 @@ class ChaseCombiningDecoder(openwns.StaticFactoryClass):
 class HARQReceiver:
 
     def __init__(self, parentLogger=None):
-        self.decoder = ChaseCombiningDecoder(parentLogger=parentLogger)
+        pass
 
 class HARQEntity:
 
     def __init__(self, parentLogger=None):
         self.receiverConfig = HARQReceiver(parentLogger=parentLogger)
+        self.decoder = ChaseCombiningDecoder(parentLogger=parentLogger)
 
 class HARQ(openwns.StaticFactoryClass):
-
+    """
+    This is intended to be used in the downlink and uplink slave scheduler.
+    Keeps track of retransmissions and decoding.
+    """
     def __init__(self, parentLogger=None):
         openwns.StaticFactoryClass.__init__(self, "harq")
-        self.numSenderProcesses = 100
-        self.numReceiverProcesses = 100
+        self.numSenderProcesses = 500
+        self.numReceiverProcesses = 500
         self.numRVs = 1
-        self.harqEntity = HARQEntity()
+        self.retransmissionLimit = 3
+        self.harqEntity = HARQEntity(parentLogger)
+        self.harqEntity.retransmissionLimit = self.retransmissionLimit
         self.logger = openwns.logger.Logger("WNS", "HARQ", True, parentLogger)
+
+class NoHARQ(openwns.StaticFactoryClass):
+    
+    def __init__(self, parentLogger=None):
+        openwns.StaticFactoryClass.__init__(self, "noharq")
+
+class HARQRetransmissionProxy(openwns.StaticFactoryClass):
+
+    def __init__(self, parentLogger=None):
+        """
+        This is inteded to be used in the uplink master scheduler. It asks the
+        downlink scheduler about pending NACKs from which it derives pending
+        retransmissions for UEs. This way it can reserve resources for the uplink
+        appropriately.
+        """
+        openwns.StaticFactoryClass.__init__(self, "harqRetransmissionProxy")
+        self.logger = openwns.logger.Logger("WNS", "HARQRetransmissionProxy", True, parentLogger)

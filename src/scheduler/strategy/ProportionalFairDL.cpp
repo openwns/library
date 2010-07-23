@@ -110,7 +110,7 @@ ProportionalFairDL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
 		UserID earliest = getNextUnfinished(timeMarkers, finished);
 
                 // be safe
-		if (!earliest){
+		if (!earliest.isValid()){
 			MESSAGE_SINGLE(NORMAL, logger, "all users finished");
 			break;
 		}

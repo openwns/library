@@ -167,7 +167,7 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 					// currentBurst is a MapInfoEntry
 					currentBurst->start = burstStart;
 					currentBurst->end = burstEnd;
-					currentBurst->user = user;
+                    currentBurst->user = user;
 					currentBurst->subBand = currentSubBand;
 					currentBurst->phyModePtr = phyModePtr;
 					currentBurst->txPower = power.nominalPerSubband;
@@ -188,7 +188,7 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 						m << "\n\tcurrentSubBand: " << currentSubBand
 						  << "\n\tburstStart: " << burstStart
 						  << "\n\tburstEnd: " << burstEnd
-						  << "\n\tuser: " << user->getName()
+						  << "\n\tuser: " << user.getName()
 						  << "\n\tspatialLayer: " << spatialLayer
 						  << "\n\tphyMode: " << *phyModePtr
 						  << "\n\ttxPower: " << getTxPower()

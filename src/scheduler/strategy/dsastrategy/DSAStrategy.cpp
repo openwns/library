@@ -64,8 +64,8 @@ DSAStrategy::setColleagues(RegistryProxyInterface* _registry)
 	highestDataRatePerSubChannel = phyModePtr->getDataRate();
 	// UL-slave: I may only use those resources (subchannels,slots) where my userID is written into
 	myUserID = colleagues.registry->getMyUserID(); // that's me
-	assure(myUserID!=NULL,"cannot get userID");
-	MESSAGE_SINGLE(NORMAL, logger, "DSAStrategy::setColleagues("<<myUserID->getName()<<"): bestPhyMode="<<*phyModePtr<<", maxrate/sc="<<highestDataRatePerSubChannel/1e6<<"Mbit/s");
+	assure(myUserID.isValid(),"cannot get userID");
+	MESSAGE_SINGLE(NORMAL, logger, "DSAStrategy::setColleagues("<<myUserID.getName()<<"): bestPhyMode="<<*phyModePtr<<", maxrate/sc="<<highestDataRatePerSubChannel/1e6<<"Mbit/s");
 } // setColleagues
 
 // call this before each timeSlot/frame
@@ -120,14 +120,14 @@ DSAStrategy::getSpatialLayerForSubChannel(int subChannel,
 		PhysicalResourceBlock& prbDescriptor =
 			schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
 		// can be different if "sort" has been applied:
-		assure(subChannel==prbDescriptor.subChannelIndex,
-		       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
-		assure(timeSlot==prbDescriptor.timeSlotIndex,
-		       "timeSlot="<<timeSlot<<" !=timeSlotIndex="<<prbDescriptor.timeSlotIndex);
-		assure(spatialLayer==prbDescriptor.spatialIndex,
-		       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.spatialIndex);
+		assure(subChannel==prbDescriptor.getSubChannelIndex(),
+		       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.getSubChannelIndex());
+		assure(timeSlot==prbDescriptor.getTimeSlotIndex(),
+		       "timeSlot="<<timeSlot<<" !=timeSlotIndex="<<prbDescriptor.getTimeSlotIndex());
+		assure(spatialLayer==prbDescriptor.getSpatialLayerIndex(),
+		       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.getSpatialLayerIndex());
 		// an empty subChannel can always be used:
-		if (prbDescriptor.scheduledCompounds.empty())
+		if (!prbDescriptor.hasScheduledCompounds())
 	        {
                     return spatialLayer;
                 }
@@ -135,13 +135,13 @@ DSAStrategy::getSpatialLayerForSubChannel(int subChannel,
 		// check if another user is blocking the subChannel:
 		if (oneUserOnOneSubChannel)
 		{	// checking the first packet is sufficient:
-			UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
-			if (otherUser == request.user)
+            UserID otherUser = prbDescriptor.getUserIDOfScheduledCompounds();
+			if (otherUser != request.user)
 				return spatialLayer;
 		}
 		// check if the PhyMode is already fixed:
 		wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
-			prbDescriptor.phyModePtr;
+			prbDescriptor.getPhyMode();
 		RequestForResource requestWithGivenPhyMode = request; // copy
 		requestWithGivenPhyMode.phyModePtr = phyModePtr;
 		simTimeType compoundDuration = getCompoundDuration(requestWithGivenPhyMode);
@@ -181,13 +181,13 @@ DSAStrategy::channelIsUsable(int subChannel,
 			PhysicalResourceBlock& prbDescriptor =
 				schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
 			// can be different if "sort" has been applied:
-			assure(subChannel==prbDescriptor.subChannelIndex,
-			       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
-			assure(spatialLayer==prbDescriptor.spatialIndex,
-			       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.spatialIndex);
+			assure(subChannel==prbDescriptor.getSubChannelIndex(),
+			       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.getSubChannelIndex());
+			assure(spatialLayer==prbDescriptor.getSpatialLayerIndex(),
+			       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.getSpatialLayerIndex());
 			// TODO: copy code from other channelIsUsable() method...
 			// an empty subChannel can always be used:
-			if (prbDescriptor.scheduledCompounds.empty())
+			if (!prbDescriptor.hasScheduledCompounds())
 			{
                             //check the grouping constraints:
                             //other user in the first spatial layer is the same group and not the same user 
@@ -206,16 +206,16 @@ DSAStrategy::channelIsUsable(int subChannel,
 			// check if another user is blocking the subChannel:
 			if (oneUserOnOneSubChannel)
 			{	// checking the first packet is sufficient:
-				UserID otherUser = (prbDescriptor.scheduledCompounds.begin())->userID;
+                UserID otherUser = prbDescriptor.getUserIDOfScheduledCompounds();
 				if (otherUser != request.user)
 				{
-					MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): tSlot="<<timeSlot<<", spatialLayer="<<spatialLayer<<": otherUser="<<otherUser->getName()<<" != request.user="<<request.user->getName());
+					MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): tSlot="<<timeSlot<<", spatialLayer="<<spatialLayer<<": otherUser="<<otherUser.getName()<<" != request.user="<<request.user.getName());
 					return false;
 				}
 			}
 			// check if the PhyMode is already fixed:
 			wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
-				prbDescriptor.phyModePtr;
+				prbDescriptor.getPhyMode();
 			RequestForResource requestWithGivenPhyMode = request; // copy
 			requestWithGivenPhyMode.phyModePtr = phyModePtr;
 			simTimeType compoundDuration = getCompoundDuration(requestWithGivenPhyMode);
@@ -253,10 +253,10 @@ DSAStrategy::channelIsUsable(int subChannel,
 	PhysicalResourceBlock& prbDescriptor =
 		schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
 	// can be different if "sort" has been applied:
-	assure(subChannel==prbDescriptor.subChannelIndex,
-	       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.subChannelIndex);
-	assure(spatialLayer==prbDescriptor.spatialIndex,
-	       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.spatialIndex);
+	assure(subChannel==prbDescriptor.getSubChannelIndex(),
+	       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.getSubChannelIndex());
+	assure(spatialLayer==prbDescriptor.getSpatialLayerIndex(),
+	       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.getSpatialLayerIndex());
 	// check if another user is blocking the subChannel:
 	if (oneUserOnOneSubChannel)
 	{	// checking the first packet is sufficient:
@@ -265,23 +265,23 @@ DSAStrategy::channelIsUsable(int subChannel,
 		const wns::scheduler::SchedulerSpotType& schedulerSpot = schedulerState->schedulerSpot;
 		if (schedulerSpot==wns::scheduler::SchedulerSpot::ULSlave())
 		{ // uplink: I am slave. is this resource for me?
-			if (otherUser == NULL)
+			if (!otherUser.isValid())
 			{
 				// an empty subChannel can always be used:
-				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID->getName()<<", other=NULL => unusableInUL");
+				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID.getName()<<", other=NULL => unusableInUL");
 				return false;
 			}
 			if (otherUser != myUserID)
 			{
-				assure(otherUser!=NULL,"otherUser==NULL");
-				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID->getName()<<", other="<<otherUser->getName()<<", request="<<request.user->getName()<<": unusable");
+				assure(otherUser.isValid(),"!otherUser.isValid()");
+				MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID.getName()<<", other="<<otherUser.getName()<<", request="<<request.user.getName()<<": unusable");
 				return false;
 			}
 			// at this point I'm sure that this resource is principially usable by me.
-			MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID->getName()<<", other="<<otherUser->getName()<<" is ok");
+			MESSAGE_SINGLE(NORMAL, logger, "UL-slave: channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): myUser="<<myUserID.getName()<<", other="<<otherUser.getName()<<" is ok");
 		} else { // master scheduler (DL|UL)
 			// an empty subChannel can always be used:
-			if (prbDescriptor.scheduledCompounds.empty())
+			if (!prbDescriptor.hasScheduledCompounds())
 			{
                                 // check the grouping constraints:
                                 //other user in the first spatial layers is the same group and not the same user 
@@ -297,10 +297,16 @@ DSAStrategy::channelIsUsable(int subChannel,
 				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used (excluding SDMA)");
 				return true;
 			}
+            // We cannot add data to a block that is already protected by HARQ
+            if (prbDescriptor.isHARQEnabled())
+            {
+                return false;
+            }
+
 			// now we are sure that the subChannel is used by at least one packet
 			if (otherUser != request.user)
 			{
-				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): otherUser="<<otherUser->getName()<<" != request.user="<<request.user->getName());
+				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): otherUser="<<otherUser.getName()<<" != request.user="<<request.user.getName());
 				return false;
 			}
 			// at this point I'm sure that this resource is principially usable by me.
@@ -309,7 +315,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 		// we will have a problem with different txPower and PhyMode on this subChannel
 		MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): WARNING: oneUserOnOneSubChannel="<<oneUserOnOneSubChannel<<" is NEW and untested");
 		// an empty subChannel can always be used:
-		if (prbDescriptor.scheduledCompounds.empty())
+		if (!prbDescriptor.hasScheduledCompounds())
 		{
 			MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used");
 			return true;
@@ -317,7 +323,7 @@ DSAStrategy::channelIsUsable(int subChannel,
 	}
 	// This is the check if the PhyMode is already fixed:
 	wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
-		prbDescriptor.phyModePtr;
+		prbDescriptor.getPhyMode();
 	assure(phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyModePtr==NULL");
 	RequestForResource requestWithGivenPhyMode = request; // copy
 	requestWithGivenPhyMode.phyModePtr = phyModePtr;

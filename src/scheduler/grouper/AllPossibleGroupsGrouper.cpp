@@ -54,15 +54,15 @@ AllPossibleGroupsGrouper::getCandIs(std::vector<UserID> allUsers,
 	{
 		if (beamforming){
 
-			std::map<UserID, wns::Power> userNoiseIInterMap;
+            std::map<wns::node::Interface*, wns::Power> userNoiseIInterMap;
 			userNoiseIInterMap.clear();
 
 			for (unsigned int k = 0; k < noOfStations; ++k)
 				if (bitset.test(k)) {
-					userNoiseIInterMap[allUsers[k]] = 
+					userNoiseIInterMap[allUsers[k].getNode()] = 
                         colleagues.registry->estimateTxSINRAt(allUsers[k]).interference;
 				}
-			candis = friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower);
+			candis = convertMap(friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower));
 		}
 		else{ // no beamforming
 			assure(noOfStations == 1, "We don't do beamforming, so only one-user groups are supported");
@@ -77,15 +77,15 @@ AllPossibleGroupsGrouper::getCandIs(std::vector<UserID> allUsers,
 	case rx:
 	{
 		if (beamforming){
-			std::vector<UserID> combination;
+            std::vector<wns::node::Interface*> combination;
 			combination.clear();
 
 			for (unsigned int k = 0; k < noOfStations; ++k)
 				if (bitset.test(k)) {
-					combination.push_back(allUsers[k]);
+                    combination.push_back(allUsers[k].getNode());
 				}
-			candis = friends.ofdmaProvider->calculateCandIsRx(combination,
-			    colleagues.registry->estimateRxSINROf(allUsers[0]).interference);
+			candis = convertMap(friends.ofdmaProvider->calculateCandIsRx(combination,
+			    colleagues.registry->estimateRxSINROf(allUsers[0]).interference));
 			//use estimated interference of user 0 for all other
 			//terminals as well, maybe average over all entries?
 			//see TreeBasedGrouper
@@ -209,34 +209,34 @@ AllPossibleGroupsGrouper::convertPartitionToGrouping(Partition partition, ModeTy
 	for (unsigned int i = 0 ; i < partition.groups.size(); ++i) {
 		Group newGroup;
 		Beams currentGroup = allPossibleGroups[partition.groups[i]];
-		std::vector<UserID> usersInGroup;
+        std::vector<wns::node::Interface*> usersInGroup;
 		usersInGroup.clear();
 
 		for (unsigned int j = 0; j < noOfStations; ++j)
 			if (currentGroup.servedStations.test(j))
-				usersInGroup.push_back(allUsers[j]);
+                usersInGroup.push_back(allUsers[j].getNode());
 
 		// calculate the pattern for every user in the group
 		for (unsigned int d = 0; d < usersInGroup.size(); ++d) {
-			std::vector<UserID> undesireds;
+            std::vector<wns::node::Interface*> undesireds;
 			undesireds.clear();
 
 			for (unsigned int u = 0; u < usersInGroup.size(); ++u)
 				if (d != u)
-					undesireds.push_back(usersInGroup[u]);
+                    undesireds.push_back(usersInGroup[u]);
 			// calculate users pattern with his co-scheduled users as undesireds
 			if(mode == tx){
-				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
-					calculateAndSetBeam(usersInGroup[d], undesireds, x_friendliness);
+                grouping.patterns[UserID(usersInGroup[d])] = friends.ofdmaProvider->
+                    calculateAndSetBeam(usersInGroup[d], undesireds, x_friendliness);
 			}
 			else{ // rx case
-				grouping.patterns[usersInGroup[d]] = friends.ofdmaProvider->
-					calculateAndSetBeam(usersInGroup[d], undesireds, colleagues.registry->estimateRxSINROf(usersInGroup[d]).interference);
+                grouping.patterns[UserID(usersInGroup[d])] = friends.ofdmaProvider->
+                    calculateAndSetBeam(usersInGroup[d], undesireds, colleagues.registry->estimateRxSINROf(UserID(usersInGroup[d])).interference);
 				//see TreeBasedGrouper
 
 			}
 
-			assure(grouping.patterns[usersInGroup[d]] !=
+            assure(grouping.patterns[UserID(usersInGroup[d])] !=
 				   wns::service::phy::ofdma::PatternPtr(), "Invalid pattern returned");
 		}
 
@@ -245,10 +245,10 @@ AllPossibleGroupsGrouper::convertPartitionToGrouping(Partition partition, ModeTy
 		// save it in grouping
 		grouping.groups.push_back(newGroup);
 		// and update the group look-up-table
-		for (std::vector<UserID>::const_iterator iter = usersInGroup.begin();
+        for (std::vector<wns::node::Interface*>::const_iterator iter = usersInGroup.begin();
 			 iter != usersInGroup.end();
 			 ++iter)
-			grouping.userGroupNumber[*iter] = i;
+            grouping.userGroupNumber[UserID(*iter)] = i;
 
 
 // assure that the calculated total TP was not corrupted/mixed up
@@ -292,10 +292,10 @@ AllPossibleGroupsGrouper::getServableUserVectorFromSet(const UserSet userSet, Mo
 		case tx:
 		{
 			if (beamforming){
-				std::map<UserID, wns::Power> userNoiseIInterMap;
+                std::map<wns::node::Interface*, wns::Power> userNoiseIInterMap;
 				userNoiseIInterMap.clear();
-				userNoiseIInterMap[*iter] = colleagues.registry->estimateTxSINRAt(*iter).interference;
-				candis = friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower);
+				userNoiseIInterMap[iter->getNode()] = colleagues.registry->estimateTxSINRAt(*iter).interference;
+				candis = convertMap(friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower));
 			}
 			else{ // no beamforming
 				assure(userSet.size() == 1, "We don't do beamforming, so only one-user groups are supported");
@@ -309,12 +309,12 @@ AllPossibleGroupsGrouper::getServableUserVectorFromSet(const UserSet userSet, Mo
 		case rx:
 		{
 			if (beamforming){
-				std::vector<UserID> combination;
+                std::vector<wns::node::Interface*> combination;
 				combination.clear();
-				combination.push_back(*iter);
+                combination.push_back(iter->getNode());
 
-				candis = friends.ofdmaProvider->calculateCandIsRx(combination,
-					colleagues.registry->estimateRxSINROf(*iter).interference);
+				candis = convertMap(friends.ofdmaProvider->calculateCandIsRx(combination,
+                    colleagues.registry->estimateRxSINROf(*iter).interference));
 			}
 			else{ // no beamforming
 

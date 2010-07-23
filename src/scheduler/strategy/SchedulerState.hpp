@@ -63,7 +63,7 @@ namespace wns { namespace scheduler {
                     : virtual public wns::RefCountable
             {
             public:
-                RequestForResource(ConnectionID _cid, UserID _user, Bits _bits);
+                RequestForResource(ConnectionID _cid, UserID _user, Bits _bits, Bits _queuedBits, bool useHARQ);
                 ~RequestForResource();
                 std::string toString() const;
             public:
@@ -76,6 +76,9 @@ namespace wns { namespace scheduler {
                 UserID user;
                 /** @brief size of the PDU to be scheduled */
                 Bits bits;
+                /** @brief Queued bits in total */
+                Bits queuedBits;
+
                 /** @brief if phyModePtr is specified, this is used for further calculations
                     (e.g. the duration on the subChannel can be calculated).
                     Otherwise, undefined means: freely selectable during the following process. */
@@ -92,6 +95,7 @@ namespace wns { namespace scheduler {
                     The values are set after DSA is finished.
                     This is a datastructure containing pathloss and interference predictions. */
                 ChannelQualityOnOneSubChannel cqiOnSubChannel; // memory here
+                bool useHARQ;
             };
 
             /** @brief This collection of parameters is local for a subStrategy.

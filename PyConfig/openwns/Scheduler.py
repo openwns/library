@@ -270,6 +270,24 @@ class HARQRetransmission(SubStrategy):
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "HARQRetransmission", True, parentLogger)
 
+class HARQUplinkRetransmission(SubStrategy):
+    __plugin__ = "HARQUplinkRetransmission"
+    def __init__(self, parentLogger = None, **kw):
+        self.logger = openwns.logger.Logger("WNS", "HARQUplinkRetransmission", True, parentLogger)
+        attrsetter(self, kw)
+
+    def setParentLogger(self,parentLogger = None):
+        self.logger = openwns.logger.Logger("WNS", "HARQUplinkRetransmission", True, parentLogger)
+
+class HARQUplinkSlaveRetransmission(SubStrategy):
+    __plugin__ = "HARQUplinkSlaveRetransmission"
+    def __init__(self, parentLogger = None, **kw):
+        self.logger = openwns.logger.Logger("WNS", "HARQUplinkSlaveRetransmission", True, parentLogger)
+        attrsetter(self, kw)
+
+    def setParentLogger(self,parentLogger = None):
+        self.logger = openwns.logger.Logger("WNS", "HARQUplinkSlaveRetransmission", True, parentLogger)
+
 # TODO:
 class EqualTimeRoundRobin(SubStrategy):
     __plugin__ = "EqualTimeRoundRobin"

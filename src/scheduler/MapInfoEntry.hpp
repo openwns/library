@@ -36,7 +36,7 @@
 #include <WNS/SmartPtr.hpp>
 #include <WNS/PowerRatio.hpp>
 #include <WNS/IOutputStreamable.hpp>
-
+#include <WNS/scheduler/SchedulerTypes.hpp>
 #include <list>
 
 namespace wns { namespace node {
@@ -68,7 +68,8 @@ namespace wns { namespace scheduler {
             //simTimeType compoundDuration;
             /** @brief there is no such thing as a connectionID or cid in a mapInfo */
             /** @brief destination node user (userID) */
-            wns::node::Interface* user;
+            UserID user;
+            UserID sourceUser;
             /** @brief frameNr is the index within the superframe. Used for advance scheduling */
             int frameNr;
             /** @brief subBand is the index within the frame */

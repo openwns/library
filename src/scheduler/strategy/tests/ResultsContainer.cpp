@@ -40,7 +40,7 @@ ResultsContainer::callBack(MapInfoEntryPtr mapInfoEntry)
   int fSlot = mapInfoEntry->subBand;
   int spatialLayer = mapInfoEntry->spatialLayer;
   wns::scheduler::UserID user = mapInfoEntry->user;
-  int userID = user->getNodeID();
+  int userID = user.getNodeID();
   std::list<wns::ldk::CompoundPtr> compounds = mapInfoEntry->compounds;
 	if (framePlotting) {
 		*plotFiles[fSlot] << startTime << "\t" << endTime << "\t"

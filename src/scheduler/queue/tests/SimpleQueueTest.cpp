@@ -127,8 +127,8 @@ void SimpleQueueTest::testSimpleQueue() {
     CPPUNIT_ASSERT( command4->peer.id == 1 );
 
     // tell the RegistryProxyDropIn which users and cids we have
-    UserID user1 = new wns::node::tests::Stub();
-    UserID user2 = new wns::node::tests::Stub();
+    UserID user1(new wns::node::tests::Stub());
+    UserID user2(new wns::node::tests::Stub());
 
     registry->associateCIDandUser(ConnectionID(1), user1);
     registry->associateCIDandUser(ConnectionID(2), user2);
@@ -205,6 +205,8 @@ void SimpleQueueTest::testSimpleQueue() {
     noUser = queue->getQueuedUsers();
     CPPUNIT_ASSERT_EQUAL(size_t(0), noUser.size());
 
+    delete user1.getNode();
+    delete user2.getNode();
 }
 
 wns::ldk::CompoundPtr
@@ -227,8 +229,8 @@ void SimpleQueueTest::testReset()
     ConnectionID cid5 = ConnectionID(5);
 
     // tell the RegistryProxyDropIn which users and cids we have
-    UserID user1 = new wns::node::tests::Stub();
-    UserID user2 = new wns::node::tests::Stub();
+    UserID user1(new wns::node::tests::Stub());
+    UserID user2(new wns::node::tests::Stub());
 
     registry->associateCIDandUser(cid1, user1);
     registry->associateCIDandUser(cid2, user2);
@@ -315,6 +317,8 @@ void SimpleQueueTest::testReset()
     CPPUNIT_ASSERT(queue->queueHasPDUs(cid1));
 
 
+    delete user1.getNode();
+    delete user2.getNode();
 }
 
 void SimpleQueueTest::testSizes()
@@ -348,8 +352,8 @@ void SimpleQueueTest::testSizes()
     CPPUNIT_ASSERT( command3->peer.id == 1 );
 
     // tell the RegistryProxyDropIn which users and cids we have
-    UserID user1 = new wns::node::tests::Stub();
-    UserID user2 = new wns::node::tests::Stub();
+    UserID user1(new wns::node::tests::Stub());
+    UserID user2(new wns::node::tests::Stub());
     registry->associateCIDandUser(ConnectionID(1), user1);
     registry->associateCIDandUser(ConnectionID(2), user2);
 
@@ -386,6 +390,8 @@ void SimpleQueueTest::testSizes()
     dummy = queue->getHeadOfLinePDU(cid2);
     WNS_ASSERT_ASSURE_EXCEPTION(queue->getHeadOfLinePDUbits(cid2));
 
+    delete user1.getNode();
+    delete user2.getNode();
 }
 
 

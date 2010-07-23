@@ -155,6 +155,7 @@ Strategy::setColleagues(queue::QueueInterface* _queue,
     assure(schedulerState!=SchedulerStatePtr(),"schedulerState must be valid");
     bool useCQI = colleagues.registry->getCQIAvailable();
     schedulerState->useCQI = useCQI;
+    schedulerState->myUserID = colleagues.registry->getMyUserID();
     assure(!colleagues.dsafbstrategy->requiresCQI(),"dsafbstrategy must never require CQI");
     assure(useCQI || !colleagues.dsastrategy->requiresCQI(),"dsastrategy requires CQI");
     assure(useCQI || !colleagues.apcstrategy->requiresCQI(),"apcstrategy requires CQI");
@@ -265,7 +266,7 @@ Strategy::getPowerCapabilities(const UserID user) const
     }
     case PowerControlULMaster:
     {
-        if (user==NULL) { // peer unknown. Assume peer=UT.
+        if (!user.isValid()) { // peer unknown. Assume peer=UT.
             MESSAGE_SINGLE(NORMAL, logger, "getPowerCapabilities(NULL): asking registry...");
             schedulerState->powerCapabilities = colleagues.registry->getPowerCapabilities(user); // from peer
             MESSAGE_SINGLE(NORMAL, logger, "getPowerCapabilities(NULL): nominal="<<schedulerState->powerCapabilities.nominalPerSubband);
@@ -296,8 +297,8 @@ Strategy::getPowerCapabilities(const UserID user) const
         throw wns::Exception("invalid powerControlType");
     }
     } // switch(powerControlType)
-    if (user!=NULL) {
-        MESSAGE_SINGLE(NORMAL, logger, "getPowerCapabilities("<<user->getName()<<"): nominal="<<schedulerState->powerCapabilities.nominalPerSubband);
+    if (user.isValid()) {
+        MESSAGE_SINGLE(NORMAL, logger, "getPowerCapabilities("<<user.getName()<<"): nominal="<<schedulerState->powerCapabilities.nominalPerSubband);
     } else {
         MESSAGE_SINGLE(NORMAL, logger, "getPowerCapabilities(NULL): nominal="<<schedulerState->powerCapabilities.nominalPerSubband);
     }
@@ -569,7 +570,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
     assure(schedulerState->currentState->strategyInput!=NULL,"strategyInput must be valid");
     int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
-    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): useCQI="<<schedulerState->useCQI);
+    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user.getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): useCQI="<<schedulerState->useCQI);
     MapInfoEntryPtr resultMapInfoEntry; // empty means no result. Filled later
 
     // The slave RS-TX in the UT does not need to and cannot do AdaptiveResourceScheduling:
@@ -583,16 +584,16 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
             assure(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster != MapInfoEntryPtr(),"need masterBurst");
             MapInfoEntryPtr mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry(*(schedulerState->currentState->strategyInput->mapInfoEntryFromMaster))); // copy and new SmartPtr to carry the result
             assure(mapInfoEntry != MapInfoEntryPtr(),"need masterBurst");
-            assure(mapInfoEntry->user != NULL,"need user in masterBurst");
-            MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): using masterBurst in slave mode: user="<<mapInfoEntry->user->getName()<<" -> request.user="<<request.user->getName()<<" (destination peer)");
-            mapInfoEntry->user = request.user; // switch to new receiver (RAP)
+            assure(mapInfoEntry->user.isValid(),"need user in masterBurst");
+            MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): using masterBurst in slave mode: user="<<UserID(mapInfoEntry->user).getName()<<" -> request.user="<<request.user.getName()<<" (destination peer)");
+            mapInfoEntry->user = request.user;
             assure(mapInfoEntry->phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr(),"phyMode must be defined in masterBurst"<<mapInfoEntry->toString());
             request.phyModePtr=mapInfoEntry->phyModePtr; // needed later
             if (!schedulingMap->pduFitsInto(request,mapInfoEntry)) // no space
                 return resultMapInfoEntry; // empty means no result
             return mapInfoEntry;
         } else {
-            MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): using inputSchedulingMap. request.user="<<request.user->getName()<<" (destination peer)");
+            MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): using inputSchedulingMap. request.user="<<request.user.getName()<<" (destination peer)");
             assure(schedulerState->currentState->strategyInput->inputSchedulingMap != wns::scheduler::SchedulingMapPtr(), "slave scheduling requires inputSchedulingMap");
             assure(!colleagues.dsastrategy->requiresCQI(),"SlaveScheduler DSAStrategy must not require CQI");
             // go on with standard algorithm...
@@ -648,7 +649,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         && (schedulerState->currentState->channelQualitiesOfAllUsers != ChannelQualitiesOfAllUsersPtr())
         && ((*(schedulerState->currentState->channelQualitiesOfAllUsers))[request.user]->size() > 0);
 
-    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): useCQI="<<schedulerState->useCQI<<",CQIrequired="<<CQIrequired<<",CQIavailable="<<CQIavailable);
+    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user.getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): useCQI="<<schedulerState->useCQI<<",CQIrequired="<<CQIrequired<<",CQIavailable="<<CQIavailable);
     ChannelQualityOnOneSubChannel& cqiOnSubChannel
         = request.cqiOnSubChannel; // memory of request structure
     // start dynamic subchannel assignment (DSA):
@@ -656,7 +657,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     if (schedulerState->useCQI && CQIrequired && CQIavailable)
     {
         assure (schedulerState->powerControlType!=PowerControlULSlave,"slave must not use CQI");
-        MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): calling dsastrategy");
+        MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user.getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): calling dsastrategy");
         // start dynamic subchannel assignment
         dsaResult = colleagues.dsastrategy->getSubChannelWithDSA(request, schedulerState, schedulingMap);
         subChannel = dsaResult.subChannel;
@@ -664,11 +665,11 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         spatialLayer       = dsaResult.spatialLayer;
         if (subChannel==dsastrategy::DSAsubChannelNotFound)
             return resultMapInfoEntry; // empty means no result
-        assure(cqiForUser!=ChannelQualitiesOnAllSubBandsPtr(), "cqiForUser["<<request.user->getName()<<"]==NULL");
+        assure(cqiForUser!=ChannelQualitiesOnAllSubBandsPtr(), "cqiForUser["<<request.user.getName()<<"]==NULL");
         // this writes into request structure:
         cqiOnSubChannel = (*cqiForUser)[subChannel]; // copy
         assure(&cqiOnSubChannel == &(request.cqiOnSubChannel),"copy failed: addresses don't match");
-        MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): subChannel="<<subChannel);
+        MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user.getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): subChannel="<<subChannel);
     } else { // no CQI required or available
         if (!CQIrequired) {
             MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): calling dsastrategy");
@@ -691,7 +692,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
             (colleagues.registry->estimateRxSINROf(request.user)); // Rx
     } // with|without CQI information
     // Tell result of DSA: subChannel
-    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user->getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"):"
+    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user.getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"):"
                    <<" subChannel.tSlot.spatialLayer="<<subChannel<<"."<<timeSlot<<"."<<spatialLayer);
 
     if (subChannel==dsastrategy::DSAsubChannelNotFound)
@@ -754,6 +755,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     resultMapInfoEntry->timeSlot   = timeSlot;
     resultMapInfoEntry->spatialLayer       = spatialLayer;
     resultMapInfoEntry->user       = request.user;
+    resultMapInfoEntry->sourceUser = schedulerState->myUserID;
     resultMapInfoEntry->txPower    = txPower; // apcResult.txPower;
     resultMapInfoEntry->phyModePtr = request.phyModePtr; // = apcResult.phyModePtr
     resultMapInfoEntry->estimatedCandI = estimatedCandI; // ?= apcResult.estimatedCandI;
@@ -903,7 +905,7 @@ Strategy::getTxPower() const
     if (schedulerState->powerCapabilities.nominalPerSubband==wns::Power())
     { // not yet prepared. Do it now.
         MESSAGE_SINGLE(NORMAL, logger, "getTxPower: asking getPowerCapabilities(NULL)...");
-        getPowerCapabilities(NULL); // NULL because peer unknown
+        getPowerCapabilities(UserID()); // NULL because peer unknown
     }
     power = schedulerState->powerCapabilities.nominalPerSubband;
     assure(power!=wns::Power(),"undefined power="<<power);

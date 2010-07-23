@@ -38,6 +38,22 @@ namespace wns { namespace scheduler { namespace harq {
 class HARQInterface
 {
 public:
+    class TimeSlotInfo
+    {
+    public:
+        TimeSlotInfo(wns::service::phy::power::PowerMeasurementPtr pwrm, double distance, int sc):
+            powerMeasurement_(pwrm),
+            distance_(distance_),
+            sc_(sc)
+        {}
+
+        wns::service::phy::power::PowerMeasurementPtr powerMeasurement_;
+        double distance_;
+        int sc_;
+    };
+
+    typedef std::pair<wns::scheduler::SchedulingTimeSlotPtr, TimeSlotInfo> DecodeStatusContainerEntry;
+    typedef std::list<DecodeStatusContainerEntry> DecodeStatusContainer;
 
     virtual ~HARQInterface() {};
 
@@ -50,14 +66,72 @@ public:
     /**
      * @brief Called by the scheduler when a SchedulingTimeSlot is received from the peer
      */
-    virtual bool
-    canDecode(const wns::scheduler::SchedulingTimeSlotPtr&, const wns::service::phy::power::PowerMeasurementPtr&) = 0;
+    virtual void
+    onTimeSlotReceived(const wns::scheduler::SchedulingTimeSlotPtr&, TimeSlotInfo info) = 0;
+
+    virtual DecodeStatusContainer
+    decode() = 0;
 
     virtual int
     getNumberOfRetransmissions() = 0;
 
+    /**
+     * @brief Returns the next HARQ Retransmission block and removes it from
+     * the pending retransmission list.
+     *
+     * No matter which size [bits]. No matter which PhyMode.
+     * The order is defined internally (FCFS).
+     */
     virtual wns::scheduler::SchedulingTimeSlotPtr
-    nextRetransmission() = 0;
+    getNextRetransmission() = 0;
+
+    /**
+     * @brief Returns the next HARQ Retransmission block, but keeps it in
+     * the pending retransmission list.
+     *
+     * No matter which size [bits]. No matter which PhyMode.
+     * The order is defined internally (FCFS).
+     */
+    virtual wns::scheduler::SchedulingTimeSlotPtr
+    peekNextRetransmission() const = 0;
+
+    /**
+     * @brief Set a downlink HARQ. Probably only applicable in uplink master schedulers
+     */
+    virtual void
+    setDownlinkHARQ(HARQInterface* downlinkHARQ) = 0;
+
+    /**
+     * @brief Returns the peers that have pending retransmissions
+     * Intended for uplink master scheduling.
+     */
+    virtual wns::scheduler::UserSet
+    getPeersWithPendingRetransmissions() const = 0;
+
+    /**
+     * @brief Return the number of retransmissions that are pending for a peer
+     * Intended for uplink master scheduling
+     */
+    virtual int
+    getNumberOfPeerRetransmissions(wns::scheduler::UserID peer) const = 0;
+
+    /**
+     * @brief Increases the scheduled peer retransmission counter for user peer. Used for TDD if multiple frames are scheduled in advance
+     */
+    virtual void
+    increaseScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer) = 0;
+
+    /**
+     * @brief Resets the scheduled peer retransmission counter for user peer. Used for TDD if multiple frames are scheduled in advance
+     */
+    virtual void
+    resetScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer) = 0;
+
+    /**
+     * @brief Resets all the scheduled peer retransmission counters for all peers. Used for TDD if multiple frames are scheduled in advance
+     */
+    virtual void
+    resetAllScheduledPeerRetransmissionCounters() = 0;
 
     STATIC_FACTORY_DEFINE(HARQInterface, wns::PyConfigViewCreator);
 };

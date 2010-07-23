@@ -35,9 +35,11 @@
 #include <WNS/service/phy/ofdma/Pattern.hpp>
 #include <WNS/service/phy/ofdma/DataTransmission.hpp>
 #include <WNS/probe/bus/ContextCollector.hpp>
-
+#include <WNS/node/Interface.hpp>
 
 namespace wns { namespace scheduler { namespace grouper {
+
+	class wns::Power;
 
 	/// GroupingProviderInterface defines the functions to be provided by every
 	/// spatial grouper.
@@ -67,7 +69,20 @@ namespace wns { namespace scheduler { namespace grouper {
 		virtual void setFriends(wns::service::phy::ofdma::BFInterface* _ofdmaProvider);
 
 	protected:
-		int setupProbe(float minX, float maxX, std::string name, int bins);
+        template<typename T>
+        std::map<UserID, T>
+        convertMap(std::map<wns::node::Interface*, T> r)
+        {
+            typename std::map<wns::node::Interface*, T>::iterator it;
+            typename std::map<UserID, T> converted;
+            for (it=r.begin(); it!=r.end();++it)
+            {
+                converted.insert(std::pair<UserID, T>(UserID(it->first), it->second) );
+            }
+            return converted;
+        }
+
+        int setupProbe(float minX, float maxX, std::string name, int bins);
 
 		struct {
 			RegistryProxyInterface* registry;

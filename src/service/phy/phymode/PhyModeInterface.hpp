@@ -99,6 +99,8 @@ namespace wns { namespace service { namespace phy { namespace phymode {
             virtual double getMI2PER(const double mib, unsigned int bits) const = 0;
             /** @brief PER = f(SINR,bits), blockLength bits (=payload[net], not CWL[gross]) */
             virtual double getSINR2PER(const wns::Ratio& sinr, unsigned int bits) const = 0;
+            /** @brief SINR = f(MIB) */
+            virtual wns::Ratio getMIB2SINR(const double& mib) const = 0;
 
             /** @brief access method for the modulation&coding (string) */
             virtual std::string getString() const = 0;

@@ -133,11 +133,11 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
     uIt = userIDs.begin();
 
     // Resources for first UserID
-    resStart_[(*uIt)->getNodeID()] = sortedResources_.begin();
-    resAmount_[(*uIt)->getNodeID()] = resourcesLess;
+    resStart_[(*uIt).getNodeID()] = sortedResources_.begin();
+    resAmount_[(*uIt).getNodeID()] = resourcesLess;
 
     MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA: User " 
-        << (*uIt)->getNodeID() << " starts at " 
+        << (*uIt).getNodeID() << " starts at " 
         << sortedResources_.begin()->subChannel << "."
         << sortedResources_.begin()->timeSlot << "."
         << sortedResources_.begin()->spatialLayer
@@ -149,11 +149,11 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
     {
         if(counter == resourcesLess + plus)
         {
-            resStart_[(*uIt)->getNodeID()] = itr;
-            resAmount_[(*uIt)->getNodeID()] = resourcesLess + plus;
+            resStart_[(*uIt).getNodeID()] = itr;
+            resAmount_[(*uIt).getNodeID()] = resourcesLess + plus;
 
             MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA: User " 
-                << (*uIt)->getNodeID() << " starts at " 
+                << (*uIt).getNodeID() << " starts at " 
                 << itr->subChannel << "."
                 << itr->timeSlot << "."
                 << itr->spatialLayer
@@ -179,16 +179,16 @@ Fixed::getSubChannelWithDSA(RequestForResource& request,
 {
     MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(" << request.toString()<<")");
 
-    assure(resStart_.find(request.user->getNodeID()) != resStart_.end(),
-        "No resources for user " + request.user->getNodeID());
-    assure(resAmount_.find(request.user->getNodeID()) != resAmount_.end(),
-        "Unknown resource amount for user " + request.user->getNodeID());
+    assure(resStart_.find(request.user.getNodeID()) != resStart_.end(),
+        "No resources for user " + request.user.getNodeID());
+    assure(resAmount_.find(request.user.getNodeID()) != resAmount_.end(),
+        "Unknown resource amount for user " + request.user.getNodeID());
 
-    int max = resAmount_[request.user->getNodeID()];
+    int max = resAmount_[request.user.getNodeID()];
     std::set<DSAResult>::iterator it;
     int i = 0;
     bool found = false;
-    for(it = resStart_[request.user->getNodeID()]; i < max && !found; it++)
+    for(it = resStart_[request.user.getNodeID()]; i < max && !found; it++)
     {
         i++;
         found = channelIsUsable(it->subChannel, 

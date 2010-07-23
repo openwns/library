@@ -35,6 +35,7 @@ MapInfoEntry::MapInfoEntry() :
     start(0.0),
     end(0.0),
     user(NULL),
+    sourceUser(NULL),
     frameNr(-1),
     subBand(-1),
     timeSlot(0),
@@ -74,11 +75,8 @@ MapInfoEntry::toString() const
     } else {
         s << "\n\t phyMode:      undefined";
     }
-    if (user!=NULL) {
-        s << "\n\t userID:       " << user->getName();
-    } else {
-        s << "\n\t userID:       undefined";
-    }
+    s << "\n\t userID:       " << user.getName();
+    s << "\n\t userID:       " << sourceUser.getName();
     if (txPower!=wns::Power()) {
         s << "\n\t txPower:      " << txPower;
     } else {

@@ -238,7 +238,7 @@ StrategyTest::setupSubStrategy(std::string substrategyName)
 
 	// configure Strategy module
 	strategy->setColleagues(queue, grouper, registry, NULL);
-	strategy->getPowerCapabilities(NULL); // trigger scheduler to ask RegistryProxy(Stub)
+	strategy->getPowerCapabilities(wns::scheduler::UserID()); // trigger scheduler to ask RegistryProxy(Stub)
 } // setupStrategy
 
 void
@@ -274,7 +274,7 @@ StrategyTest::setupSubStrategyForPriority(std::string substrategyName)
 
 	// configure Strategy module
 	strategy->setColleagues(queue, grouper, registry, NULL);
-	strategy->getPowerCapabilities(NULL); // trigger scheduler to ask RegistryProxy(Stub)
+	strategy->getPowerCapabilities(wns::scheduler::UserID()); // trigger scheduler to ask RegistryProxy(Stub)
 } // setupStrategy
 
 void StrategyTest::createPDUsToFillOneFrame()
@@ -283,7 +283,7 @@ void StrategyTest::createPDUsToFillOneFrame()
 	for (int cid = 1; cid < 13; ++cid)
 	{
 		// create a dummy user ID
-		UserID newUser = new wns::node::tests::Stub();
+		UserID newUser = wns::scheduler::UserID();
 		registry->associateCIDandUser(ConnectionID(cid), newUser);
 
 		for (int i = 0; i < 33; ++i)
@@ -328,7 +328,7 @@ bool StrategyTest::pduBeenScheduled(wns::ldk::CompoundPtr pdu , StrategyResult s
 			for (int spatialIndex = 0; spatialIndex < 1; ++spatialIndex)
 			{
 				// search in scheduled compounds
-				for(wns::scheduler::ScheduledCompoundsList::iterator iterComps = schedulingMap->subChannels[fChannel].temporalResources[timeSlot]->physicalResources[spatialIndex].scheduledCompounds.begin(); iterComps != schedulingMap->subChannels[fChannel].temporalResources[timeSlot]->physicalResources[spatialIndex].scheduledCompounds.end(); ++iterComps)
+				for(wns::scheduler::ScheduledCompoundsList::const_iterator iterComps = schedulingMap->subChannels[fChannel].temporalResources[timeSlot]->physicalResources[spatialIndex].scheduledCompoundsBegin(); iterComps != schedulingMap->subChannels[fChannel].temporalResources[timeSlot]->physicalResources[spatialIndex].scheduledCompoundsEnd(); ++iterComps)
 				{
 					if(iterComps->compoundPtr->getBirthmark() == pdu->getBirthmark())
 					{

@@ -29,7 +29,6 @@
 #define WNS_SCHEDULER_SCHEDULERTYPES_HPP
 
 
-#include <WNS/scheduler/MapInfoEntry.hpp>
 #include <WNS/service/dll/StationTypes.hpp>
 #include <WNS/service/phy/ofdma/Pattern.hpp>
 #include <WNS/service/phy/phymode/PhyModeInterface.hpp>
@@ -56,6 +55,130 @@ namespace wns { namespace scheduler {
             class StrategyInput;
             class StrategyInterface;
         }
+
+    class UserID:
+        public wns::IOutputStreamable
+    {
+    public:
+        explicit UserID() { node_ = NULL; isBroadcast_ = false; };
+
+        UserID(const UserID& other) { node_ = other.node_; isBroadcast_ = other.isBroadcast_; }
+
+        explicit UserID(wns::node::Interface* node) { node_ = node; isBroadcast_ = false; };
+
+        virtual ~UserID() {};
+
+        bool
+        isValid() const
+        {
+            if (!isBroadcast() && node_ != NULL)
+            {
+                return true;
+            }
+            if (isBroadcast() && node_ == NULL)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        void
+        setBroadcast()
+        {
+            isBroadcast_ = true;
+        }
+
+        bool
+        isBroadcast() const
+        {
+            return isBroadcast_;
+        }
+
+        std::string
+        getName() const
+        {
+            if (node_ != NULL)
+            {
+                return node_->getName();
+            }
+            else
+            {
+                if (isBroadcast())
+                {
+                    return "Broadcast";
+                }
+            }
+            return "Unknown";
+        }
+
+        wns::node::Interface*
+        getNode() const
+        {
+            assure(!isBroadcast(), "You asked for a Node of a broadcast user. This is invalid. Use isBroadcast() to check prior to your code");
+            assure(isValid(), "UserID is invalid. You cannot ask for the node here. Use isValid() to check prior to your code");
+            return node_;
+        }
+
+        int
+        getNodeID() const
+        {
+            assure(!isBroadcast(), "You asked for a NodeID of a broadcast user. This is invalid. Use isBroadcast() to check prior to your code");
+            assure(isValid(), "UserID is invalid. You cannot ask for the NodeID here. Use isValid() to check prior to your code");
+            return node_->getNodeID();
+        }
+
+        bool
+        operator== (const UserID& other) const
+        {
+            return ( (node_ == other.node_) && (isBroadcast() == other.isBroadcast()));
+        }
+
+        bool
+        operator!= (const UserID& other) const
+        {
+            return !((*this) == other);
+        }
+
+        bool
+        operator< (const UserID& other) const
+        {
+            if (node_ == other.node_)
+            {
+                return isBroadcast() != other.isBroadcast();
+            }
+            else
+            {
+                return (node_ < other.node_);
+            }
+        }
+
+        void
+        operator= (const UserID& other)
+        {
+            node_ = other.node_;
+            isBroadcast_ = other.isBroadcast_;
+        }
+
+        wns::probe::bus::ContextProviderCollection&
+        getContextProviderCollection() const
+        {
+            assure(!isBroadcast(), "You asked for a ContextProviderCollection of a broadcast user. This is invalid. Use isBroadcast() to check prior to your code");
+            assure(isValid(), "UserID is invalid. You cannot ask for the ContextProviderCollection here. Use isValid() to check prior to your code");
+            return node_->getContextProviderCollection();
+        }
+
+    private:
+
+        virtual std::string
+        doToString() const
+        {
+            return getName();
+        }
+
+        wns::node::Interface* node_;
+
+        bool isBroadcast_;
+    };
 
         const simTimeType slotLengthRoundingTolerance = 1e-12;
         const int subChannelNotFound = -1;
@@ -98,7 +221,6 @@ namespace wns { namespace scheduler {
         typedef int TaskBSorUTType;
 
         typedef std::list<wns::ldk::CompoundPtr> CompoundList;
-        typedef wns::node::Interface* UserID;
         typedef wns::ldk::ClassificationID ConnectionID;
         typedef std::vector<ConnectionID> ConnectionVector;
         typedef std::list  <ConnectionID> ConnectionList;
@@ -124,7 +246,7 @@ namespace wns { namespace scheduler {
             s << "Group(";
             for (Group::const_iterator iter = group.begin(); iter != group.end(); )
             {
-                s << iter->first->getName();
+                s << iter->first.getName();
                 if (++iter != group.end()) s << ",";
             }
             s << ")";
@@ -137,7 +259,7 @@ namespace wns { namespace scheduler {
             s << "UserSet(";
             for (UserSet::const_iterator iter = userSet.begin(); iter != userSet.end(); )
             {
-                s << (*iter)->getName();
+                s << iter->getName();
                 if (++iter != userSet.end()) s << ",";
             }
             s << ")";
@@ -189,7 +311,7 @@ namespace wns { namespace scheduler {
             s << "Group(";
             for (Group::const_iterator iter = group.begin(); iter != group.end(); )
             {
-                s << iter->first->getName();
+                s << iter->first.getName();
                 if (++iter != group.end()) s << ",";
             }
             s << ")";
@@ -240,7 +362,7 @@ namespace wns { namespace scheduler {
             toString() const
             {
                 std::stringstream ss;
-                ss << user->getName() << ": " << maxNumSubbands << " simultaneously with " << txPowerPerSubband << " each." << std::endl;
+                ss << user.getName() << ": " << maxNumSubbands << " simultaneously with " << txPowerPerSubband << " each." << std::endl;
                 return ss.str();
             }
         }; // PowerAllocation
@@ -263,7 +385,7 @@ namespace wns { namespace scheduler {
                     for (Group::iterator iter = groups[i].begin();
                          iter != groups[i].end();
                          ++iter)
-                        ss << (*iter).first->getName() << " @ "
+                        ss << (*iter).first.getName() << " @ "
                            << (*iter).second.C / (*iter).second.I << ", )" << std::endl;
                 }
                 return ss.str();

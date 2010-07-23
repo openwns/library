@@ -44,13 +44,15 @@ SchedulingCompound::SchedulingCompound()
     endTime(0.0),
     connectionID(-1),
     userID(NULL),
+    sourceUserID(NULL),
     compoundPtr(),
     phyModePtr(),
-    txPower()
+    txPower(),
+    harqEnabled(false)
 {
 };
 
-/*SchedulingCompound::SchedulingCompound(const SchedulingCompound& other):
+SchedulingCompound::SchedulingCompound(const SchedulingCompound& other):
     subChannel(other.subChannel),
     timeSlot(other.timeSlot),
     spatialLayer(other.spatialLayer),
@@ -58,15 +60,17 @@ SchedulingCompound::SchedulingCompound()
     endTime(other.endTime),
     connectionID(other.connectionID),
     userID(other.userID),
+    sourceUserID(other.sourceUserID),
     compoundPtr(),
     phyModePtr(other.phyModePtr),
-    txPower(other.txPower)
+    txPower(other.txPower),
+    harqEnabled(other.harqEnabled)
 {
     if(other.compoundPtr != NULL)
     {
         compoundPtr = wns::ldk::CompoundPtr(other.compoundPtr->clone());
     }
-};*/
+};
 
 SchedulingCompound::SchedulingCompound(int _subChannel,
                                        int _timeSlot,
@@ -75,10 +79,12 @@ SchedulingCompound::SchedulingCompound(int _subChannel,
                                        simTimeType _endTime,
                                        wns::scheduler::ConnectionID _connectionID,
                                        wns::scheduler::UserID _userID,
+                                       wns::scheduler::UserID _sourceUserID,
                                        wns::ldk::CompoundPtr _compoundPtr,
                                        wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr,
                                        wns::Power _txPower,
-                                       wns::service::phy::ofdma::PatternPtr _pattern
+                                       wns::service::phy::ofdma::PatternPtr _pattern,
+                                       bool _harqEnabled
     )
     : subChannel(_subChannel),
       timeSlot(_timeSlot),
@@ -87,10 +93,12 @@ SchedulingCompound::SchedulingCompound(int _subChannel,
       endTime(_endTime),
       connectionID(_connectionID),
       userID(_userID),
+      sourceUserID(_sourceUserID),
       compoundPtr(_compoundPtr),
       phyModePtr(_phyModePtr),
       txPower(_txPower),
-      pattern(_pattern)
+      pattern(_pattern),
+      harqEnabled(_harqEnabled)
 {
 }
 
@@ -105,10 +113,9 @@ SchedulingCompound::toString() const
     s.setf(std::ios::fixed,std::ios::floatfield);   // floatfield set to fixed
     s.precision(1);
     s << "SchedulingCompound(";
+    if (harqEnabled) s << " H ";
     s << "cid="<<connectionID;
-    if (userID!=NULL) {
-        s << ", user="<<userID->getName();
-    }
+    s << ", user="<<userID.getName();
     if (compoundPtr != wns::ldk::CompoundPtr()) {
         s << ", bits="<< compoundPtr->getLengthInBits();
     }
@@ -148,7 +155,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
 {
 }
 
-/*PhysicalResourceBlock::PhysicalResourceBlock(const PhysicalResourceBlock& other):
+PhysicalResourceBlock::PhysicalResourceBlock(const PhysicalResourceBlock& other):
     subChannelIndex(other.subChannelIndex),
     timeSlotIndex(other.timeSlotIndex),
     spatialIndex(other.spatialIndex),
@@ -167,7 +174,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
     {
         scheduledCompounds.push_back(SchedulingCompound(*it));
     }
-}*/
+}
 
 PhysicalResourceBlock::~PhysicalResourceBlock()
 {
@@ -228,10 +235,12 @@ bool
 PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
                                    wns::scheduler::ConnectionID connectionID,
                                    wns::scheduler::UserID _userID,
+                                   wns::scheduler::UserID _sourceUserID,
                                    wns::ldk::CompoundPtr compoundPtr,
                                    wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr,
                                    wns::Power _txPower,
-                                   wns::service::phy::ofdma::PatternPtr _pattern
+                                   wns::service::phy::ofdma::PatternPtr _pattern,
+                                   bool _useHARQ
     )
 {
     simTimeType startTime = this->nextPosition;
@@ -253,9 +262,9 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
     if (predecessors>0) { // && oneUserOnOneSubChannel) {
         wns::scheduler::UserID otherUserID = scheduledCompounds.begin()->userID;
         assure(_userID==otherUserID,
-               "user mismatch: "<<_userID->getName()<<" != "<<userID->getName());
+               "user mismatch: "<<_userID.getName()<<" != "<<userID.getName());
     }
-    if (userID==NULL)
+    if (!userID.isValid())
     { // master schedulers set this; slave schedulers get this already set.
         userID = _userID; // all compounds must have the same user; oneUserOnOneSubChannel = True ?
     }
@@ -270,10 +279,12 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
                                             endTime,
                                             connectionID,
                                             _userID,
+                                            _sourceUserID,
                                             compoundPtr,
                                             phyModePtr,
                                             txPower,
-                                            _pattern
+                                            _pattern,
+                                            _useHARQ
         );
     this->scheduledCompounds.push_back(newScheduledCompound);
     this->nextPosition += compoundDuration;
@@ -288,7 +299,8 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
 bool
 PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
                                    MapInfoEntryPtr mapInfoEntry, // <- must not contain compounds yet
-                                   wns::ldk::CompoundPtr compoundPtr
+                                   wns::ldk::CompoundPtr compoundPtr,
+                                   bool _useHARQ
     )
 {
     // mapInfoEntry can contain compounds when in while loop:
@@ -301,7 +313,7 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
     wns::service::phy::phymode::PhyModeInterfacePtr mapPhyModePtr = mapInfoEntry->phyModePtr;
     double dataRate = mapPhyModePtr->getDataRate();
     simTimeType compoundDuration = request.bits / dataRate;
-    wns::node::Interface* compoundUserID = mapInfoEntry->user;
+
     // check if users match (need oneUserOnOneSubChannel for that)
     // we cannot do this here, because in the UL SchedulingMap done by UT.RS-TX the userID is myself
     //if (userID!=NULL) { // && oneUserOnOneSubChannel) {
@@ -319,11 +331,13 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
 
     return addCompound(compoundDuration,
                        connectionID,
-                       compoundUserID,
+                       mapInfoEntry->user,
+                       mapInfoEntry->sourceUser,
                        compoundPtr,
                        mapPhyModePtr,
                        txPowerInMap,
-                       patternInMap
+                       patternInMap,
+                       _useHARQ
         );
 } // addCompound
 
@@ -354,7 +368,7 @@ PhysicalResourceBlock::dumpContents(const std::string& prefix) const
         {
             int totalbits = 0;
 
-            s << scheduledCompounds.begin()->userID->getName() << "\t";
+            s << scheduledCompounds.begin()->userID.getName() << "\t";
             for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
             {
                 s << iter->connectionID << "(" << iter->compoundPtr->getLengthInBits() << "),";
@@ -379,8 +393,7 @@ PhysicalResourceBlock::toString() const
     s << "PhysicalResourceBlock(";
     s << "#"<<subChannelIndex<<"."<<timeSlotIndex<<"."<<spatialIndex;
     if ( nextPosition>0.0 ) { // not empty
-        if (userID!=NULL)
-            s << ", user="<<userID->getName();
+        s << ", user="<<userID.getName();
         s << ", free=" << freeTime*1e6 << "us";
         s << ", next=" << nextPosition*1e6 << "us";
         s << ", used=" << 100.0*nextPosition/slotLength << "%";
@@ -397,8 +410,7 @@ PhysicalResourceBlock::toString() const
         }
     } else if (phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr()) {
         // this is a master schedulingMap (from BS to UT). Compounds have been deleted, values reset
-        if (userID!=NULL)
-            s << ", user="<<userID->getName();
+        s << ", user="<<userID.getName();
         s << ", phyMode="<<*phyModePtr;
         s << ", txPower="<<txPower;
         s << ")";
@@ -498,6 +510,15 @@ PhysicalResourceBlock::hasResourcesForUser(wns::scheduler::UserID user) const
     return (user == userID);
 }
 
+void
+PhysicalResourceBlock::consistencyCheck()
+{
+    for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+    {
+        assure(iter->compoundPtr != wns::ldk::CompoundPtr(), "No compound here");
+    }
+}
+
 int
 PhysicalResourceBlock::getNetBlockSizeInBits() const
 {
@@ -508,12 +529,26 @@ PhysicalResourceBlock::getNetBlockSizeInBits() const
             int totalbits = 0;
             for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
             {
+                assure(iter->compoundPtr != wns::ldk::CompoundPtr(), "No compound here");
                 totalbits += iter->compoundPtr->getLengthInBits();
             }
             return totalbits;
         }
     }
     return 0;
+}
+
+bool
+PhysicalResourceBlock::isHARQEnabled() const
+{
+    for ( ScheduledCompoundsList::const_iterator iter = scheduledCompounds.begin(); iter != scheduledCompounds.end(); ++iter )
+    {
+        if(iter->harqEnabled)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**************************************************************/
@@ -547,26 +582,34 @@ SchedulingTimeSlot::SchedulingTimeSlot(int _subChannel,
     }
 }
 
-/*SchedulingTimeSlot::SchedulingTimeSlot(const SchedulingTimeSlot& other):
+SchedulingTimeSlot::SchedulingTimeSlot(const SchedulingTimeSlot& other):
     subChannelIndex(other.subChannelIndex),
     timeSlotIndex(other.timeSlotIndex),
     numSpatialLayers(other.numSpatialLayers),
     slotLength(other.slotLength),
     timeSlotStartTime(other.timeSlotStartTime),
-    timeSlotIsUsable(other.timeSlotIsUsable)
+    timeSlotIsUsable(other.timeSlotIsUsable),
+    harq(other.harq)
 {
-    harq.NDI = other.harq.NDI;
-
     for (PhysicalResourceBlockVector::const_iterator it = other.physicalResources.begin();
          it != other.physicalResources.end();
          ++it)
     {
         physicalResources.push_back(PhysicalResourceBlock(*it));
     }
-}*/
+}
 
 SchedulingTimeSlot::~SchedulingTimeSlot()
 {
+}
+
+void
+SchedulingTimeSlot::consistencyCheck()
+{
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
+    {
+        physicalResources[spatialIndex].consistencyCheck();
+    }
 }
 
 simTimeType
@@ -633,10 +676,10 @@ SchedulingTimeSlot::getUserID() const
     for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
     {
         wns::scheduler::UserID userID = physicalResources[spatialIndex].getUserID();
-        if (userID!=NULL)
-            return userID;
+        if (userID.isValid())
+        	return userID;
     }
-    return NULL;
+    return UserID();
 }
 
 wns::Power
@@ -743,6 +786,19 @@ SchedulingTimeSlot::getNetBlockSizeInBits() const
         netBits += physicalResources[spatialIndex].getNetBlockSizeInBits();
     }
     return netBits;
+}
+
+bool
+SchedulingTimeSlot::isHARQEnabled() const
+{
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
+    {
+        if (physicalResources[spatialIndex].isHARQEnabled())
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**************************************************************/
@@ -967,6 +1023,7 @@ SchedulingMap::addCompound(int subChannelIndex,
                            simTimeType compoundDuration,
                            wns::scheduler::ConnectionID connectionID,
                            wns::scheduler::UserID userID,
+                           wns::scheduler::UserID sourceUserID,
                            wns::ldk::CompoundPtr compoundPtr,
                            wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                            wns::Power txPower,
@@ -979,14 +1036,15 @@ SchedulingMap::addCompound(int subChannelIndex,
             compoundDuration,
             connectionID,
             userID,
+            sourceUserID,
             compoundPtr,
             phyModePtr,
             txPower,
-            pattern
+            pattern,
+            useHARQ
             );
     if (ok) {
         numberOfCompounds++;
-        subChannels[subChannelIndex].temporalResources[timeSlot]->harq.enabled = useHARQ;
     }
     return ok;
 } // addCompound
@@ -1007,11 +1065,11 @@ SchedulingMap::addCompound(strategy::RequestForResource& request,
         subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].addCompound(
             request,
             mapInfoEntry,
-            compoundPtr
+            compoundPtr,
+            useHARQ
             );
     if (ok) {
         numberOfCompounds++;
-        subChannels[subChannelIndex].temporalResources[timeSlot]->harq.enabled = useHARQ;
     }
     return ok;
 } // addCompound
@@ -1033,6 +1091,12 @@ SchedulingMap::isEmpty() const
         if (!subChannels[subChannelIndex].isEmpty()) return false;
     }
     return true;
+}
+
+int
+SchedulingMap::getFrameNr() const
+{
+    return this->frameNr;
 }
 
 double
@@ -1088,7 +1152,7 @@ SchedulingMap::getUsedPower(int timeSlot) const
         // what is the right handling of MIMO? Do we count=add txPower per spatialLayer or do we assume this is all "one" power?
         //wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].txPower;
         // we assume that txPower is the same on all PRBs, so reading the first is sufficient:
-        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first spatialLayer*/].txPower;
+        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first beam*/].getTxPower();
         // if we have no PDU allocated on this channel, just skip it.
         if (usedTxPowerOnThisChannel == wns::Power())
             continue;
@@ -1100,14 +1164,14 @@ SchedulingMap::getUsedPower(int timeSlot) const
 wns::Power
 SchedulingMap::getRemainingPower(wns::Power totalPower, int timeSlot) const
 {
-    assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
+	assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
     wns::Power remainingPower = totalPower;
     for(unsigned int subChannelIndex=0; subChannelIndex<numberOfSubChannels; subChannelIndex++)
     {
         // what is the right handling of MIMO? Do we count=add txPower per spatialLayer or do we assume this is all "one" power?
         //wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].txPower;
         // we assume that txPower is the same on all PRBs, so reading the first is sufficient:
-        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first spatialLayer*/].txPower;
+        wns::Power usedTxPowerOnThisChannel = subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[0/*first spatialLayer*/].getTxPower();
         // if we have no PDU allocated on this channel, just skip it.
         if (usedTxPowerOnThisChannel == wns::Power())
             continue;
@@ -1126,7 +1190,7 @@ SchedulingMap::getPhyModeUsedInResource(int subChannelIndex, int timeSlot, int s
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
     assure(spatialLayer>=0 && spatialLayer < numSpatialLayers,"spatialLayer="<<spatialLayer);
-    return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].phyModePtr;
+    return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].getPhyMode();
 }
 
 wns::Power
@@ -1135,9 +1199,9 @@ SchedulingMap::getTxPowerUsedInResource(int subChannelIndex, int timeSlot, int s
     assure(subChannelIndex>=0 && subChannelIndex<numberOfSubChannels,"subChannelIndex="<<subChannelIndex);
     assure(timeSlot>=0 && timeSlot<numberOfTimeSlots,"timeSlot="<<timeSlot<<" >= numberOfTimeSlots="<<numberOfTimeSlots);
     assure(spatialLayer>=0 && spatialLayer < numSpatialLayers,"spatialLayer="<<spatialLayer);
-    //return subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].txPower;
+    
     wns::Power powerInResource = subChannels[subChannelIndex].temporalResources[timeSlot]->getTxPower();
-    assure(fabs(subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].txPower.get_mW() - powerInResource.get_mW())<1e-3,
+    assure(fabs(subChannels[subChannelIndex].temporalResources[timeSlot]->physicalResources[spatialLayer].getTxPower().get_mW() - powerInResource.get_mW())<1e-3,
            "mismatch in powerInResource="<<powerInResource);
     return powerInResource;
 }
@@ -1156,59 +1220,60 @@ SchedulingMap::maskOutSubChannels(const UsableSubChannelVector& usableSubChannel
     }
 } // maskOutSubChannels
 
-void
-SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/)
-{
-    // translate result into currentBurst to allow bursts.push_back(currentBurst)
-    for ( SubChannelVector::iterator iterSubChannel = subChannels.begin();
-          iterSubChannel != subChannels.end(); ++iterSubChannel)
-    {
-        SchedulingSubChannel& subChannel = *iterSubChannel;
-        for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
-              iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
-        {
-            SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
-            for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
-                  iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
-            {
-                UserID lastScheduledUserID = NULL;
-                MapInfoEntryPtr currentBurst;
-                double currentBurstStartTime = 0.0;
-                while ( !iterPRB->scheduledCompounds.empty() )
-                {
-                    SchedulingCompound compound = iterPRB->scheduledCompounds.front(); // .front()
-                    iterPRB->scheduledCompounds.pop_front(); // pop_front()
-                    if ( compound.userID != lastScheduledUserID ) // new User, starts new Burst
-                    {
-                        //MESSAGE_SINGLE(NORMAL, logger, "New compund of cid=" << iterCompound.userID->getName());
-                        // new user -> new newburst=new map entry
-                        currentBurst = MapInfoEntryPtr(new MapInfoEntry());
-                        currentBurst->start          = compound.startTime;
-                        currentBurst->end            = compound.startTime; // intentionally not endTime;
-                        currentBurst->user           = compound.userID;
-                        currentBurst->subBand        = compound.subChannel;
-                        currentBurst->timeSlot       = compound.timeSlot;
-                        currentBurst->spatialLayer           = compound.spatialLayer;
-                        currentBurst->txPower        = compound.txPower;
-                        currentBurst->phyModePtr     = compound.phyModePtr;
-                        //currentBurst->estimatedCandI = ? how to get it here?
-                        collection->push_back(currentBurst);
-                    }
-                    //bursts.back()->end += iterCompound.compoundDuration;
-                    simTimeType compoundDuration = compound.getCompoundDuration();
-                    currentBurst->end     += compoundDuration;
-                    currentBurstStartTime += compoundDuration;
-                    //compound gehort zum selben connection fuege hinten ein
-                    collection->back()->compounds.push_back(compound.compoundPtr);
+// void
+// SchedulingMap::convertToMapInfoCollection(MapInfoCollectionPtr collection /*return value*/)
+// {
+//     // translate result into currentBurst to allow bursts.push_back(currentBurst)
+//     for ( SubChannelVector::iterator iterSubChannel = subChannels.begin();
+//           iterSubChannel != subChannels.end(); ++iterSubChannel)
+//     {
+//         SchedulingSubChannel& subChannel = *iterSubChannel;
+//         for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = subChannel.temporalResources.begin();
+//               iterTimeSlot != subChannel.temporalResources.end(); ++iterTimeSlot)
+//         {
+//             SchedulingTimeSlotPtr timeSlotPtr = *iterTimeSlot;
+//             for ( PhysicalResourceBlockVector::iterator iterPRB = timeSlotPtr->physicalResources.begin();
+//                   iterPRB != timeSlotPtr->physicalResources.end(); ++iterPRB)
+//             {
+//                 UserID lastScheduledUserID;
+//                 MapInfoEntryPtr currentBurst;
+//                 double currentBurstStartTime = 0.0;
+//                 while ( !iterPRB->scheduledCompounds.empty() )
+//                 {
+//                     SchedulingCompound compound = iterPRB->scheduledCompounds.front(); // .front()
+//                     iterPRB->scheduledCompounds.pop_front(); // pop_front()
+//                     if ( compound.userID != lastScheduledUserID ) // new User, starts new Burst
+//                     {
+//                         //MESSAGE_SINGLE(NORMAL, logger, "New compund of cid=" << iterCompound.userID->getName());
+//                         // new user -> new newburst=new map entry
+//                         currentBurst = MapInfoEntryPtr(new MapInfoEntry());
+//                         currentBurst->start          = compound.startTime;
+//                         currentBurst->end            = compound.startTime; // intentionally not endTime;
+//                         currentBurst->user           = compound.userID;
+//                         currentBurst->subBand        = compound.subChannel;
+//                         currentBurst->timeSlot       = compound.timeSlot;
+//                         currentBurst->beam           = compound.beam;
+//                         currentBurst->txPower        = compound.txPower;
+//                         currentBurst->phyModePtr     = compound.phyModePtr;
+//                         //currentBurst->estimatedCandI = ? how to get it here?
+//                         collection->push_back(currentBurst);
+//                     }
+//                     //bursts.back()->end += iterCompound.compoundDuration;
+//                     simTimeType compoundDuration = compound.getCompoundDuration();
+//                     currentBurst->end     += compoundDuration;
+//                     currentBurstStartTime += compoundDuration;
+//                     //compound gehort zum selben connection fuege hinten ein
+//                     collection->back()->compounds.push_back(compound.compoundPtr);
 
-                    // inherited from Strategy.cpp; calls callback():
-                    // compoundReady() // cannot do this here.
-                    lastScheduledUserID = compound.userID;
-                } // end while ( !iterSubChannel->scheduledCompounds.empty() )
-            } // end for ( spatialLayers )
-        } // end for ( timeSlots )
-    } // end for ( SubChannels )
-} // convertToMapInfoCollection
+//                     // inherited from Strategy.cpp; calls callback():
+//                     // compoundReady() // cannot do this here.
+//                     lastScheduledUserID = compound.userID;
+//                 } // end while ( !iterSubChannel->scheduledCompounds.empty() )
+//             } // end for ( beams )
+//         } // end for ( timeSlots )
+//     } // end for ( SubChannels )
+// } // convertToMapInfoCollection
+
 
 // this is called by the UL master scheduler, because there are no "real" compounds (just fakes).
 void

@@ -51,15 +51,17 @@ using namespace wns::scheduler;
 using namespace wns::scheduler::strategy;
 
 
-RequestForResource::RequestForResource(ConnectionID _cid, UserID _user, Bits _bits)
+RequestForResource::RequestForResource(ConnectionID _cid, UserID _user, Bits _bits, Bits _queuedBits, bool useHARQ)
     : cid(_cid),
       user(_user),
       bits(_bits),
+      queuedBits(_queuedBits),
       phyModePtr(), // empty means undefined, still open, freely selectable
       subChannel(wns::scheduler::subChannelNotFound),
       timeSlot(0),
       spatialLayer(0),
-      cqiOnSubChannel()
+      cqiOnSubChannel(),
+      useHARQ(useHARQ)
 {
 }
 
@@ -71,7 +73,9 @@ std::string
 RequestForResource::toString() const
 {
   std::stringstream s;
-  s << "Req(cid="<<cid<<","<<user->getName()<<","<<int(bits)<<"bits";
+  s << "Req(cid="<<cid<<"," << user.getName();
+  s <<","<<int(bits)<<"bits (queued ";
+  s << int(queuedBits) << ")";
   if (phyModePtr!=wns::service::phy::phymode::PhyModeInterfacePtr()) {
     s << "," << *phyModePtr; }
   if (timeSlot>0) {
