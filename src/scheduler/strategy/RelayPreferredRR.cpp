@@ -130,7 +130,8 @@ void RelayPreferredRR::doStartScheduling(int fChannels, int maxSpatialLayers, si
 			currentBurst->user = user;
 			currentBurst->subBand = currentSubBand;
 			currentBurst->phyModePtr = phyMode;
-			currentBurst->estimatedCandI = currentGroup[user];
+            currentBurst->estimatedCQI.interference = currentGroup[user].I;
+            currentBurst->estimatedCQI.carrier = currentGroup[user].C;
 
 			///\todo FIXME: provider a cleaner handling for the situation that
 			///one of the users in the grouping does not have a sufficient SINR

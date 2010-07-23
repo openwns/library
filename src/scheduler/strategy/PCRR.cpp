@@ -262,7 +262,8 @@ PCRR::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLen
 					currentBurst->subBand = currentSubBand;
 					currentBurst->txPower = powerMap[user].txPowerPerSubband;
 					currentBurst->phyModePtr = phyMode;
-					currentBurst->estimatedCandI = currentGroup[user];
+                    currentBurst->estimatedCQI.interference = currentGroup[user].I;
+                    currentBurst->estimatedCQI.carrier = currentGroup[user].C;
 
 					///\todo FIXME: provider a cleaner handling for the situation that
 					///one of the users in the grouping does not have a sufficient SINR

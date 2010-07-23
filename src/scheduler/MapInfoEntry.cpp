@@ -42,7 +42,7 @@ MapInfoEntry::MapInfoEntry() :
     spatialLayer(0),
     txPower(),
     phyModePtr(),
-    estimatedCandI(),
+    estimatedCQI(),
     compounds()
 {
 }
@@ -82,11 +82,10 @@ MapInfoEntry::toString() const
     } else {
         s << "\n\t txPower:      undefined";
     }
-    if (estimatedCandI.isValid()) {
-        s << "\n\t est_CandI:    " << estimatedCandI.toSINR();
-    } else {
-        s << "\n\t est_CandI:    undefined";
-    }
+    s << "\n\t est. C:    " << estimatedCQI.carrier;
+    s << "\n\t est. I:    " << estimatedCQI.interference;
+    s << "\n\t est. PL:    " << estimatedCQI.pathloss;
+
     s << "\n\t #compounds:   " << compounds.size();
     if ( !compounds.empty() ) {
         int c=1;

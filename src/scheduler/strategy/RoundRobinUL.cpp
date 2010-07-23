@@ -171,7 +171,8 @@ RoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType
 					currentBurst->subBand = currentSubBand;
 					currentBurst->phyModePtr = phyModePtr;
 					currentBurst->txPower = power.nominalPerSubband;
-					currentBurst->estimatedCandI = currentGroup[user];
+                    currentBurst->estimatedCQI.interference = currentGroup[user].I;
+                    currentBurst->estimatedCQI.carrier = currentGroup[user].C;
 
 					MESSAGE_SINGLE(NORMAL, logger, "PHY mode is " << *phyModePtr<<" with SINR="<<sinr);
 

@@ -150,7 +150,8 @@ ProportionalFairDL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
                 userBursts[earliest]->txPower = txPowerPerStream;
                 userBursts[earliest]->phyModePtr = userPhyModes[earliest];
                 userBursts[earliest]->pattern = patterns[earliest];
-                userBursts[earliest]->estimatedCandI = group[earliest];
+                userBursts[earliest]->estimatedCQI.interference = group[earliest].I;
+                userBursts[earliest]->estimatedCQI.carrier = group[earliest].C;
                 userBursts[earliest]->phyModePtr = userPhyModes[earliest];
 
 				timeMarkers[earliest] += pduDuration;

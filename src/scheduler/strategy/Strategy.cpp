@@ -758,7 +758,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     resultMapInfoEntry->sourceUser = schedulerState->myUserID;
     resultMapInfoEntry->txPower    = txPower; // apcResult.txPower;
     resultMapInfoEntry->phyModePtr = request.phyModePtr; // = apcResult.phyModePtr
-    resultMapInfoEntry->estimatedCandI = estimatedCandI; // ?= apcResult.estimatedCandI;
+    resultMapInfoEntry->estimatedCQI = cqiOnSubChannel; 
     // Set antennaPattern according to grouping result
     if (groupingRequired()) {
         assure(schedulerState->currentState->getGrouping() != GroupingPtr(),"invalid grouping");

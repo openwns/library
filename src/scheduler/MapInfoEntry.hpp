@@ -84,8 +84,8 @@ namespace wns { namespace scheduler {
             wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
             /** @brief Antenna pattern for beamforming; else empty */
             wns::service::phy::ofdma::PatternPtr pattern;
-            /** @brief signal and noise+interference power assumed at receiver */
-            wns::CandI estimatedCandI;
+            /** @brief carrier, signal and noise+interference power assumed at receiver */
+            ChannelQualityOnOneSubChannel estimatedCQI;
             /** @brief list because more than one compound can be in it */
             wns::scheduler::CompoundList compounds;
         }; // MapInfoEntry

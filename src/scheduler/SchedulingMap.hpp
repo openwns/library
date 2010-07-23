@@ -78,6 +78,7 @@ namespace wns { namespace scheduler {
                                wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr,
                                wns::Power _txPower,
                                wns::service::phy::ofdma::PatternPtr _pattern,
+                               ChannelQualityOnOneSubChannel estimatedCQI,
                                bool _harqEnabled
                 );
             //SchedulingCompound(const SchedulingCompound&);
@@ -110,6 +111,8 @@ namespace wns { namespace scheduler {
             /** @brief signal and noise+interference power assumed at receiver.
                 Just informational. Can be used in Receiver to calculate
                 the difference between real and estimated SINR. */
+            ChannelQualityOnOneSubChannel estimatedCQI;
+
             bool harqEnabled;
         }; // SchedulingCompound
 
@@ -158,6 +161,7 @@ namespace wns { namespace scheduler {
                              wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                              wns::Power txPower,
                              wns::service::phy::ofdma::PatternPtr pattern,
+                             ChannelQualityOnOneSubChannel _estimatedCQI,
                              bool _useHARQ
                 );
 
@@ -509,6 +513,7 @@ namespace wns { namespace scheduler {
                              wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                              wns::Power txPower,
                              wns::service::phy::ofdma::PatternPtr pattern,
+                             ChannelQualityOnOneSubChannel _estimatedCQI,
                              bool useHARQ
                 );
 

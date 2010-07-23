@@ -279,7 +279,10 @@ ExhaustiveRRUL::doStartScheduling(int fChannels, int maxSpatialLayers, simTimeTy
 								currentBurst->subBand = fSlot;
 								currentBurst->txPower = power.nominalPerSubband;
 								currentBurst->phyModePtr = phyMode;
-								currentBurst->estimatedCandI = currentGroup[usersInGroup[user]];
+                                currentBurst->estimatedCQI.interference = 
+                                    currentGroup[usersInGroup[user]].I;
+                                currentBurst->estimatedCQI.carrier = 
+                                    currentGroup[usersInGroup[user]].C;
 								bursts_push_back(currentBurst);
 								firstPDU = true;
 								MESSAGE_SINGLE(NORMAL, logger,"ExhaustiveRRUL: b)  startTime " << currentBurst->start << ", stopTime = " << currentBurst->end);

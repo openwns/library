@@ -90,7 +90,8 @@ ProportionalFairUL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
 		currentBurst->subBand = subBand;
 		currentBurst->phyModePtr = phyMode;
 		currentBurst->txPower = txPowerPerStream;
-		currentBurst->estimatedCandI = group[user];
+        currentBurst->estimatedCQI.interference = group[user].I;
+        currentBurst->estimatedCQI.carrier = group[user].C;
 		userBursts[user] = currentBurst;
 
 		// stores the time when the next PDU could be scheduled relative to
@@ -153,7 +154,8 @@ ProportionalFairUL::scheduleOneBurst(simTimeType burstStart, simTimeType burstLe
                 userBursts[earliest]->txPower = txPowerPerStream;
                 userBursts[earliest]->phyModePtr = userPhyModes[earliest];
                 userBursts[earliest]->pattern = patterns[earliest];
-                userBursts[earliest]->estimatedCandI = group[earliest];
+                userBursts[earliest]->estimatedCQI.interference = group[earliest].I;
+                userBursts[earliest]->estimatedCQI.carrier = group[earliest].C;
                 userBursts[earliest]->txPower = power.nominalPerSubband;
 
 				timeMarkers[earliest] += pduDuration;

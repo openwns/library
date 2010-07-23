@@ -48,6 +48,7 @@ SchedulingCompound::SchedulingCompound()
     compoundPtr(),
     phyModePtr(),
     txPower(),
+    estimatedCQI(),
     harqEnabled(false)
 {
 };
@@ -64,6 +65,7 @@ SchedulingCompound::SchedulingCompound(const SchedulingCompound& other):
     compoundPtr(),
     phyModePtr(other.phyModePtr),
     txPower(other.txPower),
+    estimatedCQI(other.estimatedCQI),
     harqEnabled(other.harqEnabled)
 {
     if(other.compoundPtr != NULL)
@@ -84,6 +86,7 @@ SchedulingCompound::SchedulingCompound(int _subChannel,
                                        wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr,
                                        wns::Power _txPower,
                                        wns::service::phy::ofdma::PatternPtr _pattern,
+                                       ChannelQualityOnOneSubChannel _estimatedCQI,
                                        bool _harqEnabled
     )
     : subChannel(_subChannel),
@@ -98,6 +101,7 @@ SchedulingCompound::SchedulingCompound(int _subChannel,
       phyModePtr(_phyModePtr),
       txPower(_txPower),
       pattern(_pattern),
+      estimatedCQI(_estimatedCQI),
       harqEnabled(_harqEnabled)
 {
 }
@@ -121,6 +125,9 @@ SchedulingCompound::toString() const
     }
     s << ", T=[" << startTime*1e6 << "-" << endTime*1e6 << "]us";
     s << ", d=" << (endTime-startTime)*1e6 << "us";
+    s << ", estI=" << estimatedCQI.interference.get_dBm() << "dBm";
+    s << ", estC=" << estimatedCQI.carrier.get_dBm() << "dBm";
+    s << ", estPL=" << estimatedCQI.pathloss.get_dB() << "dB";
     s << ")";
     return s.str();
 }
@@ -240,6 +247,7 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
                                    wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr,
                                    wns::Power _txPower,
                                    wns::service::phy::ofdma::PatternPtr _pattern,
+                                   ChannelQualityOnOneSubChannel _estimatedCQI,
                                    bool _useHARQ
     )
 {
@@ -284,6 +292,7 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
                                             phyModePtr,
                                             txPower,
                                             _pattern,
+                                            _estimatedCQI,
                                             _useHARQ
         );
     this->scheduledCompounds.push_back(newScheduledCompound);
@@ -328,6 +337,7 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
     wns::Power txPowerInMap = mapInfoEntry->txPower;
     wns::scheduler::ConnectionID connectionID = request.cid;
     wns::service::phy::ofdma::PatternPtr patternInMap = mapInfoEntry->pattern; // antenna pattern (grouping)
+    ChannelQualityOnOneSubChannel estimatedCQI = mapInfoEntry->estimatedCQI;
 
     return addCompound(compoundDuration,
                        connectionID,
@@ -337,6 +347,7 @@ PhysicalResourceBlock::addCompound(strategy::RequestForResource& request,
                        mapPhyModePtr,
                        txPowerInMap,
                        patternInMap,
+                       estimatedCQI,
                        _useHARQ
         );
 } // addCompound
@@ -1028,6 +1039,7 @@ SchedulingMap::addCompound(int subChannelIndex,
                            wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                            wns::Power txPower,
                            wns::service::phy::ofdma::PatternPtr pattern,
+                           ChannelQualityOnOneSubChannel estimatedCQI,
                            bool useHARQ
     )
 {
@@ -1041,6 +1053,7 @@ SchedulingMap::addCompound(int subChannelIndex,
             phyModePtr,
             txPower,
             pattern,
+            estimatedCQI,
             useHARQ
             );
     if (ok) {

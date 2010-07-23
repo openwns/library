@@ -247,7 +247,8 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, s
 						currentBurst->subBand = currentChannel;
 						currentBurst->phyModePtr = phyModePtr;
 						currentBurst->txPower = requiredTxPower;
-						currentBurst->estimatedCandI = currentGroup[user];
+                        currentBurst->estimatedCQI.interference = currentGroup[user].I;
+                        currentBurst->estimatedCQI.carrier = currentGroup[user].C;
 
 						///\todo FIXME: provider a cleaner handling for the situation that
 						///one of the users in the grouping does not have a sufficient SINR
@@ -353,7 +354,8 @@ CQIEnabledRoundRobinUL::doStartScheduling(int fChannels, int maxSpatialLayers, s
 						currentBurst->subBand = currentChannel;
 						currentBurst->phyModePtr = phyMode;
 						currentBurst->txPower = requiredTxPower;
-						currentBurst->estimatedCandI = currentGroup[user];
+                        currentBurst->estimatedCQI.interference = currentGroup[user].I;
+                        currentBurst->estimatedCQI.carrier = currentGroup[user].C;
 
 						///\todo FIXME: provider a cleaner handling for the situation that
 						///one of the users in the grouping does not have a sufficient SINR
