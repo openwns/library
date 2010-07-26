@@ -111,7 +111,7 @@ namespace wns { namespace scheduler {
             /** @brief signal and noise+interference power assumed at receiver.
                 Just informational. Can be used in Receiver to calculate
                 the difference between real and estimated SINR. */
-            ChannelQualityOnOneSubChannel estimatedCQI;
+            mutable ChannelQualityOnOneSubChannel estimatedCQI;
 
             bool harqEnabled;
         }; // SchedulingCompound
@@ -276,6 +276,12 @@ namespace wns { namespace scheduler {
                     scheduledCompounds.clear();
                 }
 
+            ChannelQualityOnOneSubChannel
+            getEstimatedCQI() const
+            {
+                return estimatedCQI;
+            };
+
             bool
             isHARQEnabled() const;
 
@@ -305,6 +311,9 @@ namespace wns { namespace scheduler {
             /** @brief Antenna pattern for beamforming; else empty.
                 Yet unclear if this is constant over all subchannels or not. */
             wns::service::phy::ofdma::PatternPtr antennaPattern;
+
+            /** @brief Estimated CQI at last scheduling time */
+            ChannelQualityOnOneSubChannel estimatedCQI;
         }; // PhysicalResourceBlock
 
         /** @brief collection of and all spatial resources = MIMO streams or SDMA beams */

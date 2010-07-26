@@ -143,6 +143,7 @@ PhysicalResourceBlock::PhysicalResourceBlock()
       scheduledCompounds(),
       phyModePtr(),
       txPower(),
+      estimatedCQI(),
       antennaPattern()
 {
 }
@@ -158,6 +159,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
       userID(NULL),
       phyModePtr(),
       txPower(),
+      estimatedCQI(),
       antennaPattern()
 {
 }
@@ -173,6 +175,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(const PhysicalResourceBlock& other)
     userID(other.userID),
     phyModePtr(other.phyModePtr),
     txPower(other.txPower),
+    estimatedCQI(other.estimatedCQI),
     antennaPattern(other.antennaPattern)
 {
     for (ScheduledCompoundsList::const_iterator it=other.scheduledCompounds.begin();
@@ -280,6 +283,7 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
            "phyModePtr mismatch: "<<*phyModePtr<<"!="<<*_phyModePtr);
     phyModePtr = _phyModePtr; // all compounds should have the same phyMode
     antennaPattern = _pattern; // all compounds should have the same antenna pattern
+    estimatedCQI = _estimatedCQI;
     SchedulingCompound newScheduledCompound(this->subChannelIndex,
                                             this->timeSlotIndex,
                                             this->spatialIndex,
