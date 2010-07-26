@@ -52,12 +52,24 @@ void
 NoHARQ::onTimeSlotReceived(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock,
                          HARQInterface::TimeSlotInfo info)
 {
+    wns::scheduler::UserID userID = 
+        resourceBlock->physicalResources[0].getSourceUserIDOfScheduledCompounds();
+
+    assure(!resourceBlock->isHARQEnabled(), 
+        "Received HARQ transmission but HARQ strategy is NoHARQ");
+
+    resourceBlock->harq.successfullyDecoded = true;
+    receivedNonHARQTimeslots_.push_back(HARQInterface::DecodeStatusContainerEntry(resourceBlock, info));
+    return;
 }
 
 HARQInterface::DecodeStatusContainer
 NoHARQ::decode()
 {
     HARQInterface::DecodeStatusContainer tmp;
+    tmp = receivedNonHARQTimeslots_;
+    receivedNonHARQTimeslots_.clear();
+
     return tmp;
 }
 

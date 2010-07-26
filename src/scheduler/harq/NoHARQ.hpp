@@ -76,6 +76,8 @@ public:
     virtual void
     resetAllScheduledPeerRetransmissionCounters();
 
+private:
+    HARQInterface::DecodeStatusContainer receivedNonHARQTimeslots_;
 };
 
 } // harq
