@@ -104,8 +104,6 @@ Group::Group(
             std::string fuPort = portConfig.get<std::string>("fuPort.name");
             std::string groupPort = portConfig.get<std::string>("groupPort.name");
 
-            std::cout << fu << " : "  << ii << " : " << fuPort << " : " << groupPort << std::endl;
-
             addToConnectorRegistry(groupPort, fu->getFromConnectorRegistry(fuPort));
             addToDelivererReceptacleRegistry(groupPort, fu->getFromDelivererReceptacleRegistry(fuPort));
             addToReceptorReceptacleRegistry(groupPort, fu->getFromReceptorReceptacleRegistry(fuPort));
