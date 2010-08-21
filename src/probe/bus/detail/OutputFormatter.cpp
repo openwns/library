@@ -29,11 +29,18 @@
 
 using namespace wns::probe::bus::detail;
 
-STATIC_FACTORY_REGISTER_WITH_CREATOR( HumanReadable, OutputFormatter, "HumanReadable", StatEvalTableCreator );
-STATIC_FACTORY_REGISTER_WITH_CREATOR( PythonReadable, OutputFormatter, "PythonReadable", StatEvalTableCreator );
-STATIC_FACTORY_REGISTER_WITH_CREATOR( MatlabReadable, OutputFormatter, "MatlabReadable", StatEvalTableCreator );
-STATIC_FACTORY_REGISTER_WITH_CREATOR( MatlabReadableSparse, OutputFormatter, "MatlabReadableSparse", StatEvalTableCreator );
-STATIC_FACTORY_REGISTER_WITH_CREATOR( WrowserReadable, OutputFormatter, "WrowserReadable", StatEvalTableCreator );
+STATIC_FACTORY_REGISTER_WITH_CREATOR( HumanReadable, OutputFormatter, 
+        "HumanReadable", StatEvalTableCreator );
+STATIC_FACTORY_REGISTER_WITH_CREATOR( PythonReadable, OutputFormatter, 
+        "PythonReadable", StatEvalTableCreator );
+STATIC_FACTORY_REGISTER_WITH_CREATOR( MatlabReadable, OutputFormatter, 
+        "MatlabReadable", StatEvalTableCreator );
+STATIC_FACTORY_REGISTER_WITH_CREATOR( MatlabReadableSparse, OutputFormatter, 
+        "MatlabReadableSparse", StatEvalTableCreator );
+STATIC_FACTORY_REGISTER_WITH_CREATOR( LogEvalReadable, OutputFormatter, 
+        "LogEvalReadable", StatEvalTableCreator );
+STATIC_FACTORY_REGISTER_WITH_CREATOR( Plain, OutputFormatter, 
+        "Plain", StatEvalTableCreator );
 
 void
 OutputFormatter::print(std::ostream& strm,
@@ -293,7 +300,7 @@ MatlabReadableSparse::doPrint(std::ostream& strm,
 }
 
 void
-WrowserReadable::doPrint(std::ostream& strm,
+LogEvalReadable::doPrint(std::ostream& strm,
                               std::list<int> fixedIndices,
                               int dim,
                               std::string valueType) const

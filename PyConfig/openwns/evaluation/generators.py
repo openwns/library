@@ -312,7 +312,7 @@ class Plot2D(ITreeNodeGenerator):
             maxValue1 = self.maxX, 
             resolution1 = self.resolution, 
             values = self.statEvals,
-            formats = ['WrowserReadable'])
+            formats = ['LogEvalReadable'])
             
         for creation in tableNode(pathname):
             leaf.addChild(creation)  
