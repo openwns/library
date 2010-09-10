@@ -26,11 +26,13 @@ using namespace wns::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::staticpriority;
 
+// begin example "wimac.tutorial.experiment2.staticFactory.substrategy.ProportionalFair.cpp"
 STATIC_FACTORY_REGISTER_WITH_CREATOR(ProportionalFair,
                                      SubStrategyInterface,
                                      "ProportionalFair",
                                      wns::PyConfigViewCreator);
-
+// end example
+                                     
 ProportionalFair::ProportionalFair(const wns::pyconfig::View& config)
     : SubStrategy(config),
       blockSize(config.get<int>("blockSize")),

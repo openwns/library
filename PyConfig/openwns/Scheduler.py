@@ -247,8 +247,10 @@ class ExhaustiveRoundRobin(SubStrategy):
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "ExhaustiveRR", True, parentLogger)
 
+# begin example "wimac.tutorial.experiment2.staticFactory.substrategy.ProportionalFair.openwns.Scheduler.py"
 class ProportionalFair(SubStrategy):
     __plugin__ = "ProportionalFair"
+# end example
     blockSize = 1000000
     # 0.0 = no history; 0.9 = factor of older pastDataRates to keep
     historyWeight = 0.9

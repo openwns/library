@@ -100,7 +100,7 @@ class Node(object):
 
         self.name = name
         self.components = []
-        self.logger = Logger("WNS", self.name + str(self.nodeID), True)
+        self.logger = Logger("WNS", self.name, True)
         self.property = dict()
 
     def addComponent(self, component):

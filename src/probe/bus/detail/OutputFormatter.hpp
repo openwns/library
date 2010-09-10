@@ -217,8 +217,8 @@ namespace wns { namespace probe { namespace bus { namespace detail {
         ~MatlabReadableSparse(){}
     };
 
-    /** @brief Formatter Implementation that produces Wrowser readable output. */
-    class WrowserReadable :
+    /** @brief Formatter Implementation that produces Wrowser LogEval readable output. */
+    class LogEvalReadable :
         public OutputFormatter
     {
         virtual
@@ -228,18 +228,34 @@ namespace wns { namespace probe { namespace bus { namespace detail {
                      std::string valueType) const;
 
         public:
-            WrowserReadable(const StatEvalTable& table) :
+            LogEvalReadable(const StatEvalTable& table) :
                 OutputFormatter(table)
                 {}
     
             virtual
-            ~WrowserReadable(){}
+            ~LogEvalReadable(){}
 
             virtual std::string
             getPrefix() const { return "# "; };
     
             virtual std::string
             getFilenameSuffix() const { return "_Log.log.dat"; }
+    };
+
+    /** @brief Formatter Implementation that produces Wrowser readable output read as LogEval. */
+    class Plain :
+        public MatlabReadable
+    {
+        public:
+            Plain(const StatEvalTable& table) :
+                MatlabReadable(table)
+                {}
+
+            virtual
+            ~Plain(){}
+
+            virtual std::string
+            getFilenameSuffix() const { return ".dat"; }
     };
 
     typedef StatEvalTableCreator<OutputFormatter, OutputFormatter> FormatterCreator;

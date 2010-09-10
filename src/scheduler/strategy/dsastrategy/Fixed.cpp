@@ -79,9 +79,19 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
     int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
     int maxSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
 
-    int prio = schedulerState->currentState->getCurrentPriority();
-    wns::scheduler::ConnectionSet conns = colleagues.registry->getConnectionsForPriority(prio);
+    int numberOfPriorities = colleagues.registry->getNumberOfPriorities();
 
+    wns::scheduler::ConnectionSet conns;
+    for(int prio = 0; prio < numberOfPriorities; prio++)
+    {
+        wns::scheduler::ConnectionSet c = 
+            colleagues.registry->getConnectionsForPriority(prio);
+
+        wns::scheduler::ConnectionSet::iterator it;
+        for(it = c.begin(); it != c.end(); it++)
+            conns.insert(*it);
+    }
+    
     std::set<wns::scheduler::UserID> userIDs;
     wns::scheduler::ConnectionSet::iterator it;
 
