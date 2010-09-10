@@ -756,6 +756,7 @@ hppFiles = [
 'src/ldk/sar/reassembly/ReassemblyBuffer.hpp',
 'src/ldk/sar/reassembly/ReorderingWindow.hpp',
 'src/ldk/SequentlyCallingLinkHandler.hpp',
+'src/ldk/ShortcutFU.hpp',
 'src/ldk/SimpleLinkHandler.hpp',
 'src/ldk/SingleConnector.hpp',
 'src/ldk/SingleDeliverer.hpp',
