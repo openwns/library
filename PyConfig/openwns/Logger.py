@@ -53,6 +53,13 @@ class LoggerRegistry(object):
         assert isinstance(category, str)
         return self.dict[category]
 
+    def dump(self):
+        keys = sorted(self.dict)
+        for k in keys:
+            print "%s :" % k
+            for l in self.dict[k]:
+                print "\t%s\tL=%d \tE=%s" % (str(l), l.level, l.enabled)
+
 globalRegistry = LoggerRegistry()
 
 class ModuleColor(object):
@@ -113,7 +120,7 @@ class Logger(object):
         openwns.pyconfig.attrsetter(self, kw)
         globalRegistry.addLogger("all", self)
         globalRegistry.addLogger(moduleName, self)
-        globalRegistry.addLogger("%s.%s" % (moduleName, name), self)
+        globalRegistry.addLogger("%s.%s" % (moduleName, self.name), self)
 
     def __levelGetter(self):
         if self.__level is not None:
