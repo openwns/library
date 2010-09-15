@@ -41,6 +41,8 @@ namespace wns { namespace service { namespace dll {
 	ENUM(FRS, 2);
 	ENUM(UT,  3);
 	ENUM(RUT, 4);
+    ENUM(eNB, 5);
+    ENUM(UE, 6);
 	ENUM_END();
 	// wns::service::dll::StationTypes::FRS()
 
