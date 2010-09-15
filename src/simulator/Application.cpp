@@ -210,6 +210,30 @@ Application::doInit()
     // if -s is specified we need to attach the debugger
     attachDebugger_ = arguments_.count("attach-debugger-on-segfault") > 0;
 
+#ifdef __x86_32__
+    // Patch path for 32bit Python
+    configuration_.patch("import sys\n"
+                         "import os\n"
+                         "import os.path\n"
+                         "newPathOK = os.path.exists('/usr/lib32/python2.6')\n"
+                         "oldPathOK = os.path.exists('/usr/lib32/python2.5')\n"
+                         "assert newPathOK or oldPathOK, '32bit Python not installed'\n"
+                         "if newPathOK:\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.6')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.6/lib-dynload')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.6/dist-packages/Numeric')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.6/dist-packages')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.6/dist-packages/psycopg2')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.6/dist-packages/numpy/core')\n"
+                         "else:\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.5')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.5/lib-dynload')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.5/site-packages/Numeric')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.5/site-packages')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.5/site-packages/psycopg2')\n"
+                         "    sys.path.insert(0, '/usr/lib32/python2.5/site-packages/numpy/core')\n");
+#endif
+    
     // patch pyconfig (sys.path, command line patches ...)
     configuration_.appendPath(getPathToPyConfig());
     configuration_.appendPath(".");
@@ -234,7 +258,6 @@ Application::doInit()
                              "pdb.Pdb.complete = rlcompleter.Completer(locals()).complete\n"
                              "pdb.set_trace()\n");
     }
-
 
     // after pyconfig is patched, bring up Simulator singelton
     if (testing_)
