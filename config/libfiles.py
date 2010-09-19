@@ -292,6 +292,7 @@ srcFiles = [
     # new scheduler with priorities (qos) and substrategies
     #'src/scheduler/strategy/staticpriority/SubStrategyInterface.cpp',
     'src/scheduler/strategy/staticpriority/SubStrategy.cpp',
+    'src/scheduler/strategy/staticpriority/Disabled.cpp',
     'src/scheduler/strategy/staticpriority/RoundRobin.cpp',
     'src/scheduler/strategy/staticpriority/DSADrivenRR.cpp',
     'src/scheduler/strategy/staticpriority/ExhaustiveRoundRobin.cpp',
@@ -999,6 +1000,7 @@ hppFiles = [
 'src/scheduler/strategy/tests/ResultsContainer.hpp',
 'src/scheduler/strategy/staticpriority/SubStrategyInterface.hpp',
 'src/scheduler/strategy/staticpriority/SubStrategy.hpp',
+'src/scheduler/strategy/staticpriority/Disabled.hpp',
 'src/scheduler/strategy/staticpriority/RoundRobin.hpp',
 'src/scheduler/strategy/staticpriority/DSADrivenRR.hpp',
 'src/scheduler/strategy/staticpriority/ExhaustiveRoundRobin.hpp',

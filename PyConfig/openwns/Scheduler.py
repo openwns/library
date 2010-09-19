@@ -238,6 +238,14 @@ class DSADrivenRR(SubStrategy):
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "DSADrivenRR", True, parentLogger)
 
+class Disabled(SubStrategy):
+    __plugin__ = "DisabledStrategy"
+    def __init__(self, parentLogger = None, **kw):
+        self.logger = openwns.logger.Logger("WNS", "DisabledStrategy", True, parentLogger)
+        attrsetter(self, kw)
+    def setParentLogger(self,parentLogger = None):
+        self.logger = openwns.logger.Logger("WNS", "DisabledStrategy", True, parentLogger)
+
 class ExhaustiveRoundRobin(SubStrategy):
     __plugin__ = "ExhaustiveRoundRobin"
     blockSize = 1000000 # don't ask.
