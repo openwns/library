@@ -161,6 +161,10 @@ namespace wns { namespace ldk { namespace sar {
         calculateSizes(const wns::ldk::CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
 
     protected:
+
+	wns::ldk::CommandReaderInterface*
+	getCommandReader() const;
+
         wns::logger::Logger logger_;
         bool isSegmenting_;
 

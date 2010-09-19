@@ -102,6 +102,12 @@ SegAndConcat::onFUNCreated()
     reassemblyBuffer_.initialize(getFUN()->getCommandReader(commandName_));
 }
 
+wns::ldk::CommandReaderInterface*
+SegAndConcat::getCommandReader() const
+{
+  return getFUN()->getCommandReader(commandName_);
+}
+
 void
 SegAndConcat::processIncoming(const wns::ldk::CompoundPtr& compound)
 {
