@@ -177,6 +177,10 @@ namespace wns { namespace scheduler {
             virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnUplink(UserID user, int frameNr) = 0;
             virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnDownlink(UserID user, int frameNr) = 0;
 
+
+	    /**
+	     *@todo dbn: DEPRECATED: calcULResources is only used in old PCRR scheduling strategy. To be removed
+	     */
             /** @brief returns information for all active uplink users about
                 their requested share of the overall resources, the maximum number of subbands
                 that may be allocated to them and the ul txpower they may use. */

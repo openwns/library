@@ -55,6 +55,7 @@ namespace wns { namespace scheduler {
                 int retryCounter;
                 bool successfullyDecoded;
                 long int transportBlockID;
+                int tbPos;
                 boost::function<void ()> ackCallback;
                 boost::function<void ()> nackCallback;
             };
@@ -189,6 +190,7 @@ namespace wns { namespace scheduler {
             bool isEmpty() const;
             /** @brief get userID this resource has been reserved for or NULL if empty */
             wns::scheduler::UserID getUserID() const;
+            wns::scheduler::UserID getSourceUserID() const;
             /** @brief get txPower assigned to this resource.
                 Assumes that all contents are for ONE user only and have all equal power. */
             wns::Power getTxPower() const;
@@ -303,6 +305,7 @@ namespace wns { namespace scheduler {
             ScheduledCompoundsList scheduledCompounds;
             /** @brief usually all compounds in a PRB must have the same user */
             wns::scheduler::UserID userID;
+            wns::scheduler::UserID sourceUserID;
             /** @brief phyMode used in this subChannel (all compounds should have the same) */
             wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
             /** @brief transmit power used in this subChannel (e.g. when APC is used) */
@@ -348,6 +351,7 @@ namespace wns { namespace scheduler {
             /** @brief get userID this resource has been reserved for or NULL if empty.
                 Assumes that all contents are for ONE user only. */
             wns::scheduler::UserID getUserID() const;
+	        wns::scheduler::UserID getSourceUserID() const;
             /** @brief get txPower assigned to this resource.
                 Assumes that all contents are for ONE user only and have all equal power. */
             wns::Power getTxPower() const;

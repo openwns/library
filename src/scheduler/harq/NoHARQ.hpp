@@ -41,7 +41,7 @@ public:
     virtual ~NoHARQ();
 
     virtual void
-    storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr&);
+    storeSchedulingTimeSlot(long int transportBlockID, const wns::scheduler::SchedulingTimeSlotPtr&);
 
     virtual void
     onTimeSlotReceived(const wns::scheduler::SchedulingTimeSlotPtr&, HARQInterface::TimeSlotInfo);
@@ -49,14 +49,20 @@ public:
     virtual HARQInterface::DecodeStatusContainer
     decode();
 
+    virtual wns::scheduler::UserSet
+    getUsersWithRetransmissions() const;
+
+    virtual std::list<int>
+    getProcessesWithRetransmissions(wns::scheduler::UserID peer) const;
+
     virtual int
-    getNumberOfRetransmissions();
+    getNumberOfRetransmissions(wns::scheduler::UserID, int processID);
 
     virtual wns::scheduler::SchedulingTimeSlotPtr
-    getNextRetransmission();
+    getNextRetransmission(wns::scheduler::UserID user, int processID);
 
     virtual wns::scheduler::SchedulingTimeSlotPtr
-    peekNextRetransmission() const;
+    peekNextRetransmission(wns::scheduler::UserID user, int processID) const;
 
     virtual void
     setDownlinkHARQ(HARQInterface* downlinkHARQ);
@@ -64,17 +70,17 @@ public:
     virtual wns::scheduler::UserSet
     getPeersWithPendingRetransmissions() const;
 
+    virtual std::list<int>
+    getPeerProcessesWithRetransmissions(wns::scheduler::UserID peer) const;
+
     virtual int
-    getNumberOfPeerRetransmissions(wns::scheduler::UserID peer) const;
+    getNumberOfPeerRetransmissions(wns::scheduler::UserID peer, int processID) const;
 
     virtual void
-    increaseScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer);
+    schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID);
 
     virtual void
-    resetScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer);
-
-    virtual void
-    resetAllScheduledPeerRetransmissionCounters();
+    sendPendingFeedback();
 
 private:
     HARQInterface::DecodeStatusContainer receivedNonHARQTimeslots_;

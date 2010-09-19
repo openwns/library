@@ -45,17 +45,39 @@ namespace wns
 		// Default constructor
 		CandI() :
 			C(wns::Power::from_mW(0.0)),
-			I(wns::Power::from_mW(0.0))
+			I(wns::Power::from_mW(0.0)),
+            PL(wns::Ratio::from_dB(0.0)),
+            IPL(wns::Ratio::from_dB(0.0))
 			{
 				sdma.iIntra = wns::Power::from_mW(0.0);
 			}
 
 		CandI(wns::Power carrier, wns::Power interference) :
 			C(carrier),
-			I(interference)
+			I(interference),
+            PL(wns::Ratio::from_dB(0.0)),
+            IPL(wns::Ratio::from_dB(0.0))
 			{
 				sdma.iIntra = wns::Power::from_mW(0.0);
 			}
+
+        CandI(wns::Power carrier, wns::Power interference, wns::Ratio pathloss) :
+            C(carrier),
+            I(interference),
+            PL(pathloss),
+            IPL(wns::Ratio::from_dB(0.0))
+            {
+                sdma.iIntra = wns::Power::from_mW(0.0);
+            }
+
+        CandI(wns::Power carrier, wns::Power interference, wns::Ratio pathloss, wns::Ratio iPathloss) :
+            C(carrier),
+            I(interference),
+            PL(pathloss),
+            IPL(iPathloss)
+            {
+                sdma.iIntra = wns::Power::from_mW(0.0);
+            }
 
 		wns::Ratio toSINR() const
 		{
@@ -99,6 +121,8 @@ namespace wns
 
 		wns::Power C;
 		wns::Power I;
+        wns::Ratio PL;
+        wns::Ratio IPL;
 
 		struct {
 			// estimated intra-cell interference

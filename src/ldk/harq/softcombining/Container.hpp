@@ -29,6 +29,7 @@
 #define WNS_LDK_HARQ_SOFTCOMBINING_CONTAINER_HPP
 
 #include <WNS/Exception.hpp>
+#include <WNS/container/Registry.hpp>
 
 #include <list>
 #include <vector>
@@ -44,47 +45,83 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
 
          typedef std::vector<EntryList> EntryListVector;
 
+         typedef typename wns::container::Registry<int, EntryListVector> EntryContainer;
+
          class InvalidRV :
              public Exception
          {
          };
 
+         class InvalidPositionInTB :
+            public Exception
+        {
+        };
+
+         Container()
+         {
+             numRVs_ = 0;
+         }
+
          Container(int numRVs)
          {
-             receivedEntries_.resize(numRVs);
+             if (numRVs < 0)
+             {
+                throw typename Container::InvalidRV();
+             }
+             numRVs_ = numRVs;
          }
 
          void
          clear()
          {
-             int size = receivedEntries_.size();
              receivedEntries_.clear();
-             receivedEntries_.resize(size);
          }
 
 
          int
          getNumRVs() const
          {
-             return receivedEntries_.size();
+             return numRVs_;
          }
 
+         std::list<int>
+         getAvailablePosInTB() const
+         {
+             std::list<int> r;
+
+             typename EntryContainer::const_iterator it;
+
+             for(it = receivedEntries_.begin(); it!=receivedEntries_.end(); ++it)
+             {
+                 r.push_back(it->first);
+             }
+
+             return r;
+         }
 
          EntryList
-         getEntriesForRV(int rv) const
+         getEntriesForRV(int posInTB, int rv) const
          {
+             if (!receivedEntries_.knows(posInTB))
+             {
+                 throw typename Container::InvalidPositionInTB();
+             }
+
              checkIfValidRV(rv);
 
-             return receivedEntries_[rv];
+             return receivedEntries_.find(posInTB)[rv];
          }
 
-
          void
-         appendEntryForRV(int rv, T compound)
+         appendEntryForRV(int posInTB, int rv, T compound)
          {
              checkIfValidRV(rv);
 
-             receivedEntries_[rv].push_back(compound);
+             if (!receivedEntries_.knows(posInTB))
+             {
+                 receivedEntries_.insert(posInTB, EntryListVector(numRVs_));
+             }
+             receivedEntries_.find(posInTB)[rv].push_back(compound);
          }
 
      private:
@@ -98,7 +135,9 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
              }
          }
 
-         EntryListVector receivedEntries_;
+         EntryContainer receivedEntries_;
+
+         int numRVs_;
      };
 
 } // softcombining

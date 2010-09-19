@@ -44,7 +44,7 @@ NoHARQ::~NoHARQ()
 }
 
 void
-NoHARQ::storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock)
+NoHARQ::storeSchedulingTimeSlot(long int transportBlockID, const wns::scheduler::SchedulingTimeSlotPtr& resourceBlock)
 {
 }
 
@@ -73,8 +73,22 @@ NoHARQ::decode()
     return tmp;
 }
 
+wns::scheduler::UserSet
+NoHARQ::getUsersWithRetransmissions() const
+{
+    wns::scheduler::UserSet empty;
+    return empty;
+}
+
+std::list<int>
+NoHARQ::getProcessesWithRetransmissions(wns::scheduler::UserID peer) const
+{
+    std::list<int> empty;
+    return empty;
+}
+
 int
-NoHARQ::getNumberOfRetransmissions()
+NoHARQ::getNumberOfRetransmissions(wns::scheduler::UserID, int processID)
 {
     int numberOfRetransmissions = 0;
     return numberOfRetransmissions;
@@ -82,13 +96,13 @@ NoHARQ::getNumberOfRetransmissions()
 
 
 wns::scheduler::SchedulingTimeSlotPtr
-NoHARQ::getNextRetransmission()
+NoHARQ::getNextRetransmission(wns::scheduler::UserID, int processID)
 {
     return wns::scheduler::SchedulingTimeSlotPtr(); // empty
 }
 
 wns::scheduler::SchedulingTimeSlotPtr
-NoHARQ::peekNextRetransmission() const
+NoHARQ::peekNextRetransmission(wns::scheduler::UserID, int processID) const
 {
     return wns::scheduler::SchedulingTimeSlotPtr(); // empty
 }
@@ -105,24 +119,27 @@ NoHARQ::getPeersWithPendingRetransmissions() const
     return u;
 }
 
+std::list<int>
+NoHARQ::getPeerProcessesWithRetransmissions(wns::scheduler::UserID peer) const
+{
+    std::list<int> empty;
+    return empty;
+}
+
 int
-NoHARQ::getNumberOfPeerRetransmissions(wns::scheduler::UserID peer) const
+NoHARQ::getNumberOfPeerRetransmissions(wns::scheduler::UserID peer, int processID) const
 {
     return 0;
 }
 
 void
-NoHARQ::increaseScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer)
+NoHARQ::schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID)
 {
 }
 
 void
-NoHARQ::resetScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer)
+NoHARQ::sendPendingFeedback()
 {
 }
 
-void
-NoHARQ::resetAllScheduledPeerRetransmissionCounters()
-{
-}
 

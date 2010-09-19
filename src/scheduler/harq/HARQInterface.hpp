@@ -61,7 +61,7 @@ public:
      * @brief Called by the scheduler after the scheduling step has finished
      */
     virtual void
-    storeSchedulingTimeSlot(const wns::scheduler::SchedulingTimeSlotPtr&) = 0;
+    storeSchedulingTimeSlot(long int transportBlockID, const wns::scheduler::SchedulingTimeSlotPtr&) = 0;
 
     /**
      * @brief Called by the scheduler when a SchedulingTimeSlot is received from the peer
@@ -72,8 +72,14 @@ public:
     virtual DecodeStatusContainer
     decode() = 0;
 
+    virtual wns::scheduler::UserSet
+    getUsersWithRetransmissions() const = 0;
+
+    virtual std::list<int>
+    getProcessesWithRetransmissions(wns::scheduler::UserID peer) const = 0;
+
     virtual int
-    getNumberOfRetransmissions() = 0;
+    getNumberOfRetransmissions(wns::scheduler::UserID, int processID) = 0;
 
     /**
      * @brief Returns the next HARQ Retransmission block and removes it from
@@ -83,7 +89,7 @@ public:
      * The order is defined internally (FCFS).
      */
     virtual wns::scheduler::SchedulingTimeSlotPtr
-    getNextRetransmission() = 0;
+    getNextRetransmission(wns::scheduler::UserID user, int processID) = 0;
 
     /**
      * @brief Returns the next HARQ Retransmission block, but keeps it in
@@ -93,7 +99,7 @@ public:
      * The order is defined internally (FCFS).
      */
     virtual wns::scheduler::SchedulingTimeSlotPtr
-    peekNextRetransmission() const = 0;
+    peekNextRetransmission(wns::scheduler::UserID user, int processID) const = 0;
 
     /**
      * @brief Set a downlink HARQ. Probably only applicable in uplink master schedulers
@@ -108,30 +114,25 @@ public:
     virtual wns::scheduler::UserSet
     getPeersWithPendingRetransmissions() const = 0;
 
+    virtual std::list<int>
+    getPeerProcessesWithRetransmissions(wns::scheduler::UserID peer) const = 0;
+    
     /**
      * @brief Return the number of retransmissions that are pending for a peer
      * Intended for uplink master scheduling
      */
     virtual int
-    getNumberOfPeerRetransmissions(wns::scheduler::UserID peer) const = 0;
+    getNumberOfPeerRetransmissions(wns::scheduler::UserID peer, int processID) const = 0;
+
+    virtual void
+    schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID) = 0;
 
     /**
-     * @brief Increases the scheduled peer retransmission counter for user peer. Used for TDD if multiple frames are scheduled in advance
-     */
+    * @brief Send HARQ feedback that was delayed. Especially needed for TDD.
+    * Triggered by TimingScheduler via ResourceScheduler
+    */
     virtual void
-    increaseScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer) = 0;
-
-    /**
-     * @brief Resets the scheduled peer retransmission counter for user peer. Used for TDD if multiple frames are scheduled in advance
-     */
-    virtual void
-    resetScheduledPeerRetransmissionCounter(wns::scheduler::UserID peer) = 0;
-
-    /**
-     * @brief Resets all the scheduled peer retransmission counters for all peers. Used for TDD if multiple frames are scheduled in advance
-     */
-    virtual void
-    resetAllScheduledPeerRetransmissionCounters() = 0;
+    sendPendingFeedback() = 0;
 
     STATIC_FACTORY_DEFINE(HARQInterface, wns::PyConfigViewCreator);
 };

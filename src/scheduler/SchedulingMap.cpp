@@ -157,6 +157,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
       nextPosition(0.0),
       scheduledCompounds(),
       userID(NULL),
+      sourceUserID(NULL),
       phyModePtr(),
       txPower(),
       estimatedCQI(),
@@ -173,6 +174,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(const PhysicalResourceBlock& other)
     nextPosition(other.nextPosition),
     scheduledCompounds(),
     userID(other.userID),
+    sourceUserID(other.sourceUserID),
     phyModePtr(other.phyModePtr),
     txPower(other.txPower),
     estimatedCQI(other.estimatedCQI),
@@ -279,6 +281,17 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
     { // master schedulers set this; slave schedulers get this already set.
         userID = _userID; // all compounds must have the same user; oneUserOnOneSubChannel = True ?
     }
+
+    if (predecessors>0) { // && oneUserOnOneSubChannel) {
+        wns::scheduler::UserID otherUserID = scheduledCompounds.begin()->sourceUserID;
+        assure(_sourceUserID==otherUserID,
+               "source user mismatch: "<<_sourceUserID.getName()<<" != "<<sourceUserID.getName());
+    }
+    if (!sourceUserID.isValid())
+    { // master schedulers set this; slave schedulers get this already set.
+        sourceUserID = _sourceUserID; // all compounds must have the same user; oneUserOnOneSubChannel = True ?
+    }
+
     assure((predecessors==0)||(phyModePtr == _phyModePtr),
            "phyModePtr mismatch: "<<*phyModePtr<<"!="<<*_phyModePtr);
     phyModePtr = _phyModePtr; // all compounds should have the same phyMode
@@ -460,6 +473,12 @@ PhysicalResourceBlock::getUserID() const
     //       "userID mismatch: userID="<<userID->getName());
     return userID;
     //return scheduledCompounds.begin()->userID;
+}
+
+wns::scheduler::UserID
+PhysicalResourceBlock::getSourceUserID() const
+{
+    return sourceUserID;
 }
 
 wns::Power
@@ -693,6 +712,18 @@ SchedulingTimeSlot::getUserID() const
         wns::scheduler::UserID userID = physicalResources[spatialIndex].getUserID();
         if (userID.isValid())
         	return userID;
+    }
+    return UserID();
+}
+
+wns::scheduler::UserID
+SchedulingTimeSlot::getSourceUserID() const
+{
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
+    {
+        wns::scheduler::UserID userID = physicalResources[spatialIndex].getSourceUserID();
+	if (userID.isValid())
+	  return userID;
     }
     return UserID();
 }

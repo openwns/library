@@ -63,7 +63,7 @@ UniformRandomDecoder::canDecode(const Container<wns::ldk::CompoundPtr>& c)
 
     for (int ii=0; ii < c.getNumRVs(); ++ii)
     {
-        numTransmissions += c.getEntriesForRV(ii).size();
+        numTransmissions += c.getEntriesForRV(0, ii).size();
     }
 
     double threshold = pow(initialPER_, numTransmissions * rolloffFactor_);

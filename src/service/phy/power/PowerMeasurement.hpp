@@ -67,6 +67,12 @@ namespace wns { namespace service { namespace phy { namespace power {
         virtual const wns::Power
         getOmniInterferencePower() const = 0;
 
+        /**
+         * @brief get (averaged) Interference of Thermal Noise Ratio
+         */
+        virtual const wns::Ratio
+        getIoT() const = 0;
+
         /** @brief get SINR for the received PDU */
         virtual const wns::Ratio
         getSINR() const = 0;
@@ -87,9 +93,17 @@ namespace wns { namespace service { namespace phy { namespace power {
         virtual const wns::Power
         getTxPower() const = 0;
 
-        /** @brief get total path loss from transmitter to receiver (includes FTfading) */
+        /** @brief get path loss from transmitter to receiver (does not include fading) */
         virtual const wns::Ratio
         getPathLoss() const = 0;
+
+        /** @brief get total loss from transmitter to receiver (including fading) */
+        virtual const wns::Ratio
+        getLoss() const = 0;
+
+        /** @brief dynamic fading for example FTFading (pathloss - fading = loss) */
+        virtual const wns::Ratio
+        getFading() const = 0;
 
         /** @brief get received signal strength (S+I) */
         virtual const wns::Power
