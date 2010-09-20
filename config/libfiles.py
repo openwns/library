@@ -832,6 +832,7 @@ hppFiles = [
 'src/evaluation/statistics/dlref.hpp',
 'src/evaluation/statistics/dlrep.hpp',
 'src/events/CanTimeout.hpp',
+'src/events/EventFactory.hpp',
 'src/events/NoOp.hpp',
 'src/events/MemberFunction.hpp',
 'src/events/PeriodicRealTimeout.hpp',
