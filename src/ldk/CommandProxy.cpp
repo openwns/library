@@ -299,7 +299,7 @@ CommandProxy::getNext(
 		if(*i == questioner->getPCIID())
 			break;
 	}
-	assure(i != commandPool->path.end(), "Questioner is not in path.");
+	assure(i != commandPool->path.end(), "Questioner is not in path. This could mean that you have included a FU on the receiver side but not on the sender side.");
 
 	// delegate up one level.
 	if(i == commandPool->path.begin())
