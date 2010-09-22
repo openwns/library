@@ -471,6 +471,7 @@ class SegmentingQueue(object):
     localIDs = None
     minimumSegmentSize = None # used to ask for resources of at least this size
     usePadding = False
+    isDropping = False
 
     def setLocalIDs(self, localIDs):
         self.localIDs = localIDs
@@ -492,5 +493,6 @@ class SegmentingQueue(object):
         #self.sizeProbeName = 'schedulerQueueSize'
         self.segmentHeaderFUName = segmentHeaderFUName
         self.segmentHeaderCommandName = segmentHeaderCommandName
+        self.isDropping = False
         attrsetter(self, kw) # new [rs]
 

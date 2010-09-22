@@ -108,6 +108,8 @@ namespace wns { namespace scheduler { namespace queue {
                 wns::scheduler::queue::QueueInterface::ProbeOutput 
                 resetQueue(wns::scheduler::ConnectionID cid);
 
+                void frameStarts();
+
                 /** @brief true if getHeadOfLinePDUSegment() is supported */
                 bool 
                 supportsDynamicSegmentation() const;

@@ -123,6 +123,11 @@ namespace wns { namespace scheduler { namespace queue {
                 virtual ProbeOutput resetQueues(UserID user) = 0;
 
                 /**
+                 * @brief May be called to signal that a frame starts
+                 */
+                virtual void frameStarts() = 0;
+
+                /**
                  * @brief
                  *
                  * Resets only the queue belonging to the given ConnectionID and all

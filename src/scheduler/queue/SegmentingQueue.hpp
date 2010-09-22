@@ -82,6 +82,8 @@ namespace wns { namespace scheduler { namespace queue {
                 ProbeOutput resetQueues(UserID user);
                 ProbeOutput resetQueue(ConnectionID cid);
 
+                void frameStarts();
+
                 /** @brief true if getHeadOfLinePDUSegment() is supported */
                 bool supportsDynamicSegmentation() const { return true; }
                 /** @brief get compound out and do segmentation into #bits (gross) */
@@ -129,6 +131,10 @@ namespace wns { namespace scheduler { namespace queue {
                 typedef std::map<ConnectionID, detail::InnerQueue> QueueContainer;
                 QueueContainer queues;
 
+                typedef std::map<ConnectionID, int> FixedOverheadContainer;
+
+                FixedOverheadContainer fixedOverhead;
+
                 struct Colleagues {
                     RegistryProxyInterface* registry;
                 } colleagues;
@@ -140,6 +146,8 @@ namespace wns { namespace scheduler { namespace queue {
                 bool usePadding;
 
                 bool byteAlignHeader;
+
+                bool isDropping;
             };
 
 

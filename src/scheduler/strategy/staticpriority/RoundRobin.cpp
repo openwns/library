@@ -60,7 +60,6 @@ void
 RoundRobin::initialize()
 {
     // make state
-    lastScheduledConnection = 0;
     MESSAGE_SINGLE(NORMAL, logger, "RoundRobin(): initialized");
 }
 
@@ -122,11 +121,13 @@ RoundRobin::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
         if (spaceLeft)
         {
-            lastScheduledConnection = currentConnection; // this one really had pdus scheduled
             currentConnection = getNextConnection(currentConnections,currentConnection);
             MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): next connection="<<currentConnection);
         }
     } // while(spaceLeft)
+
+    lastScheduledConnection = currentConnection; // this one really had pdus scheduled
+
     MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection="<<mapInfoCollection.getPtr()<<" of size="<<mapInfoCollection->size());
     return mapInfoCollection;
 } // doStartSubScheduling

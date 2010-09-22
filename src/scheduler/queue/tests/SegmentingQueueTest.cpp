@@ -438,6 +438,8 @@ SegmentingQueueTest::testSegmentConcatenate()
     CPPUNIT_ASSERT_EQUAL(Bit(0), commandSeg1->peer.paddingSize_);
     CPPUNIT_ASSERT_EQUAL((size_t)(2), commandSeg1->peer.pdus_.size());
 
+    testee_->frameStarts();
+
     // Second Segment 48
     // -----------------------------
     // |Fixed Header 16|Seg2PDU2 32|
@@ -457,6 +459,8 @@ SegmentingQueueTest::testSegmentConcatenate()
     CPPUNIT_ASSERT_EQUAL(Bit(0), commandSeg2->peer.paddingSize_);
     CPPUNIT_ASSERT_EQUAL((size_t)(1), commandSeg2->peer.pdus_.size());
 
+    testee_->frameStarts();
+
     // Third Segment 64
     // -----------------------------------------------------
     // |Fixed Header 16|Extension 8|Seg3PDU2 24|Seg1PDU3 16|
@@ -475,6 +479,8 @@ SegmentingQueueTest::testSegmentConcatenate()
     CPPUNIT_ASSERT_EQUAL(Bit(40), commandSeg3->peer.dataSize_);
     CPPUNIT_ASSERT_EQUAL(Bit(0), commandSeg3->peer.paddingSize_);
     CPPUNIT_ASSERT_EQUAL((size_t)(2), commandSeg3->peer.pdus_.size());
+
+    testee_->frameStarts();
 
     // Fourth Segment 48
     // ----------------------------------------
@@ -549,6 +555,8 @@ SegmentingQueueTest::testSegmentConcatenateByteAlign()
     CPPUNIT_ASSERT_EQUAL(Bit(24), commandSeg1->peer.headerSize_);
     CPPUNIT_ASSERT_EQUAL(Bit(24), commandSeg1->peer.dataSize_);
 
+    testee_->frameStarts();
+
     // Get the rest
     wns::ldk::CompoundPtr seg2 = testee_->getHeadOfLinePDUSegment(4, 512);
 
@@ -577,6 +585,9 @@ SegmentingQueueTest::testGetHeadOfLinePDUbits()
     testee_->put(compound3);
 
     wns::ldk::CompoundPtr seg3 = testee_->getHeadOfLinePDUSegment(4, 19);
+
+    testee_->frameStarts();
+
     //      ---------------------------------------------
     // Front|SegPDU1 13|PDU2 64                 |PDU3 32   |
     //      ---------------------------------------------
@@ -702,10 +713,12 @@ SegmentingQueueTest::testMultipleCIDs()
 
     wns::ldk::CompoundPtr seg2 = testee_->getHeadOfLinePDUSegment(17, 42);
 
+    // Now the queue should not include the fixed header
+    // we did not signal frameStart()
     queuedEffectiveBits = testee_->numBitsForCid(4);
-    CPPUNIT_ASSERT_EQUAL( Bit(13 + 64 + 32 + 16 + 2*8), queuedEffectiveBits);
+    CPPUNIT_ASSERT_EQUAL( Bit(13 + 64 + 32 + 2*8), queuedEffectiveBits);
     queuedEffectiveBits = testee_->numBitsForCid(17);
-    CPPUNIT_ASSERT_EQUAL( Bit(62 + 32 + 16 + 8), queuedEffectiveBits);
+    CPPUNIT_ASSERT_EQUAL( Bit(62 + 32 + 8), queuedEffectiveBits);
 
     SegmentingCommandStub* commandSeg1 = commandFU_->getCommand(seg1->getCommandPool());
     CPPUNIT_ASSERT_EQUAL((long) 0, commandSeg1->getSequenceNumber());

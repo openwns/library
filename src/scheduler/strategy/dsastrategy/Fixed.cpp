@@ -96,7 +96,11 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
     wns::scheduler::ConnectionSet::iterator it;
 
     for(it = conns.begin(); it != conns.end(); it++)
-        userIDs.insert(colleagues.registry->getUserForCID(*it));
+    {
+        wns::scheduler::UserID user = colleagues.registry->getUserForCID(*it);
+        if(!user.isBroadcast())   
+	        userIDs.insert(user);
+    }
 
     unsigned int numberOfUsers = userIDs.size();
     unsigned int numberOfResources = maxSubChannel * numberOfTimeSlots * maxSpatialLayers;
@@ -189,8 +193,27 @@ Fixed::getSubChannelWithDSA(RequestForResource& request,
 {
     MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(" << request.toString()<<")");
 
-    assure(resStart_.find(request.user.getNodeID()) != resStart_.end(),
-        "No resources for user " + request.user.getNodeID());
+    assure(request.user.isBroadcast() || resStart_.find(request.user.getNodeID()) != resStart_.end(),
+        "No resources for user " + request.user.getName());
+
+    // Give the broadcast channel the first resource
+    if(request.user.isBroadcast())
+    { 
+        assure(channelIsUsable(0, 
+                                0,
+                                0,
+                                request, 
+                                schedulerState, 
+                                schedulingMap), "First resource not available for broadcast");
+        MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): Granting resource: 0.0.0"
+            << " to " << request.toString());
+        DSAResult dsaResult;
+        dsaResult.subChannel = 0;
+        dsaResult.timeSlot = 0;
+        dsaResult.spatialLayer = 0;
+        return dsaResult;
+    }
+
     assure(resAmount_.find(request.user.getNodeID()) != resAmount_.end(),
         "Unknown resource amount for user " + request.user.getNodeID());
 

@@ -84,6 +84,8 @@ namespace wns { namespace scheduler { namespace queue {
                 ProbeOutput resetQueues(UserID user);
                 ProbeOutput resetQueue(ConnectionID cid);
 
+                void frameStarts() {};
+
                 /** @brief true if getHeadOfLinePDUSegment() is supported */
                 bool supportsDynamicSegmentation() const { return false; }
                 /** @brief get compound out and do segmentation into #bits (gross) */

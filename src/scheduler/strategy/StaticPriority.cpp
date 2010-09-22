@@ -115,6 +115,8 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
     MESSAGE_SINGLE(NORMAL, logger, "StaticPriority::doStartScheduling(frame="<<frameNr<<"):"
                    << " numberOfPriorities="<<numberOfPriorities);
 
+    colleagues.queue->frameStarts();
+
     // prepare result datastructure:
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
     StrategyResult strategyResult(schedulingMap,mapInfoCollection);

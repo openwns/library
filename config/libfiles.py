@@ -319,6 +319,7 @@ srcFiles = [
     'src/scheduler/strategy/apcstrategy/APCSlave.cpp',
     'src/scheduler/strategy/apcstrategy/FCFSMaxPhyMode.cpp',
     'src/scheduler/strategy/apcstrategy/FairSINR.cpp',
+    'src/scheduler/strategy/apcstrategy/LTE_UL.cpp',
     
     # the Queues
     'src/scheduler/queue/SimpleQueue.cpp',
@@ -1034,6 +1035,7 @@ hppFiles = [
 'src/scheduler/strategy/apcstrategy/APCSlave.hpp',
 'src/scheduler/strategy/apcstrategy/FCFSMaxPhyMode.hpp',
 'src/scheduler/strategy/apcstrategy/FairSINR.hpp',
+'src/scheduler/strategy/apcstrategy/LTE_UL.hpp',
 'src/scheduler/tests/ClassifierPolicyDropIn.hpp',
 'src/scheduler/tests/PhyModeMapperStub.hpp',
 'src/scheduler/tests/PhyModeStub.hpp',

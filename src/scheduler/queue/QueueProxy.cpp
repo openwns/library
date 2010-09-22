@@ -332,6 +332,11 @@ QueueProxy::resetQueue(wns::scheduler::ConnectionID cid)
     return colleagues.queueManager_->getQueue(cid)->resetQueue(cid);    
 }
 
+void
+QueueProxy::frameStarts()
+{
+}
+
 std::string
 QueueProxy::printAllQueues()
 {

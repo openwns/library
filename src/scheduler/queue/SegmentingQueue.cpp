@@ -50,7 +50,8 @@ SegmentingQueue::SegmentingQueue(wns::ldk::HasReceptorInterface*, const wns::pyc
       fixedHeaderSize(_config.get<Bit>("fixedHeaderSize")),
       extensionHeaderSize(_config.get<Bit>("extensionHeaderSize")),
       usePadding(_config.get<bool>("usePadding")),
-      byteAlignHeader(_config.get<bool>("byteAlignHeader"))
+      byteAlignHeader(_config.get<bool>("byteAlignHeader")),
+      isDropping(_config.get<bool>("isDropping"))
 {
 }
 
@@ -130,8 +131,18 @@ void
 SegmentingQueue::put(const wns::ldk::CompoundPtr& compound) {
     assure(compound, "No valid PDU");
     assure(compound != wns::ldk::CompoundPtr(), "No valid PDU" );
-    assure(isAccepting(compound),"sendData() has been called without isAccepting()");
     assure(colleagues.registry, "Need a registry as colleague, please set first");
+
+    bool accepting = isAccepting(compound);
+    if (isDropping && !accepting)
+    {
+        MESSAGE_SINGLE(VERBOSE, logger, "SegmentingQueue is not accepting. Dropping compound");
+        return;
+    }
+    else
+    {
+        assure(accepting, "sendData() has been called without isAccepting()");
+    }
 
     ConnectionID cid = colleagues.registry->getCIDforPDU(compound);
     Bit compoundLength = compound->getLengthInBits();
@@ -140,6 +151,11 @@ SegmentingQueue::put(const wns::ldk::CompoundPtr& compound) {
     // saves pdu and automatically create new queue if necessary
     // needs a 'map' to do so.
     queues[cid].put(compound);
+
+    if (fixedOverhead.find(cid) == fixedOverhead.end())
+    {
+        fixedOverhead[cid] = fixedHeaderSize;
+    }
 
     MESSAGE_SINGLE(NORMAL, logger, "SegmentingQueue::put(cid="<<cid<<"): after: bits="<<queues[cid].queuedNettoBits()<<"/"<<queues[cid].queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader)<<", PDUs="<<queues[cid].queuedCompounds());
 
@@ -206,7 +222,9 @@ SegmentingQueue::numBitsForCid(ConnectionID cid) const
      * properly. Currently fixedHeaderSize also applies for the ResourceMaps!
      * This must be fixed!
      */
-    return iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
+    assure(fixedOverhead.find(cid)!=fixedOverhead.end(), "Cannot find overhead entry for cid " << cid);
+    int overhead = fixedOverhead.find(cid)->second;
+    return iter->second.queuedBruttoBits(overhead, extensionHeaderSize, byteAlignHeader);
 } // numBitsForCid()
 
 // result is sorted per-cid
@@ -220,7 +238,9 @@ SegmentingQueue::getQueueStatus() const
     {
         ConnectionID cid = iter->first;
         QueueStatus queueStatus;
-        queueStatus.numOfBits      = iter->second.queuedBruttoBits(fixedHeaderSize,extensionHeaderSize, byteAlignHeader);
+        assure(fixedOverhead.find(cid)!=fixedOverhead.end(), "Cannot find overhead entry for cid " << cid);
+        int overhead = fixedOverhead.find(cid)->second;
+        queueStatus.numOfBits      = iter->second.queuedBruttoBits(overhead, extensionHeaderSize, byteAlignHeader);
         queueStatus.numOfCompounds = iter->second.queuedCompounds();
         result.insert(cid,queueStatus);
         MESSAGE_SINGLE(NORMAL, logger, "SegmentingQueue::getQueueStatus():"
@@ -257,18 +277,32 @@ SegmentingQueue::getHeadOfLinePDUSegment(ConnectionID cid, int requestedBits)
     assure(queueHasPDUs(cid), "getHeadOfLinePDUSegments(cid="<<cid<<",bits="<<requestedBits<<") called for CID without PDUs or non-existent CID");
 
     assure(segmentHeaderReader != NULL, "No valid segmentHeaderReader set! You need to call setFUN() first.");
+    assure(fixedOverhead.find(cid)!=fixedOverhead.end(), "Cannot find overhead entry for cid " << cid);
 
     wns::ldk::CompoundPtr segment;
-    try {
-        segment = queues[cid].retrieve(requestedBits, fixedHeaderSize, extensionHeaderSize, 
-            usePadding, byteAlignHeader, segmentHeaderReader, delayProbeBus, probeHeaderReader);
 
-        segmentHeaderReader->commitSizes(segment->getCommandPool());
+    int ov = fixedOverhead[cid];
 
-    } catch (detail::InnerQueue::RequestBelowMinimumSize e)
+    if (requestedBits <= ov)
     {
-        return wns::ldk::CompoundPtr();
+        ov = requestedBits - 1;
     }
+
+    segment = queues[cid].retrieve(requestedBits, ov, extensionHeaderSize, 
+        usePadding, byteAlignHeader, segmentHeaderReader, delayProbeBus, probeHeaderReader);
+
+    assure(segment != wns::ldk::CompoundPtr(), "Inner queue did not return a PDU");
+
+    // Clear this. The next request will not include a fixed header
+    // Will be reset in frameStarts()
+    fixedOverhead[cid] -= ov;
+    if (fixedOverhead[cid] < 0)
+    {
+        fixedOverhead[cid] = 0;
+    }
+
+    segmentHeaderReader->commitSizes(segment->getCommandPool());
+
     ISegmentationCommand* header = segmentHeaderReader->readCommand<ISegmentationCommand>(segment->getCommandPool());
 
     if (sizeProbeBus) {
@@ -360,6 +394,7 @@ SegmentingQueue::resetAllQueues()
     // and the refCounting mechanism of the CompoundPtr takes care of actually
     // deleting the compounds.
     queues.clear();
+    fixedOverhead.clear();
 
     return probeOutput;
 }
@@ -393,6 +428,19 @@ SegmentingQueue::resetQueues(UserID _user)
         else
             ++iter;
     }
+    for (FixedOverheadContainer::iterator iter = fixedOverhead.begin(); iter != fixedOverhead.end(); )
+    {
+        ConnectionID cid = iter->first;
+        UserID user = colleagues.registry->getUserForCID(cid);
+        if (user == _user)
+        {
+            ConnectionID cid = iter->first;
+            fixedOverhead.erase(iter++);
+        }
+        else
+            ++iter;
+    }
+
     return probeOutput;
 }
 
@@ -412,9 +460,21 @@ SegmentingQueue::resetQueue(ConnectionID cid)
     int numRemoved =
 #endif
         queues.erase(cid);
+    fixedOverhead.erase(cid);
     assure(numRemoved == 1, "Non-existing or too many queues with that CID");
 
     return probeOutput;
+}
+
+void
+SegmentingQueue::frameStarts()
+{
+    MESSAGE_SINGLE(NORMAL, logger, "frameStarts(): resetting fixed header flags");
+
+    for (FixedOverheadContainer::iterator it=fixedOverhead.begin(); it!=fixedOverhead.end(); ++it)
+    {
+        it->second = fixedHeaderSize;
+    }
 }
 
 std::string

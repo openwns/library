@@ -83,3 +83,16 @@ class FairSINR(APCStrategy):
         self.fair_sinrdl = fairsinrdl
         self.fair_sinrul = fairsinrul
 
+class LTE_UL(APCStrategy):
+    requiresCQI = False
+    alpha = 1.0
+    pNull = "-106 dBm"
+    maxInterference = "-200 dBm"
+    sinrMargin = "0.0 dB"
+    minimumPhyMode = 0
+
+    def __init__(self, **kw):
+        self.nameInAPCStrategyFactory = "LTE_UL"
+        super(LTE_UL,self).__init__(**kw)
+
+
