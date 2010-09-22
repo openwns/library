@@ -264,9 +264,9 @@ SACSegmentingQueueIntegrationTest::testIncomingTwoSegments()
 
     CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
 
-    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 28);
+    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 12);
 
-    CPPUNIT_ASSERT_EQUAL((Bit) 28, c->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((Bit) 12, c->getLengthInBits());
 
     lower_->onData(c);
 
@@ -297,25 +297,25 @@ SACSegmentingQueueIntegrationTest::testIncomingFourSegments()
 
     CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
 
-    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 22);
+    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 6);
 
-    CPPUNIT_ASSERT_EQUAL((Bit) 22, c->getLengthInBits());
-
-    lower_->onData(c);
-
-    CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
-
-    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 22);
-
-    CPPUNIT_ASSERT_EQUAL((Bit) 22, c->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((Bit) 6, c->getLengthInBits());
 
     lower_->onData(c);
 
     CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
 
-    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 22);
+    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 6);
 
-    CPPUNIT_ASSERT_EQUAL((Bit) 22, c->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((Bit) 6, c->getLengthInBits());
+
+    lower_->onData(c);
+
+    CPPUNIT_ASSERT_EQUAL((size_t) 0, upper_->received.size());
+
+    c = segmentingQueue_->getHeadOfLinePDUSegment(1, 6);
+
+    CPPUNIT_ASSERT_EQUAL((Bit) 6, c->getLengthInBits());
 
     lower_->onData(c);
 
@@ -342,11 +342,13 @@ SACSegmentingQueueIntegrationTest::testIncomingFourSegments()
   126 which is the complete 70 bits of PDU A and 32 bits of PDU B with
   a fixed header and an extension header.
 
-  Now we ask for the next 126 bits and get (16 + 48) + (8 + 54) = 126
-  which is the remaining 48 bits of PDU B and the first 54 bits of PDU C
+  Since we did not give the frameStart() trigger it is assumed that
+  the fixed header is included in the transport block and therfore if we
+  now ask for the next 126 bits and get (48) + (8 + 70) = 126
+  which is the remaining 48 bits of PDU B and the first 70 bits of PDU C
   again with a fixed header and an extension header.
 
-  Now we ask for the next 126 bits and get (16 + 36) + (8 + 50) = 110
+  Now we ask for the next 126 bits and get (20) + (8 + 50) = 78
   bits which is the rest of PDU C and the complete PDU D of only 50 bits
   again with a fixed header and an extension header.
 
@@ -420,7 +422,7 @@ SACSegmentingQueueIntegrationTest::testFirstSegmentLost()
 
     // now at t=0.002, third segement arrives
     wns::ldk::CompoundPtr segment3 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
-    CPPUNIT_ASSERT_EQUAL((Bit) 110, segment3->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((Bit) 78, segment3->getLengthInBits());
     lower_->onData(segment3);
 
     // make sure queue is empty:
@@ -470,7 +472,7 @@ SACSegmentingQueueIntegrationTest::testSecondSegmentLost()
 
     // now at t=0.002, third segement arrives
     wns::ldk::CompoundPtr segment3 = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
-    CPPUNIT_ASSERT_EQUAL((Bit) 110, segment3->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((Bit) 78, segment3->getLengthInBits());
     lower_->onData(segment3);
 
     // as segment 2 was lost, only SDU A should have arrived until tReorder expires
@@ -520,7 +522,7 @@ SACSegmentingQueueIntegrationTest::testThirdSegmentLost()
 
     // now at t=0.002, third segement gets lost
     wns::ldk::CompoundPtr lost = segmentingQueue_->getHeadOfLinePDUSegment(1, 126);
-    CPPUNIT_ASSERT_EQUAL((Bit) 110, lost->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((Bit) 78, lost->getLengthInBits());
 
     // as segment 3 was lost, no tReorder timer was started
     CPPUNIT_ASSERT_EQUAL((size_t) 2, upper_->received.size());
@@ -586,7 +588,7 @@ SACSegmentingQueueIntegrationTest::testClearingTReordering()
 
     // now at t=0.018, we get a fifth segment which contains the rest of C and all D
     wns::ldk::CompoundPtr segment5 = segmentingQueue_->getHeadOfLinePDUSegment(1, 128);
-    CPPUNIT_ASSERT_EQUAL((Bit) 128, segment5->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL((Bit) 64, segment5->getLengthInBits());
     lower_->onData(segment5);
 
     // this should start t-reordering again, which should expire 0.015s later::

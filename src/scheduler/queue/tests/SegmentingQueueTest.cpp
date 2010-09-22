@@ -172,7 +172,6 @@ class SegmentingQueueTest:
     CPPUNIT_TEST( testGetHeadOfLinePDUbits );
     CPPUNIT_TEST( testNumBitsForCid );
     CPPUNIT_TEST( testQueueStatus );
-    CPPUNIT_TEST( testBelowMinimumSegmentSizeReturnNoPDU );
     CPPUNIT_TEST( testMultipleCIDs );
     CPPUNIT_TEST_SUITE_END();
 
@@ -216,9 +215,6 @@ public:
 
     void
     testQueueStatus();
-
-    void
-    testBelowMinimumSegmentSizeReturnNoPDU();
 
     void
     testMultipleCIDs();
@@ -650,28 +646,6 @@ SegmentingQueueTest::testQueueStatus()
     CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(112 + 16 + 2*8), qstat.find(4).numOfBits);
 
     CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(3), qstat.find(4).numOfCompounds);
-}
-
-void
-SegmentingQueueTest::testBelowMinimumSegmentSizeReturnNoPDU()
-{
-    latePrepare();
-    //      ---------------------------------------------
-    // Front|PDU1 16|PDU2 64                 |PDU3 32   |
-    //      ---------------------------------------------
-    wns::ldk::CompoundPtr compound1(CREATECOMPOUND(fun_, 16));
-    SETCID(compound1, 4);
-    testee_->put(compound1);
-    wns::ldk::CompoundPtr compound2(CREATECOMPOUND(fun_, 64));
-    SETCID(compound2, 4);
-    testee_->put(compound2);
-    wns::ldk::CompoundPtr compound3(CREATECOMPOUND(fun_, 32));
-    SETCID(compound3, 4);
-    testee_->put(compound3);
-
-    wns::ldk::CompoundPtr sdu = testee_->getHeadOfLinePDUSegment(4, 2);
-
-    CPPUNIT_ASSERT_EQUAL(wns::ldk::CompoundPtr(), sdu);
 }
 
 void
