@@ -345,12 +345,13 @@ SACSegmentingQueueIntegrationTest::testIncomingFourSegments()
   Since we did not give the frameStart() trigger it is assumed that
   the fixed header is included in the transport block and therfore if we
   now ask for the next 126 bits and get (48) + (8 + 70) = 126
-  which is the remaining 48 bits of PDU B and the first 70 bits of PDU C
-  again with a fixed header and an extension header.
+  which is the remaining 48 bits of PDU B and the first 70 bits of PDU C.
+  There is no fixed header, but an extension header indicating the
+  start of PDU C.
 
   Now we ask for the next 126 bits and get (20) + (8 + 50) = 78
   bits which is the rest of PDU C and the complete PDU D of only 50 bits
-  again with a fixed header and an extension header.
+  again only with an extension header.
 
 
  Segment 1    Segment 2      Segment 3
