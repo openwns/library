@@ -46,7 +46,8 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(RoundRobin,
 
 RoundRobin::RoundRobin(const wns::pyconfig::View& config)
     : SubStrategy(config),
-      blockSize(config.get<int>("blockSize"))
+      blockSize(config.get<int>("blockSize")),
+      lastScheduledConnection(0)
 {
     assure(blockSize>0,"invalid blockSize="<<blockSize);
     MESSAGE_SINGLE(NORMAL, logger, "RoundRobin(): constructed with blockSize="<<blockSize);
