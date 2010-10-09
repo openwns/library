@@ -140,12 +140,13 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
     {
         // (grouping alternative: do grouping within each priority; do be discussed; but seems to be less useful)
         if (subStrategies[priority] == NULL) continue;
+        bool usesHARQ = subStrategies[priority]->usesHARQ();
         schedulerState->currentState->setCurrentPriority(priority);
         MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): now scheduling priority=" << priority);
         // get all registered connections for the current priority
         ConnectionSet allConnections = colleagues.registry->getConnectionsForPriority(priority); // all
         MESSAGE_SINGLE(NORMAL, logger, "allConnections      = "<<printConnectionSet(allConnections));
-        ConnectionSet reachableConnections = colleagues.registry->filterReachable(allConnections,frameNr);
+        ConnectionSet reachableConnections = colleagues.registry->filterReachable(allConnections, frameNr, usesHARQ);
         MESSAGE_SINGLE(NORMAL, logger, "reachableConnections= "<<printConnectionSet(reachableConnections));
         // don't filter out unqueued cids since the subStrategy may want to update the state for every cid
         //ConnectionSet activeConnections = colleagues.queue->filterQueuedCids(reachableConnections);

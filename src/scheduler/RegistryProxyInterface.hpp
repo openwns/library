@@ -170,7 +170,7 @@ namespace wns { namespace scheduler {
              * be reached in the given frame
              */
             virtual wns::scheduler::ConnectionSet
-            filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr) = 0;
+            filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr, bool usesHARQ) = 0;
 
             /** @brief get the ChannelsQualities (CQI) on all the subbands of the user.
                 Eventually for a future frameNr (prediction). */

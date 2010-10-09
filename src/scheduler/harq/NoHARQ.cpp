@@ -94,6 +94,17 @@ NoHARQ::getNumberOfRetransmissions(wns::scheduler::UserID, int processID)
     return numberOfRetransmissions;
 }
 
+bool
+NoHARQ::hasFreeSenderProcess(wns::scheduler::UserID peer)
+{
+    return true;
+}
+
+bool
+NoHARQ::hasFreeReceiverProcess(wns::scheduler::UserID peer)
+{
+    return true;
+}
 
 wns::scheduler::SchedulingTimeSlotPtr
 NoHARQ::getNextRetransmission(wns::scheduler::UserID, int processID)

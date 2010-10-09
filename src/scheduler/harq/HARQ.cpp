@@ -457,6 +457,26 @@ HARQ::getNumberOfPeerRetransmissions(wns::scheduler::UserID peer, int processID)
     return 0;
 }
 
+bool
+HARQ::hasFreeSenderProcess(wns::scheduler::UserID peer)
+{
+    if(harqEntities_.knows(peer))
+    {
+        return harqEntities_.find(peer)->hasCapacity(0);
+    }
+    return true;
+}
+
+bool
+HARQ::hasFreeReceiverProcess(wns::scheduler::UserID peer)
+{
+    if (harqEntities_.knows(peer))
+    {
+        return harqEntities_.find(peer)->hasReceiverCapacity();
+    }
+    return true;
+}
+
 void
 HARQ::schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID)
 {
@@ -562,6 +582,27 @@ HARQEntity::hasCapacity(long int transportBlockID)
         }
     }
     return false;
+}
+
+bool
+HARQEntity::hasReceiverCapacity()
+{
+    int count = 0;
+    for (int ii=0; ii < numReceiverProcesses_; ++ii)
+    {
+        // Any of my send processes idle?
+        if (!receiverProcesses_[ii].isFree())
+        {
+            count++;
+        }
+    }
+
+    if (count > 7)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 void
@@ -918,6 +959,12 @@ HARQReceiverProcess::schedulingTimeSlot() const
 {
     assure(false, "Need to fix this,i.e. the decoding");
     return wns::scheduler::SchedulingTimeSlotPtr();
+}
+
+bool
+HARQReceiverProcess::isFree() const
+{
+    return (receptionBuffer_.getAvailablePosInTB().size() == 0);
 }
 
 HARQSenderProcess::HARQSenderProcess(HARQEntity* entity, int processID, int numRVs, int retransmissionLimit, wns::logger::Logger logger):

@@ -75,6 +75,9 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
                     virtual MapInfoCollectionPtr
                     doStartSubScheduling(SchedulerStatePtr schedulerState,
                                          wns::scheduler::SchedulingMapPtr schedulingMap) = 0;
+
+                    virtual bool
+                    usesHARQ() = 0;
                 };
 
                 typedef wns::PyConfigViewCreator<SubStrategyInterface, SubStrategyInterface> SubStrategyCreator;

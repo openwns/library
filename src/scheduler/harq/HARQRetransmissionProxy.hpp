@@ -96,6 +96,12 @@ namespace wns { namespace scheduler { namespace harq {
         virtual int
 	getNumberOfRetransmissions(wns::scheduler::UserID, int processID);
 
+        virtual bool
+        hasFreeSenderProcess(wns::scheduler::UserID peer);
+
+        virtual bool
+        hasFreeReceiverProcess(wns::scheduler::UserID peer);
+
         /**
          * @brief Disabled in HARQRetransmissionProxy
          */

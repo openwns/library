@@ -170,3 +170,9 @@ SubStrategy::scheduleCid(SchedulerStatePtr schedulerState,
     MESSAGE_SINGLE(NORMAL, logger, "scheduleCid(CID="<<cid<<" of "<<userID.getName()<<"): next PDU on next subChannel...?");
     return true; // true means success
 } // scheduleCid
+
+bool
+SubStrategy::usesHARQ()
+{
+    return useHARQ;
+}

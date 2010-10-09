@@ -68,6 +68,9 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 			    MapInfoCollectionPtr mapInfoCollection // result
 			    );
 
+        virtual bool
+        usesHARQ();
+
 	protected:
 		wns::logger::Logger logger;
 		struct Colleagues {

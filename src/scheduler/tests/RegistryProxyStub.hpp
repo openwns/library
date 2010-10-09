@@ -67,7 +67,7 @@ namespace wns { namespace scheduler { namespace tests {
                 wns::service::dll::StationType getStationType(const UserID user);
                 UserSet filterReachable(UserSet users); // soon obsolete
                 UserSet filterReachable(UserSet users, const int frameNr);
-                wns::scheduler::ConnectionSet filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr);
+                wns::scheduler::ConnectionSet filterReachable(wns::scheduler::ConnectionSet connections, const int frameNr, bool useHARQ);
                 wns::scheduler::PowerMap calcULResources(const wns::scheduler::UserSet&, unsigned long int) const;
                 wns::scheduler::UserSet getActiveULUsers() const;
                 int getTotalNumberOfUsers(const wns::scheduler::UserID user);

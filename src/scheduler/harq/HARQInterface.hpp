@@ -81,6 +81,12 @@ public:
     virtual int
     getNumberOfRetransmissions(wns::scheduler::UserID, int processID) = 0;
 
+    virtual bool
+    hasFreeSenderProcess(wns::scheduler::UserID peer) = 0;
+
+    virtual bool
+    hasFreeReceiverProcess(wns::scheduler::UserID peer) = 0;
+
     /**
      * @brief Returns the next HARQ Retransmission block and removes it from
      * the pending retransmission list.

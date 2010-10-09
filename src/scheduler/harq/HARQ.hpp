@@ -166,6 +166,9 @@ public:
     wns::scheduler::SchedulingTimeSlotPtr
     schedulingTimeSlot() const;
 
+    bool
+    isFree() const;
+
 private:
 
     void
@@ -296,6 +299,9 @@ public:
     bool
     hasRetransmissions();
 
+    bool
+    hasReceiverCapacity();
+
     /**
      * @brief Returns the next HARQ Retransmission block and removes it from
      * the pending retransmission list.
@@ -392,6 +398,12 @@ public:
      */
     virtual int
     getNumberOfRetransmissions(wns::scheduler::UserID, int processID);
+
+    virtual bool
+    hasFreeSenderProcess(wns::scheduler::UserID peer);
+
+    virtual bool
+    hasFreeReceiverProcess(wns::scheduler::UserID peer);
 
     /**
      * @brief Returns the next HARQ Retransmission block and removes it from

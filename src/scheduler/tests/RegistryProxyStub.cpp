@@ -215,7 +215,7 @@ RegistryProxyStub::filterReachable(UserSet users, const int frameNr)
 }
 
 ConnectionSet
-RegistryProxyStub::filterReachable(ConnectionSet connections, const int frameNr)
+RegistryProxyStub::filterReachable(ConnectionSet connections, const int frameNr, bool useHARQ)
 {
 	return connections;
 }

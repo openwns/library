@@ -58,6 +58,12 @@ public:
     virtual int
     getNumberOfRetransmissions(wns::scheduler::UserID, int processID);
 
+    virtual bool
+    hasFreeSenderProcess(wns::scheduler::UserID peer);
+
+    virtual bool
+    hasFreeReceiverProcess(wns::scheduler::UserID peer);
+
     virtual wns::scheduler::SchedulingTimeSlotPtr
     getNextRetransmission(wns::scheduler::UserID user, int processID);
 

@@ -126,6 +126,19 @@ HARQRetransmissionProxy::getNumberOfRetransmissions(wns::scheduler::UserID, int 
     assure(false, "This is only a proxy. You cannot call getNumberOfRetransmissions. You're in uplink dude!");
 }
 
+bool
+HARQRetransmissionProxy::hasFreeSenderProcess(wns::scheduler::UserID peer)
+{
+    assure(false, "This is only a proxy. You cannot call hasFreeSenderProcesses. You're in uplink dude!");
+    return true;
+}
+
+bool
+HARQRetransmissionProxy::hasFreeReceiverProcess(wns::scheduler::UserID peer)
+{
+    return downlinkHARQ_->hasFreeReceiverProcess(peer);
+}
+
 wns::scheduler::SchedulingTimeSlotPtr
 HARQRetransmissionProxy::getNextRetransmission(wns::scheduler::UserID user, int processID)
 {

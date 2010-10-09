@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 # This file is part of openWNS (open Wireless Network Simulator)
 # _____________________________________________________________________________
@@ -62,8 +63,8 @@ class HARQ(openwns.StaticFactoryClass):
     """
     def __init__(self, parentLogger=None):
         openwns.StaticFactoryClass.__init__(self, "harq")
-        self.numSenderProcesses = 500
-        self.numReceiverProcesses = 500
+        self.numSenderProcesses = 8
+        self.numReceiverProcesses = 16 # Problems with decode timing, should also be 8
         self.numRVs = 1
         self.retransmissionLimit = 3
         self.harqEntity = HARQEntity(parentLogger)
