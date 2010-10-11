@@ -26,6 +26,7 @@
 ###############################################################################
 
 import inspect
+import warnings
 
 def abstractmethod(functionObject):
     """ This is the abstractmethod Decorator. Use it to declare an abstract method. Example:
@@ -43,9 +44,12 @@ class Interface(object):
     The Interface class will check if all abstract methods are implemented during construction of
     your object. Make sure to call the constructor of Interface!"""
     def __new__(cls, *args, **kwargs):
-       # Find all abstract methods for this object and check if they are implemented
-       # Otherwise raise a type error
-       obj = object.__new__(cls, *args, **kwargs)
+       with warnings.catch_warnings():
+           warnings.simplefilter("ignore")
+
+           # Find all abstract methods for this object and check if they are implemented
+           # Otherwise raise a type error
+           obj = object.__new__(cls, *args, **kwargs)
        for methodname in dir(obj):
            method = getattr(obj, methodname, None)
            if not callable(method):

@@ -26,13 +26,16 @@
 ###############################################################################
 
 import types
+import warnings
 
 class OnlyImmutableAttributes(object):
     def __new__(cls, *args, **kw):
         for name in dir(cls):
             cls.__test(cls, name)
 
-        return super(OnlyImmutableAttributes, cls).__new__(cls, *args, **kw)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return super(OnlyImmutableAttributes, cls).__new__(cls, *args, **kw)
 
     @staticmethod
     def __test(cls, name):
