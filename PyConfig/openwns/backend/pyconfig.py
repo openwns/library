@@ -33,9 +33,13 @@ class OnlyImmutableAttributes(object):
         for name in dir(cls):
             cls.__test(cls, name)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            return super(OnlyImmutableAttributes, cls).__new__(cls, *args, **kw)
+        oldfilters = warnings.filters[:]
+        warnings.simplefilter('ignore')
+
+        r = super(OnlyImmutableAttributes, cls).__new__(cls, *args, **kw)    
+
+        warnings.filters[:] = oldfilters
+        return r
 
     @staticmethod
     def __test(cls, name):
