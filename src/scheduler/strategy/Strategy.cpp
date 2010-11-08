@@ -353,16 +353,20 @@ Strategy::startScheduling(const StrategyInput& strategyInput)
             allUsers = colleagues.queue->getQueuedUsers();
             UserSet activeUsers = colleagues.registry->filterReachable(allUsers, strategyInput.getFrameNr());
             if ( schedulerState->isTx ) // transmitter grouping
+            {
+                MESSAGE_SINGLE(NORMAL, logger, "StartScheduling(): get TxGrouping");
                 sdmaGrouping = colleagues.grouper->getTxGroupingPtr(activeUsers, strategyInput.maxSpatialLayers);
-            else // receiver grouping
-                sdmaGrouping = colleagues.grouper->getRxGroupingPtr(activeUsers, strategyInput.maxSpatialLayers);
+            } else {// receiver grouping
+               MESSAGE_SINGLE(NORMAL, logger, "StartScheduling(): get RxGrouping");
+               sdmaGrouping = colleagues.grouper->getRxGroupingPtr(activeUsers, strategyInput.maxSpatialLayers);
+            }
             schedulerState->currentState->setGrouping(sdmaGrouping);
             assure(schedulerState->currentState->getGrouping() == sdmaGrouping,"invalid grouping");
             // ^ otherwise we have to set it here.
-            MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): Number of Groups = " << sdmaGrouping->groups.size());
-            MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): grouping.getDebugOutput = " << sdmaGrouping->getDebugOutput());
+            MESSAGE_SINGLE(NORMAL, logger, "StartScheduling(): Number of Groups = " << sdmaGrouping->groups.size());
+            MESSAGE_SINGLE(NORMAL, logger, "StartScheduling(): grouping.getDebugOutput = " << sdmaGrouping->getDebugOutput());
         } else {
-            MESSAGE_SINGLE(VERBOSE, logger, "doStartScheduling(): no grouping required.");
+            MESSAGE_SINGLE(VERBOSE, logger, "StartScheduling(): no grouping required.");
         }
     } else { // slave scheduling
         // two ways of master input:
