@@ -102,7 +102,7 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
         lastUsedTimeSlot = numberOfTimeSlots;
     }
     assure(subChannel<maxSubChannel,"invalid subChannel="<<subChannel);
-    MESSAGE_SINGLE(NORMAL, logger, "###321 A0 getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel<<" maxSpatialLayer: "<<maxSpatialLayers<<" numberOfTimeSlots: "<<numberOfTimeSlots<<" maxSubchannels: "<<maxSubChannel);
+    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel<<" maxSpatialLayer: "<<maxSpatialLayers<<" numberOfTimeSlots: "<<numberOfTimeSlots<<" maxSubchannels: "<<maxSubChannel);
     bool found  = false;
     bool giveUp = false;
     while(!found && !giveUp) {

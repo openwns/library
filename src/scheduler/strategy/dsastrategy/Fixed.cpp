@@ -36,12 +36,12 @@ using namespace wns::scheduler::strategy::dsastrategy;
 bool 
 FreqFirst::operator()(DSAResult a, DSAResult b) const
 {
-    if(a.spatialLayer != b.spatialLayer)
+    /*if(a.spatialLayer != b.spatialLayer)
     {
         return a.spatialLayer < b.spatialLayer;
     }
     else
-    {
+    {*/
         if(a.timeSlot != b.timeSlot)
         {
             return a.timeSlot < b.timeSlot;
@@ -50,7 +50,7 @@ FreqFirst::operator()(DSAResult a, DSAResult b) const
         {
             return a.subChannel < b.subChannel;
         }
-    }
+    //}
 }
 
 
@@ -81,59 +81,93 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
 
     int numberOfPriorities = colleagues.registry->getNumberOfPriorities();
 
-    wns::scheduler::ConnectionSet conns;
-    for(int prio = 0; prio < numberOfPriorities; prio++)
-    {
-        wns::scheduler::ConnectionSet c = 
-            colleagues.registry->getConnectionsForPriority(prio);
+    std::set<wns::scheduler::UserID> userIDs;
+    unsigned int numberOfUsers = 0;
+    unsigned int numberOfResources = maxSubChannel * numberOfTimeSlots;// * maxSpatialLayers;
+    sortedResources_.clear();
+    spatialLayer_.clear();
+    resAmount_.clear();
+    resStart_.clear();
 
+    bool sdma = maxSpatialLayers > 1 && schedulerState->currentState->strategyInput->beamforming;
+    GroupingPtr grouping = schedulerState->currentState->getGrouping();
+    if (sdma && grouping != GroupingPtr()) 
+    {
+        //with SDMA resources are equally shared between groups
+        numberOfUsers = grouping->groups.size();
+        MESSAGE_SINGLE(NORMAL, logger, "initialize: Distributing " 
+            << numberOfUsers << " users on " << numberOfResources << " resources."
+            << " isDL.isTx: "<<schedulerState->isDL<<"."<<schedulerState->isTx);
+        for (unsigned int i = 0; i < grouping->groups.size(); ++i) 
+        {
+            int spatialLayer = 0;
+            for (Group::iterator iter = grouping->groups[i].begin(); iter != grouping->groups[i].end(); ++iter)
+            {
+                wns::scheduler::UserID user = (*iter).first;
+                userIDs.insert(user);
+                spatialLayer_[user.getNodeID()] = spatialLayer;
+                    ++spatialLayer;
+            }
+       }
+       MESSAGE_SINGLE(NORMAL, logger, "initialize: Distributing " 
+            << numberOfUsers << " groups on " << numberOfResources << " resources."
+            << " isDL.isTx: "<<schedulerState->isDL<<"."<<schedulerState->isTx<<" ;with users "<<userIDs.size());
+    } else {
+        wns::scheduler::ConnectionSet conns;
+        for(int prio = 0; prio < numberOfPriorities; prio++)
+        {
+            wns::scheduler::ConnectionSet c = 
+                colleagues.registry->getConnectionsForPriority(prio);
+
+            wns::scheduler::ConnectionSet::iterator it;
+            for(it = c.begin(); it != c.end(); it++)
+                conns.insert(*it);
+        }
+        
         wns::scheduler::ConnectionSet::iterator it;
-        for(it = c.begin(); it != c.end(); it++)
-            conns.insert(*it);
+
+        for(it = conns.begin(); it != conns.end(); it++)
+        {
+            wns::scheduler::UserID user = colleagues.registry->getUserForCID(*it);
+            if(!user.isBroadcast())
+            {
+                    userIDs.insert(user);
+                    spatialLayer_[user.getNodeID()] = 0;
+            }
+        }
+        numberOfUsers = userIDs.size();
+        MESSAGE_SINGLE(NORMAL, logger, "initialize: Distributing " 
+            << numberOfUsers << " users on " << numberOfResources << " resources."
+            << " isDL.isTx: "<<schedulerState->isDL<<"."<<schedulerState->isTx);
     }
     
-    std::set<wns::scheduler::UserID> userIDs;
-    wns::scheduler::ConnectionSet::iterator it;
-
-    for(it = conns.begin(); it != conns.end(); it++)
-    {
-        wns::scheduler::UserID user = colleagues.registry->getUserForCID(*it);
-        if(!user.isBroadcast())   
-	        userIDs.insert(user);
-    }
-
-    unsigned int numberOfUsers = userIDs.size();
-    unsigned int numberOfResources = maxSubChannel * numberOfTimeSlots * maxSpatialLayers;
-
-    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA: Distributing " 
-        << numberOfUsers << " users on " << numberOfResources << " resources.");
-
     if(numberOfUsers == 0)
         return;
+    
 
     for(int i = 0; i < maxSubChannel; i++)
     {
         for(int j = 0; j < numberOfTimeSlots; j++)
         {
-            for(int k = 0; k < maxSpatialLayers; k++)
-            {
+            //for(int k = 0; k < maxSpatialLayers; k++)
+            //{
                 DSAResult res;
                 res.subChannel = i;
                 res.timeSlot = j;
-                res.spatialLayer = k;
+                //res.spatialLayer = k;
                 sortedResources_.insert(res);
-            }
+            //}
         } 
     }
-
+    
     int usersMore = numberOfResources % numberOfUsers;
     int usersLess = numberOfUsers - usersMore;
     int resourcesMore = int(numberOfResources / numberOfUsers) + 1;
     int resourcesLess = int(numberOfResources / numberOfUsers);
 
-    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA: " 
-        << usersLess << " users get " << resourcesLess << ", "
-        << usersMore << " users get " << resourcesMore << " resources");
+    MESSAGE_SINGLE(NORMAL, logger, "initialize: " 
+        << usersLess << " users/groups get " << resourcesLess << ", "
+        << usersMore << " users/groups get " << resourcesMore << " resources");
 
     assure(resourcesLess > 0, "Not enough resources for all users");
     assure(usersMore * resourcesMore + usersLess * resourcesLess == numberOfResources,
@@ -142,42 +176,43 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
     std::set<wns::scheduler::UserID>::iterator uIt;
     std::set<DSAResult, FreqFirst>::iterator itr;
     int plus = 0;
+    //with SDMA user corresponds to group
     int user = 0;
     int counter = 0;
     uIt = userIDs.begin();
 
-    // Resources for first UserID
-    resStart_[(*uIt).getNodeID()] = sortedResources_.begin();
-    resAmount_[(*uIt).getNodeID()] = resourcesLess;
-
-    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA: User " 
-        << (*uIt).getNodeID() << " starts at " 
-        << sortedResources_.begin()->subChannel << "."
-        << sortedResources_.begin()->timeSlot << "."
-        << sortedResources_.begin()->spatialLayer
-        << " and gets " << resourcesLess << " resources");
-
-    uIt++;
-    
     for(itr = sortedResources_.begin(); itr != sortedResources_.end(); itr++)
     {
-        if(counter == resourcesLess + plus)
+        if(counter == resourcesLess + plus|| itr == sortedResources_.begin())
         {
             resStart_[(*uIt).getNodeID()] = itr;
             resAmount_[(*uIt).getNodeID()] = resourcesLess + plus;
 
-            MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA: User " 
+            MESSAGE_SINGLE(NORMAL, logger, "initialize: User " 
                 << (*uIt).getNodeID() << " starts at " 
                 << itr->subChannel << "."
                 << itr->timeSlot << "."
-                << itr->spatialLayer
+                << spatialLayer_[(*uIt).getNodeID()]
                 << " and gets " << resourcesLess + plus << " resources");
 
             counter = 0;
             uIt++;
             user++;
+            //user of the same group have the same resources seperated by spatialLayers
+            while (uIt != userIDs.end() && (spatialLayer_[(*uIt).getNodeID()] != 0))
+            { 
+                resStart_[(*uIt).getNodeID()] = itr;
+                resAmount_[(*uIt).getNodeID()] == resourcesLess + plus;
+                MESSAGE_SINGLE(NORMAL, logger, "initialize: User " 
+                << (*uIt).getNodeID() << " starts at " 
+                << itr->subChannel << "."
+                << itr->timeSlot << "."
+                << spatialLayer_[(*uIt).getNodeID()]
+                << " and gets " << resourcesLess + plus << " resources");
+                uIt++;
+            }
         }
-        if(plus == 0 && user == usersLess - 1)
+        if(plus == 0 && user == usersLess)
         {
             plus++;
             counter++;
@@ -191,8 +226,9 @@ Fixed::getSubChannelWithDSA(RequestForResource& request,
                                    SchedulerStatePtr schedulerState,
                                    SchedulingMapPtr schedulingMap)
 {
-    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(" << request.toString()<<")");
-
+    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(" <<request.toString()
+    <<" isDL.isTx : "<<"."<<schedulerState->isDL<<"."<<schedulerState->isTx<<")");
+    
     assure(request.user.isBroadcast() || resStart_.find(request.user.getNodeID()) != resStart_.end(),
         "No resources for user " + request.user.getName());
 
@@ -226,7 +262,7 @@ Fixed::getSubChannelWithDSA(RequestForResource& request,
         i++;
         found = channelIsUsable(it->subChannel, 
                                 it->timeSlot,
-                                it->spatialLayer,
+                                spatialLayer_[request.user.getNodeID()],
                                 request, 
                                 schedulerState, 
                                 schedulingMap);
@@ -243,7 +279,7 @@ Fixed::getSubChannelWithDSA(RequestForResource& request,
         it--;
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): Granting resource: "
             << it->subChannel << "." << it->timeSlot << "." 
-            << it->spatialLayer << " to " << request.toString());
+            << spatialLayer_[request.user.getNodeID()]<< " to " << request.toString());
         return *it;
     }
 } // getSubChannelWithDSA

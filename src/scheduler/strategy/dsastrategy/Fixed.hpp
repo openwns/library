@@ -69,6 +69,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
         std::set<DSAResult, FreqFirst> sortedResources_;
         std::map<unsigned int, std::set<DSAResult>::iterator > resStart_;
         std::map<unsigned int, int > resAmount_;
+        std::map<unsigned int, int> spatialLayer_;
     };
 
 }}}} // namespace wns::scheduler::strategy::dsastrategy
