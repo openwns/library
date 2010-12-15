@@ -105,6 +105,8 @@ namespace wns { namespace geometry {
 
 		bool
 		operator!=(const Point& other) const;
+        
+        bool operator<(const Point& other) const;
 
 		friend std::ostream&
 		operator<<(std::ostream& str, const Point& point)

@@ -947,6 +947,12 @@ hppFiles = [
 'src/service/phy/ofdma/Measurements.hpp',
 'src/service/phy/ofdma/Notification.hpp',
 'src/service/phy/ofdma/Pattern.hpp',
+
+'src/service/phy/imta/ChannelStateInfo.hpp',
+'src/service/phy/imta/DataReception.hpp',
+'src/service/phy/imta/DataTransmission.hpp',
+'src/service/phy/imta/IMTAphyObserver.hpp',
+
 'src/service/phy/phymode/MI2PERInterface.hpp',
 'src/service/phy/phymode/PhyModeInterface.hpp',
 'src/service/phy/phymode/PhyModeMapperInterface.hpp',
