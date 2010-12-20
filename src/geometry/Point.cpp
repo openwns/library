@@ -196,6 +196,19 @@ operator<<(std::ostream &str, const Point& p)
 bool
 Point::operator<(const Point& other) const
 {
-    return get()[0] < other.get()[0] && get()[1] < other.get()[1] && get()[2] < other.get()[2];
+	// This is a valid definition of a comparision criterion that achieves
+	// "strict weak ordering" as needed by the STL:
+
+    return (get()[0] < other.get()[0]) ||
+		   ((get()[0] == other.get()[0]) && (get()[1] < other.get()[1]) ||
+		    ((get()[1] == other.get()[1]) && get()[2] < other.get()[2]));
+
+
+// Alternative using boost tuples:
+
+//#include <boost/tuple/tuple.hpp>
+//#include <boost/tuple/tuple_comparison.hpp>
+
+//	return boost::tie(get()[0], get()[1], get()[2]) < boost::tie(other.get()[0], other.get()[1], other.get()[2]);
 }
 

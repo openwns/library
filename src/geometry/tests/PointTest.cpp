@@ -28,8 +28,13 @@
 #include <WNS/geometry/Point.hpp>
 #include <WNS/geometry/Vector.hpp>
 #include <WNS/CppUnit.hpp>
+#include <WNS/distribution/Uniform.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>
+
+#include <algorithm>
+#include <map>
+#include <vector>
 
 #include <cmath>
 #include <stdexcept>
@@ -59,6 +64,7 @@ namespace wns { namespace geometry { namespace tests {
 		CPPUNIT_TEST_EXCEPTION( setNegativeX, std::out_of_range );
 		CPPUNIT_TEST_EXCEPTION( setNegativeY, std::out_of_range );
 		CPPUNIT_TEST_EXCEPTION( setNegativeZ, std::out_of_range );
+        CPPUNIT_TEST( testPointAsKey );
 		CPPUNIT_TEST_SUITE_END();
 
 	public:
@@ -78,6 +84,7 @@ namespace wns { namespace geometry { namespace tests {
 		void setNegativeX();
 		void setNegativeY();
 		void setNegativeZ();
+        void testPointAsKey();
 
 	private:
 		Point p1;
@@ -218,6 +225,42 @@ namespace wns { namespace geometry { namespace tests {
 		CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.5, polar.getY(), 1E-5 );
 		CPPUNIT_ASSERT_DOUBLES_EQUAL( sqrt(2.0)/2, polar.getZ(), 1E-5 );
 	}
+
+    void PointTest::testPointAsKey()
+    {
+        int size = 100000;
+        std::map<wns::geometry::Point, int> pointMap;
+        std::vector<wns::geometry::Point> pointVector;
+        std::vector<int> indices;
+
+        wns::distribution::Uniform dis = wns::distribution::Uniform(0.0, 1000.0, wns::simulator::getRNG());
+
+        indices.resize(size);
+        pointVector.resize(size);
+
+        // create set containing random points and remember them
+        for (int i = 0; i < size; i++)
+        {
+             wns::geometry::Point p(dis(), dis(), dis());
+             pointVector[i] = p;
+             indices[i] = i;
+             pointMap[p] = i;
+        }
+
+        // check that these random points can be found afterwards
+        for (int i = size - 1; i >= 0; i--)
+        {
+            CPPUNIT_ASSERT(pointMap[pointVector[i]] == i);
+        }
+
+        // even when searched for in a different order
+        std::random_shuffle(indices.begin(), indices.end());
+        for (int i = 0; i < size; i++)
+        {
+            CPPUNIT_ASSERT(pointMap[pointVector[indices[i]]] == indices[i]);
+        }
+    }
+
 } // tests
 } // geometry
 } // wns
