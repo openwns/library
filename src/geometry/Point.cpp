@@ -27,7 +27,6 @@
 
 #include <WNS/Position.hpp>
 #include <stdexcept>
-#include <tr1/tuple>
 
 using namespace std;
 using namespace wns::geometry;
@@ -197,7 +196,6 @@ operator<<(std::ostream &str, const Point& p)
 bool
 Point::operator<(const Point& other) const
 {
-    using std::tr1::tie;
-    return tie(get()[0], get()[1], get()[2]) < tie(other.get()[0], other.get()[1], other.get()[2]);
+    return get()[0] < other.get()[0] && get()[1] < other.get()[1] && get()[2] < other.get()[2];
 }
 
