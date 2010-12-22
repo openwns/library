@@ -84,6 +84,27 @@ class Fixed(DSAStrategy):
         self.nameInDSAStrategyFactory = "Fixed"
         super(Fixed,self).__init__(**kw)
 
+#Position aware Fixed equal share DSA
+class NearbyFirst(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInDSAStrategyFactory = "NearbyFirst"
+        super(NearbyFirst,self).__init__(**kw)
+
+#Position aware Fixed equal share DSA
+class FarFirst(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInDSAStrategyFactory = "FarFirst"
+        super(FarFirst,self).__init__(**kw)
+
+#DSA with interference estimation for each Slot
+class HighCwithHighI(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInDSAStrategyFactory = "HighCwithHighI"
+        super(HighCwithHighI,self).__init__(**kw)
+
 # CQI-aware subchannel assignment
 class BestChannel(DSAStrategy):
     requiresCQI = True
