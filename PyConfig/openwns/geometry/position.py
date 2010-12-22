@@ -70,7 +70,7 @@ class Vector:
         return math.sqrt(self.x*self.x+self.y*self.y)
     def turn2D(self,angle): # 0 <= angle <= 2.0*math.pi
         """ turn right by given angle. Return result """
-        angle = angle - self.angle2D()
+        angle = angle + self.angle2D()
         length = self.length()
         return Vector(length*math.cos(angle),length*math.sin(angle),self.z)
     def toPosition(self):
