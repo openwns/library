@@ -147,7 +147,7 @@ RevolvingState::sdmaGroupingIsValid() const
 GroupingPtr
 RevolvingState::getGrouping() const
 {
-    assure(grouping!=GroupingPtr(),"invalid grouping");
+    //assure(grouping!=GroupingPtr(),"invalid grouping");
     return grouping;
 }
 

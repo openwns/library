@@ -92,8 +92,17 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
     int maxSubChannel = schedulerState->currentState->strategyInput->getFChannels();
     int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
     int maxSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
+    //with SDMA recheck used resource blocks for additional beams before occuping free resources
+    if (maxSpatialLayers>1) //beamforming == True && isValidGrouping == True
+    {
+        subChannel = 0;
+        timeSlot = 0;
+        spatialLayer = 0;
+        lastUsedSubChannel = maxSubChannel;
+        lastUsedTimeSlot = numberOfTimeSlots;
+    }
     assure(subChannel<maxSubChannel,"invalid subChannel="<<subChannel);
-    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel);
+    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA("<<request.toString()<<"): lastSC="<<lastUsedSubChannel<<" maxSpatialLayer: "<<maxSpatialLayers<<" numberOfTimeSlots: "<<numberOfTimeSlots<<" maxSubchannels: "<<maxSubChannel);
     bool found  = false;
     bool giveUp = false;
     while(!found && !giveUp) {
@@ -122,7 +131,7 @@ LinearFFirst::getSubChannelWithDSA(RequestForResource& request,
         MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): no free subchannel");
         return dsaResult; // empty with subChannel=DSAsubChannelNotFound
     } else {
-        MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel<<"."<<spatialLayer);
+        MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): (subChannel.timeSlot.spatialLayer) = ("<<timeSlot<<"."<<subChannel<<"."<<spatialLayer<<")");
         lastUsedSubChannel = subChannel;
         lastUsedTimeSlot = timeSlot;
         lastUsedBeam = spatialLayer;

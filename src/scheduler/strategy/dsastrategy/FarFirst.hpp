@@ -25,21 +25,15 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_FIXED_HPP
-#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_FIXED_HPP
+#ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_FARFIRST_HPP
+#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_FARFIRST_HPP
 
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategy.hpp>
-#include <vector>
+#include <WNS/scheduler/strategy/dsastrategy/Fixed.hpp>
+#include <functional>
+#include <WNS/Positionable.hpp>
 
 namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy {
-                
-    class FreqFirst
-    {
-        public:
-            bool 
-            operator()(DSAResult a, DSAResult b) const;
-    };
-
 
     /** @brief DSA startegy equally distributing available resources between users.
         If there are n resources and m users: m1 = n mod m users get floor(n/m) + 1 resources,
@@ -49,12 +43,12 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
         TODO: Make it configurable in which order time, frequency and space domain are used
         for resource sorting.
     */
-    class Fixed : public DSAStrategy
+    class FarFirst : public DSAStrategy
     {
     public:
-        Fixed(const wns::pyconfig::View& config);
+        FarFirst(const wns::pyconfig::View& config);
 
-        ~Fixed();
+        ~FarFirst();
 
         virtual void initialize(SchedulerStatePtr schedulerState,
                                 SchedulingMapPtr schedulingMap);
@@ -66,11 +60,15 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
 
         bool requiresCQI() const { return false; };
     private:
-        std::set<DSAResult, FreqFirst> sortedResources_;
-        std::map<unsigned int, std::set<DSAResult>::iterator > resStart_;
-        std::map<unsigned int, int > resAmount_;
-        std::map<unsigned int, int> spatialLayer_;
+		std::set<DSAResult, FreqFirst> sortedResources_;
+
+        //map<Entfernung der SS von ihrer BS, Start der fuer die SS zugew. Ressourcen>
+		std::map<double, std::set<DSAResult>::iterator, std::greater<double> > resStart_;
+
+        //map<Entfernung der SS von ihrer BS, Groeße der fuer die SS zugew. Ressourcen>
+        std::map<double, int, std::greater<double> > resAmount_;
+
     };
 
 }}}} // namespace wns::scheduler::strategy::dsastrategy
-#endif // WNS_SCHEDULER_DSASTRATEGY_FIXED_HPP
+#endif // WNS_SCHEDULER_DSASTRATEGY_FARFIRST_HPP

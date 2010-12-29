@@ -129,6 +129,17 @@ DSAStrategy::getSpatialLayerForSubChannel(int subChannel,
 		// an empty subChannel can always be used:
 		if (!prbDescriptor.hasScheduledCompounds())
 	        {
+                //check the grouping constraints:
+                    //other user in the first spatial layer is the same group and not the same user 
+                    if (schedulerState->currentState->sdmaGroupingIsValid() && (spatialLayer != 0))
+                    {
+                        PhysicalResourceBlock& firstPrb = schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[0];
+                        UserID otherUser = firstPrb.getUserID();
+                        GroupingPtr grouping = schedulerState->currentState->getGrouping();
+                        if ((grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user]) 
+                                || (otherUser == request.user))
+                        { continue; }
+                    }
                     return spatialLayer;
                 }
 		// now we are sure that the subChannel is used by at least one packet
@@ -137,7 +148,7 @@ DSAStrategy::getSpatialLayerForSubChannel(int subChannel,
 		{	// checking the first packet is sufficient:
             UserID otherUser = prbDescriptor.getUserIDOfScheduledCompounds();
 			if (otherUser != request.user)
-				return spatialLayer;
+				continue;
 		}
 		// check if the PhyMode is already fixed:
 		wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
@@ -246,8 +257,13 @@ DSAStrategy::channelIsUsable(int subChannel,
 	assure(spatialLayer>=0,"need a valid spatialLayer");
 	assure(spatialLayer<schedulerState->currentState->strategyInput->getMaxSpatialLayers(),"invalid spatialLayer="<<spatialLayer);
         if(schedulerState->currentState->groupingIsValid())
+        {
             assure(oneUserOnOneSubChannel, "oneUserOnOneSubChannel required for beamforming/SDMA");
-	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable) return false; // locked sc?
+        }
+        if (!schedulingMap->subChannels[subChannel].subChannelIsUsable)
+        {
+            return false; // locked sc?
+        }
 	// TODO: should we introduce
 	// bool allBeamsUsedByOneUserOnly
 	PhysicalResourceBlock& prbDescriptor =
@@ -292,16 +308,20 @@ DSAStrategy::channelIsUsable(int subChannel,
                                     GroupingPtr grouping = schedulerState->currentState->getGrouping();
                                     if ((grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user]) 
                                             || (otherUser == request.user))
-                                    { return false; }
+                                    {
+                                        MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): grouping constraints not met myUser= "<<request.user.getName()<<", other="<<otherUser.getName()<<" => unusable" );
+                                        return false; 
+                                    }
+                                    MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): grouping constraints met myUser: "<<request.user.getName()<<", other="<<otherUser.getName()<<" => isusable" );
                                 }
-				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used (excluding SDMA)");
+				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used (with SDMA: grouping constraints statisfied)");
 				return true;
 			}
-            // We cannot add data to a block that is already protected by HARQ
-            if (prbDescriptor.isHARQEnabled())
-            {
-                return false;
-            }
+                        // We cannot add data to a block that is already protected by HARQ
+                        if (prbDescriptor.isHARQEnabled())
+                        {
+                            return false;
+                        }
 
 			// now we are sure that the subChannel is used by at least one packet
 			if (otherUser != request.user)

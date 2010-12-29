@@ -138,8 +138,6 @@ namespace wns { namespace scheduler {
                 /** @brief if groupingRequired() this contains the result of the grouper */
                 GroupingPtr grouping;
 
-                // TODO ?: std::map<UserID, wns::service::phy::ofdma::PatternPtr> patterns,
-
                 /** @brief within staticPriority strategy this is the current priority */
                 int currentPriority;
             }; // class RevolvingState

@@ -127,6 +127,7 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
     if (groupingRequired() && !colleagues.queue->isEmpty()) // only if (maxSpatialLayers>1)
     {
         // set grouping into result output (needed later to set antennaPatterns)
+        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): write grouping in strategyResult");
         strategyResult.sdmaGrouping =  schedulerState->currentState->getGrouping();
     } 
     //if ( !activeUsers.empty() ) { // NO! go into all subStrategies anytime
