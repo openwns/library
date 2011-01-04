@@ -129,7 +129,9 @@ namespace wns { namespace simulator {
      * @brief Access the one and only SignalHandler via:
      * wns::simulator::GlobalSignalHandler::getInstance()
      */
-    typedef wns::SingletonHolder<wns::simulator::SignalHandler> GlobalSignalHandler;
+    typedef wns::SingletonHolder<wns::simulator::SignalHandler, 
+            wns::DefaultCreation,
+            wns::AtApplicationExit> GlobalSignalHandler;
 
 } // namespace simulator
 } // namespace wns

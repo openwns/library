@@ -31,8 +31,27 @@
 #include <assert.h>
 #include <cstdlib>
 #include <WNS/NonCopyable.hpp>
+#include <WNS/simulator/ISimulator.hpp>
 
 namespace wns {
+
+    struct AtSimulatorExit
+    {
+        static void
+		scheduleDestruction(void (*functionPtr)())
+		{
+            wns::simulator::getShutdownSignal()->connect(functionPtr);
+		}
+    };
+
+    struct AtApplicationExit
+    {
+        static void
+		scheduleDestruction(void (*functionPtr)())
+		{
+            std::atexit(functionPtr);
+		}
+    };
 
 	template <class T>
 	struct DefaultCreation
@@ -68,7 +87,9 @@ namespace wns {
 	 * @brief Singleton holder to assure that only one instance of the
 	 * desired type may exist.
 	 */
-	template<class T, template <class> class CreationPolicy = DefaultCreation>
+	template<class T, 
+        template <class> class CreationPolicy = DefaultCreation, 
+        class DestructTimePolicy = AtSimulatorExit>
 	class SingletonHolder :
 		private NonCopyable
 	{
@@ -86,8 +107,7 @@ namespace wns {
 				Static::instance = CreationPolicy<T>::create();
 				Static::destroyed = false;
 
-				scheduleDestruction(
-					Static::instance, &destroySingleton );
+				DestructTimePolicy::scheduleDestruction(&destroySingleton);
 			}
 
 			assert(Static::destroyed == false); // using a destroyed singleton
@@ -126,15 +146,6 @@ namespace wns {
 			CreationPolicy<T>::destroy(Static::instance);
 			Static::instance = NULL;
 			Static::destroyed = true;
-		}
-		/**
-		 * @brief Registers the destroySingleton() method by the
-		 * std::atexit().
-		 */
-		static void
-		scheduleDestruction( T*, void (*functionPtr)() )
-		{
-			std::atexit(functionPtr);
 		}
 
 		/**
