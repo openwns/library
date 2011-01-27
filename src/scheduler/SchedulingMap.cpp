@@ -65,6 +65,7 @@ SchedulingCompound::SchedulingCompound(const SchedulingCompound& other):
     compoundPtr(),
     phyModePtr(other.phyModePtr),
     txPower(other.txPower),
+    pattern(other.pattern),
     estimatedCQI(other.estimatedCQI),
     harqEnabled(other.harqEnabled)
 {
@@ -823,6 +824,17 @@ SchedulingTimeSlot::hasResourcesForUser(wns::scheduler::UserID user) const
     return false;
 }
 
+wns::scheduler::ChannelQualityOnOneSubChannel
+SchedulingTimeSlot::getEstimatedCQI(wns::scheduler::UserID user) const
+{
+    assure(hasResourcesForUser(user),"TimeSlot has not resources for user");
+    for(int spatialIndex=0; spatialIndex<numSpatialLayers; spatialIndex++)
+    {
+        if (physicalResources[spatialIndex].hasResourcesForUser(user))
+            return physicalResources[spatialIndex].getEstimatedCQI();
+    }
+}
+
 int
 SchedulingTimeSlot::getNetBlockSizeInBits() const
 {
@@ -1010,6 +1022,16 @@ bool SchedulingSubChannel::hasResourcesForUser(wns::scheduler::UserID user) cons
     return false;
 }
 
+wns::scheduler::ChannelQualityOnOneSubChannel
+SchedulingSubChannel::getEstimatedCQI(wns::scheduler::UserID user) const
+{
+    assure(hasResourcesForUser(user), "SubChannel has not resources for this user");
+    for ( int timeSlotIndex = 0; timeSlotIndex < numberOfTimeSlots; ++timeSlotIndex )
+    {
+        if (temporalResources[timeSlotIndex]->hasResourcesForUser(user))
+            return temporalResources[timeSlotIndex]->getEstimatedCQI(user);
+    }
+}
 /**************************************************************/
 
 SchedulingMap::SchedulingMap( simTimeType _slotLength, int _numberOfSubChannels, int _numberOfTimeSlots, int _numSpatialLayers, int _frameNr )
@@ -1361,6 +1383,18 @@ SchedulingMap::hasResourcesForUser(wns::scheduler::UserID user) const
             return true;
     }
     return false;
+}
+
+wns::scheduler::ChannelQualityOnOneSubChannel
+SchedulingMap::getEstimatedCQI(wns::scheduler::UserID user) const
+{
+    assure(hasResourcesForUser(user), "SchedulingMap has not resources for user");
+    for ( int subChannelIndex = 0; subChannelIndex < numberOfSubChannels; ++subChannelIndex )
+    {
+        if (subChannels[subChannelIndex].hasResourcesForUser(user))
+            return subChannels[subChannelIndex].getEstimatedCQI(user);
+    }
+
 }
 
 // toString(): human-readable format (incuding resourceUsage)

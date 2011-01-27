@@ -763,13 +763,20 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     resultMapInfoEntry->txPower    = txPower; // apcResult.txPower;
     resultMapInfoEntry->phyModePtr = request.phyModePtr; // = apcResult.phyModePtr
     resultMapInfoEntry->estimatedCQI = cqiOnSubChannel; 
-    // Set antennaPattern according to grouping result
+   
+    // Set antennaPattern etc. according to grouping result
     if (groupingRequired()) {
         assure(schedulerState->currentState->getGrouping() != GroupingPtr(),"invalid grouping");
         wns::service::phy::ofdma::PatternPtr antennaPattern = schedulerState->currentState->getGrouping()->patterns[request.user];
-        //Group currentGroup = schedulerState->currentState->grouping->groups[currentGroupIndex?];
-        //wns::CandI estimatedCandI = currentGroup[request.user];
-        //assure(estimatedCandI==apcResult.estimatedCandI,"estimatedCandI mismatch");
+        int groupIndex = schedulerState->currentState->getGrouping()->userGroupNumber[request.user] - 1;
+        assure(groupIndex <= schedulerState->currentState->getGrouping()->groups.size(), "invalid group index");
+        Group currentGroup = schedulerState->currentState->getGrouping()->groups[groupIndex];
+        estimatedCandI = currentGroup[request.user];
+        resultMapInfoEntry->estimatedCQI.carrier = estimatedCandI.C;
+        resultMapInfoEntry->estimatedCQI.interference = estimatedCandI.I;
+        resultMapInfoEntry->estimatedCQI.pathloss = estimatedCandI.PL;
+        resultMapInfoEntry->estimatedCQI.sdma.iIntra = estimatedCandI.sdma.iIntra;
+        assure(antennaPattern != wns::service::phy::ofdma::PatternPtr(),"invalid pattern");
         resultMapInfoEntry->pattern = antennaPattern;
     }
     // else:

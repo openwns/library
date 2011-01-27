@@ -380,7 +380,7 @@ namespace wns { namespace scheduler {
             /** @brief determine the length in bits stored in this resource */
             int getNetBlockSizeInBits() const;
             bool isHARQEnabled() const;
-
+            wns::scheduler::ChannelQualityOnOneSubChannel getEstimatedCQI(wns::scheduler::UserID user) const;
         public:
             /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
             PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
@@ -464,6 +464,7 @@ namespace wns { namespace scheduler {
             /** @brief checks if there are UL resources available for given user */
             bool hasResourcesForUser(wns::scheduler::UserID user) const;
 
+            wns::scheduler::ChannelQualityOnOneSubChannel getEstimatedCQI(wns::scheduler::UserID user) const;
         public:
             /** @brief my own subChannelIndex as seen from outside (container) */
             int subChannelIndex;
@@ -630,6 +631,7 @@ namespace wns { namespace scheduler {
         public:
             /** @brief collection of all subChannels */
             SubChannelVector subChannels;
+            wns::scheduler::ChannelQualityOnOneSubChannel getEstimatedCQI(wns::scheduler::UserID user) const;
         private:
             /** @brief index of the frame this map is for (system dependent) */
             int frameNr;

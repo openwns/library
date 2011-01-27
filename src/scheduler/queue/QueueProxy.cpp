@@ -99,7 +99,7 @@ QueueProxy::getQueuedUsers() const
 
     QueueContainer queues = colleagues.queueManager_->getAllQueues();    
 
-    QueueContainer::iterator it;
+    QueueContainer::const_iterator it;
     for(it = queues.begin(); it != queues.end(); it++)
     {
         startCollectionIfNeeded(it->first);

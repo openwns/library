@@ -374,7 +374,12 @@ class SINRHeuristic(Treebased):
     def __init__(self, **kw):
         super(SINRHeuristic,self).__init__(**kw)
         self.nameInGrouperFactory = "SINRHeuristic"
-
+        
+class GreedyGrouper(Grouper):
+    def __init__(self, **kw):
+        super(GreedyGrouper,self).__init__(**kw)
+        self.nameInGrouperFactory = "GreedyGrouper"
+        
 class DoAGrouper(Treebased):
     minAngleDegree = None
     weight = None
