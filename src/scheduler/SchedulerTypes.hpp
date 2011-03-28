@@ -471,15 +471,18 @@ namespace wns { namespace scheduler {
                 interference(),
                 carrier()
             {
+                 sdma.iIntra = wns::Power();
             }
 
-            ChannelQualityOnOneSubChannel(wns::Ratio _pathloss,  
+            ChannelQualityOnOneSubChannel(wns::Ratio _pathloss, 
                                         wns::Power _interference, 
-                                        wns::Power _carrier):
+                                        wns::Power _carrier,
+                                        wns::Power _iIntra = wns::Power::from_mW(0.0)):
                 pathloss(_pathloss),
                 interference(_interference),
                 carrier(_carrier)
             {
+                sdma.iIntra = _iIntra;
             }
 
             /** @brief measured RxPower */
@@ -488,6 +491,10 @@ namespace wns { namespace scheduler {
             wns::Ratio pathloss;
             /** @brief measured (I + N) */
             wns::Power interference;
+            struct {
+                // estimated intra-cell interference
+                wns::Power iIntra;
+            } sdma;
         }; // ChannelQualityOnOneSubChannel
 
         //typedef std::vector<ChannelQualityOnOneSubChannel> ChannelsQualitiesOnAllSubBand; // index is real(OFDMA) subchannel number

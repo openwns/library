@@ -106,7 +106,7 @@ DSASlave::getSubChannelWithDSA(RequestForResource& request,
                 }
             }
         }
-        if (subChannel==lastUsedSubChannel && timeSlot == lastUsedTimeSlot)
+        if (subChannel==lastUsedSubChannel && timeSlot == lastUsedTimeSlot && spatialLayer == lastUsedBeam)
         { // one complete round already done
             giveUp=true; break;
         }
