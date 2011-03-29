@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/strategy/staticpriority/HARQUplinkRetransmission.hpp>
+#include <WNS/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp>
 
 using namespace wns::scheduler::strategy::staticpriority;
 
@@ -99,6 +100,9 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     for(user = us.begin(); user!=us.end(); ++user)
     {
+        RequestForResource request(0,*user, 0, 0, true);
+        dsastrategy::DSAResult resource;
+
         MESSAGE_SINGLE(NORMAL, logger, "HARQUplinkRetransmission(): Trying uplink retransmission for user " << user->getName());
 
         int processToSchedule = colleagues.harq->getPeerProcessesWithRetransmissions(*user).front();
@@ -122,13 +126,14 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
         while ( (numRetransmissionsForUser > 0) && (numAvailable > 0) )
         {
-            double random = randomDist();
-            int sc = subchannels[int(random*numAvailable)];
-            int numberOfSpatialLayers = schedulingMap->subChannels[sc].temporalResources[0]->numSpatialLayers;
+            resource = colleagues.strategy->getDSAStrategy()->getSubChannelWithDSA(request, schedulerState, schedulingMap);
+            int sc = resource.subChannel;
+            int ts = resource.timeSlot;
+            int numberOfSpatialLayers = schedulingMap->subChannels[sc].temporalResources[ts]->numSpatialLayers;
             for ( int spatialIndex = 0; spatialIndex < numberOfSpatialLayers; ++spatialIndex )
             { // only for MIMO. For SISO simply spatialIndex=0
                 PhysicalResourceBlock& prbDescriptor =
-                    schedulingMap->subChannels[sc].temporalResources[0]->physicalResources[spatialIndex];
+                    schedulingMap->subChannels[sc].temporalResources[ts]->physicalResources[spatialIndex];
 
                 if (prbDescriptor.hasScheduledCompounds())
                 {
@@ -144,8 +149,8 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                     prbDescriptor.grantFullResources();
 
                     // Set flag so slave strategy can find TimeSlotPtrs for HARQ Retransmissions
-                    schedulingMap->subChannels[sc].temporalResources[0]->harq.reservedForRetransmission = true;
-                    schedulingMap->subChannels[sc].temporalResources[0]->harq.processID = processToSchedule;
+                    schedulingMap->subChannels[sc].temporalResources[ts]->harq.reservedForRetransmission = true;
+                    schedulingMap->subChannels[sc].temporalResources[ts]->harq.processID = processToSchedule;
                     numRetransmissionsForUser--;
                 }
             }

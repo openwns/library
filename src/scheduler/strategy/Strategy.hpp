@@ -143,6 +143,9 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief helper method to support the old scheduler strategies. */
                 virtual void clearMap();
 
+                virtual dsastrategy::DSAStrategyInterface*
+                getDSAStrategy(){return colleagues.dsafbstrategy;};
+
             protected:
 
                 /** @brief The strategies need a new state. */
