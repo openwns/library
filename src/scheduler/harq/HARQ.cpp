@@ -858,7 +858,7 @@ HARQReceiverProcess::decode()
             ts = receptionBuffer_.getEntriesForRV(*it, 0).front().timeSlot_;
             ts->harq.successfullyDecoded = true;
             tmp.push_back(HARQInterface::DecodeStatusContainerEntry(ts,
-                                                                    HARQInterface::TimeSlotInfo(wns::service::phy::power::PowerMeasurementPtr(), 0.0, 0)
+                                                                    HARQInterface::TimeSlotInfo(wns::service::phy::power::PowerMeasurementPtr(), 0)
                                                                     ));
         }
 

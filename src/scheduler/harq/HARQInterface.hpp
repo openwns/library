@@ -41,14 +41,12 @@ public:
     class TimeSlotInfo
     {
     public:
-        TimeSlotInfo(wns::service::phy::power::PowerMeasurementPtr pwrm, double distance, int sc):
+        TimeSlotInfo(wns::service::phy::power::PowerMeasurementPtr pwrm, int sc):
             powerMeasurement_(pwrm),
-            distance_(distance_),
             sc_(sc)
         {}
 
         wns::service::phy::power::PowerMeasurementPtr powerMeasurement_;
-        double distance_;
         int sc_;
     };
 

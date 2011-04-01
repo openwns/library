@@ -105,6 +105,10 @@ namespace wns { namespace service { namespace phy { namespace power {
         virtual const wns::Ratio
         getFading() const = 0;
 
+        /** @brief get distance between sender and receiver */
+        virtual const double
+        getDistance() const = 0;
+
         /** @brief get received signal strength (S+I) */
         virtual const wns::Power
         getRSS() const = 0;
