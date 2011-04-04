@@ -217,31 +217,3 @@ StrategyResult::getResourceUsage() const
     return schedulingMap->getResourceUsage();
 }
 
-/**************************************************************/
-
-/* old interface (wrapper to support; soon obsolete) */
-// perform master scheduling
-void
-StrategyInterface::startScheduling(int fChannels,
-                                   //int numberOfTimeSlots,
-                                   int maxSpatialLayers,
-                                   double slotLength,
-                                   CallBackInterface* parent)
-{
-    int numberOfTimeSlots=1; // old strategies don't support (more) numberOfTimeSlots
-    StrategyInput strategyInput(fChannels, slotLength, numberOfTimeSlots, maxSpatialLayers, MapInfoEntryPtr(), parent);
-    startScheduling(strategyInput);
-}
-
-// perform slave scheduling
-void
-StrategyInterface::startScheduling(MapInfoEntryPtr burst,
-                                   CallBackInterface* parent)
-{
-    double slotLength = burst->end - burst->start;
-    StrategyInput strategyInput(1, slotLength, 1, 1, burst, parent);
-    startScheduling(strategyInput);
-}
-
-
-

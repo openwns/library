@@ -137,11 +137,8 @@ namespace wns { namespace scheduler { namespace strategy {
 
                 /** @brief get scheduling result. For sending Maps. Called from MapHandler.
                     The caller must do colleagues.strategy->clearMap() afterwards.
-                    Used by WinProSt. */
+                    Used by LTE. */
                 MapInfoCollectionPtr getMapInfo() const;
-
-                /** @brief helper method to support the old scheduler strategies. */
-                virtual void clearMap();
 
                 virtual dsastrategy::DSAStrategyInterface*
                 getDSAStrategy(){return colleagues.dsafbstrategy;};
@@ -166,10 +163,6 @@ namespace wns { namespace scheduler { namespace strategy {
                 virtual StrategyResult
                 startScheduling(const StrategyInput& StrategyInput);
 
-                /** @brief determines how moch power is still available assuming that the total transmit power can be freely distributed onto the subChannels. */
-                //virtual wns::Power
-                //getRemainingTxPower(SchedulingMapPtr schedulingMap) const;
-
                 /** @brief return decision of the Link Adaptation algorithm or
                  * the fixed, predefined phymode */
                 virtual wns::service::phy::phymode::PhyModeInterfacePtr
@@ -193,111 +186,19 @@ namespace wns { namespace scheduler { namespace strategy {
                     wns::service::phy::ofdma::BFInterface* ofdmaProvider;
                 } friends;
 
-                //wns::scheduler::PowerCapabilities txPowerCapabilities;
-
-                /** @brief PyConfig Attribute:
-                    flag to determine whether the strategy is a PowerControl Slave */
-                //bool powerControlSlave; // parameter from Python
-
-                /** @brief there are three positions for the scheduler... */
-                //PowerControlType powerControlType;
-
-                /** @brief from friends.ofdmaProvider */
-                //bool eirpLimited;
-
                 /** @brief Python Config View */
                 wns::pyconfig::View pyConfig;
                 /** @brief Logger */
                 wns::logger::Logger logger;
 
             protected:
-                /** @brief default implementation to support the old scheduler strategies.
-                    Backward compatibility wrapper.
-                    Please overload in all new strategies. */
-                virtual StrategyResult
-                doStartScheduling(SchedulerStatePtr schedulerState,
-                                  SchedulingMapPtr schedulingMap);
-
-                /** @brief old interface to support the old scheduler strategies.
-                    Please do not use anymore. */
-                virtual void
-                doStartScheduling(int fChannels, int maxSpatialLayers, simTimeType slotLength);
-
-                /** @brief helper method to support the old scheduler strategies.
-                    Replaces
-                    bursts.push_back(currentBurst);
-                    by
-                    bursts_push_back(currentBurst);
-                */
-                virtual void
-                bursts_push_back(MapInfoEntryPtr bursts);
-                /** @brief helper method to support the old scheduler strategies. */
-                virtual void
-                bursts_push_back_compound(wns::ldk::CompoundPtr pdu);
-                /** @brief helper method to support the old scheduler strategies. */
-                virtual bool
-                isEirpLimited();
-
-                /** @brief call this method after a compound has been scheduled
-                    by any of the strategies.
-                    Calls the callback().
-                    Old method. Obsolete for new strategies. */
-                void compoundReady(unsigned int fSlot,
-                                   simTimeType startTime, simTimeType endTime, UserID user,
-                                   const wns::ldk::CompoundPtr& pdu, unsigned int spatialLayer,
-                                   wns::service::phy::ofdma::PatternPtr pattern,
-                                   MapInfoEntryPtr burst,
-                                   const wns::service::phy::phymode::PhyModeInterface& phyMode,
-                                   wns::Power requestedTxPower,
-                                   wns::CandI estimatedCandI);
-
                 /** @brief helper method to support the old scheduler strategies. */
                 /** @brief return info about txPower (in slave scheduling mode) */
                 wns::Power getTxPower() const;
 
             private:
-                /** @brief set empty PhyMode which means full freedom to decide (master scheduling) */
-                //virtual void clearPhyModePtr();
-                /** @brief set default PhyMode when not deciding adaptively (slave scheduling) */
-                //virtual void setPhyModePtr(wns::service::phy::phymode::PhyModeInterfacePtr _phyModePtr);
-                /** @brief fresh resource unit on which a master scheduler can schedule */
-                //virtual void clearMasterBurst();
-                /** @brief define the recource unit on which a slave scheduler (UL) can schedule */
-                //virtual void setMasterBurst(MapInfoEntryPtr burst);
-                /** @brief tell me whose callBack is to be called when scheduling */
-                //virtual void setCallBack(CallBackInterface* parent);
-                /** @brief tell me whose callBack is to be called when scheduling */
-                //virtual CallBackInterface* getCallBack();
-
-                /** @brief constant PhyMode if not set adaptively */
-                //wns::service::phy::phymode::PhyModeInterfacePtr defaultPhyModePtr;
-                /** @brief method called in derived classes for every scheduled MapInfoEntry (subChannel) */
-                //CallBackInterface* callBack;
-                /** @brief recource unit on which a slave scheduler (UL) can schedule */
-                //MapInfoEntryPtr masterBurst;
-                /** @brief scheduler state variables/parameters */
-                // this is the only state variable. But it is only a shadow of the state used in doStartScheduling()
                 SchedulerStatePtr schedulerState;
             }; // class Strategy
-
-
-            /**
-             *  @brief very lightweight interface to distinguish between different purpose
-             *  strategies. Besides being without functionality now, it would better be
-             *  called RxStrategy, because the classes derived from this do exactly
-             *  that: master-scheduling the UL (i.e. Rx-Phase)
-             *  @todo pab (2007-07-30): remove this interface entirely
-             */
-            /*
-              class ULStrategy :
-              public Strategy,
-              public ULAspect
-              {
-              public:
-              virtual ~ULStrategy(){}
-              ULStrategy(const wns::pyconfig::View& config);
-              };
-            */
         }}} // namespace wns::scheduler::strategy
 #endif // WNS_SCHEDULER_STRATEGY_STRATEGY_HPP
 
