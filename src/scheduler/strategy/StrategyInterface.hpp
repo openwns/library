@@ -304,12 +304,6 @@ namespace wns { namespace scheduler { namespace strategy {
                 virtual float 
                 getResourceUsage() const = 0;
 
-                /**
-                 * @brief returns bursts.size(); used e.g. in WinProst::ResourceScheduler::getNumBursts()
-                 * Belongs to the "old" interface. Should become obsolete.
-                 */
-                virtual int getNumBursts() const = 0;
-
             protected:
                 /** @brief (non-virtual-interface) called in startScheduling(..)
                 @param SchedulerStatePtr schedulerState

@@ -873,15 +873,6 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     return resultMapInfoEntry;
 } // doAdaptiveResourceScheduling
 
-
-int
-Strategy::getNumBursts() const
-{
-    assure(schedulerState->currentState!=RevolvingStatePtr(),"currentState must be valid");
-    assure(schedulerState->currentState->bursts!=MapInfoCollectionPtr(),"bursts must be valid");
-    return schedulerState->currentState->bursts->size();
-}
-
 wns::service::phy::phymode::PhyModeInterfacePtr
 Strategy::getBestPhyMode(const wns::Ratio& sinr) const
 {

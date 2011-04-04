@@ -107,9 +107,6 @@ namespace wns { namespace scheduler { namespace strategy {
 
                 virtual void setFriends(wns::service::phy::ofdma::BFInterface* _ofdmaProvider);
 
-                /** @brief helper method to support the old scheduler interface (for WiMAC). */
-                int getNumBursts() const;
-
                 /** @brief retrieve info about a peer user's power capabilities (for master UL scheduling) */
                 wns::scheduler::PowerCapabilities
                 getPowerCapabilities(const UserID user) const;
