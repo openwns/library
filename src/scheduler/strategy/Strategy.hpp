@@ -177,20 +177,6 @@ namespace wns { namespace scheduler { namespace strategy {
 
                 virtual bool groupingRequired() const;
 
-                /** @brief call this method after all compounds have been scheduled.
-                    Calls the callback() */
-                void
-                schedulingMapReady(StrategyResult& strategyResult);
-
-                /** @brief get ? */
-                //virtual MapInfoEntryPtr
-                //getMasterBurst(MapInfoEntryPtr burst) const;
-                //virtual MapInfoEntryPtr
-                //getMasterBurst() const;
-
-                //double symbolDuration; // Python parameter
-                //bool txMode;           // Python parameter
-
                 struct Colleagues {
                     Colleagues() {queue=NULL;grouper=NULL;registry=NULL;dsastrategy=NULL;dsafbstrategy=NULL;apcstrategy=NULL;harq=NULL;};
                     queue::QueueInterface* queue;

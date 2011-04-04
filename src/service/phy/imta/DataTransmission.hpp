@@ -33,6 +33,7 @@
 #include <WNS/osi/PDU.hpp>
 #include <WNS/service/Service.hpp>
 #include <WNS/service/phy/imta/ChannelStateInfo.hpp>
+#include <WNS/service/phy/phymode/PhyModeInterface.hpp>
 #include <vector>
 
 namespace wns { namespace service { namespace phy { namespace imta {
@@ -45,7 +46,7 @@ namespace wns { namespace service { namespace phy { namespace imta {
                     virtual void registerTransmission(wns::node::Interface* destination,
                                                       // later: 
                                                       // - precoding (vector/matrix),
-                                                      // - phymode
+                                                      wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr,
                                                       wns::Power txPower,
                                                       wns::osi::PDUPtr transportBlock,
                                                       PRBList transmitPRBs,
