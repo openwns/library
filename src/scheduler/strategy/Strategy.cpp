@@ -558,7 +558,7 @@ MapInfoEntryPtr
 Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
                                        SchedulingMapPtr schedulingMap)
 {
-    assure(colleagues.dsastrategy !=NULL, "dsastrategy==NULL");
+    assure(colleagues.dsastrategy != NULL, "dsastrategy==NULL");
     assure(colleagues.dsafbstrategy != NULL, "dsafbstrategy==NULL");
     assure(colleagues.apcstrategy != NULL, "apcstrategy==NULL");
     assure(schedulerState->currentState != RevolvingStatePtr(),
@@ -567,7 +567,14 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         "strategyInput must be valid");
 
     int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
-    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("<<request.user.getName()<<",cid="<<request.cid<<",bits="<<request.bits<<"): useCQI="<<schedulerState->useCQI);
+    MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling("
+        << request.user.getName()
+        << ",cid="
+        << request.cid
+        << ",bits="
+        << request.bits
+        << "): useCQI="
+        << schedulerState->useCQI);
 
     // empty means no result. Filled later
     MapInfoEntryPtr resultMapInfoEntry; 
@@ -728,8 +735,9 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
             // start dynamic subchannel assignment
             dsaResult = colleagues.dsastrategy->getSubChannelWithDSA(request, schedulerState, schedulingMap);
         } 
+        // no CQI available (principially or temporary)
         else 
-        { // no CQI available (principially or temporary)
+        { 
             MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): calling dsafbstrategy (fallback)");
             dsaResult = colleagues.dsafbstrategy->getSubChannelWithDSA(request, schedulerState, schedulingMap);
         }
@@ -756,7 +764,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         << " subChannel.tSlot.spatialLayer="
         << subChannel<<"."<<timeSlot<<"."<<spatialLayer);
 
-    if (subChannel==dsastrategy::DSAsubChannelNotFound)
+    if (subChannel == dsastrategy::DSAsubChannelNotFound)
         return resultMapInfoEntry; 
 
     // must be replaced by code which copes with that case:
