@@ -62,7 +62,7 @@ SpatialGrouper::setColleagues(RegistryProxyInterface* _registry)
 {
 	colleagues.registry = _registry;
 	colleagues.phyModeMapper = colleagues.registry->getPhyModeMapper();
-
+        txPower = colleagues.registry->getPowerCapabilities().nominalPerSubband;
 	if (!MonteCarloSim){
 		if (!uplink){
 			groupingGainProbeBus = wns::probe::bus::ContextCollectorPtr(
@@ -85,7 +85,7 @@ void
 SpatialGrouper::setFriends(wns::service::phy::ofdma::BFInterface* _ofdmaProvider)
 {
 	friends.ofdmaProvider = _ofdmaProvider;
-	txPower = friends.ofdmaProvider->getMaxPowerPerSubband();
+	//txPower = friends.ofdmaProvider->getMaxPowerPerSubband();
 	eirpLimited = friends.ofdmaProvider->isEIRPLimited();
 }
 
