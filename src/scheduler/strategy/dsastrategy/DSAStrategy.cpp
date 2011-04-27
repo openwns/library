@@ -184,62 +184,69 @@ DSAStrategy::channelIsUsable(int subChannel,
 	//int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
 	int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
 	int numSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
-	bool ok;
-	//for ( int timeSlot = 0; timeSlot < numberOfTimeSlots; ++timeSlot )
-	//{
-		for ( int spatialLayer = 0; spatialLayer < numSpatialLayers; ++spatialLayer )
-		{ // only for MIMO. For SISO simply spatialLayer=0
-			PhysicalResourceBlock& prbDescriptor =
-				schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
-			// can be different if "sort" has been applied:
-			assure(subChannel==prbDescriptor.getSubChannelIndex(),
-			       "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.getSubChannelIndex());
-			assure(spatialLayer==prbDescriptor.getSpatialLayerIndex(),
-			       "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.getSpatialLayerIndex());
-			// TODO: copy code from other channelIsUsable() method...
-			// an empty subChannel can always be used:
-			if (!prbDescriptor.hasScheduledCompounds())
-			{
-                            //check the grouping constraints:
-                            //other user in the first spatial layer is the same group and not the same user 
-                            if (schedulerState->currentState->sdmaGroupingIsValid() && (spatialLayer != 0))
-                            {
-                                PhysicalResourceBlock& firstPrb = schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[0];
-                                UserID otherUser = firstPrb.getUserID();
-                                GroupingPtr grouping = schedulerState->currentState->getGrouping();
-                                if ((grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user]) 
-                                        || (otherUser == request.user))
-                                { return false; }
-                            } 
+	bool ok = false;
+        //for ( int timeSlot = 0; timeSlot < numberOfTimeSlots; ++timeSlot )
+        //{
+                for ( int spatialLayer = 0; spatialLayer < numSpatialLayers; ++spatialLayer )
+                { // only for MIMO. For SISO simply spatialLayer=0
+                        PhysicalResourceBlock& prbDescriptor =
+                                schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer];
+                        // can be different if "sort" has been applied:
+                        assure(subChannel==prbDescriptor.getSubChannelIndex(),
+                               "subChannel="<<subChannel<<" != subChannelIndex="<<prbDescriptor.getSubChannelIndex());
+                        assure(spatialLayer==prbDescriptor.getSpatialLayerIndex(),
+                               "spatialLayer="<<spatialLayer<<" != spatialIndex="<<prbDescriptor.getSpatialLayerIndex());
+                        // an empty subChannel can always be used (with SISO):
+                        if ((!prbDescriptor.hasScheduledCompounds()))
+                        {
+                            if (numSpatialLayers != 1)
+                            { //SDMA: if all other spatial layers are empty channel is usable
+                                ok = true;
+                                continue;
+                            }
                             return true;
                         }
-			// now we are sure that the subChannel is used by at least one packet
-			// check if another user is blocking the subChannel:
-			if (oneUserOnOneSubChannel)
-			{	// checking the first packet is sufficient:
-                UserID otherUser = prbDescriptor.getUserIDOfScheduledCompounds();
-				if (otherUser != request.user)
-				{
-					MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): tSlot="<<timeSlot<<", spatialLayer="<<spatialLayer<<": otherUser="<<otherUser.getName()<<" != request.user="<<request.user.getName());
-					return false;
-				}
-			}
-			// check if the PhyMode is already fixed:
-			wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
-				prbDescriptor.getPhyMode();
-			RequestForResource requestWithGivenPhyMode = request; // copy
-			requestWithGivenPhyMode.phyModePtr = phyModePtr;
-			simTimeType compoundDuration = getCompoundDuration(requestWithGivenPhyMode);
-			// check if there is enough space (time) left:
-			simTimeType remainingTimeOnthisChannel =
-				//schedulingMap->subChannels[subChannel].physicalResources[spatialLayer].getFreeTime();
-				prbDescriptor.getFreeTime();
-			ok = (remainingTimeOnthisChannel - compoundDuration) >= -wns::scheduler::strategy::slotLengthRoundingTolerance;
-			MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): d="<<compoundDuration*1e6<<"us <= "<<remainingTimeOnthisChannel*1e6<<"us remaining: ok="<<ok);
-			if (ok) break;
-		} // forall spatialLayers/streams of this subChannel
-	//} // forall timeSlots of this subChannel
-	return ok;
+                        // now we are sure that the subChannel is used by at least one packet
+                        // check if another user is blocking the subChannel:
+                        if (oneUserOnOneSubChannel)
+                        {       // checking the first packet is sufficient:
+                            UserID otherUser = prbDescriptor.getUserIDOfScheduledCompounds();
+                                if ((otherUser != request.user))
+                                {
+                                    if (schedulerState->currentState->sdmaGroupingIsValid() && numSpatialLayers == 1)
+                                    { //SDMA
+                                        //check the grouping constraints:
+                                        //channelIsUsable = false: if other user not the same group
+                                        //(channelIsUsable = true: if empty PRB, own packets found, or packets of a user within same group)
+                                        GroupingPtr grouping = schedulerState->currentState->getGrouping();
+                                        if (grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user])
+                                        {
+                                            MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): tSlot="<<timeSlot<<", spatialLayer="<<spatialLayer<<": Different Groups of otherUser="<<otherUser.getName()<<" and request.user="<<request.user.getName());
+                                            return false; 
+                                        }
+                                        continue;
+                                    } else { //SISO
+                                        MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): tSlot="<<timeSlot<<", spatialLayer="<<spatialLayer<<": otherUser="<<otherUser.getName()<<" != request.user="<<request.user.getName());
+                                        return false;
+                                    }
+                                }
+                        }
+                        // check if the PhyMode is already fixed:
+                        wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr =
+                                prbDescriptor.getPhyMode();
+                        RequestForResource requestWithGivenPhyMode = request; // copy
+                        requestWithGivenPhyMode.phyModePtr = phyModePtr;
+                        simTimeType compoundDuration = getCompoundDuration(requestWithGivenPhyMode);
+                        // check if there is enough space (time) left:
+                        simTimeType remainingTimeOnthisChannel =
+                                //schedulingMap->subChannels[subChannel].physicalResources[spatialLayer].getFreeTime();
+                                prbDescriptor.getFreeTime();
+                        ok = (remainingTimeOnthisChannel - compoundDuration) >= -wns::scheduler::strategy::slotLengthRoundingTolerance;
+                        MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"): d="<<compoundDuration*1e6<<"us <= "<<remainingTimeOnthisChannel*1e6<<"us remaining: ok="<<ok);
+                        if (ok) break;
+                } // forall spatialLayers/streams of this subChannel
+        //} // forall timeSlots of this subChannel
+        return ok;
 } // channelIsUsable
 
 bool
@@ -255,7 +262,8 @@ DSAStrategy::channelIsUsable(int subChannel,
 	assure(timeSlot>=0,"need a valid timeSlot");
 	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),"invalid timeSlot="<<timeSlot);
 	assure(spatialLayer>=0,"need a valid spatialLayer");
-	assure(spatialLayer<schedulerState->currentState->strategyInput->getMaxSpatialLayers(),"invalid spatialLayer="<<spatialLayer);
+        int maxSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
+	assure(spatialLayer<maxSpatialLayers,"invalid spatialLayer="<<spatialLayer);
         if(schedulerState->currentState->groupingIsValid())
         {
             assure(oneUserOnOneSubChannel, "oneUserOnOneSubChannel required for beamforming/SDMA");
@@ -299,23 +307,31 @@ DSAStrategy::channelIsUsable(int subChannel,
 			// an empty subChannel can always be used:
 			if (!prbDescriptor.hasScheduledCompounds())
 			{
+                            if (schedulerState->currentState->sdmaGroupingIsValid())
+                            {
                                 // check the grouping constraints:
-                                //other user in the first spatial layers is the same group and not the same user 
-                                if (schedulerState->currentState->sdmaGroupingIsValid() && (spatialLayer != 0))
-                                {
-                                    PhysicalResourceBlock& firstPrb = schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[0];
-                                    UserID otherUser = firstPrb.getUserID();
-                                    GroupingPtr grouping = schedulerState->currentState->getGrouping();
-                                    if ((grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user]) 
-                                            || (otherUser == request.user))
-                                    {
-                                        MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): grouping constraints not met myUser= "<<request.user.getName()<<", other="<<otherUser.getName()<<" => unusable" );
-                                        return false; 
-                                    }
-                                    MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): grouping constraints met myUser: "<<request.user.getName()<<", other="<<otherUser.getName()<<" => isusable" );
+                                //user in any other spatial layer is the same group and not the same user 
+                                for (int spatialIndex = 0; spatialIndex < maxSpatialLayers; ++spatialIndex)
+                                { 
+                                        if (spatialIndex == spatialLayer)
+                                            continue;
+                                        PhysicalResourceBlock& neighbourPrb = schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialIndex];
+                                        if(neighbourPrb.hasScheduledCompounds())
+                                        {
+                                            UserID otherUser = neighbourPrb.getUserID();
+                                            GroupingPtr grouping = schedulerState->currentState->getGrouping();
+                                            if ((grouping->userGroupNumber[otherUser] != grouping->userGroupNumber[request.user]) 
+                                                    || (otherUser == request.user))
+                                            {
+                                                MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): grouping constraints not met myUser= "<<request.user.getName()<<", other="<<otherUser.getName()<<" => unusable"<<"otherUser"<<otherUser<<"."<<grouping->userGroupNumber[otherUser] );
+                                                return false; 
+                                            }
+                                        }
                                 }
-				MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used (with SDMA: grouping constraints statisfied)");
-				return true;
+                                MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): grouping constraints met myUser: "<<request.user.getName()<<", other="<<otherUser.getName()<<" => isusable" );
+                            }
+                            MESSAGE_SINGLE(NORMAL, logger, "channelIsUsable("<<subChannel<<"."<<timeSlot<<"."<<spatialLayer<<"): empty channel; can always be used (with SDMA: grouping constraints statisfied)");
+                            return true;
 			}
                         // We cannot add data to a block that is already protected by HARQ
                         if (prbDescriptor.isHARQEnabled())
