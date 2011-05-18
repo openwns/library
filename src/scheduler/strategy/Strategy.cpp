@@ -870,6 +870,8 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         resultMapInfoEntry->estimatedCQI.interference = estimatedCandI.I;
         resultMapInfoEntry->estimatedCQI.pathloss = estimatedCandI.PL;
         resultMapInfoEntry->estimatedCQI.sdma.iIntra = estimatedCandI.sdma.iIntra;
+        resultMapInfoEntry->txPower = txPower * 1.0 / currentGroup.size();
+        resultMapInfoEntry->phyModePtr = colleagues.registry->getPhyModeMapper()->getBestPhyMode(estimatedCandI.C / estimatedCandI.I);
 
         assure(antennaPattern != wns::service::phy::ofdma::PatternPtr(),"invalid pattern");
 
