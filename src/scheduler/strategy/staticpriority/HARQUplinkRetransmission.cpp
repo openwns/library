@@ -128,6 +128,11 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
         {
             resource = colleagues.strategy->getDSAStrategy()->getSubChannelWithDSA(request, schedulerState, schedulingMap);
             int sc = resource.subChannel;
+
+            // Could be the scheduler has no resources for us
+            if(sc == wns::scheduler::strategy::dsastrategy::DSAsubChannelNotFound)
+                break;            
+
             int ts = resource.timeSlot;
             int numberOfSpatialLayers = schedulingMap->subChannels[sc].temporalResources[ts]->numSpatialLayers;
             for ( int spatialIndex = 0; spatialIndex < numberOfSpatialLayers; ++spatialIndex )
