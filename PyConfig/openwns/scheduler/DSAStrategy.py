@@ -80,6 +80,7 @@ class Random(DSAStrategy):
 #Fixed equal share DSA
 class Fixed(DSAStrategy):
     requiresCQI = False
+    timeFirst = False
     def __init__(self, **kw):
         self.nameInDSAStrategyFactory = "Fixed"
         super(Fixed,self).__init__(**kw)

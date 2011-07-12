@@ -169,6 +169,32 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
         ConnectionSet reachableConnections = colleagues.registry->filterReachable(allConnections, frameNr, usesHARQ);
         MESSAGE_SINGLE(NORMAL, logger, "reachableConnections= "<<printConnectionSet(reachableConnections));
 
+        GroupingPtr grouping = schedulerState->currentState->getGrouping();
+        if (grouping != GroupingPtr())
+        {
+            //serve only connections of users considered in grouping
+            ConnectionSet intersectionConnections;
+            wns:scheduler::UserSet reachableUsers;
+            wns::scheduler::ConnectionSet::iterator it;
+            for(it = reachableConnections.begin(); it != reachableConnections.end(); it++)
+            {
+                MESSAGE_SINGLE(NORMAL, logger, " 111 cid: "<< *it << " #groups :" << grouping->groups.size());
+                wns::scheduler::UserID user = colleagues.registry->getUserForCID(*it);
+                if(!user.isBroadcast())
+                {
+                    if (grouping->userGroupNumber.find(user) != grouping->userGroupNumber.end())
+                    {
+                        intersectionConnections.insert(*it);
+                    }else{
+                        MESSAGE_SINGLE(NORMAL, logger, " ignore connections: " << *it <<" of user:"<< user);
+                    }
+                }
+            }
+            reachableConnections.clear();
+            reachableConnections = intersectionConnections;
+        }
+
+
         // don't filter out unqueued cids since the subStrategy may want to update the state for every cid
         schedulerState->currentState->activeConnections = reachableConnections;
         // start SubScheduling in any case (even with empty user or cid list)

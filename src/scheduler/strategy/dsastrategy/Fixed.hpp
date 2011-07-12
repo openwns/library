@@ -40,6 +40,13 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
             operator()(DSAResult a, DSAResult b) const;
     };
 
+    class TimeFirst
+    {
+        public:
+            bool 
+            operator()(DSAResult a, DSAResult b) const;
+    };
+
 
     /** @brief DSA startegy equally distributing available resources between users.
         If there are n resources and m users: m1 = n mod m users get floor(n/m) + 1 resources,
@@ -66,10 +73,12 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
 
         bool requiresCQI() const { return false; };
     private:
-        std::set<DSAResult, FreqFirst> sortedResources_;
-        std::map<unsigned int, std::set<DSAResult>::iterator > resStart_;
+        std::list<DSAResult> sortedResources_;
+        std::map<unsigned int, std::list<DSAResult>::iterator > resStart_;
         std::map<unsigned int, int > resAmount_;
         std::map<unsigned int, int> spatialLayer_;
+        //granting resources by first increasing the time slot number, i.e., subchannel wise.
+        bool timeFirst_;
     };
 
 }}}} // namespace wns::scheduler::strategy::dsastrategy

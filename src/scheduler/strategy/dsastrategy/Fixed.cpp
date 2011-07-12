@@ -42,17 +42,36 @@ FreqFirst::operator()(DSAResult a, DSAResult b) const
     }
     else
     {*/
-        if(a.timeSlot != b.timeSlot)
+        if(a.subChannel != b.subChannel)
         {
-            return a.timeSlot < b.timeSlot;
+            return a.subChannel < b.subChannel;
         }
         else
         {
-            return a.subChannel < b.subChannel;
+            return a.timeSlot < b.timeSlot;
         }
     //}
 }
 
+bool
+TimeFirst::operator()(DSAResult a, DSAResult b) const
+{
+    /*if(a.spatialLayer != b.spatialLayer)
+    {
+        return a.spatialLayer < b.spatialLayer;
+    }
+    else
+    {*/
+    if(a.timeSlot != b.timeSlot)
+    {
+        return a.timeSlot < b.timeSlot;
+    }
+    else
+    {
+        return a.subChannel < b.subChannel;
+    }
+    //}
+}
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Fixed,
                                      DSAStrategyInterface,
@@ -60,7 +79,8 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(Fixed,
                                      wns::PyConfigViewCreator);
 
 Fixed::Fixed(const wns::pyconfig::View& config)
-    : DSAStrategy(config)
+    : DSAStrategy(config),
+    timeFirst_(config.get<bool>("timeFirst"))
 {
 }
 
@@ -94,19 +114,8 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
     if (sdma && grouping != GroupingPtr()) 
     {
         //with SDMA resources are equally shared between groups
-        numberOfUsers = grouping->groups.size();
-        for (unsigned int i = 0; i < grouping->groups.size(); ++i)
-        {
-            int spatialLayer = 0;
-            for (Group::iterator iter = grouping->groups[i].begin(); iter != grouping->groups[i].end(); ++iter)
-            {
-                wns::scheduler::UserID user = (*iter).first;
-                userIDs.insert(user);
-                spatialLayer_[user.getNodeID()] = spatialLayer;
-                    ++spatialLayer;
-            }
-       }
-       MESSAGE_SINGLE(NORMAL, logger, "initialize: Distributing " 
+       numberOfUsers = grouping->groups.size();
+       MESSAGE_SINGLE(NORMAL, logger, myUserID << " initialize: Distributing "
             << numberOfUsers << " groups on " << numberOfResources << " resources."
             << " isDL.isTx: "<<schedulerState->isDL<<"."<<schedulerState->isTx<<" ;with users "<<userIDs.size());
     } else {
@@ -147,10 +156,13 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
                 DSAResult res;
                 res.subChannel = i;
                 res.timeSlot = j;
-                sortedResources_.insert(res);
+                sortedResources_.push_back(res);
         }
     }
-
+    if (timeFirst_)
+        sortedResources_.sort(TimeFirst());
+    else
+        sortedResources_.sort(FreqFirst());
     int usersMore = numberOfResources % numberOfUsers;
     int usersLess = numberOfUsers - usersMore;
     int resourcesMore = int(numberOfResources / numberOfUsers) + 1;
@@ -165,7 +177,8 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
         "Mismatched resource distribution");
 
     std::set<wns::scheduler::UserID>::iterator uIt;
-    std::set<DSAResult, FreqFirst>::iterator itr;
+    std::list<DSAResult>::iterator itr;
+
     int plus = 0;
     //with SDMA user corresponds to group
     int user = 0;
@@ -176,32 +189,40 @@ Fixed::initialize(SchedulerStatePtr schedulerState,
     {
         if(counter == resourcesLess + plus|| itr == sortedResources_.begin())
         {
+            if (sdma && grouping != GroupingPtr()) 
+            {
+                //user of the same group have the same resources seperated by spatialLayers
+                int spatialLayer = 0;
+                for (Group::iterator gIt = grouping->groups[user].begin(); gIt != grouping->groups[user].end(); ++gIt)
+                {
+                    wns::scheduler::UserID userID = (*gIt).first;
+                    userIDs.insert(userID); //not useful
+                    spatialLayer_[userID.getNodeID()] = spatialLayer;
+                        ++spatialLayer;
+                    resStart_[userID.getNodeID()] = itr;
+                    resAmount_[userID.getNodeID()] = resourcesLess + plus;
+
+                    MESSAGE_SINGLE(NORMAL, logger, "initialize: User " 
+                        << userID.getName()<< " starts at " 
+                        << itr->subChannel << "."
+                        << itr->timeSlot << "."
+                        << spatialLayer_[userID.getNodeID()]
+                        << " and gets " << resourcesLess + plus << " resources");
+                }
+            } else {
             resStart_[(*uIt).getNodeID()] = itr;
             resAmount_[(*uIt).getNodeID()] = resourcesLess + plus;
 
             MESSAGE_SINGLE(NORMAL, logger, "initialize: User " 
-                << (*uIt).getNodeID() << " starts at " 
+                << (*uIt).getName()<< " starts at " 
                 << itr->subChannel << "."
                 << itr->timeSlot << "."
                 << spatialLayer_[(*uIt).getNodeID()]
                 << " and gets " << resourcesLess + plus << " resources");
-
+            }
             counter = 0;
             uIt++;
             user++;
-            //user of the same group have the same resources seperated by spatialLayers
-            while (uIt != userIDs.end() && (spatialLayer_[(*uIt).getNodeID()] != 0))
-            { 
-                resStart_[(*uIt).getNodeID()] = itr;
-                resAmount_[(*uIt).getNodeID()] = resourcesLess + plus;
-                MESSAGE_SINGLE(NORMAL, logger, "initialize: User "
-                << (*uIt).getNodeID() << " starts at "
-                << itr->subChannel << "."
-                << itr->timeSlot << "."
-                << spatialLayer_[(*uIt).getNodeID()]
-                << " and gets " << resourcesLess + plus << " resources");
-                uIt++;
-            }
         }
         if(plus == 0 && user == usersLess)
         {
@@ -242,7 +263,7 @@ Fixed::getSubChannelWithDSA(RequestForResource& request,
         "Unknown resource amount for user " + request.user.getNodeID());
 
     int max = resAmount_[request.user.getNodeID()];
-    std::set<DSAResult>::iterator it;
+    std::list<DSAResult>::iterator it;
     int i = 0;
     bool found = false;
     for(it = resStart_[request.user.getNodeID()]; i < max && !found; it++)
