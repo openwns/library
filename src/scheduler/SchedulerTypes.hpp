@@ -458,6 +458,20 @@ namespace wns { namespace scheduler {
 
             unsigned int numOfBits;
             unsigned int numOfCompounds;
+
+            bool
+            operator==(const QueueStatus& other) const
+            {
+                return this->numOfBits == other.numOfBits &&
+                        this->numOfCompounds == other.numOfCompounds;                    
+            };
+
+            bool
+            operator!=(const QueueStatus& other) const
+            {
+                return !((*this) == other);
+            };
+
         };
         /** @brief Holds QueueStatus for all cids. ResourceRequests contain such a container. */
         typedef wns::container::Registry<ConnectionID, QueueStatus> QueueStatusContainer;

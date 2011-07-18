@@ -84,6 +84,13 @@ class Fixed(DSAStrategy):
     def __init__(self, **kw):
         self.nameInDSAStrategyFactory = "Fixed"
         super(Fixed,self).__init__(**kw)
+        
+#Fixed equal share DSA
+class PersistentVoIP(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInDSAStrategyFactory = "PersistentVoIP"
+        super(PersistentVoIP,self).__init__(**kw)
 
 #Position aware Fixed equal share DSA
 class NearbyFirst(DSAStrategy):
