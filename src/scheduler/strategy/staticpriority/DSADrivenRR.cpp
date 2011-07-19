@@ -45,7 +45,8 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(DSADrivenRR,
 
 
 DSADrivenRR::DSADrivenRR(const wns::pyconfig::View& config)
-    : SubStrategy(config)
+    : SubStrategy(config),
+    lastServedConnection(0)
 {
 }
 

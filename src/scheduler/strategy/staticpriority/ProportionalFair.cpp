@@ -343,7 +343,7 @@ ProportionalFair::doStartSubScheduling(SchedulerStatePtr schedulerState,
         // user = colleagues.registry->getUserForCid(currentConnection);
         MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): next connection="<<currentConnection);
     } // while(spaceLeft)
-    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection="<<mapInfoCollection.getPtr()<<" of size="<<mapInfoCollection->size());
+    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection of size="<<mapInfoCollection->size());
 
     std::map<UserID, float> bitsAfterThisFrame = calculateBitsForConnections(currentConnections);
     

@@ -204,9 +204,8 @@ StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
         if (resultBursts->size()>0) 
         {
             MESSAGE_SINGLE(NORMAL, logger, "merged "
-                << resultBursts->size() << " entries of resultBursts="
-                << resultBursts.getPtr() << " into mapInfoCollection="
-                << mapInfoCollection.getPtr() << " (now size="
+                << resultBursts->size() << " entries of resultBursts into"
+                << " mapInfoCollection (now size="
                 << mapInfoCollection->size() << ")");
             mapInfoCollection->join(*resultBursts); // collects result bursts. Do not use merge! (sorts bySmartPtr)
         }

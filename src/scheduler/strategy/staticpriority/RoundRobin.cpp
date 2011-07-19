@@ -129,7 +129,7 @@ RoundRobin::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     lastScheduledConnection = currentConnection; // this one really had pdus scheduled
 
-    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection="<<mapInfoCollection.getPtr()<<" of size="<<mapInfoCollection->size());
+    MESSAGE_SINGLE(NORMAL, logger, "doStartSubScheduling(): ready: mapInfoCollection of size="<<mapInfoCollection->size());
     return mapInfoCollection;
 } // doStartSubScheduling
 
