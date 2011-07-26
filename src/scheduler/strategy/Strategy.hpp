@@ -140,6 +140,9 @@ namespace wns { namespace scheduler { namespace strategy {
                 virtual dsastrategy::DSAStrategyInterface*
                 getDSAStrategy(){return colleagues.dsafbstrategy;};
 
+                virtual apcstrategy::APCStrategyInterface*
+                getAPCStrategy(){return colleagues.apcstrategy;};
+
             protected:
 
                 /** @brief The strategies need a new state. */

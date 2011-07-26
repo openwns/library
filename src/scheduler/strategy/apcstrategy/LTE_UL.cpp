@@ -73,8 +73,6 @@ LTE_UL::doStartAPC(RequestForResource& request,
     // no power control, just nominal values
     APCResult apcResult;
 
-    assure(request.subChannel >= 0, "need a valid subChannel");
-
     wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
     wns::Power interference = request.cqiOnSubChannel.interference;
 

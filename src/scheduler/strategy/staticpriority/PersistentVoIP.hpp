@@ -25,39 +25,45 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_PERSISTENTVOIP_HPP
-#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_PERSISTENTVOIP_HPP
+#ifndef WNS_SCHEDULER_STRATEGY_STATICPRIORITY_PERSISTENTVOIP_HPP
+#define WNS_SCHEDULER_STRATEGY_STATICPRIORITY_PERSISTENTVOIP_HPP
 
-#include <WNS/scheduler/strategy/dsastrategy/DSAStrategy.hpp>
-#include <WNS/scheduler/strategy/dsastrategy/Fixed.hpp>
-#include <vector>
+#include <WNS/scheduler/strategy/staticpriority/SubStrategy.hpp>
+#include <WNS/scheduler/strategy/Strategy.hpp>
+#include <WNS/scheduler/SchedulingMap.hpp>
+#include <WNS/scheduler/queue/QueueInterface.hpp>
+#include <WNS/scheduler/RegistryProxyInterface.hpp>
+#include <WNS/StaticFactory.hpp>
 
-namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy {
-                
+namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
 
-    /** @brief DSA startegy 
-    */
-    class PersistentVoIP : public DSAStrategy
-    {
+class PersistentVoIP
+        : public SubStrategy
+{
     public:
         PersistentVoIP(const wns::pyconfig::View& config);
 
         ~PersistentVoIP();
 
-        virtual void initialize(SchedulerStatePtr schedulerState,
-                                SchedulingMapPtr schedulingMap);
+        virtual void
+        initialize();
 
-        virtual DSAResult
-        getSubChannelWithDSA(RequestForResource& request,
-                                SchedulerStatePtr schedulerState,
-                                SchedulingMapPtr schedulingMap);
+        virtual wns::scheduler::MapInfoCollectionPtr
+        doStartSubScheduling(SchedulerStatePtr schedulerState,
+                             wns::scheduler::SchedulingMapPtr schedulingMap);
 
-        bool requiresCQI() const { return false; };
     private:
-        std::set<DSAResult, FreqFirst> sortedResources_;
-        std::map<wns::scheduler::ConnectionID, wns::simulator::Time> lastTime_;
-	int tmp_;
-    };
+        void
+        updateState(const ConnectionSet activeConnections);
 
-}}}} // namespace wns::scheduler::strategy::dsastrategy
-#endif // WNS_SCHEDULER_DSASTRATEGY_PERSISTENTVOIP_HPP
+        unsigned int numberOfFrames_;
+        unsigned int currentFrame_;
+
+        std::vector<ConnectionSet> persistentSchedule_;
+        std::map<ConnectionID, unsigned int> firstSubChannel_;
+        std::map<ConnectionID, unsigned int> numberOfSubchannels_;
+        std::map<ConnectionID, int> pastPhyModes_;
+        std::map<ConnectionID, wns::simulator::Time> lastActive_;
+};
+}}}}
+#endif

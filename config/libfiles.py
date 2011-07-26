@@ -289,6 +289,7 @@ srcFiles = [
     'src/scheduler/strategy/staticpriority/HARQUplinkRetransmission.cpp',
     'src/scheduler/strategy/staticpriority/HARQUplinkSlaveRetransmission.cpp',
     'src/scheduler/strategy/staticpriority/ProportionalFair.cpp',
+    'src/scheduler/strategy/staticpriority/PersistentVoIP.cpp',
     'src/scheduler/strategy/StaticPriority.cpp',
 
     # the scheduler helpers
@@ -300,7 +301,6 @@ srcFiles = [
     'src/scheduler/strategy/dsastrategy/BestCapacity.cpp',
     'src/scheduler/strategy/dsastrategy/Random.cpp',
     'src/scheduler/strategy/dsastrategy/Fixed.cpp',
-    'src/scheduler/strategy/dsastrategy/PersistentVoIP.cpp',
     'src/scheduler/strategy/dsastrategy/NearbyFirst.cpp',
     'src/scheduler/strategy/dsastrategy/FarFirst.cpp',
     'src/scheduler/strategy/dsastrategy/HighCwithHighI.cpp',
@@ -1005,6 +1005,7 @@ hppFiles = [
 'src/scheduler/strategy/staticpriority/HARQUplinkRetransmission.hpp',
 'src/scheduler/strategy/staticpriority/HARQUplinkSlaveRetransmission.hpp',
 'src/scheduler/strategy/staticpriority/ProportionalFair.hpp',
+'src/scheduler/strategy/staticpriority/PersistentVoIP.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategy.hpp',
 'src/scheduler/strategy/dsastrategy/DoNotUseDSA.hpp',
@@ -1012,7 +1013,6 @@ hppFiles = [
 'src/scheduler/strategy/dsastrategy/LinearFFirst.hpp',
 'src/scheduler/strategy/dsastrategy/Random.hpp',
 'src/scheduler/strategy/dsastrategy/Fixed.hpp',
-'src/scheduler/strategy/dsastrategy/PersistentVoIP.hpp',
 'src/scheduler/strategy/dsastrategy/NearbyFirst.hpp',
 'src/scheduler/strategy/dsastrategy/FarFirst.hpp',
 'src/scheduler/strategy/dsastrategy/HighCwithHighI.hpp',

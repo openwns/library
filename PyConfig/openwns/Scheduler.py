@@ -132,6 +132,17 @@ class RoundRobin(SubStrategy):
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "RoundRobin", True, parentLogger)
 
+class PersistentVoIP(SubStrategy):
+    __plugin__ = "PersistentVoIP"
+
+    def __init__(self, parentLogger = None, **kw):
+        self.numberOfFrames = 20
+        self.logger = openwns.logger.Logger("WNS", "PersistentVoIP", True, parentLogger)
+        attrsetter(self, kw)
+
+    def setParentLogger(self,parentLogger = None):
+        self.logger = openwns.logger.Logger("WNS", "PersistentVoIP", True, parentLogger)
+
 # As long as DSA has resources for any CID of a USER, try scheduling this USER.
 # If no more resources are left, try the next USER.
 class DSADrivenRR(SubStrategy):

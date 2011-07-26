@@ -67,15 +67,13 @@ UseNominalTxPower::doStartAPC(RequestForResource& request,
 {
 	// no power control, just nominal values
 	APCResult apcResult;
-	assure(request.subChannel>=0,"need a valid subChannel");
+
 	if (schedulerState->defaultTxPower!=wns::Power())
 	{ // predefined, e.g. in slave mode
 		apcResult.txPower = schedulerState->defaultTxPower;
 	} else {
 		wns::scheduler::PowerCapabilities powerCapabilities =
                     schedulerState->strategy->getPowerCapabilities(request.user);
-		// is the constant nominalPowerPerSubChannel really correct?
-		//assure(nominalPowerPerSubChannel == (schedulerState->strategy->getPowerCapabilities(request.user)).nominalPerSubband,"wrong nominalPowerPerSubChannel="<<nominalPowerPerSubChannel<<" vs "<<(schedulerState->strategy->getPowerCapabilities(request.user)).nominalPerSubband);
 		apcResult.txPower = powerCapabilities.nominalPerSubband;
 	}
 	wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
