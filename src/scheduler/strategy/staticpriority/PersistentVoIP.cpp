@@ -47,9 +47,11 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(PersistentVoIP,
 
 PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     : SubStrategy(config),
+    firstScheduling_(true),
     numberOfFrames_(config.get<unsigned int>("numberOfFrames")),
     currentFrame_(0),
-    persistentSchedule_(numberOfFrames_)
+    expectedCIDs_(numberOfFrames_),
+    pastPeriodCIDs_(numberOfFrames_)
 {
 }
 
@@ -70,6 +72,9 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     currentFrame_++;
     currentFrame_ %= numberOfFrames_;
 
+    if(firstScheduling_)
+        onFirstScheduling(schedulerState);
+
     MapInfoCollectionPtr mapInfoCollection = 
         MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
 
@@ -77,14 +82,14 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     ConnectionSet activeConnections = colleagues.queue->filterQueuedCids(currentConnections);
 
+    updateState(activeConnections);
+
     // nothing to do?
     if (activeConnections.empty()) 
     {
         MESSAGE_SINGLE(VERBOSE, logger, "No connection has queued data");
         return mapInfoCollection; 
     }
-
-    updateState(activeConnections);
 
     MESSAGE_SINGLE(NORMAL, logger, "Now scheduling frame " << currentFrame_ << " with " 
         << activeConnections.size() << " active connections.");
@@ -98,8 +103,6 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     {
         ConnectionID cid = *it;
         UserID user = colleagues.registry->getUserForCID(cid);
-
-        persistentSchedule_[currentFrame_].insert(cid);
 
         MESSAGE_SINGLE(NORMAL, logger, "Now scheduling CID " << cid << " User: " << user.getName());
 
@@ -195,7 +198,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
                     free = false;
                 }
 
-                MESSAGE_SINGLE(NORMAL, logger, "Probing SubChannel " << sc
+                MESSAGE_SINGLE(VERBOSE, logger, "Probing SubChannel " << sc
                     << ": User: " << (prbUID.isBroadcast()?"Broadcast":
                         (prbUID.isValid()?prbUID.getName():"None"))
                     << ", free bit: " << freeBits
@@ -241,65 +244,207 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 } // doStartSubScheduling
 
 void
-PersistentVoIP::updateState(const ConnectionSet activeConnections)
+PersistentVoIP::updateState(const ConnectionSet activeCIDs)
 {
+    if(activeCIDs.size() == 0 && 
+        expectedCIDs_[currentFrame_].size() == 0)
+    {
+        pastPeriodCIDs_[currentFrame_].clear();
+        return;
+    }
+
     ConnectionSet::iterator it;
-    MESSAGE_BEGIN(NORMAL, logger, m, "CIDs expected in frame " << currentFrame_ << ": ");
-    for(it = persistentSchedule_[currentFrame_].begin();
-        it != persistentSchedule_[currentFrame_].end();    
+
+    MESSAGE_SINGLE(NORMAL, logger, "------------------------ Update CIDs frame: " 
+        << currentFrame_ << " -------------------" );
+
+    MESSAGE_BEGIN(NORMAL, logger, m, "CIDs active: ");
+    for(it = activeCIDs.begin();
+        it != activeCIDs.end();    
         it++)
     {
         m << *it << " ";
     }
     MESSAGE_END();    
 
-    MESSAGE_BEGIN(NORMAL, logger, m, "CIDs active in frame " << currentFrame_ << ": ");
-    for(it = activeConnections.begin();
-        it != activeConnections.end();    
+    MESSAGE_BEGIN(NORMAL, logger, m, "CIDs expected: ");
+    for(it = expectedCIDs_[currentFrame_].begin();
+        it != expectedCIDs_[currentFrame_].end();    
         it++)
     {
         m << *it << " ";
     }
     MESSAGE_END();    
 
-    ConnectionSet inactiveConnections;
-    for(it = persistentSchedule_[currentFrame_].begin();
-        it != persistentSchedule_[currentFrame_].end();    
-        it++)
-    {
-        if(activeConnections.find(*it) == activeConnections.end())
-        {
-            inactiveConnections.insert(*it);
-            persistentSchedule_[currentFrame_].erase(*it);
-        }
-    }
+    // Currently present and present in this frame before
+    ConnectionSet oldCIDs;
+    std::insert_iterator<ConnectionSet> iiOld(oldCIDs, oldCIDs.begin()); 
+    set_intersection(expectedCIDs_[currentFrame_].begin(), 
+        expectedCIDs_[currentFrame_].end(), 
+        activeCIDs.begin(), 
+        activeCIDs.end(), iiOld);
 
-    MESSAGE_BEGIN(NORMAL, logger, m, "CIDs no longer active in frame " << currentFrame_ << ": ");
-    for(it = inactiveConnections.begin();
-        it != inactiveConnections.end();    
+    MESSAGE_BEGIN(NORMAL, logger, m, "CIDs expected and active: ");
+    for(it = oldCIDs.begin();
+        it != oldCIDs.end();    
         it++)
     {
         m << *it << " ";
     }
     MESSAGE_END();  
 
-    ConnectionSet oldConnections;
-    std::insert_iterator<ConnectionSet> ii(oldConnections, oldConnections.begin()); 
-    set_intersection(persistentSchedule_[currentFrame_].begin(), 
-        persistentSchedule_[currentFrame_].end(), 
-        activeConnections.begin(), 
-        activeConnections.end(), ii);
+    // Expected but not there => silenced 
+    ConnectionSet silencedCIDs;
+    std::insert_iterator<ConnectionSet> iiSilenced(silencedCIDs, silencedCIDs.begin()); 
+    set_difference(expectedCIDs_[currentFrame_].begin(), 
+        expectedCIDs_[currentFrame_].end(), 
+        activeCIDs.begin(), 
+        activeCIDs.end(), iiSilenced);
 
-    MESSAGE_BEGIN(NORMAL, logger, m, "Previously known CIDs in frame " << currentFrame_ << ": ");
-    ConnectionSet::iterator it;
-    for(it = oldConnections.begin();
-        it != oldConnections.end();    
+    MESSAGE_BEGIN(NORMAL, logger, m, "CIDs not active anymore (silenced): ");
+    for(it = silencedCIDs.begin();
+        it != silencedCIDs.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
+
+    // Currently present but not known yet
+    ConnectionSet unknownCIDs;
+    std::insert_iterator<ConnectionSet> iiUnknown(unknownCIDs, unknownCIDs.begin()); 
+    set_difference(activeCIDs.begin(), 
+        activeCIDs.end(), 
+        allCIDs_.begin(), 
+        allCIDs_.end(), iiUnknown);
+
+    // We saw those last period but never before => new CIDs
+    ConnectionSet newCIDs;
+    std::insert_iterator<ConnectionSet> iiNew(newCIDs, newCIDs.begin()); 
+    set_intersection(unknownCIDs.begin(), 
+        unknownCIDs.end(), 
+        pastPeriodCIDs_[currentFrame_].begin(), 
+        pastPeriodCIDs_[currentFrame_].end(), iiNew);
+
+    MESSAGE_BEGIN(NORMAL, logger, m, "New CIDs: ");
+    for(it = newCIDs.begin();
+        it != newCIDs.end();    
         it++)
     {
         m << *it << " ";
     }
     MESSAGE_END();  
+
+    // This CID was not there last period, see if it will be there next one
+    ConnectionSet firstTimeCIDs;
+    std::insert_iterator<ConnectionSet> iiFT(firstTimeCIDs, firstTimeCIDs.begin()); 
+    set_difference(unknownCIDs.begin(), 
+        unknownCIDs.end(), 
+        newCIDs.begin(), 
+        newCIDs.end(), iiFT);
+
+    // Currently present and known
+    ConnectionSet knownCIDs;
+    std::insert_iterator<ConnectionSet> iiKnown(knownCIDs, knownCIDs.begin()); 
+    set_difference(activeCIDs.begin(), 
+        activeCIDs.end(), 
+        unknownCIDs.begin(), 
+        unknownCIDs.end(), iiKnown);
+
+    // Currently present and known but not expected
+    ConnectionSet unexpectedCIDs;
+    std::insert_iterator<ConnectionSet> iiUnexp(unexpectedCIDs, unexpectedCIDs.begin()); 
+    set_difference(knownCIDs.begin(),
+        knownCIDs.end(),
+        expectedCIDs_[currentFrame_].begin(), 
+        expectedCIDs_[currentFrame_].end(), iiUnexp);
+
+    // Currently present and known but not expected 
+    // but seen in last period => talking again
+    ConnectionSet reactivatedCIDs;
+    std::insert_iterator<ConnectionSet> iiReact(reactivatedCIDs, reactivatedCIDs.begin()); 
+    set_intersection(unexpectedCIDs.begin(),
+        unexpectedCIDs.end(),
+        pastPeriodCIDs_[currentFrame_].begin(), 
+        pastPeriodCIDs_[currentFrame_].end(), iiReact);
+
+    MESSAGE_BEGIN(NORMAL, logger, m, "Reactivated CIDs: ");
+    for(it = reactivatedCIDs.begin();
+        it != reactivatedCIDs.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
+    for(it = reactivatedCIDs.begin();
+        it != reactivatedCIDs.end();    
+        it++)
+    {
+        assure(silentCIDs_.find(*it) != silentCIDs_.end(),
+            "Reactivated CID " << *it << " was not silenced before.");
+        silentCIDs_.erase(*it);
+    }
+
+    // Currently present, silenced and known but not expected 
+    // and not seen in last period => comfort noise or talking again
+    //
+    // Unexpected CIDs that are not in silent mode must have
+    // leftover PDUs that did not fit before
+    ConnectionSet possibleReactCIDs;
+    std::insert_iterator<ConnectionSet> iiPosReact(possibleReactCIDs, possibleReactCIDs.begin()); 
+    set_difference(unexpectedCIDs.begin(),
+        unexpectedCIDs.end(),
+        pastPeriodCIDs_[currentFrame_].begin(), 
+        pastPeriodCIDs_[currentFrame_].end(), iiPosReact);
+    ConnectionSet possibleReactSilCIDs;
+    std::insert_iterator<ConnectionSet> iiPosReactSil(possibleReactSilCIDs, possibleReactSilCIDs.begin()); 
+    set_intersection(possibleReactCIDs.begin(),
+        possibleReactCIDs.end(),
+        silentCIDs_.begin(), 
+        silentCIDs_.end(), iiPosReactSil);
+
+    MESSAGE_BEGIN(NORMAL, logger, m, "Comfort noise CIDs: ");
+    for(it = possibleReactSilCIDs.begin();
+        it != possibleReactSilCIDs.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
+
+    // Those are known VoIP connections
+    allCIDs_.insert(newCIDs.begin(), newCIDs.end());
+
+    // Check next period if these CIDs are still present
+    pastPeriodCIDs_[currentFrame_] = firstTimeCIDs;
+    pastPeriodCIDs_[currentFrame_].insert(possibleReactSilCIDs.begin(), possibleReactSilCIDs.end());
+
+    // We expect these CIDs next period
+    expectedCIDs_[currentFrame_] = oldCIDs;
+    expectedCIDs_[currentFrame_].insert(newCIDs.begin(), newCIDs.end());
+    expectedCIDs_[currentFrame_].insert(reactivatedCIDs.begin(), reactivatedCIDs.end());
+
+    // Those CIDs are now inactive
+    silentCIDs_.insert(silencedCIDs.begin(), silencedCIDs.end());
+
+    MESSAGE_SINGLE(NORMAL, logger, "------------------------ Update CIDs done-------------------------" );
 }
 
+void
+PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState)
+{
+    assure(firstScheduling_, "This method may only be called once.");
+    firstScheduling_ = false;
 
+    numberOfSubchannels_ = schedulerState->getCurrentState()
+        ->strategyInput->getFChannels();
+
+    transmissionBlocks_.resize(numberOfFrames_);
+
+    for(int i = 0; i < numberOfFrames_; i++)
+        transmissionBlocks_[i].insert(persistentvoip::TransmissionBlock(0, numberOfSubchannels_));
+
+    MESSAGE_SINGLE(NORMAL, logger, "Managing " << numberOfSubchannels_ 
+        << " resources per frame in " << numberOfFrames_ << " frames.");
+}
 

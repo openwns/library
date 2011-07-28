@@ -637,7 +637,7 @@ SegmentingQueueTest::testQueueStatus()
     SETCID(compound3, 4);
     testee_->put(compound3);
 
-    QueueStatusContainer qstat = testee_->getQueueStatus();
+    QueueStatusContainer qstat = testee_->getQueueStatus(false);
 
     CPPUNIT_ASSERT_EQUAL(true, qstat.knows(4));
 

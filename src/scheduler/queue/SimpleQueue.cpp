@@ -179,7 +179,7 @@ SimpleQueue::numBitsForCid(ConnectionID cid) const
 
 // result is sorted per-cid
 QueueStatusContainer
-SimpleQueue::getQueueStatus() const
+SimpleQueue::getQueueStatus(bool forFuture) const
 {
     wns::scheduler::QueueStatusContainer result;
 

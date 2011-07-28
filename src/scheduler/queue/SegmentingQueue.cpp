@@ -229,7 +229,7 @@ SegmentingQueue::numBitsForCid(ConnectionID cid) const
 
 // result is sorted per-cid
 QueueStatusContainer
-SegmentingQueue::getQueueStatus() const
+SegmentingQueue::getQueueStatus(bool forFuture) const
 {
     wns::scheduler::QueueStatusContainer result;
 
@@ -238,8 +238,18 @@ SegmentingQueue::getQueueStatus() const
     {
         ConnectionID cid = iter->first;
         QueueStatus queueStatus;
-        assure(fixedOverhead.find(cid)!=fixedOverhead.end(), "Cannot find overhead entry for cid " << cid);
-        int overhead = fixedOverhead.find(cid)->second;
+        int overhead;
+
+        /* The header will be reset in the next frame */
+        if(forFuture)
+        {
+            overhead = fixedHeaderSize;
+        }
+        else
+        {    
+            assure(fixedOverhead.find(cid)!=fixedOverhead.end(), "Cannot find overhead entry for cid " << cid);
+            overhead = fixedOverhead.find(cid)->second;
+        }
         queueStatus.numOfBits      = iter->second.queuedBruttoBits(overhead, extensionHeaderSize, byteAlignHeader);
         queueStatus.numOfCompounds = iter->second.queuedCompounds();
         result.insert(cid,queueStatus);

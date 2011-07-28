@@ -68,7 +68,7 @@ namespace wns { namespace scheduler { namespace queue {
                 numBitsForCid(wns::scheduler::ConnectionID cid) const;
 
                 wns::scheduler::QueueStatusContainer 
-                getQueueStatus() const;
+                getQueueStatus(bool forFuture) const;
 
                 /** @brief compound out */
                 wns::ldk::CompoundPtr 

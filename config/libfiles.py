@@ -1006,6 +1006,7 @@ hppFiles = [
 'src/scheduler/strategy/staticpriority/HARQUplinkSlaveRetransmission.hpp',
 'src/scheduler/strategy/staticpriority/ProportionalFair.hpp',
 'src/scheduler/strategy/staticpriority/PersistentVoIP.hpp',
+'src/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategy.hpp',
 'src/scheduler/strategy/dsastrategy/DoNotUseDSA.hpp',

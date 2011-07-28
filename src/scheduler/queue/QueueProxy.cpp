@@ -172,7 +172,7 @@ QueueProxy::numBitsForCid(wns::scheduler::ConnectionID cid) const
 }
 
 wns::scheduler::QueueStatusContainer
-QueueProxy::getQueueStatus() const
+QueueProxy::getQueueStatus(bool forFuture) const
 {
     wns::scheduler::QueueStatusContainer csc;
 
@@ -184,7 +184,7 @@ QueueProxy::getQueueStatus() const
         startCollectionIfNeeded(it->first);
 
         wns::scheduler::QueueStatusContainer innerCsc;
-        innerCsc = it->second->getQueueStatus();
+        innerCsc = it->second->getQueueStatus(forFuture);
         wns::scheduler::QueueStatusContainer::const_iterator iit;
 
         for(iit = innerCsc.begin(); iit != innerCsc.end(); iit++)

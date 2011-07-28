@@ -183,7 +183,7 @@ namespace wns { namespace scheduler { namespace queue {
                  *
                  * Returns the a container of QueueStatus for each cid
                  */
-                virtual QueueStatusContainer getQueueStatus() const = 0;
+                virtual QueueStatusContainer getQueueStatus(bool forFuture) const = 0;
 
                 /**
                  * @brief

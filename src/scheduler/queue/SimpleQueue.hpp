@@ -63,7 +63,7 @@ namespace wns { namespace scheduler { namespace queue {
                 unsigned long int numCompoundsForCid(ConnectionID cid) const;
                 unsigned long int numBitsForCid(ConnectionID cid) const;
 
-                QueueStatusContainer getQueueStatus() const;
+                QueueStatusContainer getQueueStatus(bool forFuture) const;
 
                 /** @brief compound out */
                 wns::ldk::CompoundPtr getHeadOfLinePDU(ConnectionID cid);

@@ -29,6 +29,7 @@
 #define WNS_SCHEDULER_STRATEGY_STATICPRIORITY_PERSISTENTVOIP_HPP
 
 #include <WNS/scheduler/strategy/staticpriority/SubStrategy.hpp>
+#include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
 #include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/scheduler/queue/QueueInterface.hpp>
@@ -36,6 +37,7 @@
 #include <WNS/StaticFactory.hpp>
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
+
 
 class PersistentVoIP
         : public SubStrategy
@@ -56,14 +58,23 @@ class PersistentVoIP
         void
         updateState(const ConnectionSet activeConnections);
 
+        void 
+        onFirstScheduling(const SchedulerStatePtr& schedulerState);
+
+        bool firstScheduling_;
+        int numberOfSubchannels_;
+
         unsigned int numberOfFrames_;
         unsigned int currentFrame_;
 
-        std::vector<ConnectionSet> persistentSchedule_;
-        std::map<ConnectionID, unsigned int> firstSubChannel_;
-        std::map<ConnectionID, unsigned int> numberOfSubchannels_;
-        std::map<ConnectionID, int> pastPhyModes_;
-        std::map<ConnectionID, wns::simulator::Time> lastActive_;
+        std::vector<ConnectionSet> expectedCIDs_;
+        std::vector<ConnectionSet> pastPeriodCIDs_;
+        ConnectionSet silentCIDs_;
+        ConnectionSet allCIDs_;
+
+        std::vector<std::set<persistentvoip::TransmissionBlock> > transmissionBlocks_;
 };
+
 }}}}
+
 #endif
