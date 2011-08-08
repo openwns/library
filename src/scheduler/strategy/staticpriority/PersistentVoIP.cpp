@@ -51,12 +51,16 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     numberOfFrames_(config.get<unsigned int>("numberOfFrames")),
     currentFrame_(0),
     expectedCIDs_(numberOfFrames_),
-    pastPeriodCIDs_(numberOfFrames_)
+    pastPeriodCIDs_(numberOfFrames_),
+    resources_(NULL),
+    resourceGridConfig_(config.get("resourceGrid"))
 {
 }
 
 PersistentVoIP::~PersistentVoIP()
 {
+    if(resources_ != NULL)
+        delete resources_;
 }
 
 void
@@ -71,9 +75,6 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 {
     currentFrame_++;
     currentFrame_ %= numberOfFrames_;
-
-    if(firstScheduling_)
-        onFirstScheduling(schedulerState);
 
     MapInfoCollectionPtr mapInfoCollection = 
         MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection); // result datastructure
@@ -90,6 +91,14 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         MESSAGE_SINGLE(VERBOSE, logger, "No connection has queued data");
         return mapInfoCollection; 
     }
+
+    // Init the resources but only if there ever is any data queued for this priority
+    if(firstScheduling_)
+        onFirstScheduling(schedulerState);
+
+    assure(resources_ != NULL, "Invalid resource grid");
+
+    resources_->onNewFrame(currentFrame_);
 
     MESSAGE_SINGLE(NORMAL, logger, "Now scheduling frame " << currentFrame_ << " with " 
         << activeConnections.size() << " active connections.");
@@ -439,12 +448,10 @@ PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState)
     numberOfSubchannels_ = schedulerState->getCurrentState()
         ->strategyInput->getFChannels();
 
-    transmissionBlocks_.resize(numberOfFrames_);
-
-    for(int i = 0; i < numberOfFrames_; i++)
-        transmissionBlocks_[i].insert(persistentvoip::TransmissionBlock(0, numberOfSubchannels_));
-
-    MESSAGE_SINGLE(NORMAL, logger, "Managing " << numberOfSubchannels_ 
+    MESSAGE_SINGLE(NORMAL, logger, "Creating resource grid with " << numberOfSubchannels_ 
         << " resources per frame in " << numberOfFrames_ << " frames.");
+
+    resources_ = new persistentvoip::ResourceGrid(resourceGridConfig_, logger, 
+        numberOfFrames_, numberOfSubchannels_);
 }
 

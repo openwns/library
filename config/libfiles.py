@@ -290,6 +290,8 @@ srcFiles = [
     'src/scheduler/strategy/staticpriority/HARQUplinkSlaveRetransmission.cpp',
     'src/scheduler/strategy/staticpriority/ProportionalFair.cpp',
     'src/scheduler/strategy/staticpriority/PersistentVoIP.cpp',
+    'src/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.cpp',
+    'src/scheduler/strategy/staticpriority/persistentvoip/tests/ResourceGrid.cpp',
     'src/scheduler/strategy/StaticPriority.cpp',
 
     # the scheduler helpers

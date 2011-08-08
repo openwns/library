@@ -135,9 +135,14 @@ class RoundRobin(SubStrategy):
 class PersistentVoIP(SubStrategy):
     __plugin__ = "PersistentVoIP"
 
+    class ResourceGrid(object) :
+        def __init__(self, parentLogger):
+            self.logger = openwns.logger.Logger("WNS", "ResourceGrid", True, parentLogger)
+
     def __init__(self, parentLogger = None, **kw):
         self.numberOfFrames = 20
         self.logger = openwns.logger.Logger("WNS", "PersistentVoIP", True, parentLogger)
+        self.resourceGrid = PersistentVoIP.ResourceGrid(self.logger)
         attrsetter(self, kw)
 
     def setParentLogger(self,parentLogger = None):

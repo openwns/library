@@ -72,7 +72,9 @@ class PersistentVoIP
         ConnectionSet silentCIDs_;
         ConnectionSet allCIDs_;
 
-        std::vector<std::set<persistentvoip::TransmissionBlock> > transmissionBlocks_;
+        persistentvoip::ResourceGrid* resources_;
+
+        wns::pyconfig::View resourceGridConfig_;
 };
 
 }}}}
