@@ -34,6 +34,7 @@
 
 #include <map>
 #include <set>
+#include <sstream>
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority { namespace persistentvoip {
 
@@ -121,17 +122,28 @@ class Frame :
                 length(0)
             {};
 
+            bool
+            operator<(const SearchResult& other) const
+            {
+                return this->start < other.start;
+            };
+
             bool success;
             unsigned int start;
             unsigned int length;
         };
+
+        typedef std::set<SearchResult> SearchResultSet;
 
         Frame(ResourceGrid* parent, unsigned int index);
         
         ~Frame();
 
         SearchResult
-        findTransmissionBlock(unsigned int minLength);
+        findTransmissionBlock(unsigned int start, unsigned int minLength);
+
+        SearchResultSet
+        findTransmissionBlocks(unsigned int minLength);
 
         void
         reserve(ConnectionID cid, unsigned int st, 

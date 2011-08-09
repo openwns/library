@@ -26,7 +26,6 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
-#include <sstream>
 
 using namespace std;
 using namespace wns::scheduler;
@@ -167,14 +166,37 @@ Frame::getFrameIndex()
     return frame_;
 }
 
-Frame::SearchResult
-Frame::findTransmissionBlock(unsigned int minLength)
+Frame::SearchResultSet
+Frame::findTransmissionBlocks(unsigned int minLength)
 {
-    MESSAGE_SINGLE(NORMAL, *logger_, "Free: " << *this);
+    MESSAGE_SINGLE(NORMAL, *logger_, "Reserved: " << *this);
+
+    unsigned int start = 0;
 
     SearchResult sr;
+    SearchResultSet srs;
 
-    for(int i = 0; i < numberOfSubChannels_; i++)
+    do
+    {
+        sr = SearchResult();
+        sr = findTransmissionBlock(start, minLength);
+        if(sr.success)
+        {
+            srs.insert(sr);
+            start = sr.start + sr.length;
+        }
+    }
+    while(sr.success && start < numberOfSubChannels_);
+    
+    return srs;
+}
+
+Frame::SearchResult
+Frame::findTransmissionBlock(unsigned int start, unsigned int minLength)
+{
+    SearchResult sr;
+
+    for(int i = start; i < numberOfSubChannels_; i++)
     {
         if(rbs_[i].isFree())
         {
@@ -203,6 +225,12 @@ Frame::reserve(ConnectionID cid, unsigned int st, unsigned int l, bool persisten
     /* Further assures in TransmissionBlock will check the rest */
     assure(st < numberOfSubChannels_, "Request start exceeds number of subchannels");
     assure(st + l < numberOfSubChannels_, "Request exceeds number of subchannels");
+
+    assure(persistentSchedule_.find(cid) == persistentSchedule_.end(), 
+        "CID already scheduled persistently");
+
+    assure(unpersistentSchedule_.find(cid) == unpersistentSchedule_.end(), 
+        "CID already scheduled unpersistently");
 
     ResourceBlockVectorIt start;
     ResourceBlockVectorIt end;
@@ -286,20 +314,23 @@ ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid,
 {
     assure(frame < numberOfFrames_, "Invalid frame index.");
 
-    Frame::SearchResult sr;
-    sr = frames_[frame].findTransmissionBlock(length);
+    Frame::SearchResultSet srs;
+    srs = frames_[frame].findTransmissionBlocks(length);
 
-    if(sr.success)
+    if(!srs.empty())
     {
-        frames_[frame].reserve(cid, sr.start, length, persistent);
+        MESSAGE_SINGLE(NORMAL, *logger_, "Found: " << srs.size() 
+            << " potential TBs. Reserving first.");
+
+        frames_[frame].reserve(cid, srs.begin()->start, length, persistent);
+        return true;
     }
     else
     {
         MESSAGE_SINGLE(NORMAL, *logger_, "Could not find " << length 
             << " resources for CID " << cid);
     }
-
-    return sr.success;
+    return false;
 }
 
 Frame*

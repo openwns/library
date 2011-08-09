@@ -291,7 +291,9 @@ srcFiles = [
     'src/scheduler/strategy/staticpriority/ProportionalFair.cpp',
     'src/scheduler/strategy/staticpriority/PersistentVoIP.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.cpp',
+    'src/scheduler/strategy/staticpriority/persistentvoip/StateTracker.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/tests/ResourceGrid.cpp',
+    'src/scheduler/strategy/staticpriority/persistentvoip/tests/StateTracker.cpp',
     'src/scheduler/strategy/StaticPriority.cpp',
 
     # the scheduler helpers
@@ -1008,6 +1010,7 @@ hppFiles = [
 'src/scheduler/strategy/staticpriority/HARQUplinkSlaveRetransmission.hpp',
 'src/scheduler/strategy/staticpriority/ProportionalFair.hpp',
 'src/scheduler/strategy/staticpriority/PersistentVoIP.hpp',
+'src/scheduler/strategy/staticpriority/persistentvoip/StateTracker.hpp',
 'src/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategy.hpp',

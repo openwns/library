@@ -30,6 +30,7 @@
 
 #include <WNS/scheduler/strategy/staticpriority/SubStrategy.hpp>
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
+#include <WNS/scheduler/strategy/staticpriority/persistentvoip/StateTracker.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
 #include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/scheduler/queue/QueueInterface.hpp>
@@ -55,9 +56,6 @@ class PersistentVoIP
                              wns::scheduler::SchedulingMapPtr schedulingMap);
 
     private:
-        void
-        updateState(const ConnectionSet activeConnections);
-
         void 
         onFirstScheduling(const SchedulerStatePtr& schedulerState);
 
@@ -67,12 +65,8 @@ class PersistentVoIP
         unsigned int numberOfFrames_;
         unsigned int currentFrame_;
 
-        std::vector<ConnectionSet> expectedCIDs_;
-        std::vector<ConnectionSet> pastPeriodCIDs_;
-        ConnectionSet silentCIDs_;
-        ConnectionSet allCIDs_;
-
         persistentvoip::ResourceGrid* resources_;
+        persistentvoip::StateTracker stateTracker_;
 
         wns::pyconfig::View resourceGridConfig_;
 };
