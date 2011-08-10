@@ -59,7 +59,11 @@ class PersistentVoIP
         void 
         onFirstScheduling(const SchedulerStatePtr& schedulerState);
 
+        ConnectionSet
+        schedulePersistently(const ConnectionSet& cids);
+
         bool firstScheduling_;
+        bool neverUsed_;
         int numberOfSubchannels_;
 
         unsigned int numberOfFrames_;

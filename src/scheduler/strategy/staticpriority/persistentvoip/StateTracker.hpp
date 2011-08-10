@@ -56,6 +56,9 @@ class StateTracker
         ClassifiedConnections
         updateState(const ConnectionSet& activeCIDs, unsigned int currentFrame);
 
+        void
+        silenceCID(ConnectionID cid, unsigned int currentFrame);
+
     private:
         unsigned int numberOfFrames_;
 

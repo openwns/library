@@ -153,6 +153,9 @@ class Frame :
         reserve(ConnectionID cid, unsigned int st, 
             unsigned int l, bool persistent);
 
+        void
+        removeReservation(ConnectionID cid);
+
         unsigned int
         getFrameIndex();
     
@@ -196,6 +199,12 @@ class ResourceGrid
         bool
         scheduleCID(unsigned int frame, ConnectionID cid, 
             unsigned int length, bool persistent);
+
+        void
+        unscheduleCID(unsigned int frame, ConnectionID cid);
+
+        void
+        unscheduleCID(unsigned int frame, const ConnectionSet& cids);
 
         unsigned int
         getSubChannelsPerFrame();

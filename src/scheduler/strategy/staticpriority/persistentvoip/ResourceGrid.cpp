@@ -253,6 +253,15 @@ Frame::reserve(ConnectionID cid, unsigned int st, unsigned int l, bool persisten
 }
 
 void
+Frame::removeReservation(ConnectionID cid)
+{
+    size_t n = persistentSchedule_.erase(cid);
+
+    MESSAGE_SINGLE(NORMAL, *logger_, "Canceled persistent reservation for CID " << cid);
+    assure(n == 1, "No persistent reservation for CID " << cid);
+}
+
+void
 Frame::clearUnpersistentSchedule()
 {
     MESSAGE_SINGLE(NORMAL, *logger_, "ClearUnpersistenSchedule frame " << frame_ 
@@ -340,6 +349,24 @@ ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid,
             << " resources for CID " << cid);
     }
     return false;
+}
+
+void
+ResourceGrid::unscheduleCID(unsigned int frame, ConnectionID cid)
+{
+    assure(frame < numberOfFrames_, "Invalid frame index.");
+    frames_[frame].removeReservation(cid);   
+}
+
+void
+ResourceGrid::unscheduleCID(unsigned int frame, const ConnectionSet& cids)
+{
+    assure(frame < numberOfFrames_, "Invalid frame index.");
+
+    ConnectionSet::iterator it;
+    
+    for(it = cids.begin(); it != cids.end(); it++)
+        frames_[frame].removeReservation(*it);   
 }
 
 Frame*

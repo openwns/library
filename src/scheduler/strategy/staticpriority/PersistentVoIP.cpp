@@ -48,6 +48,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(PersistentVoIP,
 PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     : SubStrategy(config),
     firstScheduling_(true),
+    neverUsed_(true),
     numberOfFrames_(config.get<unsigned int>("numberOfFrames")),
     currentFrame_(0),
     stateTracker_(numberOfFrames_, logger),
@@ -82,7 +83,23 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     ConnectionSet activeConnections = colleagues.queue->filterQueuedCids(currentConnections);
 
-    stateTracker_.updateState(activeConnections, currentFrame_);
+    /* Unused scheduler ex. because no data present for QoS class */
+    if (neverUsed_ && activeConnections.empty()) 
+        return mapInfoCollection; 
+
+    neverUsed_ = false;
+
+    // Init the resources but only if there ever is any data queued for this priority
+    if(firstScheduling_)
+        onFirstScheduling(schedulerState);
+
+    assure(resources_ != NULL, "Invalid resource grid");
+
+    persistentvoip::StateTracker::ClassifiedConnections cc;
+    cc = stateTracker_.updateState(activeConnections, currentFrame_);
+    
+    /* Remove persistent reservations for CIDs not active anymore */
+    resources_->unscheduleCID(currentFrame_, cc.silencedCIDs);
 
     // nothing to do?
     if (activeConnections.empty()) 
@@ -91,13 +108,13 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         return mapInfoCollection; 
     }
 
-    // Init the resources but only if there ever is any data queued for this priority
-    if(firstScheduling_)
-        onFirstScheduling(schedulerState);
-
-    assure(resources_ != NULL, "Invalid resource grid");
-
     resources_->onNewFrame(currentFrame_);
+
+    ConnectionSet successfulReactivated;
+    successfulReactivated = schedulePersistently(cc.reactivatedPersistentCIDs);
+
+    ConnectionSet successfulNew;
+    successfulNew = schedulePersistently(cc.newPersistentCIDs);
 
     MESSAGE_SINGLE(NORMAL, logger, "Now scheduling frame " << currentFrame_ << " with " 
         << activeConnections.size() << " active connections.");
@@ -250,6 +267,32 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     }
     return mapInfoCollection;
 } // doStartSubScheduling
+
+ConnectionSet
+PersistentVoIP::schedulePersistently(const ConnectionSet& cids)
+{
+    ConnectionSet successful;
+
+    ConnectionSet::iterator it;
+    for(it = cids.begin();
+        it != cids.end();
+        it++)
+    {
+        bool success;
+        success = resources_->scheduleCID(currentFrame_, *it, 1, true);
+        if(success)
+        {
+            MESSAGE_SINGLE(NORMAL, logger, "Succesfully scheduled new CID " << *it);
+            successful.insert(*it);
+        }
+        else
+        {
+            MESSAGE_SINGLE(NORMAL, logger, "No free resources for CID " << *it);
+            stateTracker_.silenceCID(*it, currentFrame_);
+        }
+    }
+    return successful;    
+}
 
 void
 PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState)

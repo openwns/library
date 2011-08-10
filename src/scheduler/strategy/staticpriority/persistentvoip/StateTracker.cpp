@@ -268,3 +268,20 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     return cc;
 }
 
+
+void
+StateTracker::silenceCID(ConnectionID cid, unsigned int currentFrame)
+{
+    assure(silentCIDs_.find(cid) == silentCIDs_.end(), 
+        "CID " << cid << " already silent.");
+
+    assure(expectedCIDs_[currentFrame].find(cid) != expectedCIDs_[currentFrame].end(),
+        "CID " << cid << " not expected in frame " << currentFrame);
+
+    MESSAGE_SINGLE(NORMAL, *logger_, "CID " << cid 
+        << " no longer expected in frame " << currentFrame);
+
+    expectedCIDs_[currentFrame].erase(cid);
+    silentCIDs_.insert(cid);
+}
+
