@@ -119,7 +119,9 @@ class Frame :
             SearchResult() :
                 success(false),
                 start(0),
-                length(0)
+                length(0),
+                needed(0),
+                frame(0)
             {};
 
             bool
@@ -131,6 +133,8 @@ class Frame :
             bool success;
             unsigned int start;
             unsigned int length;
+            unsigned int needed;
+            unsigned int frame;
         };
 
         typedef std::set<SearchResult> SearchResultSet;
@@ -177,6 +181,8 @@ typedef wns::SmartPtr<Frame> FramePtr;
 typedef std::vector<Frame> FrameVector;
 typedef FrameVector::iterator FrameVectorIt;
 
+class ITBChoser;
+
 class ResourceGrid
 {
     public:
@@ -211,6 +217,8 @@ class ResourceGrid
         unsigned int numberOfFrames_;
         unsigned int subChannelsPerFrame_;
         FrameVector frames_;
+
+        ITBChoser* tbChoser_;
 
         wns::logger::Logger* logger_;
 };

@@ -292,8 +292,10 @@ srcFiles = [
     'src/scheduler/strategy/staticpriority/PersistentVoIP.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/StateTracker.cpp',
+    'src/scheduler/strategy/staticpriority/persistentvoip/TBChoser.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/tests/ResourceGrid.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/tests/StateTracker.cpp',
+    'src/scheduler/strategy/staticpriority/persistentvoip/tests/TBChoser.cpp',
     'src/scheduler/strategy/StaticPriority.cpp',
 
     # the scheduler helpers
@@ -1012,6 +1014,7 @@ hppFiles = [
 'src/scheduler/strategy/staticpriority/PersistentVoIP.hpp',
 'src/scheduler/strategy/staticpriority/persistentvoip/StateTracker.hpp',
 'src/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp',
+'src/scheduler/strategy/staticpriority/persistentvoip/TBChoser.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp',
 'src/scheduler/strategy/dsastrategy/DSAStrategy.hpp',
 'src/scheduler/strategy/dsastrategy/DoNotUseDSA.hpp',

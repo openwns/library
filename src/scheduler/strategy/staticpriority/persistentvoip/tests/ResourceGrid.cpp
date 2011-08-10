@@ -74,7 +74,7 @@ void ResourceGridTest::prepare()
 	wns::pyconfig::Parser rgConfig;
 	std::stringstream ss;
 	ss << "from openwns.Scheduler import PersistentVoIP\n"
-	   << "rg = PersistentVoIP.ResourceGrid(None)\n";
+	   << "rg = PersistentVoIP.ResourceGrid()\n";
 	rgConfig.loadString(ss.str());
 
     rg_ = new ResourceGrid(rgConfig.getView("rg"), logger_, 5, 10);

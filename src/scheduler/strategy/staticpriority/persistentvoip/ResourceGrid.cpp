@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
+#include <WNS/scheduler/strategy/staticpriority/persistentvoip/TBChoser.hpp>
 
 using namespace std;
 using namespace wns::scheduler;
@@ -212,6 +213,8 @@ Frame::findTransmissionBlock(unsigned int start, unsigned int minLength)
                 sr.success = true;
                 sr.start = start;
                 sr.length = nFree;
+                sr.needed = minLength;
+                sr.frame = getFrameIndex();
                 break;
             }
         }
@@ -290,10 +293,14 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
     {
         frames_.push_back(Frame(this, i));
     }
+    
+    std::string tbChoserName = config.get<std::string>("tbChoser");
+    tbChoser_ = ITBChoser::Factory::creator(tbChoserName)->create();
 }
 
 ResourceGrid::~ResourceGrid()
 {
+    delete tbChoser_;
 }
 
 unsigned int
@@ -319,10 +326,12 @@ ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid,
 
     if(!srs.empty())
     {
-        MESSAGE_SINGLE(NORMAL, *logger_, "Found: " << srs.size() 
-            << " potential TBs. Reserving first.");
+        assure(tbChoser_ != NULL, "Need TBChoser");
 
-        frames_[frame].reserve(cid, srs.begin()->start, length, persistent);
+        MESSAGE_SINGLE(NORMAL, *logger_, "Found: " << srs.size() 
+            << " potential TBs.");
+
+        frames_[frame].reserve(cid, tbChoser_->choseTB(srs).start, length, persistent);
         return true;
     }
     else
