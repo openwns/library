@@ -44,9 +44,9 @@ using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::staticpriority;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(StaticPriority,
-                                     StrategyInterface,
-                                     "StaticPriority",
-                                     wns::PyConfigViewCreator);
+				     StrategyInterface,
+				     "StaticPriority",
+				     wns::PyConfigViewCreator);
 
 StaticPriority::StaticPriority(const wns::pyconfig::View& config):
     Strategy(config),
@@ -59,12 +59,12 @@ StaticPriority::StaticPriority(const wns::pyconfig::View& config):
 
 StaticPriority::~StaticPriority()
 {
-    for (int priority = 0; priority<numberOfPriorities; ++priority) 
+  for (int priority = 0; priority<numberOfPriorities; ++priority)
     {
-        if (subStrategies[priority] != NULL) 
-        { 
-            delete subStrategies[priority]; 
-        }
+      if (subStrategies[priority] != NULL)
+	{
+	  delete subStrategies[priority];
+	}
     }
 }
 
@@ -74,146 +74,175 @@ StaticPriority::getResourceUsage() const
     return resourceUsage;
 }
 
-// inherited by base class Strategy to do first-time initialization:
+
 void
 StaticPriority::onColleaguesKnown()
 {
-    Strategy::onColleaguesKnown(); // must be done in every derived method
+    /* Inherited by base class Strategy to do first-time initialization.
+       It must be done in every derived method.
+    */
+    Strategy::onColleaguesKnown();
     numberOfPriorities = colleagues.registry->getNumberOfPriorities();
 
     // loop over all priorities and initialize subStrategies
     assure(numberOfPriorities == pyConfig.len("subStrategies"),
-        "numberOfPriorities=" << numberOfPriorities 
-        << " != "<<pyConfig.len("subStrategies"));
+	   "numberOfPriorities=" << numberOfPriorities
+	   << " != "<<pyConfig.len("subStrategies"));
 
-    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority::onColleaguesKnown(), numberOfPriorities = " << numberOfPriorities);
+    MESSAGE_SINGLE(NORMAL, logger,
+		   "StaticPriority::onColleaguesKnown(), numberOfPriorities = "
+		   << numberOfPriorities);
 
-    for (int priority = 0; priority<numberOfPriorities; ++priority) 
-    {
-        wns::pyconfig::View substrategyView = pyConfig.getView("subStrategies",priority);
-        std::string substrategyName = substrategyView.get<std::string>("__plugin__");
-        MESSAGE_SINGLE(NORMAL, logger, "subStrategy[" << priority << "]=" << substrategyName);
-        wns::scheduler::strategy::staticpriority::SubStrategyInterface* substrategy = NULL;
-        if (substrategyName.compare("NONE") != 0) 
-        {
-            // create the subscheduling strategy for this priority:
-            wns::scheduler::strategy::staticpriority::SubStrategyCreator* subStrategyCreator;
-            subStrategyCreator = wns::scheduler::strategy::staticpriority::SubStrategyFactory::creator(substrategyName);
-            substrategy = subStrategyCreator->create(substrategyView);
-        } 
-        else 
-        {
-            substrategy = NULL;
-        }
-        subStrategies.push_back(substrategy);
-    } // for all priorities
+    for (int priority = 0; priority<numberOfPriorities; ++priority)
+      {
+	// for all priorities
+	wns::pyconfig::View substrategyView = pyConfig.getView("subStrategies",
+							       priority);
+	std::string substrategyName = substrategyView.get<std::string>("__plugin__");
+	MESSAGE_SINGLE(NORMAL, logger, "subStrategy["
+		       << priority << "]=" << substrategyName);
+	wns::scheduler::strategy::staticpriority::SubStrategyInterface* substrategy = NULL;
+	if (substrategyName.compare("NONE") != 0)
+	  {
+	    // create the subscheduling strategy for this priority
+	    wns::scheduler::strategy::staticpriority::SubStrategyCreator* subStrategyCreator;
+	    subStrategyCreator = wns::scheduler::strategy::staticpriority::SubStrategyFactory::creator(substrategyName);
+	    substrategy = subStrategyCreator->create(substrategyView);
+	  }
+	else
+	  {
+	    substrategy = NULL;
+	  }
+	subStrategies.push_back(substrategy);
+      }
 
     SchedulerStatePtr schedulerState = getSchedulerState();
-    // priority is out of [0..MaxPriority-1]:
-    for (int priority = 0; priority < numberOfPriorities; ++priority) 
-    {
-        MESSAGE_SINGLE(NORMAL, logger, "initializing subStrategy[" << priority << "]");
-        wns::scheduler::strategy::staticpriority::SubStrategyInterface* substrategy = subStrategies[priority];
 
-        assure(substrategy != NULL, "The substrategy[" << priority << "] is not accessible");
+    // priority is out of [0..MaxPriority-1]
+    for (int priority = 0; priority < numberOfPriorities; ++priority)
+      {
+	MESSAGE_SINGLE(NORMAL, logger, "initializing subStrategy["
+		       << priority << "]");
 
-        substrategy->setColleagues(this, colleagues.queue, colleagues.registry, colleagues.harq);
-    }
+	wns::scheduler::strategy::staticpriority::SubStrategyInterface* substrategy = subStrategies[priority];
+
+	assure(substrategy != NULL, "The substrategy[" << priority
+	       << "] is not accessible");
+	substrategy->setColleagues(this, colleagues.queue, colleagues.registry,
+				   colleagues.harq);
+      }
 }
 
 StrategyResult
 StaticPriority::doStartScheduling(SchedulerStatePtr schedulerState,
-                                  SchedulingMapPtr schedulingMap)
+				  SchedulingMapPtr schedulingMap)
 {
-    assure(numberOfPriorities > 0,"illegal numberOfPriorities=" << numberOfPriorities);
+    assure(numberOfPriorities > 0,"illegal numberOfPriorities="
+	   << numberOfPriorities);
     int frameNr = schedulerState->currentState->strategyInput->getFrameNr();
-    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority::doStartScheduling(frame=" 
-        << frameNr << "):"
-        << " numberOfPriorities="<<numberOfPriorities);
+    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority::doStartScheduling(frame="
+		   << frameNr << "):"
+		   << " numberOfPriorities="<<numberOfPriorities);
 
     colleagues.queue->frameStarts();
 
-    // prepare result datastructure:
+    // prepare result datastructure
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
     StrategyResult strategyResult(schedulingMap,mapInfoCollection);
     this->resourceUsage=0.0;
 
-    MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): userSelection. getDL=" 
-        << schedulerState->isDL << ", isTX=" 
-        << schedulerState->isTx << ", schedulerSpot="
-        << wns::scheduler::SchedulerSpot::toString(schedulerState->schedulerSpot));
+    MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): userSelection. getDL="
+		   << schedulerState->isDL << ", isTX="
+		   << schedulerState->isTx << ", schedulerSpot="
+		   << wns::scheduler::SchedulerSpot::toString(schedulerState->schedulerSpot));
 
     // only if (maxSpatialLayers > 1)
-    if (groupingRequired() && !colleagues.queue->isEmpty()) 
-    {
-        // set grouping into result output (needed later to set antennaPatterns)
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): write grouping in strategyResult");
-        strategyResult.sdmaGrouping =  schedulerState->currentState->getGrouping();
-    } 
+    if (groupingRequired() && !colleagues.queue->isEmpty())
+      {
+	// set grouping into result output (needed later to set antennaPatterns)
+	MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): write grouping in strategyResult");
+	strategyResult.sdmaGrouping =  schedulerState->currentState->getGrouping();
+      }
 
     // priority is out of [0..MaxPriority-1]:
     for (int priority = 0; priority < numberOfPriorities; ++priority)
-    {
-        // (grouping alternative: do grouping within each priority; to be discussed; but seems to be less useful)
-        if (subStrategies[priority] == NULL) 
-            continue;
+      {
+	// grouping alternative: do grouping within each priority;
+	// to be discussed; but seems to be less useful
+	if (subStrategies[priority] == NULL)
+	  continue;
 
-        bool usesHARQ = subStrategies[priority]->usesHARQ();
-        schedulerState->currentState->setCurrentPriority(priority);
+	bool usesHARQ = subStrategies[priority]->usesHARQ();
+	schedulerState->currentState->setCurrentPriority(priority);
 
-        MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): now scheduling priority=" << priority);
+	MESSAGE_SINGLE(NORMAL, logger, "doStartScheduling(): now scheduling priority="
+		       << priority);
 
-        // get all registered connections for the current priority
-        ConnectionSet allConnections = colleagues.registry->getConnectionsForPriority(priority); // all
-        MESSAGE_SINGLE(NORMAL, logger, "allConnections      = "<<printConnectionSet(allConnections));
-        ConnectionSet reachableConnections = colleagues.registry->filterReachable(allConnections, frameNr, usesHARQ);
-        MESSAGE_SINGLE(NORMAL, logger, "reachableConnections= "<<printConnectionSet(reachableConnections));
+	// get all registered connections for the current priority
+	ConnectionSet allConnections = colleagues.registry->getConnectionsForPriority(priority);
+	MESSAGE_SINGLE(NORMAL, logger, "allConnections      = "
+		       <<printConnectionSet(allConnections));
 
-        GroupingPtr grouping = schedulerState->currentState->getGrouping();
-        if (grouping != GroupingPtr())
-        {
-            //serve only connections of users considered in grouping
-            ConnectionSet intersectionConnections;
-            wns:scheduler::UserSet reachableUsers;
-            wns::scheduler::ConnectionSet::iterator it;
-            for(it = reachableConnections.begin(); it != reachableConnections.end(); it++)
-            {
-                MESSAGE_SINGLE(NORMAL, logger, " 111 cid: "<< *it << " #groups :" << grouping->groups.size());
-                wns::scheduler::UserID user = colleagues.registry->getUserForCID(*it);
-                if(!user.isBroadcast())
-                {
-                    if (grouping->userGroupNumber.find(user) != grouping->userGroupNumber.end())
-                    {
-                        intersectionConnections.insert(*it);
-                    }else{
-                        MESSAGE_SINGLE(NORMAL, logger, " ignore connections: " << *it <<" of user:"<< user);
-                    }
-                }
-            }
-            reachableConnections.clear();
-            reachableConnections = intersectionConnections;
-        }
+	ConnectionSet reachableConnections = colleagues.registry->filterReachable(allConnections, frameNr, usesHARQ);
+	MESSAGE_SINGLE(NORMAL, logger, "reachableConnections= "
+		       <<printConnectionSet(reachableConnections));
 
+	GroupingPtr grouping = schedulerState->currentState->getGrouping();
+	if (grouping != GroupingPtr())
+	  {
+	    //serve only connections of users considered in grouping
+	    ConnectionSet intersectionConnections;
+	    wns:scheduler::UserSet reachableUsers;
+	    wns::scheduler::ConnectionSet::iterator it;
 
-        // don't filter out unqueued cids since the subStrategy may want to update the state for every cid
-        schedulerState->currentState->activeConnections = reachableConnections;
-        // start SubScheduling in any case (even with empty user or cid list)
-        // because the substrategies may need to keep and track their own state over time
-        MapInfoCollectionPtr resultBursts = subStrategies[priority]->doStartSubScheduling(schedulerState, schedulingMap);
-        // copy ^ of std::list<MapInfoEntryPtr>
-        if (resultBursts->size()>0) 
-        {
-            MESSAGE_SINGLE(NORMAL, logger, "merged "
-                << resultBursts->size() << " entries of resultBursts into"
-                << " mapInfoCollection (now size="
-                << mapInfoCollection->size() << ")");
-            mapInfoCollection->join(*resultBursts); // collects result bursts. Do not use merge! (sorts bySmartPtr)
-        }
-    } // end for (over all priorities)
-    // READY!
-    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority: "<<schedulingMap->getNumberOfCompounds()<<" compounds scheduled");
+	    for(it = reachableConnections.begin(); it != reachableConnections.end(); it++)
+	      {
+		MESSAGE_SINGLE(NORMAL, logger, " 111 cid: "<< *it <<
+			       " #groups :" << grouping->groups.size());
+		wns::scheduler::UserID user = colleagues.registry->getUserForCID(*it);
+		if(!user.isBroadcast())
+		  {
+		    if (grouping->userGroupNumber.find(user) != grouping->userGroupNumber.end())
+		      {
+			intersectionConnections.insert(*it);
+		      }
+		    else
+		      {
+			MESSAGE_SINGLE(NORMAL, logger, " ignore connections: "
+				       << *it <<" of user:"<< user);
+		      }
+		  }
+	      }
+	    reachableConnections.clear();
+	    reachableConnections = intersectionConnections;
+	  }
+
+	// do not filter out unqueued cids since the subStrategy
+	// may want to update the state for every cid
+	schedulerState->currentState->activeConnections = reachableConnections;
+
+	// start SubScheduling in any case (even with empty user or cid list)
+	// since substrategies may need to keep and track their own state over time
+	MapInfoCollectionPtr resultBursts = subStrategies[priority]->doStartSubScheduling(schedulerState, schedulingMap);
+
+	// copy ^ of std::list<MapInfoEntryPtr>
+	if (resultBursts->size()>0)
+	  {
+	    MESSAGE_SINGLE(NORMAL, logger, "merged "
+			   << resultBursts->size()
+			   << " entries of resultBursts into"
+			   << " mapInfoCollection (now size="
+			   << mapInfoCollection->size() << ")");
+
+	    // collects result bursts. Do not use merge! (sorts bySmartPtr)
+	    mapInfoCollection->join(*resultBursts);
+	  }
+      }
+
+    MESSAGE_SINGLE(NORMAL, logger, "StaticPriority: "
+		   <<schedulingMap->getNumberOfCompounds()
+		   <<" compounds scheduled");
     MESSAGE_SINGLE(NORMAL, logger, schedulingMap->toString());
     this->resourceUsage = schedulingMap->getResourceUsage();
-
     return strategyResult;
-} // doStartScheduling()
+}
