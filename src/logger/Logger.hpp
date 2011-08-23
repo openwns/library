@@ -219,6 +219,12 @@ namespace wns { namespace logger {
 		getLoggerName() const;
 
 		/**
+		 * @brief set the the current Logger name (e.g. "UT4.Listener")
+		 */
+		void
+		setLoggerName(const std::string&);
+
+		/**
 		 * @brief Get the logger::Master
 		 */
 		Master*

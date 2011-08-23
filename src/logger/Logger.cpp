@@ -178,6 +178,12 @@ Logger::getLoggerName() const
 	return lName;
 }
 
+void
+Logger::setLoggerName(const std::string& name)
+{
+	lName = name;
+}
+
 Master*
 Logger::getMaster() const
 {
