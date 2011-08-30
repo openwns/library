@@ -29,6 +29,7 @@
 #define WNS_SCHEDULER_STRATEGY_STATICPRIORITY_PERSISTENTVOIP_RESOURCEGRID_HPP
 
 #include <WNS/scheduler/SchedulerTypes.hpp>
+#include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/SmartPtr.hpp>
 #include <WNS/RefCountable.hpp>
 
@@ -98,6 +99,12 @@ class TransmissionBlock :
         unsigned int
         getCID();
 
+        unsigned int
+        getStart();
+
+        unsigned int
+        getLength();
+
     private:
         ResourceBlockPointerSet rbs_;
         ConnectionID cid_;
@@ -154,13 +161,22 @@ class Frame :
             unsigned int l, bool persistent);
 
         void
+        block(unsigned int RBIndex);
+
+        void
         removeReservation(ConnectionID cid);
+
+        TransmissionBlockPtr
+        getReservation(ConnectionID cid, bool persistent);
 
         unsigned int
         getFrameIndex();
     
         void
         clearUnpersistentSchedule();
+
+        void
+        clearBlocked();
 
         wns::logger::Logger*
         getLogger();
@@ -172,6 +188,7 @@ class Frame :
         ResourceBlockVector rbs_;
         std::map<ConnectionID, TransmissionBlockPtr> persistentSchedule_;
         std::map<ConnectionID, TransmissionBlockPtr> unpersistentSchedule_;
+        std::set<TransmissionBlockPtr> blocked_;
 
         unsigned int numberOfSubChannels_;
         unsigned int frame_;
@@ -206,11 +223,18 @@ class ResourceGrid
         void
         unscheduleCID(unsigned int frame, const ConnectionSet& cids);
 
+        TransmissionBlockPtr
+        getReservation(unsigned int frame, ConnectionID cid, bool persistent);
+
         unsigned int
         getSubChannelsPerFrame();
 
         unsigned int
         getNumberOfFrames();
+
+        void
+        onNewFrame(unsigned int index, 
+                   const wns::scheduler::SchedulingMapPtr& schedulingMap);
 
         void
         onNewFrame(unsigned int index);

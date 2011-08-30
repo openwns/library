@@ -27,7 +27,6 @@
 
 #include <WNS/scheduler/strategy/staticpriority/PersistentVoIP.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
-#include <WNS/scheduler/strategy/apcstrategy/APCStrategyInterface.hpp>
 
 #include <vector>
 #include <map>
@@ -97,9 +96,9 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     persistentvoip::StateTracker::ClassifiedConnections cc;
     cc = stateTracker_.updateState(activeConnections, currentFrame_);
-    
-    /* Remove persistent reservations for CIDs not active anymore */
-    resources_->unscheduleCID(currentFrame_, cc.silencedCIDs);
+
+    /* Take care of CIDs not active anymore */
+    processSilenced(cc.silencedCIDs);
 
     // nothing to do?
     if (activeConnections.empty()) 
@@ -108,190 +107,332 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         return mapInfoCollection; 
     }
 
-    resources_->onNewFrame(currentFrame_);
+    resources_->onNewFrame(currentFrame_, schedulingMap);
 
-    ConnectionSet successfulReactivated;
-    successfulReactivated = schedulePersistently(cc.reactivatedPersistentCIDs);
+    ConnectionSet persistentCIDs;
+    persistentCIDs = cc.persistentCIDs;
 
-    ConnectionSet successfulNew;
-    successfulNew = schedulePersistently(cc.newPersistentCIDs);
+    // Check TB sizes for CIDs, remove persistent CIDs needing more RBs now and return them
+    ConnectionSet needMore;
+    unsigned int oldSize = persistentCIDs.size();    
+    needMore = updateTBSizes(persistentCIDs, schedulerState, schedulingMap);
+    MESSAGE_SINGLE(NORMAL, logger, needMore.size() << " out of " << oldSize 
+        << " persistent connections need more RBs than last frame.");
+    // Clear the persistent reservations that do not fit anymore
+    resources_->unscheduleCID(currentFrame_, needMore);
 
-    MESSAGE_SINGLE(NORMAL, logger, "Now scheduling frame " << currentFrame_ << " with " 
-        << activeConnections.size() << " active connections.");
+    // Calculate TB size for reactivated CIDs
+    ConnectionSet test;    
+    test = updateTBSizes(cc.reactivatedPersistentCIDs, schedulerState, schedulingMap);    
+    assure(test.size() == 0, "Previously unpersistent CID cannot change size");
+
+    // Try to find resources for reactivated CIDs
+    ConnectionSetPair schedReactResult;
+    schedReactResult = schedulePersistently(cc.reactivatedPersistentCIDs);
+
+    // Calculate TB size for new persistent CIDs
+    test = updateTBSizes(cc.newPersistentCIDs, schedulerState, schedulingMap);    
+    assure(test.size() == 0, "Previously unknown CID cannot change size");
+
+    // Try to find resources for new persistent CIDs
+    ConnectionSetPair schedNewResult;
+    schedNewResult = schedulePersistently(cc.newPersistentCIDs);
+
+    // Try to find new RBs for CIDs with increased demand
+    test = updateTBSizes(needMore, schedulerState, schedulingMap);
+    assure(test.size() == 0, "Previously unknown CID cannot change size");
+    // Try to find resources for new persistent CIDs
+    ConnectionSetPair reschedResult;
+    reschedResult = schedulePersistently(needMore);
+
+    // Insert new and reactivated that got resources into persistent CID set
+    // Those consume PDCCH resources to announce new persistent reservations
+    persistentCIDs.insert(schedReactResult.first.begin(), schedReactResult.first.end());
+    persistentCIDs.insert(schedNewResult.first.begin(), schedNewResult.first.end());
+    // Those consume PDCCH resources to inform about reallocation
+    persistentCIDs.insert(reschedResult.first.begin(), reschedResult.first.end());
+
+    MESSAGE_SINGLE(NORMAL, logger, "Persistently scheduling " << persistentCIDs.size()
+        << " CIDs in frame " << currentFrame_ << ".");
+
+    MapInfoCollectionPtr result;
 
     ConnectionSet::iterator it;
 
-    /* For every connection that has queued PDUs*/
-    for(it = activeConnections.begin();
-        it != activeConnections.end();
+    for(it = persistentCIDs.begin();
+        it != persistentCIDs.end();
         it++)
     {
-        ConnectionID cid = *it;
-        UserID user = colleagues.registry->getUserForCID(cid);
 
-        MESSAGE_SINGLE(NORMAL, logger, "Now scheduling CID " << cid << " User: " << user.getName());
+        MESSAGE_SINGLE(NORMAL, logger, "Scheduling data for CID " << *it);
 
-        /* Determine PhyMode and TxPower depending on estimation from RegistryProxy */
-        ChannelQualityOnOneSubChannel cqi;
-        if(schedulerState->isTx)
-            cqi = colleagues.registry->estimateTxSINRAt(user);
-        else
-            cqi = colleagues.registry->estimateRxSINROf(user);
-
-        /* RequestedBits and QueuedBits is initially set to 1, will be decided later */
-        RequestForResource request(cid, user, 1, 1, useHARQ);
-        request.cqiOnSubChannel = cqi;
-        apcstrategy::APCResult apcResult;
-        apcResult = colleagues.strategy->getAPCStrategy()
-            ->doStartAPC(request, schedulerState, schedulingMap);
-
-        Bit bitPerRB;
-        bitPerRB = apcResult.phyModePtr->getBitCapacityFractional(schedulingMap->getSlotLength());
-        int queuedHeadBits = colleagues.queue->getHeadOfLinePDUbits(cid);
-        int requiredRBs = ceil(double(queuedHeadBits) / double(bitPerRB));
-
-        MESSAGE_BEGIN(NORMAL, logger, m, "RBs for PhyMode: ");
-        int cnt = colleagues.registry->getPhyModeMapper()->getPhyModeCount();
-        for(int i = 0; i < cnt; i++)
-        {
-            Bit cap = colleagues.registry->getPhyModeMapper()->getPhyModeForIndex(i)
-                ->getBitCapacityFractional(schedulingMap->getSlotLength());
-            int chosen = colleagues.registry
-                ->getPhyModeMapper()->getIndexForPhyMode(*apcResult.phyModePtr);
-            if(chosen == i)
-                m << ">";
-            m << ceil(double(queuedHeadBits) / double(cap));
-            if(chosen == i)
-                m << "< ";
-            else
-                m << " ";
-        }
-        MESSAGE_END()
-
-        MESSAGE_SINGLE(NORMAL, logger, "Estimated SINR " << apcResult.sinr
-            << " for user " << user.getName()
-            << " fits "
-            << bitPerRB 
-            << " bit per RB.");
-
-        MESSAGE_SINGLE(NORMAL, logger, "Need " << requiredRBs 
-            << " RBs to transmit " << queuedHeadBits << " bit.");
-
-        /* Schedule every PDU */
-        int npdu = 0;
-        Bit schedBit = 0;
-        do
-        {
-            int freeBits = 0;
-            MapInfoEntryPtr mapInfoEntry; 
-            bool free = false;
-
-            MESSAGE_SINGLE(NORMAL, logger, "Trying to schedule PDU number " << npdu + 1 << " from CID " << cid);
-
-            /* Try to find a subchannel */
-            int sc = 0;
-            do
-            {
-                free = false;
-                mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
-                mapInfoEntry->frameNr = schedulerState->currentState->strategyInput->getFrameNr();
-                mapInfoEntry->subBand = sc;
-                mapInfoEntry->timeSlot = 0;
-                mapInfoEntry->spatialLayer = 0;
-                mapInfoEntry->user = user;
-                mapInfoEntry->sourceUser = schedulerState->myUserID;
-                mapInfoEntry->txPower = apcResult.txPower; 
-                mapInfoEntry->phyModePtr = apcResult.phyModePtr;
-                mapInfoEntry->estimatedCQI = cqi;
-
-                UserID prbUID = schedulingMap->subChannels[sc].temporalResources[0]->physicalResources[0].getUserID();
-
-                if(prbUID == mapInfoEntry->user || !prbUID.isValid())
-                {
-                    freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry);
-                    if(freeBits > 0)
-                    {
-                        free = true;
-                    }
-                    else
-                    {
-                        free = false;
-                    }
-                }
-                else
-                {
-                    free = false;
-                }
-
-                MESSAGE_SINGLE(VERBOSE, logger, "Probing SubChannel " << sc
-                    << ": User: " << (prbUID.isBroadcast()?"Broadcast":
-                        (prbUID.isValid()?prbUID.getName():"None"))
-                    << ", free bit: " << freeBits
-                    << ", usable: " << (free?"Yes":"No"));
-
-                sc++;
-            }
-            while(sc < schedulingMap->getNumberOfSubChannels() && !free);
-
-            /* No free subchannels left, exit */
-            if(sc == schedulingMap->getNumberOfSubChannels())
-            {
-                MESSAGE_SINGLE(NORMAL, logger, "Scheduling stopped. No more free subchannels");
-                return mapInfoCollection;
-            }
-                
-            /* Insert the information about the scheduled compound into the RB */
-            int queuedBits = colleagues.queue->getHeadOfLinePDUbits(cid);
-            wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDUSegment(cid, freeBits);
-            request.bits = freeBits;
-            request.queuedBits = queuedBits;            
-            schedulingMap->addCompound(request, mapInfoEntry, compoundPtr, useHARQ);
-            mapInfoEntry->compounds.push_back(compoundPtr); 
-
-            /* Write the scheduling decision for this RB into the map */
-            mapInfoCollection->push_back(mapInfoEntry);
-            MESSAGE_SINGLE(NORMAL, logger, "Scheduled " 
-                << (queuedBits < freeBits?queuedBits:freeBits) << " bit of " 
-                << queuedBits << " bit from CID " 
-                << cid << " in subchannel " << sc - 1);
-
-
-            schedBit += (queuedBits < freeBits?queuedBits:freeBits);
-            npdu++;
-        }
-        while(colleagues.queue->queueHasPDUs(cid));
-        MESSAGE_SINGLE(NORMAL, logger, "Finished scheduling CID " << cid);
-        MESSAGE_SINGLE(NORMAL, logger, "RBs expected / scheduled: " << requiredRBs
-            << " / " << npdu << ", bit expected / scheduled: "
-            << queuedHeadBits << " / " << schedBit);
+        result = scheduleData(*it, true, schedulerState, schedulingMap);
+        mapInfoCollection->join(*result);
     }
+
+    MESSAGE_SINGLE(NORMAL, logger, "Dynamically scheduling " << cc.unpersistentCIDs.size()
+        << " CIDs in frame " << currentFrame_ << ".");
+        
+    /* Now take care of unpersistent CIDs */
+    for(it = cc.unpersistentCIDs.begin();
+        it != cc.unpersistentCIDs.end();
+        it++)
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "Trying to schedule data for CID " << *it);
+
+        result = scheduleData(*it, false, schedulerState, schedulingMap);
+        if(result != MapInfoCollectionPtr())
+            mapInfoCollection->join(*result);
+    }             
+
+    /* 
+    TODO: Schedule persistent CIDs activated in this frame that 
+        do not fit in this frame.
+    TODO: Schedule HARQ retransmissions
+    */
+
+#ifndef WNS_NDEBUG
+    if(currentFrame_ == 0)
+    {
+        for(int i = 0; i < numberOfFrames_; i++)
+            MESSAGE_SINGLE(NORMAL, logger, *resources_->getFrame(i));    
+    }
+#endif
+
     return mapInfoCollection;
 } // doStartSubScheduling
 
-ConnectionSet
-PersistentVoIP::schedulePersistently(const ConnectionSet& cids)
+MapInfoCollectionPtr
+PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
+                             const SchedulerStatePtr& schedulerState,
+                             const SchedulingMapPtr& schedulingMap)
 {
-    ConnectionSet successful;
+    MapInfoCollectionPtr mapInfoCollection = 
+        MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);;
+
+    apcstrategy::APCResult apcResult;
+
+    persistentvoip::TransmissionBlockPtr tb;
+    if(persistent)
+    {
+        tb = resources_->getReservation(currentFrame_, cid, true);
+        apcResult = getAPCResult(cid, schedulerState, schedulingMap);
+    }
+    else
+    {    
+        apcResult = getAPCResult(cid, schedulerState, schedulingMap);
+        unsigned int nrb = getNumberOfRBs(apcResult, cid, schedulingMap);        
+        bool success = resources_->scheduleCID(currentFrame_, cid, nrb, false);
+        if(!success)
+        {
+            MESSAGE_SINGLE(NORMAL, logger, "No free resources for CID " << cid
+                << " in frame " << currentFrame_ << ".");
+            return mapInfoCollection;
+        }
+        else
+        {
+            tb = resources_->getReservation(currentFrame_, cid, false);
+        }
+    }
+
+    unsigned int start = tb->getStart();
+    unsigned int length = tb->getLength();
+
+    MESSAGE_SINGLE(NORMAL, logger, "Scheduling data from CID " << cid << " in RBs "
+        << start << " to " << start + length - 1 << ".");
+
+    UserID user = colleagues.registry->getUserForCID(cid);
+
+    assure(colleagues.queue->queueHasPDUs(cid), "Cannot schedule CID " << cid
+            << " because it has no queued PDUs");
+
+    /* Could be we do not need all RBs because our MCS got better, so also end
+    the loop if queue is empty. This should only happen for persistent reservations */
+    int i;
+    Bit totalBit = 0;
+    for(i = 0; i < length && colleagues.queue->queueHasPDUs(cid); i++)
+    {        
+        MapInfoEntryPtr mapInfoEntry; 
+        mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
+        mapInfoEntry->frameNr = schedulerState->currentState->strategyInput->getFrameNr();
+        mapInfoEntry->subBand = start + i;
+        mapInfoEntry->timeSlot = 0;
+        mapInfoEntry->spatialLayer = 0;
+        mapInfoEntry->user = user;
+        mapInfoEntry->sourceUser = schedulerState->myUserID;
+        mapInfoEntry->txPower = apcResult.txPower; 
+        mapInfoEntry->phyModePtr = apcResult.phyModePtr;
+        //TODO mapInfoEntry->estimatedCQI = cqi;
+
+        int freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry);
+        
+        int queuedBits = colleagues.queue->getHeadOfLinePDUbits(cid);
+        wns::ldk::CompoundPtr compoundPtr = colleagues.queue->getHeadOfLinePDUSegment(cid, freeBits);
+
+        RequestForResource request(cid, user, freeBits, queuedBits, useHARQ);
+        schedulingMap->addCompound(request, mapInfoEntry, compoundPtr, useHARQ);
+        mapInfoEntry->compounds.push_back(compoundPtr);
+        mapInfoCollection->push_back(mapInfoEntry);
+        Bit currentBit = (queuedBits < freeBits?queuedBits:freeBits);        
+        totalBit += currentBit;
+
+        MESSAGE_SINGLE(VERBOSE, logger, "Scheduled " 
+            << currentBit << " bit from CID " << cid << " in RB " << start + i);
+    }
+    assure(persistent || i == length, "All RBs must be used for dynamic scheduling.");
+
+    MESSAGE_SINGLE(NORMAL, logger, "Scheduled " 
+        << totalBit << " bit from CID " << cid << " in " << i << " RBs.");
+
+    return mapInfoCollection;
+}
+
+
+ConnectionSet
+PersistentVoIP::updateTBSizes(ConnectionSet& cids, 
+                              const SchedulerStatePtr& schedulerState,
+                              const SchedulingMapPtr& schedulingMap)
+{
+    ConnectionSet needMore;
 
     ConnectionSet::iterator it;
     for(it = cids.begin();
         it != cids.end();
         it++)
     {
+        apcstrategy::APCResult apc;
+        apc = getAPCResult(*it, schedulerState, schedulingMap);
+        unsigned int rbs = getNumberOfRBs(apc, *it, schedulingMap);
+        if(tbSizes_.find(*it) == tbSizes_.end())
+        {
+            tbSizes_[*it] = rbs;
+        }
+        else
+        {
+            MESSAGE_SINGLE(NORMAL, logger, "CID " << *it << " needed " << tbSizes_[*it]
+                << " RBs bofore, now needs " << rbs << " RBs.");
+
+            if(rbs > tbSizes_[*it])
+            {
+                needMore.insert(*it);
+                tbSizes_.erase(*it);
+            } 
+        }
+    }
+
+    for(it = needMore.begin();
+        it != needMore.end();
+        it++)
+    {
+        assure(cids.find(*it) != cids.end(), "Cannot remove unknown CID " << *it);
+        cids.erase(*it);
+    }
+
+    return needMore;
+}
+
+PersistentVoIP::ConnectionSetPair
+PersistentVoIP::schedulePersistently(const ConnectionSet& cids)
+{
+    ConnectionSetPair result;
+
+    ConnectionSet::iterator it;
+    for(it = cids.begin();
+        it != cids.end();
+        it++)
+    {
+        assure(tbSizes_.find(*it) != tbSizes_.end(), "Unknown TB size for CID " << *it);
+        unsigned int tbSize = tbSizes_[*it];
+
         bool success;
-        success = resources_->scheduleCID(currentFrame_, *it, 1, true);
+        success = resources_->scheduleCID(currentFrame_, *it, tbSize, true);
         if(success)
         {
             MESSAGE_SINGLE(NORMAL, logger, "Succesfully scheduled new CID " << *it);
-            successful.insert(*it);
+            result.first.insert(*it);
         }
         else
         {
             MESSAGE_SINGLE(NORMAL, logger, "No free resources for CID " << *it);
             stateTracker_.silenceCID(*it, currentFrame_);
+            tbSizes_.erase(*it);
+            result.second.insert(*it);
         }
     }
-    return successful;    
+    return result;
+}
+
+wns::scheduler::strategy::apcstrategy::APCResult
+PersistentVoIP::getAPCResult(ConnectionID cid, 
+                       const SchedulerStatePtr& schedulerState,
+                       const SchedulingMapPtr& schedulingMap)
+{
+    UserID user = colleagues.registry->getUserForCID(cid);
+
+    /* 
+    Determine PhyMode and TxPower depending on estimation from RegistryProxy
+    TODO: Interference cache is currently extremely unefficient
+    should ask for quality on subchannel, not per user.
+    */
+    ChannelQualityOnOneSubChannel cqi;
+    if(schedulerState->isTx)
+        cqi = colleagues.registry->estimateTxSINRAt(user);
+    else
+        cqi = colleagues.registry->estimateRxSINROf(user);
+
+    /* RequestedBits and QueuedBits is initially set to 1, will be decided later */
+    RequestForResource request(cid, user, 1, 1, useHARQ);
+    request.cqiOnSubChannel = cqi;
+
+    return colleagues.strategy->getAPCStrategy()
+        ->doStartAPC(request, schedulerState, schedulingMap);
+}
+
+unsigned int
+PersistentVoIP::getNumberOfRBs(const apcstrategy::APCResult& apcResult, 
+                               ConnectionID cid,
+                               const SchedulingMapPtr& schedulingMap)
+{
+    Bit bitPerRB;
+    bitPerRB = apcResult.phyModePtr->getBitCapacityFractional(schedulingMap->getSlotLength());
+    int queuedHeadBits = colleagues.queue->getHeadOfLinePDUbits(cid);
+    int requiredRBs = ceil(double(queuedHeadBits) / double(bitPerRB));    
+
+    MESSAGE_BEGIN(NORMAL, logger, m, "RBs for " << queuedHeadBits << " per MCS: ");
+    int cnt = colleagues.registry->getPhyModeMapper()->getPhyModeCount();
+    for(int i = 0; i < cnt; i++)
+    {
+        Bit cap = colleagues.registry->getPhyModeMapper()->getPhyModeForIndex(i)
+            ->getBitCapacityFractional(schedulingMap->getSlotLength());
+        int chosen = colleagues.registry
+            ->getPhyModeMapper()->getIndexForPhyMode(*apcResult.phyModePtr);
+        if(chosen == i)
+            m << ">";
+        m << ceil(double(queuedHeadBits) / double(cap));
+        if(chosen == i)
+            m << "< ";
+        else
+            m << " ";
+    }
+    MESSAGE_END()
+
+    return requiredRBs;
+}
+
+void
+PersistentVoIP::processSilenced(const ConnectionSet& cids)
+{
+    resources_->unscheduleCID(currentFrame_, cids);
+
+    ConnectionSet::iterator it;
+
+    for(it = cids.begin(); it != cids.end(); it++)
+    {
+        assure(tbSizes_.find(*it) != tbSizes_.end(),
+            "No entry for " << *it << " in TB size map");
+
+        tbSizes_.erase(*it);
+    }
 }
 
 void

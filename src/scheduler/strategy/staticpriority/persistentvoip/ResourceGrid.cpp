@@ -140,6 +140,18 @@ TransmissionBlock::getCID()
     return cid_;
 }
 
+unsigned int
+TransmissionBlock::getStart()
+{
+    return start_;
+}
+
+unsigned int
+TransmissionBlock::getLength()
+{
+    return length_;
+}
+
 Frame::Frame(ResourceGrid* parent,
         unsigned int index):
     parent_(parent),
@@ -223,6 +235,23 @@ Frame::findTransmissionBlock(unsigned int start, unsigned int minLength)
 }
 
 void
+Frame::block(unsigned int RBIndex)
+{
+    assure(rbs_[RBIndex].isFree(), "Cannot block reserved RB " << RBIndex);
+
+    ResourceBlockVectorIt start = rbs_.begin() + RBIndex;
+    ResourceBlockVectorIt end = start + 1;
+
+    TransmissionBlockPtr tb;
+    tb = TransmissionBlockPtr(new TransmissionBlock(start, end, ConnectionID()));
+
+    MESSAGE_SINGLE(NORMAL, *logger_, "Blocked RB " << RBIndex);    
+
+    blocked_.insert(tb);
+    assure(!rbs_[RBIndex].isFree(), "Failed to block RB " << RBIndex);
+}
+
+void
 Frame::reserve(ConnectionID cid, unsigned int st, unsigned int l, bool persistent)
 {
     /* Further assures in TransmissionBlock will check the rest */
@@ -261,6 +290,28 @@ Frame::removeReservation(ConnectionID cid)
     assure(n == 1, "No persistent reservation for CID " << cid);
 }
 
+TransmissionBlockPtr
+Frame::getReservation(ConnectionID cid, bool persistent)
+{
+    if(persistent)
+    {
+        assure(persistentSchedule_.find(cid) != persistentSchedule_.end(),
+            "No persistent reservation for CID " << cid 
+            << " in frame " << getFrameIndex());
+
+        return persistentSchedule_[cid];
+    }
+    else
+    {
+        assure(unpersistentSchedule_.find(cid) != persistentSchedule_.end(),
+            "No unpersistent reservation for CID " << cid 
+            << " in frame " << getFrameIndex());
+
+        return unpersistentSchedule_[cid];
+    }
+
+}
+
 void
 Frame::clearUnpersistentSchedule()
 {
@@ -271,6 +322,12 @@ Frame::clearUnpersistentSchedule()
 
     MESSAGE_SINGLE(NORMAL, *logger_, "ClearUnpersistenSchedule frame " << frame_ 
         << " after:  " << *this);
+}
+
+void
+Frame::clearBlocked()
+{
+    blocked_.clear();    
 }
 
 wns::logger::Logger*
@@ -369,6 +426,15 @@ ResourceGrid::unscheduleCID(unsigned int frame, const ConnectionSet& cids)
         frames_[frame].removeReservation(*it);   
 }
 
+
+TransmissionBlockPtr
+ResourceGrid::getReservation(unsigned int frame, ConnectionID cid, bool persistent)
+{
+    assure(frame < numberOfFrames_, "Invalid frame index.");
+    
+    return frames_[frame].getReservation(cid, persistent);
+}
+
 Frame*
 ResourceGrid::getFrame(unsigned int index)
 {
@@ -378,13 +444,46 @@ ResourceGrid::getFrame(unsigned int index)
 }
 
 void
-ResourceGrid::onNewFrame(unsigned int index)
+ResourceGrid::onNewFrame(unsigned int index,
+                        const wns::scheduler::SchedulingMapPtr& schedulingMap)
 {
     assure(index < numberOfFrames_, "Frame index out of range");
-    
+
+    onNewFrame(index);
+
+    /* 
+    Block RBs already reserved (eg. from higher priorities). 
+    This will fail and throw an assure exception if the RBs 
+    if the RBs are reserved persistently 
+    */
+
+    for(int i = 1; i < subChannelsPerFrame_; i++)
+    {
+        bool free;
+        free = schedulingMap->subChannels[i].temporalResources[0]
+                    ->physicalResources[0].isEmpty();
+
+        if(!free)
+        {
+            MESSAGE_SINGLE(NORMAL, *logger_, "RB " << i << " is occupied by user "
+                << schedulingMap->subChannels[i].temporalResources[0]
+                    ->physicalResources[0].getUserID()
+                << " CID " << schedulingMap->subChannels[i].temporalResources[0]
+                    ->physicalResources[0].scheduledCompoundsBegin()->connectionID);;
+
+            frames_[index].block(i);            
+        }
+    }
+
+}
+
+void
+ResourceGrid::onNewFrame(unsigned int index)
+{    
     MESSAGE_SINGLE(NORMAL, *logger_, "Clearing unpersistent schedule of frame " << index);
 
     frames_[index].clearUnpersistentSchedule();
+    frames_[index].clearBlocked();
 }
 
 wns::logger::Logger*

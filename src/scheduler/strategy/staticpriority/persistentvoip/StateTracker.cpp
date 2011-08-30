@@ -86,6 +86,15 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     MESSAGE_SINGLE(NORMAL, *logger_, "------------------------ Update CIDs frame: " 
         << currentFrame << " -------------------" );
 
+    MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs silent before update: ");
+    for(it = silentCIDs_.begin();
+        it != silentCIDs_.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
+
     MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs active: ");
     for(it = activeCIDs.begin();
         it != activeCIDs.end();    
@@ -254,6 +263,15 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
 
     // Those CIDs are now inactive
     silentCIDs_.insert(silencedCIDs.begin(), silencedCIDs.end());
+
+    MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs silent after update: ");
+    for(it = silentCIDs_.begin();
+        it != silentCIDs_.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
 
     MESSAGE_SINGLE(NORMAL, *logger_, "------------------------ Update CIDs done-------------------------" );
 

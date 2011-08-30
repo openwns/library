@@ -32,6 +32,8 @@
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/StateTracker.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
+#include <WNS/scheduler/strategy/apcstrategy/APCStrategyInterface.hpp>
+
 #include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/scheduler/queue/QueueInterface.hpp>
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
@@ -44,6 +46,8 @@ class PersistentVoIP
         : public SubStrategy
 {
     public:
+        typedef std::pair<ConnectionSet, ConnectionSet> ConnectionSetPair;
+
         PersistentVoIP(const wns::pyconfig::View& config);
 
         ~PersistentVoIP();
@@ -59,8 +63,39 @@ class PersistentVoIP
         void 
         onFirstScheduling(const SchedulerStatePtr& schedulerState);
 
-        ConnectionSet
+        /* First the successfull, then the ones that did not get resources */
+        ConnectionSetPair
         schedulePersistently(const ConnectionSet& cids);
+
+        void
+        processSilenced(const ConnectionSet& cids);
+
+        void
+        processPersistent(const ConnectionSet& cids);
+
+        unsigned int
+        getNumberOfRBs(const apcstrategy::APCResult& apcResult, 
+                       ConnectionID cid,
+                       const SchedulingMapPtr& schedulingMap);
+
+        wns::scheduler::strategy::apcstrategy::APCResult
+        getAPCResult(ConnectionID cid, 
+                       const SchedulerStatePtr& schedulerState,
+                       const SchedulingMapPtr& schedulingMap);
+
+        /* First the successfull, then the ones needing more RBs than before */
+        ConnectionSet
+        updateTBSizes(ConnectionSet& cids, 
+                      const SchedulerStatePtr& schedulerState,
+                      const SchedulingMapPtr& schedulingMap);
+
+        MapInfoCollectionPtr
+        scheduleData(ConnectionID cid, bool persistent,
+                     const SchedulerStatePtr& schedulerState,
+                     const SchedulingMapPtr& schedulingMap);
+
+        ConnectionSet
+        getUnpersistentConnections(const persistentvoip::StateTracker::ClassifiedConnections&);
 
         bool firstScheduling_;
         bool neverUsed_;
@@ -71,6 +106,9 @@ class PersistentVoIP
 
         persistentvoip::ResourceGrid* resources_;
         persistentvoip::StateTracker stateTracker_;
+
+        /* Keep track of RB demand, but only for persistent connections */
+        std::map<ConnectionID, unsigned int> tbSizes_;
 
         wns::pyconfig::View resourceGridConfig_;
 };
