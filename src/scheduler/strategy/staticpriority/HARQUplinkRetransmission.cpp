@@ -120,8 +120,6 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
         MESSAGE_SINGLE(NORMAL, logger, "HARQUplinkRetransmission(): need to schedule " << numRetransmissionsForUser << " on " << numAvailable << " available SCs");
 
-        assure(numRetransmissionsForUser <= numAvailable, "Not enough resources available");
-
         colleagues.harq->schedulePeerRetransmissions(*user, processToSchedule);
 
         while ( (numRetransmissionsForUser > 0) && (numAvailable > 0) )
