@@ -307,7 +307,7 @@ StateTracker::setFrameForCIDs(const ConnectionSet& cids, unsigned int frame)
 
     for(it = cids.begin(); it != cids.end(); it++)
     {
-        assure(CIDtoFrame_.find(*it) != CIDtoFrame_.end(), 
+        assure(CIDtoFrame_.find(*it) == CIDtoFrame_.end(), 
             "Frame for CID " << *it << " already set");
     
         CIDtoFrame_[*it] = frame;

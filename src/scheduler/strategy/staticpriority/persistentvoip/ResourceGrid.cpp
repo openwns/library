@@ -157,6 +157,7 @@ Frame::Frame(ResourceGrid* parent,
     parent_(parent),
     frame_(index),
     numberOfSubChannels_(parent->getSubChannelsPerFrame()),
+    numReserved_(0),
     logger_(parent->getLogger())
 {
     assure(numberOfSubChannels_ > 0, "Need more than zero subchannels");
@@ -249,6 +250,8 @@ Frame::block(unsigned int RBIndex)
 
     blocked_.insert(tb);
     assure(!rbs_[RBIndex].isFree(), "Failed to block RB " << RBIndex);
+
+    numReserved_++;
 }
 
 void
@@ -279,15 +282,25 @@ Frame::reserve(ConnectionID cid, unsigned int st, unsigned int l, bool persisten
 
     MESSAGE_SINGLE(NORMAL, *logger_, "Reserved " << l << " RBs strating at " 
         << st << " for CID " << cid << "; persistent: " << (persistent?"yes":"no"));
+
+    numReserved_ += l;
+    assure(numReserved_ < numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
 }
 
 void
 Frame::removeReservation(ConnectionID cid)
 {
-    size_t n = persistentSchedule_.erase(cid);
+    std::map<ConnectionID, TransmissionBlockPtr>::iterator it;
+
+    it = persistentSchedule_.find(cid);
+    assure(it != persistentSchedule_.end(), "No persistent reservation for CID " << cid);
+
+    numReserved_ -= it->second->getLength();
+    assure(numReserved_ >= 0, "Number of reserved RBs below zero.");
+        
+    persistentSchedule_.erase(it);
 
     MESSAGE_SINGLE(NORMAL, *logger_, "Canceled persistent reservation for CID " << cid);
-    assure(n == 1, "No persistent reservation for CID " << cid);
 }
 
 TransmissionBlockPtr
@@ -318,6 +331,16 @@ Frame::clearUnpersistentSchedule()
     MESSAGE_SINGLE(NORMAL, *logger_, "ClearUnpersistenSchedule frame " << frame_ 
         << " before: " << *this);
 
+    std::map<ConnectionID, TransmissionBlockPtr>::iterator it;
+
+    for(it = unpersistentSchedule_.begin();
+        it != unpersistentSchedule_.end();
+        it++)
+    {
+        numReserved_ -= it->second->getLength();
+        assure(numReserved_ >= 0, "Number of reserved RBs below zero.");
+    }
+
     unpersistentSchedule_.clear();    
 
     MESSAGE_SINGLE(NORMAL, *logger_, "ClearUnpersistenSchedule frame " << frame_ 
@@ -327,6 +350,9 @@ Frame::clearUnpersistentSchedule()
 void
 Frame::clearBlocked()
 {
+    numReserved_ -= blocked_.size();
+    assure(numReserved_ < numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
+
     blocked_.clear();    
 }
 
@@ -334,6 +360,12 @@ wns::logger::Logger*
 Frame::getLogger()
 {
     return logger_;
+}
+
+unsigned int
+Frame::getNumReserved()
+{
+    return numReserved_;
 }
 
 std::string

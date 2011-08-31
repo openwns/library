@@ -181,6 +181,9 @@ class Frame :
         wns::logger::Logger*
         getLogger();
 
+        unsigned int
+        getNumReserved();
+
     private:
         virtual std::string
         doToString() const;
@@ -193,6 +196,8 @@ class Frame :
         unsigned int numberOfSubChannels_;
         unsigned int frame_;
         ResourceGrid* parent_;
+
+        unsigned int numReserved_;
 
         wns::logger::Logger* logger_;
 };

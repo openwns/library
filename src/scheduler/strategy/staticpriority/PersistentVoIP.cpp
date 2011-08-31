@@ -28,6 +28,8 @@
 #include <WNS/scheduler/strategy/staticpriority/PersistentVoIP.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
 
+#include "boost/tuple/tuple.hpp"
+
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -52,7 +54,8 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     currentFrame_(0),
     stateTracker_(numberOfFrames_, logger),
     resources_(NULL),
-    resourceGridConfig_(config.get("resourceGrid"))
+    resourceGridConfig_(config.get("resourceGrid")),
+    frameOccupationFairness_("scheduler.persistentvoip.FrameOccupationFairness")
 {
 }
 
@@ -99,6 +102,10 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     /* Take care of CIDs not active anymore */
     processSilenced(cc.silencedCIDs);
+
+    /* Done once per period, mostly probing */
+    if(currentFrame_ == 0)
+        onNewPeriod();
 
     // nothing to do?
     if (activeConnections.empty()) 
@@ -190,14 +197,6 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         do not fit in this frame.
     TODO: Schedule HARQ retransmissions
     */
-
-#ifndef WNS_NDEBUG
-    if(currentFrame_ == 0)
-    {
-        for(int i = 0; i < numberOfFrames_; i++)
-            MESSAGE_SINGLE(NORMAL, logger, *resources_->getFrame(i));    
-    }
-#endif
 
     return mapInfoCollection;
 } // doStartSubScheduling
@@ -451,3 +450,44 @@ PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState)
         numberOfFrames_, numberOfSubchannels_);
 }
 
+void
+PersistentVoIP::onNewPeriod()
+{
+#ifndef WNS_NDEBUG
+    for(int i = 0; i < numberOfFrames_; i++)
+        MESSAGE_SINGLE(NORMAL, logger, *resources_->getFrame(i));    
+#endif
+
+    /* 
+    Calculate Jain's fairness index J:
+    J = 1: All frames have same amount of reserved RBs
+    J -> 0: The lower J the more does the number of reserved RBs differ 
+    */
+    if(
+#ifndef WNS_NDEBUG
+        true)
+#else
+        frameOccupationFairness_.hasObservers())
+#endif
+    {
+        double sum;
+        double squareSum;
+        for(int i = 0; i < numberOfFrames_; i++)
+        {
+            unsigned int nr = resources_->getFrame(i)->getNumReserved();
+            sum += nr;
+            squareSum += (nr * nr);
+        }
+        if(squareSum > 0)
+        {
+            double fairness = (sum * sum) / (double(numberOfFrames_) * squareSum);
+
+            unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
+
+            frameOccupationFairness_.put(fairness, boost::make_tuple("nodeID",nodeID));
+
+            MESSAGE_SINGLE(NORMAL, logger, "Fairness index: " << fairness);
+            assure(fairness >= 0 && fairness <= 1, "Fairness index out of range");
+        }
+    }
+}

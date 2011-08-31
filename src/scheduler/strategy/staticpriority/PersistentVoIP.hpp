@@ -38,6 +38,7 @@
 #include <WNS/scheduler/queue/QueueInterface.hpp>
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/StaticFactory.hpp>
+#include <WNS/probe/bus/ContextCollector.hpp>
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority {
 
@@ -62,6 +63,9 @@ class PersistentVoIP
     private:
         void 
         onFirstScheduling(const SchedulerStatePtr& schedulerState);
+
+        void
+        onNewPeriod();
 
         /* First the successfull, then the ones that did not get resources */
         ConnectionSetPair
@@ -109,6 +113,8 @@ class PersistentVoIP
 
         /* Keep track of RB demand, but only for persistent connections */
         std::map<ConnectionID, unsigned int> tbSizes_;
+
+        wns::probe::bus::ContextCollector frameOccupationFairness_;
 
         wns::pyconfig::View resourceGridConfig_;
 };
