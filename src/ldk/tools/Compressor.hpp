@@ -65,6 +65,7 @@ namespace wns {
 
             private:
                 Bit reduction_;
+                bool byteAlign_;
             };
         }
     }

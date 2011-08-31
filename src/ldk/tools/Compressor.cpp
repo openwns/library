@@ -37,7 +37,8 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 
 Compressor::Compressor(fun::FUN* fun, const wns::pyconfig::View& config):
     wns::ldk::fu::Plain<Compressor, wns::ldk::EmptyCommand>(fun),
-    reduction_(config.get<Bit>("reduction"))
+    reduction_(config.get<Bit>("reduction")),
+    byteAlign_(config.get<bool>("byteAlign"))
 {
 }
 
@@ -47,6 +48,9 @@ void Compressor::calculateSizes(const CommandPool* commandPool, Bit& commandPool
     Command* command = getFUN()->getProxy()->getCommand(commandPool, this);
 
     dataSize -= reduction_;
+    if(byteAlign_ && dataSize % 8 != 0)
+        dataSize += (8 - dataSize % 8);
+
     assure(dataSize >= 0, "Compressor has reduced size of payload data below 0");
 }
 
