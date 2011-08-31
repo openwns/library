@@ -256,7 +256,7 @@ Frame::reserve(ConnectionID cid, unsigned int st, unsigned int l, bool persisten
 {
     /* Further assures in TransmissionBlock will check the rest */
     assure(st < numberOfSubChannels_, "Request start exceeds number of subchannels");
-    assure(st + l < numberOfSubChannels_, "Request exceeds number of subchannels");
+    assure(st + l - 1 < numberOfSubChannels_, "Request exceeds number of subchannels");
 
     assure(persistentSchedule_.find(cid) == persistentSchedule_.end(), 
         "CID already scheduled persistently");

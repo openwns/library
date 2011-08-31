@@ -104,6 +104,18 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     }
     MESSAGE_END();    
 
+    ConnectionSet activeFrameCIDs;
+    activeFrameCIDs = filterCIDsForFrame(activeCIDs, currentFrame);
+
+    MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs active belonging to this frame: ");
+    for(it = activeFrameCIDs.begin();
+        it != activeFrameCIDs.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
+
     MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs expected: ");
     for(it = expectedCIDs_[currentFrame].begin();
         it != expectedCIDs_[currentFrame].end();    
@@ -118,8 +130,8 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     std::insert_iterator<ConnectionSet> iiOld(oldCIDs, oldCIDs.begin()); 
     set_intersection(expectedCIDs_[currentFrame].begin(), 
         expectedCIDs_[currentFrame].end(), 
-        activeCIDs.begin(), 
-        activeCIDs.end(), iiOld);
+        activeFrameCIDs.begin(), 
+        activeFrameCIDs.end(), iiOld);
 
     MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs expected and active: ");
     for(it = oldCIDs.begin();
@@ -135,8 +147,8 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     std::insert_iterator<ConnectionSet> iiSilenced(silencedCIDs, silencedCIDs.begin()); 
     set_difference(expectedCIDs_[currentFrame].begin(), 
         expectedCIDs_[currentFrame].end(), 
-        activeCIDs.begin(), 
-        activeCIDs.end(), iiSilenced);
+        activeFrameCIDs.begin(), 
+        activeFrameCIDs.end(), iiSilenced);
 
     MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs not active anymore (silenced): ");
     for(it = silencedCIDs.begin();
@@ -150,8 +162,8 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     // Currently present but not known yet
     ConnectionSet unknownCIDs;
     std::insert_iterator<ConnectionSet> iiUnknown(unknownCIDs, unknownCIDs.begin()); 
-    set_difference(activeCIDs.begin(), 
-        activeCIDs.end(), 
+    set_difference(activeFrameCIDs.begin(), 
+        activeFrameCIDs.end(), 
         allCIDs_.begin(), 
         allCIDs_.end(), iiUnknown);
 
@@ -183,8 +195,8 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     // Currently present and known
     ConnectionSet knownCIDs;
     std::insert_iterator<ConnectionSet> iiKnown(knownCIDs, knownCIDs.begin()); 
-    set_difference(activeCIDs.begin(), 
-        activeCIDs.end(), 
+    set_difference(activeFrameCIDs.begin(), 
+        activeFrameCIDs.end(), 
         unknownCIDs.begin(), 
         unknownCIDs.end(), iiKnown);
 
@@ -283,9 +295,65 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     cc.unpersistentCIDs = pastPeriodCIDs_[currentFrame];
     cc.silencedCIDs = silencedCIDs;
 
+    setFrameForCIDs(cc.newPersistentCIDs, currentFrame);
+
     return cc;
 }
 
+void
+StateTracker::setFrameForCIDs(const ConnectionSet& cids, unsigned int frame)
+{
+    ConnectionSet::iterator it;
+
+    for(it = cids.begin(); it != cids.end(); it++)
+    {
+        assure(CIDtoFrame_.find(*it) != CIDtoFrame_.end(), 
+            "Frame for CID " << *it << " already set");
+    
+        CIDtoFrame_[*it] = frame;
+    }
+}
+
+ConnectionSet
+StateTracker::filterCIDsForFrame(const ConnectionSet& cids, unsigned int frame)
+{
+    ConnectionSet::iterator it;
+#ifndef WNS_NDEBUG
+    ConnectionSet out;
+#endif
+    ConnectionSet in;
+
+    for(it = cids.begin(); it != cids.end(); it++)
+    {
+        std::map<ConnectionID, unsigned int>::iterator f;
+        f = CIDtoFrame_.find(*it);
+        if(f == CIDtoFrame_.end() || f->second == frame)
+        {
+            in.insert(*it);
+        }
+#ifndef WNS_NDEBUG
+        else
+        {
+            out.insert(*it);
+        }
+#endif
+    }
+#ifndef WNS_NDEBUG
+
+    MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs not from this frame: ");
+    for(it = out.begin();
+        it != out.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
+
+    assure(in.size() + out.size() == cids.size(), "Size mismatch after filtering");
+#endif
+
+    return in;
+}
 
 void
 StateTracker::silenceCID(ConnectionID cid, unsigned int currentFrame)

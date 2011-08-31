@@ -201,6 +201,8 @@ void StateTrackerTest::testStates()
     CPPUNIT_ASSERT(cc.persistentCIDs.empty());
     CPPUNIT_ASSERT(cc.silencedCIDs.empty());    
     CPPUNIT_ASSERT(cc.unpersistentCIDs.empty());
+
+    /* TODO: test CIDs active not belonging to this frame */
 }
 
 void StateTrackerTest::cleanup()

@@ -60,10 +60,17 @@ class StateTracker
         silenceCID(ConnectionID cid, unsigned int currentFrame);
 
     private:
+        void
+        setFrameForCIDs(const ConnectionSet& cids, unsigned int frame);
+
+        ConnectionSet
+        filterCIDsForFrame(const ConnectionSet& cids, unsigned int frame);
+
         unsigned int numberOfFrames_;
 
         std::vector<ConnectionSet> expectedCIDs_;
         std::vector<ConnectionSet> pastPeriodCIDs_;
+        std::map<ConnectionID, unsigned int> CIDtoFrame_;
         ConnectionSet silentCIDs_;
         ConnectionSet allCIDs_;
 
