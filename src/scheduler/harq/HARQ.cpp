@@ -96,14 +96,14 @@ UniformRandomDecoder::canDecode(SoftCombiningContainer input)
 ChaseCombiningDecoder::ChaseCombiningDecoder(const wns::pyconfig::View& config):
     dis_(new wns::distribution::StandardUniform()),
     logger_(config.get("logger")),
-    effSINRCC_("winprost.effSINR")
+    effSINRCC_("scheduler.harq.effSINR")
 {
 }
 
 ChaseCombiningDecoder::ChaseCombiningDecoder(const ChaseCombiningDecoder& other):
     dis_(new wns::distribution::StandardUniform()),
     logger_(other.logger_),
-    effSINRCC_("winprost.effSINR")
+    effSINRCC_("scheduler.harq.effSINR")
 {
 }
 
