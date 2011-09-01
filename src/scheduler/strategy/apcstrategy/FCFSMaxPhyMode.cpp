@@ -79,7 +79,8 @@ FCFSMaxPhyMode::doStartAPC(RequestForResource& request,
     { // predefined, e.g. in slave mode
         apcResult.txPower = schedulerState->defaultTxPower;
         apcResult.sinr = apcResult.txPower/(interference*pathloss);
-        apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+        apcResult.estimatedCandI = 
+            ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
         apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
     } else {
         wns::Power totalPower = powerCapabilities.maxOverall;
@@ -100,7 +101,8 @@ FCFSMaxPhyMode::doStartAPC(RequestForResource& request,
         wns::Ratio minSINR = phyModeMapper->getMinSINRRatio(apcResult.phyModePtr);
         apcResult.txPower = wns::Power::from_mW(minSINR.get_factor() * pathloss.get_factor() * interference.get_mW() ) ;
         apcResult.sinr = minSINR;
-		apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+		apcResult.estimatedCandI = 
+            ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
     }
     MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
                    <<"SINR="<<apcResult.sinr<<", PhyMode="<<*(apcResult.phyModePtr)<<", txPower="<<apcResult.txPower);

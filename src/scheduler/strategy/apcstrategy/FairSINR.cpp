@@ -83,7 +83,8 @@ FairSINR::doStartAPC(RequestForResource& request,
     { // predefined, e.g. in slave mode
         apcResult.txPower = schedulerState->defaultTxPower;
         apcResult.sinr = apcResult.txPower/(interference*pathloss);
-        apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+        apcResult.estimatedCandI = 
+            ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
         apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
     } else {
         if (schedulerState->schedulerSpot = wns::scheduler::SchedulerSpot::DLMaster())
@@ -131,7 +132,8 @@ FairSINR::doStartAPC(RequestForResource& request,
                 apcResult.sinr = fair_sinr;
             }
         }
-		apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+		apcResult.estimatedCandI = 
+            ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
         apcResult.phyModePtr = phyModeMapper->getBestPhyMode(apcResult.sinr);
     }
     MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "

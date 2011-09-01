@@ -48,7 +48,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace apcstrategy
 		/** @brief SINR we assumed */
 		wns::Ratio sinr;
 		/** @brief SINR we assumed (alternative interface) */
-		wns::CandI estimatedCandI;
+		ChannelQualityOnOneSubChannel estimatedCandI;
 	};
 
 	/** @brief provides methods for "Adaptive Power Control" (APC).

@@ -109,7 +109,8 @@ LTE_UL::doStartAPC(RequestForResource& request,
         }
     }
 
-    apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+    apcResult.estimatedCandI = 
+        ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
 
     MESSAGE_SINGLE(NORMAL, logger,"doStartAPC(" << request.toString() << "): "
                << "SINR=" << apcResult.sinr << ", PhyMode=" << *(apcResult.phyModePtr));

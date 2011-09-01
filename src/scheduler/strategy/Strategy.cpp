@@ -633,7 +633,6 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
 
     // SmartPtr (allocated in CQI)
     ChannelQualitiesOnAllSubBandsPtr cqiForUser; 
-    wns::CandI estimatedCandI;
 
     assure(schedulerState->defaultPhyModePtr == wns::service::phy::phymode::PhyModeInterfacePtr(),
            "defaultPhyModePtr must not be set at this point (either master scheduler or inputSchedulingMap method)");
@@ -791,42 +790,31 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         request.phyModePtr = apcResult.phyModePtr;
         txPower = apcResult.txPower;
 
-        // process result:
-        estimatedCandI.I = cqiOnSubChannel.interference;
-        estimatedCandI.C = apcResult.txPower / cqiOnSubChannel.pathloss.get_factor(); 
-
         MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): txP="
             << apcResult.txPower
             << ", pl=" << cqiOnSubChannel.pathloss
-            << ", sinr=" << estimatedCandI.toSINR()
+            << ", sinr=" << apcResult.sinr
             << ", PhyMode=" << *(apcResult.phyModePtr));
 
-        assure(std::fabs(estimatedCandI.C.get_dBm() - apcResult.estimatedCandI.C.get_dBm()) < 1e-6,
-            "estimatedCandI mismatch: C=" << estimatedCandI.C << " != " << apcResult.estimatedCandI.C);
-        assure(std::fabs(estimatedCandI.I.get_dBm() - apcResult.estimatedCandI.I.get_dBm()) < 1e-6,
-            "estimatedCandI mismatch: I=" << estimatedCandI.I << " != " << apcResult.estimatedCandI.I);
-        assure(std::fabs(estimatedCandI.toSINR().get_dB() - apcResult.sinr.get_dB()) < 1e-6,
-            "sinr mismatch: sinr=" << estimatedCandI.toSINR() << " != " << apcResult.sinr);
-
-        // estimatedCandI (calculated here) and apcResult.estimatedCandI should be the same
         double minSINRforPhyMode = colleagues.registry->getPhyModeMapper()->getMinimumSINR();
 
         // this could mean "APC failed"
         if ((apcResult.sinr.get_dB() < minSINRforPhyMode))
         { 
             MESSAGE_SINGLE(NORMAL, logger,"doAdaptiveResourceScheduling(): too low SINR! sinr="
-                << estimatedCandI.toSINR()
+                << apcResult.sinr
                 << ", PhyMode="
                 << *(apcResult.phyModePtr)
                 << " requires " 
                 << minSINRforPhyMode << "dB");
 
             // If the value is extremely low, it is likely that something bad has happened
-            assure(estimatedCandI.C.get_dBm() > -190,
+            assure(apcResult.estimatedCandI.carrier.get_dBm() > -190,
                 "sinr=" << apcResult.sinr.get_dB() 
                 << " but minSINRforPhyMode="
                 << minSINRforPhyMode << " not reached. Estimation was: C="
-                << estimatedCandI.C << ", I="<<estimatedCandI.I<<" (blind)");
+                << apcResult.estimatedCandI.carrier 
+                << ", I="<<apcResult.estimatedCandI.interference<<" (blind)");
 
             if (schedulerState->excludeTooLowSINR)
             {
@@ -865,7 +853,7 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
         assure(groupIndex <= schedulerState->currentState->getGrouping()->groups.size(), "invalid group index");
 
         Group currentGroup = schedulerState->currentState->getGrouping()->groups[groupIndex];
-        estimatedCandI = currentGroup[request.user];
+        wns::CandI estimatedCandI = currentGroup[request.user];
         resultMapInfoEntry->estimatedCQI.carrier = estimatedCandI.C;
         resultMapInfoEntry->estimatedCQI.interference = estimatedCandI.I;
         resultMapInfoEntry->estimatedCQI.pathloss = estimatedCandI.PL;

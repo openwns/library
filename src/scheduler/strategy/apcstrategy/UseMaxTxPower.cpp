@@ -78,9 +78,10 @@ UseMaxTxPower::doStartAPC(RequestForResource& request,
 	wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
 	wns::Power interference = request.cqiOnSubChannel.interference;
 	apcResult.sinr = apcResult.txPower/(interference*pathloss);
-	apcResult.estimatedCandI = wns::CandI(apcResult.txPower/pathloss,interference);
+	apcResult.estimatedCandI = 
+        ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
 	MESSAGE_SINGLE(NORMAL, logger,"doStartAPC("<<request.toString()<<"): "
-		       <<"TxP="<<apcResult.txPower<<", pl="<<pathloss<<", estd: I="<<interference<<", C="<<apcResult.estimatedCandI.C);
+		       <<"TxP="<<apcResult.txPower<<", pl="<<pathloss<<", estd: I="<<interference<<", C="<<apcResult.estimatedCandI.carrier);
 	if (schedulerState->defaultPhyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr())
 	{ // predefined, e.g. in slave mode
 		apcResult.phyModePtr = schedulerState->defaultPhyModePtr;

@@ -261,7 +261,7 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
         mapInfoEntry->sourceUser = schedulerState->myUserID;
         mapInfoEntry->txPower = apcResult.txPower; 
         mapInfoEntry->phyModePtr = apcResult.phyModePtr;
-        //TODO mapInfoEntry->estimatedCQI = cqi;
+        mapInfoEntry->estimatedCQI = apcResult.estimatedCandI;
 
         int freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry);
         
