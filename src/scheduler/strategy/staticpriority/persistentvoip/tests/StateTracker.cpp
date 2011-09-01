@@ -160,22 +160,12 @@ void StateTrackerTest::testStates()
     CPPUNIT_ASSERT(cc.silencedCIDs.empty());    
     CPPUNIT_ASSERT(cc.unpersistentCIDs.empty());
 
-    /* Reenable 4 in frame 1 => First time considered comfort noise; 
-    CIDs 1 and 2 are ignored */
+    /* Try to Reenable 4 in frame 1 
+    => Is ignored because it belongs to frame 0 */
     cs.insert(4);
     cc = st_->updateState(cs, 1);
     CPPUNIT_ASSERT(cc.newPersistentCIDs.empty());
     CPPUNIT_ASSERT(cc.reactivatedPersistentCIDs.empty());
-    CPPUNIT_ASSERT(cc.persistentCIDs.empty());
-    CPPUNIT_ASSERT(cc.silencedCIDs.empty());    
-    CPPUNIT_ASSERT_EQUAL(cc.unpersistentCIDs.size(), (size_t)1);
-    CPPUNIT_ASSERT_EQUAL(*(cc.unpersistentCIDs.begin()), (ConnectionID)4);    
-
-    /* Second time => considered reactivated CID */
-    cc = st_->updateState(cs, 1);
-    CPPUNIT_ASSERT(cc.newPersistentCIDs.empty());
-    CPPUNIT_ASSERT_EQUAL(cc.reactivatedPersistentCIDs.size(), (size_t)1);
-    CPPUNIT_ASSERT_EQUAL(*(cc.reactivatedPersistentCIDs.begin()), (ConnectionID)4);    
     CPPUNIT_ASSERT(cc.persistentCIDs.empty());
     CPPUNIT_ASSERT(cc.silencedCIDs.empty());    
     CPPUNIT_ASSERT(cc.unpersistentCIDs.empty());
@@ -201,8 +191,6 @@ void StateTrackerTest::testStates()
     CPPUNIT_ASSERT(cc.persistentCIDs.empty());
     CPPUNIT_ASSERT(cc.silencedCIDs.empty());    
     CPPUNIT_ASSERT(cc.unpersistentCIDs.empty());
-
-    /* TODO: test CIDs active not belonging to this frame */
 }
 
 void StateTrackerTest::cleanup()
