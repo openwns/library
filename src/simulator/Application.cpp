@@ -501,6 +501,9 @@ CALLGRIND_START_INSTRUMENTATION;
 CALLGRIND_STOP_INSTRUMENTATION;
 #endif
 
+        MESSAGE_SINGLE(NORMAL, logger_, "Sending shutdown signal");
+        (*wns::simulator::getShutdownSignal())();
+
         // shutdown the simulation if it has been created before
         if (simulationModel_.get() != NULL)
         {
@@ -511,9 +514,6 @@ CALLGRIND_STOP_INSTRUMENTATION;
 		// uninstall signal handler for graceful shutdown, can only be
 		// used in event loop
 		handler.removeSignalHandler(SIGXCPU);
-
-        MESSAGE_SINGLE(NORMAL, logger_, "Sending shutdown signal");
-        (*wns::simulator::getShutdownSignal())();
 
 		MESSAGE_SINGLE(NORMAL, logger_, "Simulation finished");
     }
