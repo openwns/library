@@ -176,19 +176,6 @@ RegistryProxyStub::estimateRxSINROf(const UserID user, int slot = 0)
               wns::Power::from_dBm(-95.0), wns::Power::from_dBm(-80.0));
 }
 
-
-wns::Power
-RegistryProxyStub::estimateInterferenceAt(const UserID /* user */)
-{
-	return wns::Power::from_dBm(-100);
-}
-
-wns::Power
-RegistryProxyStub::estimateInterferenceStdDeviation(const UserID /* user */)
-{
-	return wns::Power::from_dBm(0.1);
-}
-
 Bits
 RegistryProxyStub::getQueueSizeLimitPerConnection()
 {

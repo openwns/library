@@ -31,10 +31,9 @@
 #include <WNS/service/dll/Address.hpp>
 #include <WNS/service/phy/phymode/PhyModeInterface.hpp>
 #include <WNS/service/phy/phymode/PhyModeMapperInterface.hpp>
-//#include <WNS/scheduler/strategy/apcstrategy/APCStrategyInterface.hpp>
-//#include <WNS/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp>
 #include <WNS/scheduler/SchedulingMap.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
+#include <WNS/scheduler/ILinkAdaptationProxy.hpp>
 #include <WNS/ldk/Classifier.hpp>
 #include <WNS/PowerRatio.hpp>
 #include <string>
@@ -56,7 +55,9 @@ namespace wns { namespace scheduler {
          * ConnectionIDs etc have to be mapped to the scheduler internal types so
          * that such system specific details are hidden.
          */
-        class RegistryProxyInterface {
+        class RegistryProxyInterface :
+            public ILinkAdaptationProxy
+        {
         public:
             virtual ~RegistryProxyInterface() {};
             /**
@@ -109,38 +110,10 @@ namespace wns { namespace scheduler {
             virtual std::string getNameForUser(const UserID user) = 0;
 
             /**
-             * @brief Returns the PhyModeMapper object which can be asked about
-             * PhyMode-to-SINR-Range properties (table)
-             */
-            virtual wns::service::phy::phymode::PhyModeMapperInterface*
-            getPhyModeMapper() const = 0;
-
-            /**
-             * @brief For Link Adaptation, returns the best a PHYmode for a given SINR.
-             */
-            //virtual wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface>
-            virtual wns::service::phy::phymode::PhyModeInterfacePtr
-            getBestPhyMode(const wns::Ratio&) = 0;
-
-            /**
              * @brief Returns the station's own UserID.
              */
             virtual UserID getMyUserID() = 0;
-            /**
-             * @brief Returns (an estimate of) the current interference level at the
-             * specified user's location. Included in this figure is everything
-             * besides the carrier signal, i.e. inter+intra cell interference and
-             * noise. This information will usually be signalled back by the mobile
-             * terminals and is needed for the correct SINR estimation when sending
-             * to a mobile terminal.
-             * By specifying the own user ID as returned by getMyUserID(), the
-             * current interference level at the own station should be returned
-             * which is also needed for SINR estimation in the receive case.
-             * This method assumes a flat channel. For frequency-selective channels better use CQI.
-             */
-            virtual ChannelQualityOnOneSubChannel estimateTxSINRAt(const UserID user, int slot = 0) = 0;
-            virtual ChannelQualityOnOneSubChannel estimateRxSINROf(const UserID user, int slot = 0) = 0;
-            virtual wns::Power estimateInterferenceStdDeviation(const UserID user) = 0;
+
             /** @brief ??? */
             virtual Bits getQueueSizeLimitPerConnection() = 0;
 

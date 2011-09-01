@@ -60,8 +60,6 @@ namespace wns { namespace scheduler { namespace tests {
                 simTimeType getOverhead(int numBursts);
                 ChannelQualityOnOneSubChannel estimateTxSINRAt(const UserID user, int slot);
                 ChannelQualityOnOneSubChannel estimateRxSINROf(const UserID user, int slot);
-                wns::Power estimateInterferenceAt(const UserID user);
-                wns::Power estimateInterferenceStdDeviation(const UserID user);
                 Bits getQueueSizeLimitPerConnection();
                 void setQueueSizeLimitPerConnection(Bits bits);
                 wns::service::dll::StationType getStationType(const UserID user);
