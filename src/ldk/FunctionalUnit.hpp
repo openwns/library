@@ -208,6 +208,10 @@ namespace wns { namespace ldk {
 		onFUNCreated()
 		{}
 
+                virtual void
+                onShutdown()
+                {}
+
 		/**
 		 * @brief Return the FunctionalUnit holding the connector set for this FunctionalUnit.
 		 *

@@ -211,6 +211,9 @@ namespace wns { namespace ldk { namespace fun {
 		{
 			return CompoundPtr(new Compound(createCommandPool(), sdu));
 		} // createCompound
+
+                virtual void
+                onShutdown() = 0;
 	};
 
 }}}

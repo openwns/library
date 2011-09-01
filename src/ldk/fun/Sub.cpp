@@ -296,4 +296,14 @@ Sub::getCommandReader(const std::string& commandName) const
 	return proxy->getCommandReader(commandName);
 }
 
-
+void
+Sub::onShutdown()
+{
+    FunctionalUnitMap::iterator it;
+    for(it = fuMap.begin();
+        it != fuMap.end();
+        it++)
+    {
+        it->second->onShutdown();
+    }
+}

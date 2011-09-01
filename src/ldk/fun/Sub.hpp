@@ -95,6 +95,7 @@ namespace wns { namespace ldk { namespace fun {
 		// delayed configuration
 		void onFUNCreated();
 
+		virtual void onShutdown();
 
 		//
 		// new stuff

@@ -114,6 +114,8 @@ namespace wns { namespace ldk { namespace fun {
 		//
 		void onFUNCreated(wns::logger::Logger* logger = NULL);
 
+                virtual void onShutdown();
+
 	private:
 		ILayer* layer;
 		CommandProxy* proxy;
