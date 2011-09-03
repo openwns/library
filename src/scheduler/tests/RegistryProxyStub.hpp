@@ -73,6 +73,16 @@ namespace wns { namespace scheduler { namespace tests {
                 virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnUplink(UserID user, int frameNr);
                 virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnDownlink(UserID user, int frameNr);
 
+                wns::Ratio
+                getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
+                    const std::set<unsigned int>& scs, 
+                    const wns::Power& txPower);
+
+                wns::Ratio
+                getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
+                    const std::set<unsigned int>& scs, 
+                    const wns::Power& txPower);
+
                 virtual wns::scheduler::PowerCapabilities
                 getPowerCapabilities(const UserID user) const;
 

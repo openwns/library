@@ -338,14 +338,19 @@ RegistryProxyStub::getCQIAvailable() const
 }
 
 
-/*
-  Local Variables:
-  mode: c++
-  fill-column: 80
-  c-basic-offset: 8
-  c-comment-only-line-offset: 0
-  c-tab-always-indent: t
-  indent-tabs-mode: t
-  tab-width: 8
-  End:
-*/
+wns::Ratio
+RegistryProxyStub::getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
+    const std::set<unsigned int>& scs, 
+    const wns::Power& txPower)
+{
+    return wns::Ratio::from_factor(1);
+}
+
+wns::Ratio
+RegistryProxyStub::getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
+    const std::set<unsigned int>& scs, 
+    const wns::Power& txPower)
+{
+    return wns::Ratio::from_factor(1);
+}
+
