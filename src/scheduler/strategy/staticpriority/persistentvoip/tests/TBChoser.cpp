@@ -78,7 +78,8 @@ void TBChoserTest::prepare()
     /* Index     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 */
     /* Occupied  0 0 0 0 1 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 */
     sr.success = true;
-    sr.needed = 2;
+    sr.tbLength = 2;
+
     sr.start = 0;
     sr.length = 4;
     srs1.insert(sr);
@@ -148,7 +149,7 @@ void TBChoserTest::testEmpty()
     Frame::SearchResult sr;
     Frame::SearchResultSet srs;
     sr.success = true;
-    sr.needed = 5;
+    sr.tbLength = 5;
     sr.length = 10;
     sr.start = 0;
     srs.insert(sr);

@@ -27,6 +27,7 @@
 
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/TBChoser.hpp>
+#include <WNS/scheduler/strategy/staticpriority/persistentvoip/LinkAdaptation.hpp>
 
 using namespace std;
 using namespace wns::scheduler;
@@ -181,6 +182,58 @@ Frame::getFrameIndex()
 }
 
 Frame::SearchResultSet
+Frame::findTransmissionBlocks()
+{
+    MESSAGE_SINGLE(NORMAL, *logger_, "Reserved: " << *this);
+
+    unsigned int start = 0;
+
+    SearchResult sr;
+    SearchResultSet srs;
+
+    do
+    {
+        sr = SearchResult();
+        sr = findTransmissionBlock(start);
+        if(sr.success)
+        {
+            srs.insert(sr);
+            start = sr.start + sr.length;
+        }
+    }
+    while(sr.success && start < numberOfSubChannels_);
+
+    return srs;
+}
+
+Frame::SearchResult
+Frame::findTransmissionBlock(unsigned int start)
+{
+    SearchResult sr;
+
+    for(int i = start; i < numberOfSubChannels_; i++)
+    {
+        if(rbs_[i].isFree())
+        {
+            int start = i;
+            int nFree = 0;
+            while(rbs_[i].isFree() && i < numberOfSubChannels_)
+            {
+                nFree++;
+                i++;
+            }
+
+            sr.success = true;
+            sr.start = start;
+            sr.length = nFree;
+            sr.frame = getFrameIndex();
+            break;
+        }
+    }
+    return sr;    
+}
+
+Frame::SearchResultSet
 Frame::findTransmissionBlocks(unsigned int minLength)
 {
     MESSAGE_SINGLE(NORMAL, *logger_, "Reserved: " << *this);
@@ -226,7 +279,8 @@ Frame::findTransmissionBlock(unsigned int start, unsigned int minLength)
                 sr.success = true;
                 sr.start = start;
                 sr.length = nFree;
-                sr.needed = minLength;
+                sr.tbStart = start;
+                sr.tbLength = minLength;
                 sr.frame = getFrameIndex();
                 break;
             }
@@ -380,7 +434,9 @@ Frame::doToString() const
 ResourceGrid::ResourceGrid(const wns::pyconfig::View& config, 
         wns::logger::Logger& logger,
         unsigned int numberOfFrames, 
-        unsigned int subChannels) :
+        unsigned int subChannels,
+        RegistryProxyInterface* registry,
+        wns::simulator::Time slotDuration) :
     logger_(&logger),
     numberOfFrames_(numberOfFrames),
     subChannelsPerFrame_(subChannels)
@@ -394,6 +450,12 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
     
     std::string tbChoserName = config.get<std::string>("tbChoser");
     tbChoser_ = ITBChoser::Factory::creator(tbChoserName)->create();
+
+    std::string laName = config.get<std::string>("linkAdaptation");
+    linkAdaptor_ = ILinkAdaptation::Factory::creator(laName)->create();
+
+    linkAdaptor_->setRegistryProxy(registry);
+    linkAdaptor_->setSlotDuration(slotDuration);
 }
 
 ResourceGrid::~ResourceGrid()

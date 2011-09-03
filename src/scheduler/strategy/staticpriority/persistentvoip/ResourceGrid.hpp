@@ -30,8 +30,10 @@
 
 #include <WNS/scheduler/SchedulerTypes.hpp>
 #include <WNS/scheduler/SchedulingMap.hpp>
+#include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/SmartPtr.hpp>
 #include <WNS/RefCountable.hpp>
+#include <WNS/service/phy/phymode/PhyModeInterface.hpp>
 
 #include <map>
 #include <set>
@@ -127,7 +129,8 @@ class Frame :
                 success(false),
                 start(0),
                 length(0),
-                needed(0),
+                tbStart(0),
+                tbLength(0),
                 frame(0)
             {};
 
@@ -140,8 +143,10 @@ class Frame :
             bool success;
             unsigned int start;
             unsigned int length;
-            unsigned int needed;
+            unsigned int tbStart;
+            unsigned int tbLength;
             unsigned int frame;
+            wns::service::phy::phymode::PhyModeInterfacePtr phyMode;
         };
 
         typedef std::set<SearchResult> SearchResultSet;
@@ -155,6 +160,12 @@ class Frame :
 
         SearchResultSet
         findTransmissionBlocks(unsigned int minLength);
+
+        SearchResult
+        findTransmissionBlock(unsigned int start);
+
+        SearchResultSet
+        findTransmissionBlocks();
 
         void
         reserve(ConnectionID cid, unsigned int st, 
@@ -207,6 +218,7 @@ typedef std::vector<Frame> FrameVector;
 typedef FrameVector::iterator FrameVectorIt;
 
 class ITBChoser;
+class ILinkAdaptation;
 
 class ResourceGrid
 {
@@ -214,7 +226,9 @@ class ResourceGrid
         ResourceGrid(const wns::pyconfig::View& config,
             wns::logger::Logger& logger, 
             unsigned int numberOfFrames, 
-            unsigned int subChannels);
+            unsigned int subChannels,
+            RegistryProxyInterface* registry,
+            wns::simulator::Time slotDuration);
 
         ~ResourceGrid();
 
@@ -257,6 +271,7 @@ class ResourceGrid
         FrameVector frames_;
 
         ITBChoser* tbChoser_;
+        ILinkAdaptation* linkAdaptor_;
 
         wns::logger::Logger* logger_;
 };

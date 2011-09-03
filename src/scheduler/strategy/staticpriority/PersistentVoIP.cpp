@@ -93,7 +93,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     // Init the resources but only if there ever is any data queued for this priority
     if(firstScheduling_)
-        onFirstScheduling(schedulerState);
+        onFirstScheduling(schedulerState, schedulingMap);
 
     assure(resources_ != NULL, "Invalid resource grid");
 
@@ -250,7 +250,7 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
     int i;
     Bit totalBit = 0;
     for(i = 0; i < length && colleagues.queue->queueHasPDUs(cid); i++)
-    {        
+    {   
         MapInfoEntryPtr mapInfoEntry; 
         mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
         mapInfoEntry->frameNr = schedulerState->currentState->strategyInput->getFrameNr();
@@ -435,7 +435,8 @@ PersistentVoIP::processSilenced(const ConnectionSet& cids)
 }
 
 void
-PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState)
+PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState,
+                             wns::scheduler::SchedulingMapPtr schedulingMap)
 {
     assure(firstScheduling_, "This method may only be called once.");
     firstScheduling_ = false;
@@ -447,7 +448,7 @@ PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState)
         << " resources per frame in " << numberOfFrames_ << " frames.");
 
     resources_ = new persistentvoip::ResourceGrid(resourceGridConfig_, logger, 
-        numberOfFrames_, numberOfSubchannels_);
+        numberOfFrames_, numberOfSubchannels_, colleagues.registry, schedulingMap->getSlotLength());
 }
 
 void

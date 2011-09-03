@@ -44,7 +44,7 @@ TBChoser::choseTB(const Frame::SearchResultSet& tbs)
 
     Frame::SearchResult sr = doChoseTB(tbs);
     assure(sr.success, "Invalid TB");
-    assure(sr.length >= sr.needed, "TB too small");
+    assure(sr.length >= sr.tbLength, "TB too small");
 
     return sr;
 
@@ -64,7 +64,7 @@ BestFit::doChoseTB(const Frame::SearchResultSet& tbs)
     unsigned int bestFit = std::numeric_limits<unsigned int>::max();
     for(it = tbs.begin(); it != tbs.end(); it++)
     {
-        unsigned int waste = it->length - it->needed;
+        unsigned int waste = it->length - it->tbLength; /*TODO*/
         if(waste < bestFit)
         {
             best = *it;
@@ -84,7 +84,7 @@ WorstFit::doChoseTB(const Frame::SearchResultSet& tbs)
     unsigned int worstFit = 0;
     for(it = tbs.begin(); it != tbs.end(); it++)
     {
-        unsigned int waste = it->length - it->needed;
+        unsigned int waste = it->length - it->tbLength; /*TODO*/
         if(waste >= worstFit)
         {
             worst = *it;

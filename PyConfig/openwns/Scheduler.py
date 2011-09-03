@@ -136,8 +136,9 @@ class PersistentVoIP(SubStrategy):
     __plugin__ = "PersistentVoIP"
 
     class ResourceGrid(object) :
-        def __init__(self, tbChoser = "First", parentLogger = None):
+        def __init__(self, tbChoser = "First", linkAdaptation = "AtStart", parentLogger = None):
             self.tbChoser = tbChoser
+            self.linkAdaptation = linkAdaptation
             self.logger = openwns.logger.Logger("WNS", "ResourceGrid", True, parentLogger)
 
     def __init__(self, parentLogger = None, **kw):

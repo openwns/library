@@ -62,7 +62,8 @@ class PersistentVoIP
 
     private:
         void 
-        onFirstScheduling(const SchedulerStatePtr& schedulerState);
+        onFirstScheduling(const SchedulerStatePtr& schedulerState,
+                             wns::scheduler::SchedulingMapPtr schedulingMap);
 
         void
         onNewPeriod();

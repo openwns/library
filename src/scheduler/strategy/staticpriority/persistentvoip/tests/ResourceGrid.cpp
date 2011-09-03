@@ -40,6 +40,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 		CPPUNIT_TEST_SUITE(ResourceGridTest);
         CPPUNIT_TEST(testDimension);
         CPPUNIT_TEST(testSched);
+        CPPUNIT_TEST(testAllPotentialTBs);
 		CPPUNIT_TEST_SUITE_END();
 	public:
 		ResourceGridTest();
@@ -48,6 +49,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
 		void cleanup();
         void testDimension();
         void testSched();
+        void testAllPotentialTBs();
 
     private:
         wns::logger::Logger logger_;
@@ -77,7 +79,7 @@ void ResourceGridTest::prepare()
 	   << "rg = PersistentVoIP.ResourceGrid()\n";
 	rgConfig.loadString(ss.str());
 
-    rg_ = new ResourceGrid(rgConfig.getView("rg"), logger_, 5, 10);
+    rg_ = new ResourceGrid(rgConfig.getView("rg"), logger_, 5, 10, NULL, 1E-3); /*TODO*/
 }
 
 void ResourceGridTest::testDimension()
@@ -175,6 +177,36 @@ void ResourceGridTest::testSched()
 
 }
 
+void ResourceGridTest::testAllPotentialTBs()
+{
+    Frame* f0 = rg_->getFrame(0);
+
+    Frame::SearchResultSet srs;
+
+    f0->reserve(0, 5, 1, true);
+    f0->reserve(1, 7, 2, true);
+    f0->reserve(2, 0, 3, true);
+
+    /*       RB: 0 1 2 3 4 5 6 7 8 9 */
+    /* Occupied: 1 1 1 0 0 1 0 1 1 0 */
+
+    srs = f0->findTransmissionBlocks();
+    CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)3); 
+
+    Frame::SearchResultSet::iterator it;
+
+    it = srs.begin();
+    CPPUNIT_ASSERT_EQUAL(it->start, (unsigned int)3);
+    CPPUNIT_ASSERT_EQUAL(it->length, (unsigned int)2);
+
+    it++;
+    CPPUNIT_ASSERT_EQUAL(it->start, (unsigned int)6);
+    CPPUNIT_ASSERT_EQUAL(it->length, (unsigned int)1);
+
+    it++;
+    CPPUNIT_ASSERT_EQUAL(it->start, (unsigned int)9);
+    CPPUNIT_ASSERT_EQUAL(it->length, (unsigned int)1);
+}
 void ResourceGridTest::cleanup()
 {
     delete rg_;

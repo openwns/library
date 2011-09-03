@@ -67,6 +67,16 @@ namespace wns { namespace scheduler {
 
             virtual ChannelQualityOnOneSubChannel 
             estimateRxSINROf(const UserID user, int slot = 0) = 0;
+
+            virtual wns::Ratio
+            getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
+                const std::set<unsigned int>& scs, 
+                const wns::Power& txPower) = 0;
+
+            virtual wns::Ratio
+            getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
+                const std::set<unsigned int>& scs, 
+                const wns::Power& txPower) = 0;
         };
 
     }} // namespace wns::scheduler
