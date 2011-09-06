@@ -88,6 +88,7 @@ class TransmissionBlock :
     public:
         TransmissionBlock(ResourceBlockVectorIt& start, 
             ResourceBlockVectorIt& end,
+            wns::service::phy::phymode::PhyModeInterfacePtr phyMode,
             ConnectionID cid);
 
         ~TransmissionBlock();
@@ -107,12 +108,23 @@ class TransmissionBlock :
         unsigned int
         getLength();
 
+        wns::service::phy::phymode::PhyModeInterfacePtr
+        getMCS();
+
+        wns::Ratio
+        getEstimatedSINR();
+
+        void
+        setEstimatedSINR(wns::Ratio);
+
     private:
         ResourceBlockPointerSet rbs_;
         ConnectionID cid_;
         unsigned int start_;
         unsigned int length_;
-        unsigned int frame_;            
+        unsigned int frame_; 
+        wns::service::phy::phymode::PhyModeInterfacePtr phyMode_;
+        wns::Ratio estimatedSINR_;           
 };
 
 typedef wns::SmartPtr<TransmissionBlock> TransmissionBlockPtr; 
@@ -131,7 +143,8 @@ class Frame :
                 length(0),
                 tbStart(0),
                 tbLength(0),
-                frame(0)
+                frame(0),
+                estimatedSINR(wns::Ratio::from_factor(1.0))
             {};
 
             bool
@@ -147,6 +160,7 @@ class Frame :
             unsigned int tbLength;
             unsigned int frame;
             wns::service::phy::phymode::PhyModeInterfacePtr phyMode;
+            wns::Ratio estimatedSINR;
         };
 
         typedef std::set<SearchResult> SearchResultSet;
@@ -156,26 +170,22 @@ class Frame :
         ~Frame();
 
         SearchResult
-        findTransmissionBlock(unsigned int start, unsigned int minLength);
-
-        SearchResultSet
-        findTransmissionBlocks(unsigned int minLength);
-
-        SearchResult
         findTransmissionBlock(unsigned int start);
 
         SearchResultSet
         findTransmissionBlocks();
 
         void
-        reserve(ConnectionID cid, unsigned int st, 
-            unsigned int l, bool persistent);
+        reserve(ConnectionID cid, const SearchResult& sr, bool persistent);
 
         void
         block(unsigned int RBIndex);
 
         void
         removeReservation(ConnectionID cid);
+
+        bool
+        hasReservation(ConnectionID cid, bool persistent);
 
         TransmissionBlockPtr
         getReservation(ConnectionID cid, bool persistent);
@@ -233,14 +243,19 @@ class ResourceGrid
         ~ResourceGrid();
 
         bool
-        scheduleCID(unsigned int frame, ConnectionID cid, 
-            unsigned int length, bool persistent);
+        scheduleCID(unsigned int frame, ConnectionID cid, Bit pduSize, bool persistent);
 
         void
         unscheduleCID(unsigned int frame, ConnectionID cid);
 
         void
         unscheduleCID(unsigned int frame, const ConnectionSet& cids);
+
+        bool
+        hasPersistentReservation(unsigned int frame, ConnectionID cid);
+    
+        bool
+        fitsPersistentReservation(unsigned int frame, ConnectionID cid, Bit pduSize);
 
         TransmissionBlockPtr
         getReservation(unsigned int frame, ConnectionID cid, bool persistent);

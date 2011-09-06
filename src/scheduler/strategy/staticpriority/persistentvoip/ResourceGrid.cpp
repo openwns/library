@@ -93,8 +93,10 @@ ResourceBlock::getFrameIndex()
 
 TransmissionBlock::TransmissionBlock(ResourceBlockVectorIt& start, 
     ResourceBlockVectorIt& end,
+    wns::service::phy::phymode::PhyModeInterfacePtr phyMode,
     ConnectionID cid) :
     cid_(cid),
+    phyMode_(phyMode),
     length_(0)
 {
     frame_ = start->getFrameIndex();
@@ -151,6 +153,25 @@ unsigned int
 TransmissionBlock::getLength()
 {
     return length_;
+}
+
+wns::service::phy::phymode::PhyModeInterfacePtr
+TransmissionBlock::getMCS()
+{
+    return phyMode_;
+}
+
+
+wns::Ratio
+TransmissionBlock::getEstimatedSINR()
+{
+    return estimatedSINR_;
+}
+
+void
+TransmissionBlock::setEstimatedSINR(wns::Ratio es)
+{
+    estimatedSINR_ = es;
 }
 
 Frame::Frame(ResourceGrid* parent,
@@ -230,62 +251,7 @@ Frame::findTransmissionBlock(unsigned int start)
             break;
         }
     }
-    return sr;    
-}
-
-Frame::SearchResultSet
-Frame::findTransmissionBlocks(unsigned int minLength)
-{
-    MESSAGE_SINGLE(NORMAL, *logger_, "Reserved: " << *this);
-
-    unsigned int start = 0;
-
-    SearchResult sr;
-    SearchResultSet srs;
-
-    do
-    {
-        sr = SearchResult();
-        sr = findTransmissionBlock(start, minLength);
-        if(sr.success)
-        {
-            srs.insert(sr);
-            start = sr.start + sr.length;
-        }
-    }
-    while(sr.success && start < numberOfSubChannels_);
-    
-    return srs;
-}
-
-Frame::SearchResult
-Frame::findTransmissionBlock(unsigned int start, unsigned int minLength)
-{
-    SearchResult sr;
-
-    for(int i = start; i < numberOfSubChannels_; i++)
-    {
-        if(rbs_[i].isFree())
-        {
-            int start = i;
-            int nFree = 0;
-            while(rbs_[i].isFree() && i < numberOfSubChannels_)
-            {
-                nFree++;
-                i++;
-            }
-            if(nFree >= minLength)
-            {
-                sr.success = true;
-                sr.start = start;
-                sr.length = nFree;
-                sr.tbStart = start;
-                sr.tbLength = minLength;
-                sr.frame = getFrameIndex();
-                break;
-            }
-        }
-    }
+    assure(sr.length > 0, "TB size must be greater zero.");
     return sr;    
 }
 
@@ -298,7 +264,9 @@ Frame::block(unsigned int RBIndex)
     ResourceBlockVectorIt end = start + 1;
 
     TransmissionBlockPtr tb;
-    tb = TransmissionBlockPtr(new TransmissionBlock(start, end, ConnectionID()));
+    tb = TransmissionBlockPtr(
+        new TransmissionBlock(start, end, 
+            wns::service::phy::phymode::PhyModeInterfacePtr(), ConnectionID()));
 
     MESSAGE_SINGLE(NORMAL, *logger_, "Blocked RB " << RBIndex);    
 
@@ -309,11 +277,11 @@ Frame::block(unsigned int RBIndex)
 }
 
 void
-Frame::reserve(ConnectionID cid, unsigned int st, unsigned int l, bool persistent)
+Frame::reserve(ConnectionID cid, const SearchResult& sr, bool persistent)
 {
     /* Further assures in TransmissionBlock will check the rest */
-    assure(st < numberOfSubChannels_, "Request start exceeds number of subchannels");
-    assure(st + l - 1 < numberOfSubChannels_, "Request exceeds number of subchannels");
+    assure(sr.tbStart < numberOfSubChannels_, "Request start exceeds number of subchannels");
+    assure(sr.tbStart + sr.tbLength - 1 < numberOfSubChannels_, "Request exceeds number of subchannels");
 
     assure(persistentSchedule_.find(cid) == persistentSchedule_.end(), 
         "CID already scheduled persistently");
@@ -324,21 +292,23 @@ Frame::reserve(ConnectionID cid, unsigned int st, unsigned int l, bool persisten
     ResourceBlockVectorIt start;
     ResourceBlockVectorIt end;
 
-    start = rbs_.begin() + st;
-    end = start + l;
+    start = rbs_.begin() + sr.tbStart;
+    end = start + sr.tbLength;
 
-    TransmissionBlockPtr tb = TransmissionBlockPtr(new TransmissionBlock(start, end, cid));
+    TransmissionBlockPtr tb = TransmissionBlockPtr(new TransmissionBlock(start, end, sr.phyMode, cid));
+    tb->setEstimatedSINR(sr.estimatedSINR);
 
     if(persistent)
         persistentSchedule_.insert(std::pair<ConnectionID, TransmissionBlockPtr>(cid, tb));
     else    
         unpersistentSchedule_.insert(std::pair<ConnectionID, TransmissionBlockPtr>(cid, tb));
 
-    MESSAGE_SINGLE(NORMAL, *logger_, "Reserved " << l << " RBs strating at " 
-        << st << " for CID " << cid << "; persistent: " << (persistent?"yes":"no"));
+    MESSAGE_SINGLE(NORMAL, *logger_, "Reserved " << sr.tbLength << " RBs strating at " 
+        << sr.tbStart << " for CID " << cid << "; persistent: " << (persistent?"yes":"no") 
+        << "; MCS: " << tb->getMCS());
 
-    numReserved_ += l;
-    assure(numReserved_ < numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
+    numReserved_ += sr.tbLength;
+    assure(numReserved_ <= numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
 }
 
 void
@@ -355,6 +325,19 @@ Frame::removeReservation(ConnectionID cid)
     persistentSchedule_.erase(it);
 
     MESSAGE_SINGLE(NORMAL, *logger_, "Canceled persistent reservation for CID " << cid);
+}
+
+bool
+Frame::hasReservation(ConnectionID cid, bool persistent)
+{
+    if(persistent)
+    {
+        return(persistentSchedule_.find(cid) != persistentSchedule_.end());
+    }
+    else
+    {
+        return(unpersistentSchedule_.find(cid) != persistentSchedule_.end());
+    }
 }
 
 TransmissionBlockPtr
@@ -376,7 +359,6 @@ Frame::getReservation(ConnectionID cid, bool persistent)
 
         return unpersistentSchedule_[cid];
     }
-
 }
 
 void
@@ -405,7 +387,7 @@ void
 Frame::clearBlocked()
 {
     numReserved_ -= blocked_.size();
-    assure(numReserved_ < numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
+    assure(numReserved_ <= numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
 
     blocked_.clear();    
 }
@@ -461,6 +443,7 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
 ResourceGrid::~ResourceGrid()
 {
     delete tbChoser_;
+    delete linkAdaptor_;
 }
 
 unsigned int
@@ -476,13 +459,16 @@ ResourceGrid::getNumberOfFrames()
 }
 
 bool
-ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid, 
-    unsigned int length, bool persistent)
+ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid, Bit pduSize, bool persistent)
 {
     assure(frame < numberOfFrames_, "Invalid frame index.");
+    assure(linkAdaptor_ != NULL, "Need LinkAdaptor");
 
     Frame::SearchResultSet srs;
-    srs = frames_[frame].findTransmissionBlocks(length);
+    /* Find all holes in resource grid */
+    srs = frames_[frame].findTransmissionBlocks();
+    /* Check which holes can be used depending on the MCS */
+    srs = linkAdaptor_->setTBSizes(srs, cid, pduSize);
 
     if(!srs.empty())
     {
@@ -491,13 +477,15 @@ ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid,
         MESSAGE_SINGLE(NORMAL, *logger_, "Found: " << srs.size() 
             << " potential TBs.");
 
-        frames_[frame].reserve(cid, tbChoser_->choseTB(srs).start, length, persistent);
+        Frame::SearchResult sr;
+        sr = tbChoser_->choseTB(srs);
+
+        frames_[frame].reserve(cid, sr, persistent);
         return true;
     }
     else
     {
-        MESSAGE_SINGLE(NORMAL, *logger_, "Could not find " << length 
-            << " resources for CID " << cid);
+        MESSAGE_SINGLE(NORMAL, *logger_, "Could not find resources for CID " << cid);
     }
     return false;
 }
@@ -527,6 +515,25 @@ ResourceGrid::getReservation(unsigned int frame, ConnectionID cid, bool persiste
     assure(frame < numberOfFrames_, "Invalid frame index.");
     
     return frames_[frame].getReservation(cid, persistent);
+}
+
+bool
+ResourceGrid::hasPersistentReservation(unsigned int frame, ConnectionID cid)
+{
+    assure(frame < numberOfFrames_, "Invalid frame index.");
+    return frames_[frame].hasReservation(cid, true);
+}
+    
+bool
+ResourceGrid::fitsPersistentReservation(unsigned int frame, ConnectionID cid, Bit pduSize)
+{
+    assure(frame < numberOfFrames_, "Invalid frame index.");
+    assure(hasPersistentReservation(frame, cid), 
+        "No persistent reservation for CID " << cid);
+
+    TransmissionBlockPtr tb = frames_[frame].getReservation(cid, true);
+
+    return linkAdaptor_->canFit(tb->getStart(), tb->getLength(), cid, pduSize).fits;
 }
 
 Frame*

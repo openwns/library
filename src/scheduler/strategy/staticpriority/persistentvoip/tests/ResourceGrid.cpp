@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
+#include <WNS/scheduler/tests/RegistryProxyStub.hpp>
 
 #include <WNS/CppUnit.hpp>
 #include <WNS/logger/Logger.hpp>
@@ -54,6 +55,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
     private:
         wns::logger::Logger logger_;
         ResourceGrid* rg_;
+        wns::scheduler::tests::RegistryProxyStub reg_;
 	};
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ResourceGridTest);
@@ -76,10 +78,10 @@ void ResourceGridTest::prepare()
 	wns::pyconfig::Parser rgConfig;
 	std::stringstream ss;
 	ss << "from openwns.Scheduler import PersistentVoIP\n"
-	   << "rg = PersistentVoIP.ResourceGrid()\n";
+	   << "rg = PersistentVoIP.ResourceGrid(\"First\", \"AtStart\")\n";
 	rgConfig.loadString(ss.str());
 
-    rg_ = new ResourceGrid(rgConfig.getView("rg"), logger_, 5, 10, NULL, 1E-3); /*TODO*/
+    rg_ = new ResourceGrid(rgConfig.getView("rg"), logger_, 5, 10, &reg_, 1E-3); 
 }
 
 void ResourceGridTest::testDimension()
@@ -92,16 +94,24 @@ void ResourceGridTest::testDimension()
 
 void ResourceGridTest::testSched()
 {
+    Frame::SearchResult sr;
+
     Frame* f0 = rg_->getFrame(0);
 
     /* Start is out of range */
-    CPPUNIT_ASSERT_THROW(f0->reserve(0, 10, 4, false), wns::Assure::Exception);
+    sr.tbStart = 10;
+    sr.tbLength = 4;
+    CPPUNIT_ASSERT_THROW(f0->reserve(0, sr, false), wns::Assure::Exception);
     /* End is  out of range */
-    CPPUNIT_ASSERT_THROW(f0->reserve(0, 7, 4, true), wns::Assure::Exception);
+    sr.tbStart = 7;
+    sr.tbLength = 4;
+    CPPUNIT_ASSERT_THROW(f0->reserve(0, sr, true), wns::Assure::Exception);
 
     Frame::SearchResultSet srs;
-
-    srs = f0->findTransmissionBlocks(3);
+    
+    srs = f0->findTransmissionBlocks();
+    /*       RB: 0 1 2 3 4 5 6 7 8 9 */
+    /* Occupied: 0 0 0 0 0 0 0 0 0 0 */    
 
     /* Everything is free so there is one successfull result */
     CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)1);
@@ -114,9 +124,13 @@ void ResourceGridTest::testSched()
     CPPUNIT_ASSERT_EQUAL(srs.begin()->length, (unsigned int)10);
 
     /* Reserve RBs 5 and 6 for CID 0*/
-    f0->reserve(0, 5, 2, true);
+    sr.tbStart = 5;
+    sr.tbLength = 2;
+    f0->reserve(0, sr, true);
+    /*       RB: 0 1 2 3 4 5 6 7 8 9 */
+    /* Occupied: 0 0 0 0 0 1 1 0 0 0 */    
 
-    srs = f0->findTransmissionBlocks(3);
+    srs = f0->findTransmissionBlocks();
     /* Now there should be two potential TBs */
     CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)2);
 
@@ -132,60 +146,64 @@ void ResourceGridTest::testSched()
     CPPUNIT_ASSERT_EQUAL(it->start, (unsigned int)7);
     CPPUNIT_ASSERT_EQUAL(it->length, (unsigned int)3);
 
-    /* There is no free TB of length 6 */
-    srs = f0->findTransmissionBlocks(6);
-    CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)0);
-
     /* Clear unpersistent reservations for frame 0 */
     rg_->onNewFrame(0);
 
-    /* We scheduled CID 0 persistently so nothing has changed */
-    srs = f0->findTransmissionBlocks(6);
-    CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)0);
-
-    /* We can get 5 RBs */
-    srs = f0->findTransmissionBlocks(5);
-    CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)1);
+    /* Now there are two holes */
+    srs = f0->findTransmissionBlocks();
+    CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)2);
 
     /* Now we reserve 0 to 2 for CID 1 unpersistently */
-    f0->reserve(1, 0, 3, false);
+    sr.tbStart = 0;
+    sr.tbLength = 3;
+    f0->reserve(1, sr, false);
+    /*       RB: 0 1 2 3 4 5 6 7 8 9 */
+    /* Occupied: 1 1 1 0 0 1 1 0 0 0 */    
 
     /* Do not allow to reserve occupied blocks (try to reserve 2 to 3)*/
-    CPPUNIT_ASSERT_THROW(f0->reserve(2, 2, 2, false), wns::Assure::Exception);
+    sr.tbStart = 2;
+    sr.tbLength = 2;
+    CPPUNIT_ASSERT_THROW(f0->reserve(2, sr, false), wns::Assure::Exception);
     
-    /* We cannot get 5 RBs anymore */
-    srs = f0->findTransmissionBlocks(5);
-    CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)0);
-
     /* Clear unpersistent reservations for frame 0 */
     rg_->onNewFrame(0);
-
-    /* We can get 5 RBs again */
-    srs = f0->findTransmissionBlocks(5);
-    CPPUNIT_ASSERT_EQUAL(srs.size(), (size_t)1);
+    /*       RB: 0 1 2 3 4 5 6 7 8 9 */
+    /* Occupied: 0 0 0 0 0 1 1 0 0 0 */    
 
     /* Try to reserve for CID 0 already having reservation */
 
     /* Unpersistently */
-    CPPUNIT_ASSERT_THROW(f0->reserve(0, 0, 1, false), wns::Assure::Exception);
+    sr.tbStart = 0;
+    sr.tbLength = 1;
+    CPPUNIT_ASSERT_THROW(f0->reserve(0, sr, false), wns::Assure::Exception);
     /* Persistently */
-    CPPUNIT_ASSERT_THROW(f0->reserve(0, 0, 1, true), wns::Assure::Exception);
+    sr.tbStart = 0;
+    sr.tbLength = 1;
+    CPPUNIT_ASSERT_THROW(f0->reserve(0, sr, true), wns::Assure::Exception);
     /* Other frame */
     Frame* f1 = rg_->getFrame(1);
-    CPPUNIT_ASSERT_NO_THROW(f1->reserve(0, 0, 1, true));
-
-
+    sr.tbStart = 0;
+    sr.tbLength = 1;
+    CPPUNIT_ASSERT_NO_THROW(f1->reserve(0, sr, true));
 }
 
 void ResourceGridTest::testAllPotentialTBs()
 {
+    wns::service::phy::phymode::PhyModeInterfacePtr pm;
     Frame* f0 = rg_->getFrame(0);
 
     Frame::SearchResultSet srs;
+    Frame::SearchResult sr;
 
-    f0->reserve(0, 5, 1, true);
-    f0->reserve(1, 7, 2, true);
-    f0->reserve(2, 0, 3, true);
+    sr.tbStart = 5;
+    sr.tbLength = 1;
+    f0->reserve(0, sr, true);
+    sr.tbStart = 7;
+    sr.tbLength = 2;
+    f0->reserve(1, sr, true);
+    sr.tbStart = 0;
+    sr.tbLength = 3;
+    f0->reserve(2, sr, true);
 
     /*       RB: 0 1 2 3 4 5 6 7 8 9 */
     /* Occupied: 1 1 1 0 0 1 0 1 1 0 */

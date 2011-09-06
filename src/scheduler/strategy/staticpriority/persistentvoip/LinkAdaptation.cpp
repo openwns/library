@@ -74,44 +74,86 @@ LinkAdaptation::getTBSize(Bit pduSize,
     return ceil(double(pduSize) / double(bitPerRB));   
 }
 
+wns::service::phy::phymode::PhyModeInterfacePtr
+LinkAdaptation::getMoreRobustMCS(Bit pduSize, 
+    wns::service::phy::phymode::PhyModeInterfacePtr currentMCS)
+{
+    unsigned int currentMCSindex;
+    currentMCSindex = registry_->getPhyModeMapper()->getIndexForPhyMode(*currentMCS);
+
+    if(currentMCSindex == 0)
+        return currentMCS;
+
+    unsigned int currentTBsize = getTBSize(pduSize, currentMCS); 
+    wns::service::phy::phymode::PhyModeInterfacePtr mcs;
+
+
+    int i;
+    for(i = currentMCSindex - 1; i > 0; i--)
+    {
+        mcs = registry_->getPhyModeMapper()->getPhyModeForIndex(i);
+        if(getTBSize(pduSize, mcs) > currentTBsize)
+            break;
+    }
+    mcs = registry_->getPhyModeMapper()->getPhyModeForIndex(i + 1);
+    return mcs;
+}
+
+ILinkAdaptation::CanFitResult
+LinkAdaptation::canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize)
+{
+    CanFitResult result;
+
+    UserID user = registry_->getUserForCID(cid);
+
+    std::set<unsigned int> rbs;
+    for(int i = 0; i < length; i++)
+        rbs.insert(start + i);
+    
+    wns::Ratio effSINR;
+    /*TODO Downlink, Power*/
+    effSINR = registry_->getEffectiveUplinkSINR(user, rbs, wns::Power::from_dBm(4.0));
+    result.sinr = effSINR;
+
+    result.phyModePtr = registry_->getBestPhyMode(effSINR);
+
+    result.length = getTBSize(pduSize, result.phyModePtr);
+
+    result.fits = (result.length <= length);
+
+    return result;
+}
+
 Frame::SearchResultSet
 AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize)
 {
-    UserID user = registry_->getUserForCID(cid);
-
     Frame::SearchResultSet result;
     Frame::SearchResultSet::iterator it;
 
     for(it = tbs.begin(); it != tbs.end(); it++)
     {
         unsigned int testLength = 0;
-        unsigned int neededLength = 0;
-        wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
 
+        CanFitResult cfResult;
         do
         {
             testLength++;
-            std::set<unsigned int> rbs;
-            for(int i = 0; i < it->length; i++)
-                rbs.insert(it->start + i);
-            
-            wns::Ratio effSINR;
-            /*TODO Downlink, Power*/
-            effSINR = registry_->getEffectiveUplinkSINR(user, rbs, wns::Power::from_dBm(4.0));
-    
-            /* Which MCS can we use on RBs testLength RBs? */
-            phyModePtr = registry_->getBestPhyMode(effSINR);
-
-            /* How many RBs do we need if we use this MCS? */
-            neededLength = getTBSize(pduSize, phyModePtr);
+            cfResult = canFit(it->start, testLength, cid, pduSize);
         }
-        while(testLength <= it->length && neededLength > testLength);
-        if(testLength <= it->length)
+        while(testLength < it->length && !cfResult.fits);
+        if(cfResult.fits)
         {
             Frame::SearchResult sr = *it;
-            sr.tbLength = neededLength;
+            sr.tbLength = cfResult.length;
             sr.tbStart = sr.start;
-            sr.phyMode = phyModePtr;
+            sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
+            sr.estimatedSINR = cfResult.sinr;
+
+            assure(sr.tbLength <= sr.length, "TB does not fit.");
+            assure(sr.tbStart >= sr.start, "Wrong TB start.");
+            assure(sr.phyMode != wns::service::phy::phymode::PhyModeInterfacePtr(),
+                "No MCS set");
+
             result.insert(sr);
         }
         
@@ -122,6 +164,41 @@ AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit p
 Frame::SearchResultSet
 All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize)
 {
-    return tbs;
+    Frame::SearchResultSet result;
+    Frame::SearchResultSet::iterator it;
+
+    for(it = tbs.begin(); it != tbs.end(); it++)
+    {
+        for(int s = 0; s < it->length; it++)
+        { 
+            unsigned int testLength = 0;
+            unsigned int neededLength = 0;
+
+            CanFitResult cfResult;
+            do
+            {
+                testLength++;
+                cfResult = canFit(it->start + s, testLength, cid, pduSize);
+
+            }
+            while(testLength < it->length && !cfResult.fits);
+            if(cfResult.fits)
+            {
+                Frame::SearchResult sr = *it;
+                sr.tbLength = cfResult.length;
+                sr.tbStart = sr.start + s;
+                sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
+                sr.estimatedSINR = cfResult.sinr;
+
+                assure(sr.tbLength <= sr.length, "TB does not fit.");
+                assure(sr.tbStart >= sr.start, "Wrong TB start.");
+                assure(sr.phyMode != wns::service::phy::phymode::PhyModeInterfacePtr(),
+                    "No MCS set");
+
+                result.insert(sr);
+            }
+        }
+    }
+    return result; 
 }
 

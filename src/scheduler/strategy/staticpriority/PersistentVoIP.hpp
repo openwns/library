@@ -78,21 +78,8 @@ class PersistentVoIP
         void
         processPersistent(const ConnectionSet& cids);
 
-        unsigned int
-        getNumberOfRBs(const apcstrategy::APCResult& apcResult, 
-                       ConnectionID cid,
-                       const SchedulingMapPtr& schedulingMap);
-
-        wns::scheduler::strategy::apcstrategy::APCResult
-        getAPCResult(ConnectionID cid, 
-                       const SchedulerStatePtr& schedulerState,
-                       const SchedulingMapPtr& schedulingMap);
-
-        /* First the successfull, then the ones needing more RBs than before */
         ConnectionSet
-        updateTBSizes(ConnectionSet& cids, 
-                      const SchedulerStatePtr& schedulerState,
-                      const SchedulingMapPtr& schedulingMap);
+        checkTBSizes(ConnectionSet& cids);
 
         MapInfoCollectionPtr
         scheduleData(ConnectionID cid, bool persistent,
@@ -111,9 +98,6 @@ class PersistentVoIP
 
         persistentvoip::ResourceGrid* resources_;
         persistentvoip::StateTracker stateTracker_;
-
-        /* Keep track of RB demand, but only for persistent connections */
-        std::map<ConnectionID, unsigned int> tbSizes_;
 
         wns::probe::bus::ContextCollector frameOccupationFairness_;
 

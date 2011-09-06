@@ -41,8 +41,25 @@ class ILinkAdaptation
         typedef wns::Creator<ILinkAdaptation> Creator;
         typedef wns::StaticFactory<Creator> Factory;
 
+        struct CanFitResult
+        {
+            CanFitResult() :
+                fits(false),
+                length(0),
+                sinr(wns::Ratio::from_factor(1.0))
+                {};
+
+            bool fits;
+            unsigned int length;
+            wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;    
+            wns::Ratio sinr;
+        };
+
         virtual Frame::SearchResultSet
         setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize) = 0;
+
+        virtual CanFitResult
+        canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize) = 0;
 
         virtual void
         setRegistryProxy(RegistryProxyInterface* reg) = 0;
@@ -64,6 +81,9 @@ class LinkAdaptation :
         virtual Frame::SearchResultSet
         setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize);
 
+        virtual CanFitResult
+        canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize);
+
         virtual void
         setRegistryProxy(RegistryProxyInterface* reg);
 
@@ -74,6 +94,10 @@ class LinkAdaptation :
         unsigned int
         getTBSize(Bit pduSize, 
             wns::service::phy::phymode::PhyModeInterfacePtr phyMode);
+
+        wns::service::phy::phymode::PhyModeInterfacePtr
+        getMoreRobustMCS(Bit pduSize, 
+            wns::service::phy::phymode::PhyModeInterfacePtr currentMCS);
 
         RegistryProxyInterface* registry_;
         wns::simulator::Time slotDuration_;
