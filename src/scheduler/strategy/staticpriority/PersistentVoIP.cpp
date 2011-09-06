@@ -382,8 +382,8 @@ PersistentVoIP::onNewPeriod()
         frameOccupationFairness_.hasObservers())
 #endif
     {
-        double sum;
-        double squareSum;
+        double sum = 0;
+        double squareSum = 0;
         for(int i = 0; i < numberOfFrames_; i++)
         {
             unsigned int nr = resources_->getFrame(i)->getNumReserved();

@@ -315,7 +315,7 @@ Frame::reserve(ConnectionID cid, const SearchResult& sr, bool persistent)
 
     MESSAGE_SINGLE(NORMAL, *logger_, "Reserved " << sr.tbLength << " RBs strating at " 
         << sr.tbStart << " for CID " << cid << "; persistent: " << (persistent?"yes":"no") 
-        << "; MCS: " << tb->getMCS());
+        << "; MCS: " << *(tb->getMCS()));
 
     numReserved_ += sr.tbLength;
     assure(numReserved_ <= numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
