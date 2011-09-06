@@ -839,7 +839,14 @@ Strategy::doAdaptiveResourceScheduling(RequestForResource& request,
     resultMapInfoEntry->sourceUser = schedulerState->myUserID;
     resultMapInfoEntry->txPower = txPower; // apcResult.txPower;
     resultMapInfoEntry->phyModePtr = request.phyModePtr; // = apcResult.phyModePtr
-    resultMapInfoEntry->estimatedCQI = cqiOnSubChannel; 
+    if(schedulerState->powerControlType != PowerControlULSlave)
+        resultMapInfoEntry->estimatedCQI = cqiOnSubChannel; 
+    else
+    {   
+        resultMapInfoEntry->estimatedCQI = 
+            schedulingMap->subChannels[subChannel].temporalResources[timeSlot]
+                ->physicalResources[spatialLayer].getEstimatedCQI();
+    }
    
     // Set antennaPattern etc. according to grouping result
     if (groupingRequired()) 
