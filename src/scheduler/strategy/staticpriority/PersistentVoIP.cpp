@@ -242,7 +242,7 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
         mapInfoEntry->spatialLayer = 0;
         mapInfoEntry->user = user;
         mapInfoEntry->sourceUser = schedulerState->myUserID;
-        mapInfoEntry->txPower = wns::Power::from_dBm(4.0) /*TODO Configure Power*/; 
+        mapInfoEntry->txPower = tb->getTxPower();
         mapInfoEntry->phyModePtr = tb->getMCS();
 
         /*TODO: Where should we write this?*/
@@ -357,7 +357,9 @@ PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState,
         << " resources per frame in " << numberOfFrames_ << " frames.");
 
     resources_ = new persistentvoip::ResourceGrid(resourceGridConfig_, logger, 
-        numberOfFrames_, numberOfSubchannels_, colleagues.registry, schedulingMap->getSlotLength());
+        numberOfFrames_, numberOfSubchannels_, 
+        colleagues.registry, schedulingMap->getSlotLength(),
+        colleagues.strategy->getSchedulerSpotType());
 }
 
 void

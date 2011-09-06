@@ -89,6 +89,7 @@ class TransmissionBlock :
         TransmissionBlock(ResourceBlockVectorIt& start, 
             ResourceBlockVectorIt& end,
             wns::service::phy::phymode::PhyModeInterfacePtr phyMode,
+            wns::Power txPower,
             ConnectionID cid);
 
         ~TransmissionBlock();
@@ -111,6 +112,9 @@ class TransmissionBlock :
         wns::service::phy::phymode::PhyModeInterfacePtr
         getMCS();
 
+        wns::Power
+        getTxPower();    
+    
         wns::Ratio
         getEstimatedSINR();
 
@@ -124,7 +128,8 @@ class TransmissionBlock :
         unsigned int length_;
         unsigned int frame_; 
         wns::service::phy::phymode::PhyModeInterfacePtr phyMode_;
-        wns::Ratio estimatedSINR_;           
+        wns::Ratio estimatedSINR_;
+        wns::Power txPower_;           
 };
 
 typedef wns::SmartPtr<TransmissionBlock> TransmissionBlockPtr; 
@@ -143,8 +148,7 @@ class Frame :
                 length(0),
                 tbStart(0),
                 tbLength(0),
-                frame(0),
-                estimatedSINR(wns::Ratio::from_factor(1.0))
+                frame(0)
             {};
 
             bool
@@ -161,6 +165,7 @@ class Frame :
             unsigned int frame;
             wns::service::phy::phymode::PhyModeInterfacePtr phyMode;
             wns::Ratio estimatedSINR;
+            wns::Power txPower;
         };
 
         typedef std::set<SearchResult> SearchResultSet;
@@ -238,7 +243,8 @@ class ResourceGrid
             unsigned int numberOfFrames, 
             unsigned int subChannels,
             RegistryProxyInterface* registry,
-            wns::simulator::Time slotDuration);
+            wns::simulator::Time slotDuration,
+            wns::scheduler::SchedulerSpotType spot);
 
         ~ResourceGrid();
 

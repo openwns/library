@@ -81,7 +81,8 @@ void ResourceGridTest::prepare()
 	   << "rg = PersistentVoIP.ResourceGrid(\"First\", \"AtStart\")\n";
 	rgConfig.loadString(ss.str());
 
-    rg_ = new ResourceGrid(rgConfig.getView("rg"), logger_, 5, 10, &reg_, 1E-3); 
+    rg_ = new ResourceGrid(rgConfig.getView("rg"), logger_, 5, 10, 
+        &reg_, 1E-3, wns::scheduler::SchedulerSpot::ULMaster()); 
 }
 
 void ResourceGridTest::testDimension()

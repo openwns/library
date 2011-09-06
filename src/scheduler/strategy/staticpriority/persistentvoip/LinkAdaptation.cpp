@@ -34,7 +34,7 @@ STATIC_FACTORY_REGISTER(AtStart, ILinkAdaptation, "AtStart");
 STATIC_FACTORY_REGISTER(All, ILinkAdaptation, "All");
 
 LinkAdaptation::LinkAdaptation() :
-    registry_(NULL),
+    lproxy_(NULL),
     slotDuration_(0.0)
 {
 }
@@ -43,7 +43,7 @@ Frame::SearchResultSet
 LinkAdaptation::setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize)
 {
     assure(!tbs.empty(), "Cannot chose from empty set");
-    assure(registry_ != NULL, "Need RegistryProxy");
+    assure(lproxy_ != NULL, "Need RegistryProxy");
     assure(slotDuration_ > 0, "Need positive slot duration");
 
     return doSetTBSizes(tbs, cid, pduSize);
@@ -51,11 +51,11 @@ LinkAdaptation::setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, 
 }
 
 void
-LinkAdaptation::setRegistryProxy(RegistryProxyInterface* reg)
+LinkAdaptation::setLinkAdaptationProxy(ILinkAdaptationProxy* lp)
 {
-    assure(reg != NULL, "Cannot set RegistryProxy to NULL");
+    assure(lp != NULL, "Cannot set RegistryProxy to NULL");
 
-    registry_ = reg;
+    lproxy_ = lp;
 }
 
 void
@@ -66,6 +66,12 @@ LinkAdaptation::setSlotDuration(wns::simulator::Time sd)
     slotDuration_ = sd;
 }
 
+void
+LinkAdaptation::setSchedulerSpot(wns::scheduler::SchedulerSpotType spot)
+{
+    spot_ = spot;
+}
+
 unsigned int
 LinkAdaptation::getTBSize(Bit pduSize, 
     wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr)
@@ -74,12 +80,18 @@ LinkAdaptation::getTBSize(Bit pduSize,
     return ceil(double(pduSize) / double(bitPerRB));   
 }
 
+wns::Power
+LinkAdaptation::getTxPower(UserID user)
+{
+    return lproxy_->getPowerCapabilities(user).nominalPerSubband;
+}
+
 wns::service::phy::phymode::PhyModeInterfacePtr
 LinkAdaptation::getMoreRobustMCS(Bit pduSize, 
     wns::service::phy::phymode::PhyModeInterfacePtr currentMCS)
 {
     unsigned int currentMCSindex;
-    currentMCSindex = registry_->getPhyModeMapper()->getIndexForPhyMode(*currentMCS);
+    currentMCSindex = lproxy_->getPhyModeMapper()->getIndexForPhyMode(*currentMCS);
 
     if(currentMCSindex == 0)
         return currentMCS;
@@ -91,11 +103,11 @@ LinkAdaptation::getMoreRobustMCS(Bit pduSize,
     int i;
     for(i = currentMCSindex - 1; i > 0; i--)
     {
-        mcs = registry_->getPhyModeMapper()->getPhyModeForIndex(i);
+        mcs = lproxy_->getPhyModeMapper()->getPhyModeForIndex(i);
         if(getTBSize(pduSize, mcs) > currentTBsize)
             break;
     }
-    mcs = registry_->getPhyModeMapper()->getPhyModeForIndex(i + 1);
+    mcs = lproxy_->getPhyModeMapper()->getPhyModeForIndex(i + 1);
     return mcs;
 }
 
@@ -104,18 +116,23 @@ LinkAdaptation::canFit(unsigned int start, unsigned int length, ConnectionID cid
 {
     CanFitResult result;
 
-    UserID user = registry_->getUserForCID(cid);
+    UserID user = lproxy_->getUserForCID(cid);
 
     std::set<unsigned int> rbs;
     for(int i = 0; i < length; i++)
         rbs.insert(start + i);
     
+    wns::Power txp = getTxPower(user);
     wns::Ratio effSINR;
-    /*TODO Downlink, Power*/
-    effSINR = registry_->getEffectiveUplinkSINR(user, rbs, wns::Power::from_dBm(4.0));
+    if(spot_ == wns::scheduler::SchedulerSpot::DLMaster())
+        effSINR = lproxy_->getEffectiveDownlinkSINR(user, rbs, txp);
+    else
+        effSINR = lproxy_->getEffectiveUplinkSINR(user, rbs, txp);
+    
     result.sinr = effSINR;
 
-    result.phyModePtr = registry_->getBestPhyMode(effSINR);
+    result.phyModePtr = lproxy_->getBestPhyMode(effSINR);
+    result.txPower = txp;
 
     result.length = getTBSize(pduSize, result.phyModePtr);
 
@@ -148,6 +165,7 @@ AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit p
             sr.tbStart = sr.start;
             sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
             sr.estimatedSINR = cfResult.sinr;
+            sr.txPower = cfResult.txPower;
 
             assure(sr.tbLength <= sr.length, "TB does not fit.");
             assure(sr.tbStart >= sr.start, "Wrong TB start.");
@@ -189,6 +207,7 @@ All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSi
                 sr.tbStart = sr.start + s;
                 sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
                 sr.estimatedSINR = cfResult.sinr;
+                sr.txPower = cfResult.txPower;
 
                 assure(sr.tbLength <= sr.length, "TB does not fit.");
                 assure(sr.tbStart >= sr.start, "Wrong TB start.");

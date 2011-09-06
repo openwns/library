@@ -167,14 +167,6 @@ namespace wns { namespace scheduler {
             virtual int
             getTotalNumberOfUsers(const wns::scheduler::UserID user) = 0;
 
-            /** @brief retrieve info about a user's power capabilities */
-            virtual wns::scheduler::PowerCapabilities
-            getPowerCapabilities(const UserID user) const = 0;
-
-            /** @brief retrieve info about a user's power capabilities */
-            virtual wns::scheduler::PowerCapabilities
-            getPowerCapabilities() const = 0;
-
             /** @brief retrieve the the number of priorities,
                 mapped from the QoS-Classes */
             virtual int

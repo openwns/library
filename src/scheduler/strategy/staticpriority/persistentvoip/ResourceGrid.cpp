@@ -92,11 +92,13 @@ ResourceBlock::getFrameIndex()
 }
 
 TransmissionBlock::TransmissionBlock(ResourceBlockVectorIt& start, 
-    ResourceBlockVectorIt& end,
-    wns::service::phy::phymode::PhyModeInterfacePtr phyMode,
-    ConnectionID cid) :
+        ResourceBlockVectorIt& end,
+        wns::service::phy::phymode::PhyModeInterfacePtr phyMode,
+        wns::Power txPower,    
+        ConnectionID cid) :
     cid_(cid),
     phyMode_(phyMode),
+    txPower_(txPower),
     length_(0)
 {
     frame_ = start->getFrameIndex();
@@ -161,6 +163,11 @@ TransmissionBlock::getMCS()
     return phyMode_;
 }
 
+wns::Power
+TransmissionBlock::getTxPower()
+{
+    return txPower_;
+}
 
 wns::Ratio
 TransmissionBlock::getEstimatedSINR()
@@ -266,7 +273,9 @@ Frame::block(unsigned int RBIndex)
     TransmissionBlockPtr tb;
     tb = TransmissionBlockPtr(
         new TransmissionBlock(start, end, 
-            wns::service::phy::phymode::PhyModeInterfacePtr(), ConnectionID()));
+            wns::service::phy::phymode::PhyModeInterfacePtr(), 
+            wns::Power(),
+            ConnectionID()));
 
     MESSAGE_SINGLE(NORMAL, *logger_, "Blocked RB " << RBIndex);    
 
@@ -295,7 +304,8 @@ Frame::reserve(ConnectionID cid, const SearchResult& sr, bool persistent)
     start = rbs_.begin() + sr.tbStart;
     end = start + sr.tbLength;
 
-    TransmissionBlockPtr tb = TransmissionBlockPtr(new TransmissionBlock(start, end, sr.phyMode, cid));
+    TransmissionBlockPtr tb = TransmissionBlockPtr(new TransmissionBlock(start, end, 
+        sr.phyMode, sr.txPower, cid));
     tb->setEstimatedSINR(sr.estimatedSINR);
 
     if(persistent)
@@ -418,7 +428,8 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
         unsigned int numberOfFrames, 
         unsigned int subChannels,
         RegistryProxyInterface* registry,
-        wns::simulator::Time slotDuration) :
+        wns::simulator::Time slotDuration,
+        wns::scheduler::SchedulerSpotType spot) :
     logger_(&logger),
     numberOfFrames_(numberOfFrames),
     subChannelsPerFrame_(subChannels)
@@ -436,8 +447,9 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
     std::string laName = config.get<std::string>("linkAdaptation");
     linkAdaptor_ = ILinkAdaptation::Factory::creator(laName)->create();
 
-    linkAdaptor_->setRegistryProxy(registry);
+    linkAdaptor_->setLinkAdaptationProxy(registry);
     linkAdaptor_->setSlotDuration(slotDuration);
+    linkAdaptor_->setSchedulerSpot(spot);
 }
 
 ResourceGrid::~ResourceGrid()

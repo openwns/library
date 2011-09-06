@@ -39,6 +39,14 @@ namespace wns { namespace scheduler {
             virtual UserID getUserForCID(ConnectionID cid) = 0;
             /**@brief determines Address of next hop */
 
+            /** @brief retrieve info about a user's power capabilities */
+            virtual wns::scheduler::PowerCapabilities
+            getPowerCapabilities(const UserID user) const = 0;
+
+            /** @brief retrieve info about a user's power capabilities */
+            virtual wns::scheduler::PowerCapabilities
+            getPowerCapabilities() const = 0;
+
             virtual wns::service::phy::phymode::PhyModeMapperInterface*
             getPhyModeMapper() const = 0;
 

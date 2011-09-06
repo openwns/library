@@ -53,6 +53,7 @@ class ILinkAdaptation
             unsigned int length;
             wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;    
             wns::Ratio sinr;
+            wns::Power txPower;
         };
 
         virtual Frame::SearchResultSet
@@ -62,10 +63,13 @@ class ILinkAdaptation
         canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize) = 0;
 
         virtual void
-        setRegistryProxy(RegistryProxyInterface* reg) = 0;
+        setLinkAdaptationProxy(ILinkAdaptationProxy* lp) = 0;
 
         virtual void
         setSlotDuration(wns::simulator::Time sd) = 0;
+
+        virtual void
+        setSchedulerSpot(wns::scheduler::SchedulerSpotType spot) = 0;
 
     private:
         virtual Frame::SearchResultSet
@@ -85,10 +89,13 @@ class LinkAdaptation :
         canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize);
 
         virtual void
-        setRegistryProxy(RegistryProxyInterface* reg);
+        setLinkAdaptationProxy(ILinkAdaptationProxy* lp);
 
         virtual void
         setSlotDuration(wns::simulator::Time sd);
+
+        virtual void
+        setSchedulerSpot(wns::scheduler::SchedulerSpotType spot);
 
     protected:
         unsigned int
@@ -99,8 +106,13 @@ class LinkAdaptation :
         getMoreRobustMCS(Bit pduSize, 
             wns::service::phy::phymode::PhyModeInterfacePtr currentMCS);
 
-        RegistryProxyInterface* registry_;
+        virtual wns::Power
+        getTxPower(UserID user);
+
+        ILinkAdaptationProxy* lproxy_;
         wns::simulator::Time slotDuration_;
+        wns::scheduler::SchedulerSpotType spot_;
+
 
     private:
         virtual Frame::SearchResultSet
