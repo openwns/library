@@ -343,7 +343,23 @@ RegistryProxyStub::getEffectiveUplinkSINR(const wns::scheduler::UserID sender,
     const std::set<unsigned int>& scs, 
     const wns::Power& txPower)
 {
-    return wns::Ratio::from_factor(1);
+    std::vector<wns::Power> i;
+    i[0] = wns::Power::from_dBm(4);
+    i[1] = wns::Power::from_dBm(9);
+    i[2] = wns::Power::from_dBm(15);
+
+    std::set<unsigned int>::iterator it;
+
+    double sum = 0;
+    int j = 0;
+
+    for(it = scs.begin(); it!= scs.end(); it++)
+    {
+        sum += (txPower / i[j % 3]).get_factor();
+        j++;
+    }
+
+    return wns::Ratio::from_factor(sum / double(scs.size()));
 }
 
 wns::Ratio
