@@ -187,7 +187,7 @@ All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSi
 
     for(it = tbs.begin(); it != tbs.end(); it++)
     {
-        for(int s = 0; s < it->length; it++)
+        for(int s = 0; s < it->length; s++)
         { 
             unsigned int testLength = 0;
             unsigned int neededLength = 0;
@@ -197,12 +197,14 @@ All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSi
             {
                 testLength++;
                 cfResult = canFit(it->start + s, testLength, cid, pduSize);
-
             }
-            while(testLength < it->length && !cfResult.fits);
+            while(testLength + s < it->length && !cfResult.fits);
             if(cfResult.fits)
             {
-                Frame::SearchResult sr = *it;
+                Frame::SearchResult sr;
+                sr.start = it->start;
+                sr.length = it->length;
+                sr.frame = it->frame;
                 sr.tbLength = cfResult.length;
                 sr.tbStart = sr.start + s;
                 sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);

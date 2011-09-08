@@ -154,7 +154,10 @@ class Frame :
             bool
             operator<(const SearchResult& other) const
             {
-                return this->start < other.start;
+                if(this->start != other.start)
+                    return this->start < other.start;
+                else
+                    return this->tbStart < other.tbStart;
             };
 
             bool success;
