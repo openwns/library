@@ -186,6 +186,16 @@ void ResourceGridTest::testSched()
     sr.tbStart = 0;
     sr.tbLength = 1;
     CPPUNIT_ASSERT_NO_THROW(f1->reserve(0, sr, true));
+
+    /* Now lets try to find something in a fully occupied frame */
+    Frame* f3 = rg_->getFrame(3);
+    sr.tbStart = 0;
+    sr.tbLength = 10;
+    f3->reserve(1, sr, false);
+    /*       RB: 0 1 2 3 4 5 6 7 8 9 */
+    /* Occupied: 1 1 1 1 1 1 1 1 1 1 */
+    srs = f3->findTransmissionBlocks();
+    CPPUNIT_ASSERT(srs.empty());
 }
 
 void ResourceGridTest::testAllPotentialTBs()

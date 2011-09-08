@@ -297,6 +297,7 @@ srcFiles = [
     'src/scheduler/strategy/staticpriority/persistentvoip/tests/ResourceGrid.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/tests/StateTracker.cpp',
     'src/scheduler/strategy/staticpriority/persistentvoip/tests/TBChoser.cpp',
+    'src/scheduler/strategy/staticpriority/persistentvoip/tests/LinkAdaptation.cpp',
     'src/scheduler/strategy/StaticPriority.cpp',
 
     # the scheduler helpers
@@ -334,7 +335,7 @@ srcFiles = [
     'src/scheduler/tests/PhyModeStub.cpp',
     'src/scheduler/tests/PhyModeMapperStub.cpp',
     'src/scheduler/tests/RegistryProxyStub.cpp',
-    'src/scheduler/tests/LAProxyStub.cpp',
+    'src/scheduler/tests/LinkAdaptationProxyStub.cpp',
     'src/scheduler/grouper/tests/GrouperStub.cpp',
     'src/scheduler/strategy/tests/ResultsContainer.cpp',
     'src/scheduler/queue/tests/SimpleQueueTest.cpp',
@@ -1045,7 +1046,7 @@ hppFiles = [
 'src/scheduler/tests/PhyModeMapperStub.hpp',
 'src/scheduler/tests/PhyModeStub.hpp',
 'src/scheduler/tests/RegistryProxyStub.hpp',
-'src/scheduler/tests/LAProxyStub.hpp',
+'src/scheduler/tests/LinkAdaptationProxyStub.hpp',
 'src/StaticFactoryBroker.hpp',
 'src/service/qos/QoSClasses.hpp',
 'src/Backtrace.hpp',
