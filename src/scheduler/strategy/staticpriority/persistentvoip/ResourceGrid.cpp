@@ -29,13 +29,13 @@
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/TBChoser.hpp>
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/LinkAdaptation.hpp>
 
+#include <WNS/Backtrace.hpp>
+
 using namespace std;
 using namespace wns::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::strategy::staticpriority;
 using namespace wns::scheduler::strategy::staticpriority::persistentvoip;
-
-
 
 ResourceBlock::ResourceBlock(Frame* parent, unsigned int index) :
     parent_(parent),
@@ -57,7 +57,7 @@ ResourceBlock::operator<(const ResourceBlock& other) const
 };  
 
 bool
-ResourceBlock::isFree() const
+ResourceBlock::isFree() 
 {
     return free_;
 };  
@@ -101,18 +101,18 @@ TransmissionBlock::TransmissionBlock(ResourceBlockVectorIt& start,
     txPower_(txPower),
     length_(0)
 {
-    frame_ = start->getFrameIndex();
+    frame_ = (*start)->getFrameIndex();
 
     ResourceBlockVectorIt it;
     for(it = start; it != end; it++)
     {
-        assure(it->isFree(), "RB occupied");
-        assure(it->getFrameIndex() == frame_, "RBs belong to different frames.");
-        it->setOccupied();
-        rbs_.insert(&(*it));
+        assure((*it)->isFree(), "RB occupied");
+        assure((*it)->getFrameIndex() == frame_, "RBs belong to different frames.");
+        (*it)->setOccupied();
+        rbs_.insert(*it);
         length_++;
     }
-    start_ = start->getSubChannelIndex();
+    start_ = (*start)->getSubChannelIndex();
 } 
 
 TransmissionBlock::~TransmissionBlock()
@@ -193,7 +193,7 @@ Frame::Frame(ResourceGrid* parent,
 
     for(int i = 0; i < numberOfSubChannels_; i++)
     {
-        rbs_.push_back(ResourceBlock(this, i));
+        rbs_.push_back(new ResourceBlock(this, i));
     }
 }
 
@@ -201,6 +201,13 @@ Frame::~Frame()
 {
     unpersistentSchedule_.clear();
     persistentSchedule_.clear();
+    blocked_.clear();
+
+    for(int i = 0; i < numberOfSubChannels_; i++)
+    {
+        delete rbs_[i];
+    }
+
 }
 
 unsigned int
@@ -241,11 +248,11 @@ Frame::findTransmissionBlock(unsigned int start)
 
     for(int i = start; i < numberOfSubChannels_; i++)
     {
-        if(rbs_[i].isFree())
+        if(rbs_[i]->isFree())
         {
             int start = i;
             int nFree = 0;
-            while(rbs_[i].isFree() && i < numberOfSubChannels_)
+            while(i < numberOfSubChannels_ && rbs_[i]->isFree())
             {
                 nFree++;
                 i++;
@@ -258,14 +265,14 @@ Frame::findTransmissionBlock(unsigned int start)
             break;
         }
     }
-    assure(sr.length > 0, "TB size must be greater zero.");
+    assure(!sr.success || sr.length > 0, "TB size must be greater zero.");
     return sr;    
 }
 
 void
 Frame::block(unsigned int RBIndex)
 {
-    assure(rbs_[RBIndex].isFree(), "Cannot block reserved RB " << RBIndex);
+    assure(rbs_[RBIndex]->isFree(), "Cannot block reserved RB " << RBIndex);
 
     ResourceBlockVectorIt start = rbs_.begin() + RBIndex;
     ResourceBlockVectorIt end = start + 1;
@@ -280,7 +287,7 @@ Frame::block(unsigned int RBIndex)
     MESSAGE_SINGLE(NORMAL, *logger_, "Blocked RB " << RBIndex);    
 
     blocked_.insert(tb);
-    assure(!rbs_[RBIndex].isFree(), "Failed to block RB " << RBIndex);
+    assure(!rbs_[RBIndex]->isFree(), "Failed to block RB " << RBIndex);
 
     numReserved_++;
 }
@@ -300,7 +307,6 @@ Frame::reserve(ConnectionID cid, const SearchResult& sr, bool persistent)
 
     ResourceBlockVectorIt start;
     ResourceBlockVectorIt end;
-
     start = rbs_.begin() + sr.tbStart;
     end = start + sr.tbLength;
 
@@ -419,7 +425,7 @@ Frame::doToString() const
 {
     std::stringstream s;
     for(int i = 0; i < numberOfSubChannels_; i++)
-        s << !rbs_.at(i).isFree();
+        s << !rbs_.at(i)->isFree();
     return s.str();
 }
 
@@ -438,7 +444,7 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
 
     for(int i = 0; i < numberOfFrames_; i++)
     {
-        frames_.push_back(Frame(this, i));
+        frames_.push_back(new Frame(this, i));
     }
     
     std::string tbChoserName = config.get<std::string>("tbChoser");
@@ -456,6 +462,11 @@ ResourceGrid::~ResourceGrid()
 {
     delete tbChoser_;
     delete linkAdaptor_;
+
+    for(int i = 0; i < numberOfFrames_; i++)
+    {
+        delete frames_[i];
+    }
 }
 
 unsigned int
@@ -478,7 +489,7 @@ ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid, Bit pduSize, boo
 
     Frame::SearchResultSet srs;
     /* Find all holes in resource grid */
-    srs = frames_[frame].findTransmissionBlocks();
+    srs = frames_[frame]->findTransmissionBlocks();
     /* Check which holes can be used depending on the MCS */
     srs = linkAdaptor_->setTBSizes(srs, cid, pduSize);
 
@@ -492,7 +503,7 @@ ResourceGrid::scheduleCID(unsigned int frame, ConnectionID cid, Bit pduSize, boo
         Frame::SearchResult sr;
         sr = tbChoser_->choseTB(srs);
 
-        frames_[frame].reserve(cid, sr, persistent);
+        frames_[frame]->reserve(cid, sr, persistent);
         return true;
     }
     else
@@ -506,7 +517,7 @@ void
 ResourceGrid::unscheduleCID(unsigned int frame, ConnectionID cid)
 {
     assure(frame < numberOfFrames_, "Invalid frame index.");
-    frames_[frame].removeReservation(cid);   
+    frames_[frame]->removeReservation(cid);   
 }
 
 void
@@ -517,7 +528,7 @@ ResourceGrid::unscheduleCID(unsigned int frame, const ConnectionSet& cids)
     ConnectionSet::iterator it;
     
     for(it = cids.begin(); it != cids.end(); it++)
-        frames_[frame].removeReservation(*it);   
+        frames_[frame]->removeReservation(*it);   
 }
 
 
@@ -526,14 +537,14 @@ ResourceGrid::getReservation(unsigned int frame, ConnectionID cid, bool persiste
 {
     assure(frame < numberOfFrames_, "Invalid frame index.");
     
-    return frames_[frame].getReservation(cid, persistent);
+    return frames_[frame]->getReservation(cid, persistent);
 }
 
 bool
 ResourceGrid::hasPersistentReservation(unsigned int frame, ConnectionID cid)
 {
     assure(frame < numberOfFrames_, "Invalid frame index.");
-    return frames_[frame].hasReservation(cid, true);
+    return frames_[frame]->hasReservation(cid, true);
 }
     
 bool
@@ -543,7 +554,7 @@ ResourceGrid::fitsPersistentReservation(unsigned int frame, ConnectionID cid, Bi
     assure(hasPersistentReservation(frame, cid), 
         "No persistent reservation for CID " << cid);
 
-    TransmissionBlockPtr tb = frames_[frame].getReservation(cid, true);
+    TransmissionBlockPtr tb = frames_[frame]->getReservation(cid, true);
 
     return linkAdaptor_->canFit(tb->getStart(), tb->getLength(), cid, pduSize).fits;
 }
@@ -553,7 +564,7 @@ ResourceGrid::getFrame(unsigned int index)
 {
     assure(index < numberOfFrames_, "Frame index out of range");
     
-    return &frames_[index];
+    return frames_[index];
 }
 
 void
@@ -584,7 +595,7 @@ ResourceGrid::onNewFrame(unsigned int index,
                 << " CID " << schedulingMap->subChannels[i].temporalResources[0]
                     ->physicalResources[0].scheduledCompoundsBegin()->connectionID);;
 
-            frames_[index].block(i);            
+            frames_[index]->block(i);            
         }
     }
 
@@ -595,8 +606,8 @@ ResourceGrid::onNewFrame(unsigned int index)
 {    
     MESSAGE_SINGLE(NORMAL, *logger_, "Clearing unpersistent schedule of frame " << index);
 
-    frames_[index].clearUnpersistentSchedule();
-    frames_[index].clearBlocked();
+    frames_[index]->clearUnpersistentSchedule();
+    frames_[index]->clearBlocked();
 }
 
 wns::logger::Logger*

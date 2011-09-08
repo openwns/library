@@ -53,7 +53,7 @@ class ResourceBlock
         operator<(const ResourceBlock& other) const;
 
         bool
-        isFree() const;
+        isFree();
 
         void
         setOccupied();
@@ -76,8 +76,8 @@ class ResourceBlock
         wns::logger::Logger* logger_;
 }; 
 
-typedef std::vector<ResourceBlock> ResourceBlockVector;
-typedef ResourceBlockVector::iterator ResourceBlockVectorIt;
+typedef std::vector<ResourceBlock*> ResourceBlockPtrVector;
+typedef ResourceBlockPtrVector::iterator ResourceBlockVectorIt;
 
 typedef std::set<ResourceBlock*> ResourceBlockPointerSet;
 typedef ResourceBlockPointerSet::iterator ResourceBlockPointerSetIt;
@@ -214,7 +214,7 @@ class Frame :
         virtual std::string
         doToString() const;
 
-        ResourceBlockVector rbs_;
+        ResourceBlockPtrVector rbs_;
         std::map<ConnectionID, TransmissionBlockPtr> persistentSchedule_;
         std::map<ConnectionID, TransmissionBlockPtr> unpersistentSchedule_;
         std::set<TransmissionBlockPtr> blocked_;
@@ -228,9 +228,8 @@ class Frame :
         wns::logger::Logger* logger_;
 };
 
-typedef wns::SmartPtr<Frame> FramePtr;
-typedef std::vector<Frame> FrameVector;
-typedef FrameVector::iterator FrameVectorIt;
+typedef std::vector<Frame*> FramePtrVector;
+typedef FramePtrVector::iterator FramePtrVectorIt;
 
 class ITBChoser;
 class ILinkAdaptation;
@@ -289,7 +288,7 @@ class ResourceGrid
     private:
         unsigned int numberOfFrames_;
         unsigned int subChannelsPerFrame_;
-        FrameVector frames_;
+        FramePtrVector frames_;
 
         ITBChoser* tbChoser_;
         ILinkAdaptation* linkAdaptor_;
