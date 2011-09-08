@@ -34,7 +34,7 @@
 using namespace wns::probe::bus;
 
 
-Context::Context():
+PyContext::PyContext():
     pyDict_(NULL)
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
@@ -42,7 +42,7 @@ Context::Context():
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
 }
 
-Context::~Context()
+PyContext::~PyContext()
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "No Python Object!");
@@ -51,19 +51,19 @@ Context::~Context()
 }
 
 void
-Context::insert(const std::string& key, int value)
+PyContext::insert(const std::string& key, int value)
 {
     insertInt(key, value);
 }
 
 void
-Context::insert(const std::string& key, const std::string& value)
+PyContext::insert(const std::string& key, const std::string& value)
 {
     insertString(key,value);
 }
 
 void
-Context::insertInt(const std::string& key, int value)
+PyContext::insertInt(const std::string& key, int value)
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
@@ -86,7 +86,7 @@ Context::insertInt(const std::string& key, int value)
 }
 
 void
-Context::insertString(const std::string& key, const std::string& value)
+PyContext::insertString(const std::string& key, const std::string& value)
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
@@ -109,7 +109,7 @@ Context::insertString(const std::string& key, const std::string& value)
 }
 
 bool
-Context::knows(const std::string& key) const
+PyContext::knows(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
@@ -125,7 +125,7 @@ Context::knows(const std::string& key) const
 }
 
 bool
-Context::isInt(const std::string& key) const
+PyContext::isInt(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
@@ -144,7 +144,7 @@ Context::isInt(const std::string& key) const
 }
 
 int
-Context::getInt(const std::string& key) const
+PyContext::getInt(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
@@ -165,15 +165,18 @@ Context::getInt(const std::string& key) const
         throw up;
     }
 
-    long int value = PyInt_AsLong(pyValue);
+    int32_t value = PyInt_AsLong(pyValue);
 
     Py_DECREF(pyKey);
+
+    // Python 2.6: manually clear cached list of integer objects
+    //PyInt_ClearFreeList();
 
     return value;
 }
 
 bool
-Context::isString(const std::string& key) const
+PyContext::isString(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
@@ -192,7 +195,7 @@ Context::isString(const std::string& key) const
 }
 
 std::string
-Context::getString(const std::string& key) const
+PyContext::getString(const std::string& key) const
 {
     assure(Py_IsInitialized(), "Python interpreter is not initialized!");
     assure(!pyDict_.isNull(), "Creation of Python Dict Failed");
@@ -221,7 +224,7 @@ Context::getString(const std::string& key) const
 }
 
 std::string
-Context::doToString() const
+PyContext::doToString() const
 {
     assure(!pyDict_.isNull(), "NULL Python Object!");
 
@@ -248,6 +251,147 @@ Context::doToString() const
         }
         str << ",";
     }
+    str << "}";
+    return str.str();
+}
+
+
+
+
+
+Context::Context()
+{}
+
+Context::~Context()
+{
+    stringContextMap.clear();
+    intContextMap.clear();
+}
+
+void
+Context::insert(const std::string& key, int value)
+{
+    insertInt(key, value);
+}
+
+void
+Context::insert(const std::string& key, const std::string& value)
+{
+    insertString(key,value);
+}
+
+void
+Context::insertInt(const std::string& key, int value)
+{
+    // check in both maps if key already exists
+    bool knownKey = this->knows(key);
+
+    if (knownKey)
+        throw context::DuplicateKey();
+
+    intContextMap[key] = value;
+}
+
+void
+Context::insertString(const std::string& key, const std::string& value)
+{
+    // check in both maps if key already exists
+    bool knownKey = this->knows(key);
+
+    if (knownKey)
+        throw context::DuplicateKey();
+
+    stringContextMap[key] = value;
+}
+
+bool
+Context::stringMapknows(const std::string& key) const
+{
+    std::map<std::string, std::string>::const_iterator iterString = stringContextMap.find(key);
+    return (iterString != stringContextMap.end());
+}
+
+bool
+Context::intMapknows(const std::string& key) const
+{
+    std::map<std::string, int>::const_iterator iterInt = intContextMap.find(key);
+    return (iterInt != intContextMap.end());
+}
+
+bool
+Context::knows(const std::string& key) const
+{
+    return this->stringMapknows(key) || this->intMapknows(key);
+}
+
+bool
+Context::isInt(const std::string& key) const
+{
+    return this->intMapknows(key);
+}
+
+int
+Context::getInt(const std::string& key) const
+{
+    if (isString(key))
+    {
+        context::TypeError up;
+        up << "Type mismatch. Object with key=" << key << " is not of type int";
+        throw up;
+    }
+
+    if (!isInt(key))
+        throw context::NotFound();
+
+    int32_t value = intContextMap.find(key)->second;
+
+    return value;
+}
+
+bool
+Context::isString(const std::string& key) const
+{
+    return this->stringMapknows(key);
+}
+
+std::string
+Context::getString(const std::string& key) const
+{
+    if (isInt(key))
+    {
+        context::TypeError up;
+        up << "Type mismatch. Object with key=" << key << " is not of type string";
+        throw up;
+    }
+
+    if (!isString(key))
+        throw context::NotFound();
+
+    std::string value = stringContextMap.find(key)->second;
+
+    return value;
+}
+
+std::string
+Context::doToString() const
+{
+    std::stringstream str;
+    str << "{";    
+
+    std::map<std::string, int>::const_iterator iterInt = intContextMap.begin();
+    for (iterInt; iterInt != intContextMap.end(); ++iterInt)
+    {
+        str << iterInt->first << " : "
+            << iterInt->second << ",";
+    }
+
+    std::map<std::string, std::string>::const_iterator iterString = stringContextMap.begin();
+    for (iterString; iterString != stringContextMap.end(); ++iterString)
+    {
+        str << iterString->first << " : "
+            << "'" << iterString->second << "',";
+    }
+
     str << "}";
     return str.str();
 }

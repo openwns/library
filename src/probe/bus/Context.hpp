@@ -35,6 +35,7 @@
 #include <WNS/pyconfig/Object.hpp>
 
 #include <iostream>
+#include <map>
 
 namespace wns { namespace probe { namespace bus {
 
@@ -128,49 +129,108 @@ namespace wns { namespace probe { namespace bus {
         getString(const std::string& key) const = 0;
     };
 
-    class Context :
-        virtual public IContext,
-        private NonCopyable
-    {
-        friend class PythonProbeBus;
-    public:
-        Context();
 
-        ~Context();
+            /**
+             * @brief IContext implementation for context of PythonProbeBus
+             */
+            class PyContext : virtual public IContext,
+                              private NonCopyable
+            {
+                friend class PythonProbeBus;
+            public:
+                PyContext();
 
-        virtual bool
-        knows(const std::string& key) const;
+                ~PyContext();
 
-        virtual void
-        insert(const std::string& key, int value);
+                virtual bool
+                knows(const std::string& key) const;
 
-        virtual void
-        insert(const std::string& key, const std::string&);
+                virtual void
+                insert(const std::string& key, int value);
 
-        virtual void
-        insertInt(const std::string& key, int value);
+                virtual void
+                insert(const std::string& key, const std::string&);
 
-        virtual void
-        insertString(const std::string& key, const std::string& value);
+                virtual void
+                insertInt(const std::string& key, int value);
 
-        virtual bool
-        isInt(const std::string& key) const;
+                virtual void
+                insertString(const std::string& key, const std::string& value);
 
-        virtual int
-        getInt(const std::string& key) const;
+                virtual bool
+                isInt(const std::string& key) const;
 
-        virtual bool
-        isString(const std::string& key) const;
+                virtual int
+                getInt(const std::string& key) const;
 
-        virtual std::string
-        getString(const std::string& key) const;
+                virtual bool
+                isString(const std::string& key) const;
 
-    private:
-        virtual std::string
-        doToString() const;
+                virtual std::string
+                getString(const std::string& key) const;
 
-        wns::pyconfig::Object pyDict_;
-    };
+            private:
+                virtual std::string
+                doToString() const;
+
+                wns::pyconfig::Object pyDict_;
+
+            };
+
+
+
+            /**
+             * @brief IContext implementation without Python objects due to memory consumption issues
+             */
+            class Context : virtual public IContext,
+                            private NonCopyable
+            {
+                friend class PythonProbeBus;
+            public:
+                Context();
+
+                ~Context();
+
+                virtual bool
+                knows(const std::string& key) const;
+
+                virtual void
+                insert(const std::string& key, int value);
+
+                virtual void
+                insert(const std::string& key, const std::string&);
+
+                virtual void
+                insertInt(const std::string& key, int value);
+
+                virtual void
+                insertString(const std::string& key, const std::string& value);
+
+                virtual bool
+                isInt(const std::string& key) const;
+
+                virtual int
+                getInt(const std::string& key) const;
+
+                virtual bool
+                isString(const std::string& key) const;
+
+                virtual std::string
+                getString(const std::string& key) const;
+
+            private:
+                virtual std::string
+                doToString() const;
+
+                bool
+                intMapknows(const std::string& key) const;
+
+                bool
+                stringMapknows(const std::string& key) const;
+
+                std::map<std::string, std::string> stringContextMap;
+                std::map<std::string, int> intContextMap;
+            };
 
 } // bus
 } // probe

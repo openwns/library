@@ -63,8 +63,8 @@ PythonProbeBus::onMeasurement(const wns::simulator::Time& timestamp,
 
     assure(pyValue != NULL, "Could not create Python Object");
 
-    const Context* c = dynamic_cast<const Context*>(&reg);
-    assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
+    const PyContext* c = dynamic_cast<const PyContext*>(&reg);
+    assure(c != NULL, "PythonProbeBus can only collaborate with 'PyContext' implementation of IContext");
 
     PyObject* result = PyObject_CallFunctionObjArgs(pyOnMeasurementMethod_.obj_,
                                                     pyTimestamp,
@@ -91,8 +91,8 @@ PythonProbeBus::accepts(const wns::simulator::Time& timestamp,
 {
     PyObject* pyTimestamp = Py_BuildValue("d", timestamp);
 
-    const Context* c = dynamic_cast<const Context*>(&reg);
-    assure(c != NULL, "PythonProbeBus can only collaborate with 'Context' implementation of IContext");
+    const PyContext* c = dynamic_cast<const PyContext*>(&reg);
+    assure(c != NULL, "PythonProbeBus can only collaborate with 'PyContext' implementation of IContext");
 
     PyObject* result = PyObject_CallFunctionObjArgs(pyAcceptsMethod_.obj_,
                                                     pyTimestamp,
