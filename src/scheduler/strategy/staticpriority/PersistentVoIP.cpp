@@ -122,6 +122,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     // Check TB sizes for CIDs, remove persistent CIDs needing more RBs now and return them
     ConnectionSet needMore;
     unsigned int oldSize = persistentCIDs.size();    
+    // TODO: Probe how many CIDs loose their persistent reservation because they need more RBs
     needMore = checkTBSizes(persistentCIDs);
     MESSAGE_SINGLE(NORMAL, logger, needMore.size() << " out of " << oldSize 
         << " persistent connections need more RBs than last frame.");
@@ -131,14 +132,17 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     // Try to find resources for reactivated CIDs
     ConnectionSetPair schedReactResult;
     schedReactResult = schedulePersistently(cc.reactivatedPersistentCIDs);
+    // TODO: Probe success and failure
 
     // Try to find resources for new persistent CIDs
     ConnectionSetPair schedNewResult;
     schedNewResult = schedulePersistently(cc.newPersistentCIDs);
+    // TODO: Probe success and failure
 
-    // Try to find resources for new persistent CIDs
+    // Try to find resources for persistent CIDs that do not fit their previous reservation
     ConnectionSetPair reschedResult;
     reschedResult = schedulePersistently(needMore);
+    // TODO: Probe success and failure
 
     // Insert new and reactivated that got resources into persistent CID set
     // Those consume PDCCH resources to announce new persistent reservations
@@ -175,15 +179,18 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     {
         MESSAGE_SINGLE(NORMAL, logger, "Trying to schedule data for CID " << *it);
 
+        /* TODO: Probe how many CIDs did not get resources */
         result = scheduleData(*it, false, schedulerState, schedulingMap);
         if(result != MapInfoCollectionPtr())
             mapInfoCollection->join(*result);
+        /*TODO: else
+            probe failure
+        */
     }             
 
     /* 
     TODO: Schedule persistent CIDs activated in this frame that 
-        do not fit in this frame.
-    TODO: Schedule HARQ retransmissions
+          do not fit in this frame. 
     */
     return mapInfoCollection;
 } // doStartSubScheduling
