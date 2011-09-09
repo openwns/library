@@ -91,12 +91,12 @@ PythonProbeBusTest::testIsAccepting()
 
     listener.startObserving(theProbeBus);
 
-    Context reg;
+    PyContext reg;
     reg.insertInt("testkey", 5);
     reg.insertInt("lala", 2);
 
     // Test filtering according to Registry
-    Context reg2;
+    PyContext reg2;
     reg2.insertInt("lala", 8);
     reg2.insertInt("testkey", 7);
 
@@ -104,7 +104,7 @@ PythonProbeBusTest::testIsAccepting()
     CPPUNIT_ASSERT(listener.receivedCounter == 0);
 
     // Test filtering according to Registry
-    Context reg3;
+    PyContext reg3;
     reg3.insertInt("testkey", 5);
     reg3.insertInt("lala", 4);
 
@@ -140,12 +140,12 @@ PythonProbeBusTest::testOnMeasurement()
 
     listener.startObserving(theProbeBus);
 
-    Context reg;
+    PyContext reg;
     reg.insertInt("testkey", 5);
     reg.insertInt("lala", 2);
 
     // Test filtering according to Registry
-    Context reg2;
+    PyContext reg2;
     reg2.insertInt("lala", 8);
     reg2.insertInt("testkey", 7);
 
@@ -153,7 +153,7 @@ PythonProbeBusTest::testOnMeasurement()
     CPPUNIT_ASSERT(listener.receivedCounter == 0);
 
     // Test filtering according to Registry
-    Context reg3;
+    PyContext reg3;
     reg3.insertInt("testkey", 5);
     reg3.insertInt("lala", 4);
 
@@ -191,7 +191,7 @@ PythonProbeBusTest::testBrokenFunction()
 
     listener.startObserving(theProbeBus);
 
-    Context reg;
+    PyContext reg;
     reg.insertInt("festknie", 9);
     reg.insertInt("papa", 8);
 
