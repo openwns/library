@@ -42,7 +42,6 @@ LinkAdaptation::LinkAdaptation() :
 Frame::SearchResultSet
 LinkAdaptation::setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize)
 {
-    assure(!tbs.empty(), "Cannot chose from empty set");
     assure(lproxy_ != NULL, "Need RegistryProxy");
     assure(slotDuration_ > 0, "Need positive slot duration");
 
