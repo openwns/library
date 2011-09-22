@@ -54,6 +54,7 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     currentFrame_(0),
     stateTracker_(numberOfFrames_, logger),
     resources_(NULL),
+    voicePDUSize_(config.get<Bit>("voicePDUSize")),
     resourceGridConfig_(config.get("resourceGrid")),
     frameOccupationFairness_("scheduler.persistentvoip.FrameOccupationFairness")
 {
@@ -171,6 +172,8 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     MESSAGE_SINGLE(NORMAL, logger, "Dynamically scheduling " << cc.unpersistentCIDs.size()
         << " CIDs in frame " << currentFrame_ << ".");
+
+    // TODO: Everything below here is only possible if enough PDCCH resources are available
         
     /* Now take care of unpersistent CIDs */
     for(it = cc.unpersistentCIDs.begin();
@@ -188,10 +191,24 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         */
     }             
 
-    /* 
-    TODO: Schedule persistent CIDs activated in this frame that 
-          do not fit in this frame. 
-    */
+    /* Give what is left to CIDs belonging to other frames */
+    // TODO: Might be better to try to schedule those persistently in a different frame
+    for(it = cc.otherFrameCIDs.begin();
+        it != cc.otherFrameCIDs.end();
+        it++)
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "Trying to schedule data for CID " << *it 
+            << " from other frame");
+
+        /* TODO: Probe how many CIDs did not get resources */
+        result = scheduleData(*it, false, schedulerState, schedulingMap);
+        if(result != MapInfoCollectionPtr())
+            mapInfoCollection->join(*result);
+        /*TODO: else
+            probe failure
+        */
+    }             
+
     return mapInfoCollection;
 } // doStartSubScheduling
 
@@ -211,6 +228,14 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
     else
     {    
         Bit pduSize = colleagues.queue->getHeadOfLinePDUbits(cid);
+
+        /* 
+        There could be multiple PDUs queued. getHoLPDUBits cannot
+        know the HoL PDU Size in the UL, only the total queue length.
+        Limit the request size to voicePDUSize.
+        */
+        pduSize = std::min(pduSize, voicePDUSize_);
+
         bool success = resources_->scheduleCID(currentFrame_, cid, pduSize, false);
         if(!success)
         {
@@ -295,6 +320,13 @@ PersistentVoIP::checkTBSizes(ConnectionSet& cids)
             "No persistent reservation for CID " << *it);
 
         Bit pduSize = colleagues.queue->getHeadOfLinePDUbits(*it);
+        /* 
+        There could be multiple PDUs queued. getHoLPDUBits cannot
+        know the HoL PDU Size in the UL, only the total queue length.
+        Limit the request size to voicePDUSize.
+        */
+        pduSize = std::min(pduSize, voicePDUSize_);
+
         bool fits = resources_->fitsPersistentReservation(currentFrame_, *it, pduSize);
 
         if(!fits)
@@ -328,6 +360,14 @@ PersistentVoIP::schedulePersistently(const ConnectionSet& cids)
         it++)
     {
         Bit pduSize = colleagues.queue->getHeadOfLinePDUbits(*it);
+
+        /* 
+        There could be multiple PDUs queued. getHoLPDUBits cannot
+        know the HoL PDU Size in the UL, only the total queue length.
+        Limit the request size to voicePDUSize.
+        */
+        pduSize = std::min(pduSize, voicePDUSize_);
+
         bool success;
         success = resources_->scheduleCID(currentFrame_, *it, pduSize, true);
         if(success)

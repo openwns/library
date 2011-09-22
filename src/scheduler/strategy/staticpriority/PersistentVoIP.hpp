@@ -96,6 +96,8 @@ class PersistentVoIP
         unsigned int numberOfFrames_;
         unsigned int currentFrame_;
 
+        Bit voicePDUSize_;
+
         persistentvoip::ResourceGrid* resources_;
         persistentvoip::StateTracker stateTracker_;
 

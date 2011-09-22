@@ -53,6 +53,9 @@ StateTracker::ClassifiedConnections::doToString() const
     s << "\nSilenced: ";
     for(it = silencedCIDs.begin(); it != silencedCIDs.end(); it++)
         s << *it << " ";
+    s << "\nFrom different Frame: ";
+    for(it = otherFrameCIDs.begin(); it != otherFrameCIDs.end(); it++)
+        s << *it << " ";
     s << "\n";
     return s.str();
 }
@@ -104,8 +107,9 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     }
     MESSAGE_END();    
 
-    ConnectionSet activeFrameCIDs;
-    activeFrameCIDs = filterCIDsForFrame(activeCIDs, currentFrame);
+    std::pair<ConnectionSet, ConnectionSet> filteredFrameCIDs;
+    filteredFrameCIDs = filterCIDsForFrame(activeCIDs, currentFrame);
+    ConnectionSet activeFrameCIDs = filteredFrameCIDs.first;
 
     MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs active belonging to this frame: ");
     for(it = activeFrameCIDs.begin();
@@ -294,6 +298,7 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     cc.persistentCIDs = oldCIDs;
     cc.unpersistentCIDs = pastPeriodCIDs_[currentFrame];
     cc.silencedCIDs = silencedCIDs;
+    cc.otherFrameCIDs = filteredFrameCIDs.second;
 
     setFrameForCIDs(cc.newPersistentCIDs, currentFrame);
 
@@ -314,14 +319,11 @@ StateTracker::setFrameForCIDs(const ConnectionSet& cids, unsigned int frame)
     }
 }
 
-ConnectionSet
+std::pair<ConnectionSet, ConnectionSet>
 StateTracker::filterCIDsForFrame(const ConnectionSet& cids, unsigned int frame)
 {
     ConnectionSet::iterator it;
-#ifndef WNS_NDEBUG
-    ConnectionSet out;
-#endif
-    ConnectionSet in;
+    std::pair<ConnectionSet, ConnectionSet> result;
 
     for(it = cids.begin(); it != cids.end(); it++)
     {
@@ -329,30 +331,26 @@ StateTracker::filterCIDsForFrame(const ConnectionSet& cids, unsigned int frame)
         f = CIDtoFrame_.find(*it);
         if(f == CIDtoFrame_.end() || f->second == frame)
         {
-            in.insert(*it);
+            result.first.insert(*it);
         }
-#ifndef WNS_NDEBUG
         else
         {
-            out.insert(*it);
+            result.second.insert(*it);
         }
-#endif
     }
-#ifndef WNS_NDEBUG
 
     MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs not from this frame: ");
-    for(it = out.begin();
-        it != out.end();    
+    for(it = result.second.begin();
+        it != result.second.end();    
         it++)
     {
         m << *it << " ";
     }
     MESSAGE_END();
 
-    assure(in.size() + out.size() == cids.size(), "Size mismatch after filtering");
-#endif
+    assure(result.first.size() + result.second.size() == cids.size(), "Size mismatch after filtering");
 
-    return in;
+    return result;
 }
 
 void

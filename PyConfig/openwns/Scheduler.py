@@ -141,8 +141,9 @@ class PersistentVoIP(SubStrategy):
             self.linkAdaptation = linkAdaptation
             self.logger = openwns.logger.Logger("WNS", "ResourceGrid", True, parentLogger)
 
-    def __init__(self, parentLogger = None, **kw):
+    def __init__(self, parentLogger = None, voicePDUSize = 368, **kw):
         self.numberOfFrames = 20
+        self.voicePDUSize = voicePDUSize
         self.logger = openwns.logger.Logger("WNS", "PersistentVoIP", True, parentLogger)
         self.resourceGrid = PersistentVoIP.ResourceGrid("First", "AtStart", self.logger)
         attrsetter(self, kw)

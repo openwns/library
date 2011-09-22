@@ -45,6 +45,7 @@ class StateTracker
             ConnectionSet persistentCIDs;
             ConnectionSet unpersistentCIDs;
             ConnectionSet silencedCIDs;
+            ConnectionSet otherFrameCIDs;
         private:
             virtual std::string
             doToString() const;
@@ -63,7 +64,7 @@ class StateTracker
         void
         setFrameForCIDs(const ConnectionSet& cids, unsigned int frame);
 
-        ConnectionSet
+        std::pair<ConnectionSet, ConnectionSet>
         filterCIDsForFrame(const ConnectionSet& cids, unsigned int frame);
 
         unsigned int numberOfFrames_;
