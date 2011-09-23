@@ -60,6 +60,10 @@ class StateTracker
         void
         silenceCID(ConnectionID cid, unsigned int currentFrame);
 
+        void
+        relocateCID(ConnectionID cid, 
+            unsigned int currentFrame, unsigned int newFrame);
+
     private:
         void
         setFrameForCIDs(const ConnectionSet& cids, unsigned int frame);

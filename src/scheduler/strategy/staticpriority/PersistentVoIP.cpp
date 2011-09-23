@@ -119,6 +119,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     ConnectionSet persistentCIDs;
     persistentCIDs = cc.persistentCIDs;
+    ConnectionSet relocatedCIDs;
 
     // Check TB sizes for CIDs, remove persistent CIDs needing more RBs now and return them
     ConnectionSet needMore;
@@ -133,16 +134,22 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     // Try to find resources for reactivated CIDs
     ConnectionSetPair schedReactResult;
     schedReactResult = schedulePersistently(cc.reactivatedPersistentCIDs);
+    if(schedReactResult.second.size() > 0)
+        relocatedCIDs = schedReactResult.second;
     // TODO: Probe success and failure
 
     // Try to find resources for new persistent CIDs
     ConnectionSetPair schedNewResult;
     schedNewResult = schedulePersistently(cc.newPersistentCIDs);
+    if(schedNewResult.second.size() > 0)
+        relocatedCIDs.insert(schedNewResult.second.begin(), schedNewResult.second.end());
     // TODO: Probe success and failure
 
     // Try to find resources for persistent CIDs that do not fit their previous reservation
     ConnectionSetPair reschedResult;
     reschedResult = schedulePersistently(needMore);
+    if(reschedResult.second.size() > 0)
+        relocatedCIDs.insert(reschedResult.second.begin(), reschedResult.second.end());
     // TODO: Probe success and failure
 
     // Insert new and reactivated that got resources into persistent CID set
@@ -151,6 +158,10 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     persistentCIDs.insert(schedNewResult.first.begin(), schedNewResult.first.end());
     // Those consume PDCCH resources to inform about reallocation
     persistentCIDs.insert(reschedResult.first.begin(), reschedResult.first.end());
+
+    // Find new frames for CIDs not fitting this frame
+    if(relocatedCIDs.size() > 0)
+        relocateCIDs(relocatedCIDs);
 
     MESSAGE_SINGLE(NORMAL, logger, "Persistently scheduling " << persistentCIDs.size()
         << " CIDs in frame " << currentFrame_ << ".");
@@ -192,7 +203,6 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     }             
 
     /* Give what is left to CIDs belonging to other frames */
-    // TODO: Might be better to try to schedule those persistently in a different frame
     for(it = cc.otherFrameCIDs.begin();
         it != cc.otherFrameCIDs.end();
         it++)
@@ -207,7 +217,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         /*TODO: else
             probe failure
         */
-    }             
+    }
 
     return mapInfoCollection;
 } // doStartSubScheduling
@@ -388,6 +398,34 @@ void
 PersistentVoIP::processSilenced(const ConnectionSet& cids)
 {
     resources_->unscheduleCID(currentFrame_, cids);
+}
+
+void
+PersistentVoIP::relocateCIDs(const ConnectionSet& cids)
+{
+#ifndef WNS_NDEBUG
+    std::map<ConnectionID, unsigned int> newFrames;
+#endif
+
+    ConnectionSet::iterator it;
+    for(it = cids.begin(); it != cids.end(); it++)
+    {
+        unsigned int newFrame = resources_->getMostEmptyFrame();
+        stateTracker_.relocateCID(*it, currentFrame_, newFrame);
+#ifndef WNS_NDEBUG
+        newFrames[*it] = newFrame;
+#endif
+    }
+#ifndef WNS_NDEBUG
+    MESSAGE_BEGIN(NORMAL, logger, m, "Relocated in frame " << currentFrame_ << ": ");
+    for(it = cids.begin();
+        it != cids.end();    
+        it++)
+    {
+        m << *it << "->" << newFrames[*it] << " ";
+    }
+    MESSAGE_END();
+#endif
 }
 
 void

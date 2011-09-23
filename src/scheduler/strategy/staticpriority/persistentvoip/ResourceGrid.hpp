@@ -284,6 +284,13 @@ class ResourceGrid
         wns::logger::Logger*
         getLogger();
 
+        void
+        updateReservationCount(unsigned int frame, 
+            unsigned int count, unsigned int oldCount);
+
+        unsigned int
+        getMostEmptyFrame();
+
         /* only for testing */
         Frame*
         getFrame(unsigned int index);
@@ -292,6 +299,9 @@ class ResourceGrid
         unsigned int numberOfFrames_;
         unsigned int subChannelsPerFrame_;
         FramePtrVector frames_;
+
+        /* This is a sorted multimap: num. reserved RBs in frame -> frame number */
+        std::multimap<unsigned int, unsigned int> frameOccupations_;
 
         ITBChoser* tbChoser_;
         ILinkAdaptation* linkAdaptor_;

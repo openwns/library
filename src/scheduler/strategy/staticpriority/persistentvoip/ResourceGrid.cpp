@@ -185,10 +185,10 @@ Frame::Frame(ResourceGrid* parent,
         unsigned int index):
     parent_(parent),
     frame_(index),
-    numberOfSubChannels_(parent->getSubChannelsPerFrame()),
     numReserved_(0),
-    logger_(parent->getLogger())
+    logger_(parent_->getLogger())
 {
+    numberOfSubChannels_ = parent_->getSubChannelsPerFrame();
     assure(numberOfSubChannels_ > 0, "Need more than zero subchannels");
 
     for(int i = 0; i < numberOfSubChannels_; i++)
@@ -290,6 +290,7 @@ Frame::block(unsigned int RBIndex)
     assure(!rbs_[RBIndex]->isFree(), "Failed to block RB " << RBIndex);
 
     numReserved_++;
+    parent_->updateReservationCount(frame_, numReserved_, numReserved_ - 1);
 }
 
 void
@@ -323,7 +324,10 @@ Frame::reserve(ConnectionID cid, const SearchResult& sr, bool persistent)
         << sr.tbStart << " for CID " << cid << "; persistent: " << (persistent?"yes":"no") 
         << "; MCS: " << *(tb->getMCS()));
 
+    unsigned int oldNumReserved = numReserved_;
     numReserved_ += sr.tbLength;
+    parent_->updateReservationCount(frame_, numReserved_, oldNumReserved);
+
     assure(numReserved_ <= numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
 }
 
@@ -335,7 +339,10 @@ Frame::removeReservation(ConnectionID cid)
     it = persistentSchedule_.find(cid);
     assure(it != persistentSchedule_.end(), "No persistent reservation for CID " << cid);
 
+    unsigned int oldNumReserved = numReserved_;
     numReserved_ -= it->second->getLength();
+    parent_->updateReservationCount(frame_, numReserved_, oldNumReserved);
+
     assure(numReserved_ >= 0, "Number of reserved RBs below zero.");
         
     persistentSchedule_.erase(it);
@@ -389,7 +396,9 @@ Frame::clearUnpersistentSchedule()
         it != unpersistentSchedule_.end();
         it++)
     {
+        unsigned int oldNumReserved = numReserved_;
         numReserved_ -= it->second->getLength();
+        parent_->updateReservationCount(frame_, numReserved_, oldNumReserved);
         assure(numReserved_ >= 0, "Number of reserved RBs below zero.");
     }
 
@@ -402,7 +411,10 @@ Frame::clearUnpersistentSchedule()
 void
 Frame::clearBlocked()
 {
+    unsigned int oldNumReserved = numReserved_;
     numReserved_ -= blocked_.size();
+    parent_->updateReservationCount(frame_, numReserved_, oldNumReserved);
+
     assure(numReserved_ <= numberOfSubChannels_, "Number of reserved RBs exceeds total RB amount.");
 
     blocked_.clear();    
@@ -445,6 +457,7 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
     for(int i = 0; i < numberOfFrames_; i++)
     {
         frames_.push_back(new Frame(this, i));
+        frameOccupations_.insert(std::make_pair(0, i));
     }
     
     std::string tbChoserName = config.get<std::string>("tbChoser");
@@ -557,6 +570,37 @@ ResourceGrid::fitsPersistentReservation(unsigned int frame, ConnectionID cid, Bi
     TransmissionBlockPtr tb = frames_[frame]->getReservation(cid, true);
 
     return linkAdaptor_->canFit(tb->getStart(), tb->getLength(), cid, pduSize).fits;
+}
+
+void
+ResourceGrid::updateReservationCount(unsigned int frame, 
+    unsigned int count, unsigned int oldCount)
+{
+    assure(frame < numberOfFrames_, "Invalid frame index.");
+    assure(count <= subChannelsPerFrame_, "Occupation count out of range.");
+    assure(getFrame(frame)->getNumReserved() == count, "Reservation count mismatched");
+
+    typedef std::multimap<unsigned int, unsigned int>::iterator MapIter;
+    std::pair<MapIter, MapIter> iters;
+
+    MapIter it;
+    iters = frameOccupations_.equal_range(oldCount);
+
+    it = std::find(iters.first, iters.second, 
+        std::pair<const unsigned int, unsigned int>(oldCount, frame));
+
+    assure(it != iters.second, "No previous count entry for removal: " 
+        << frame << ": " << oldCount << "->" << count);
+
+    frameOccupations_.erase(it);
+
+    frameOccupations_.insert(std::make_pair(count, frame));
+}
+
+unsigned int
+ResourceGrid::getMostEmptyFrame()
+{
+    return frameOccupations_.begin()->second;
 }
 
 Frame*

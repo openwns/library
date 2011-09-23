@@ -348,7 +348,8 @@ StateTracker::filterCIDsForFrame(const ConnectionSet& cids, unsigned int frame)
     }
     MESSAGE_END();
 
-    assure(result.first.size() + result.second.size() == cids.size(), "Size mismatch after filtering");
+    assure(result.first.size() + result.second.size() == cids.size(), 
+        "Size mismatch after filtering");
 
     return result;
 }
@@ -367,5 +368,20 @@ StateTracker::silenceCID(ConnectionID cid, unsigned int currentFrame)
 
     expectedCIDs_[currentFrame].erase(cid);
     silentCIDs_.insert(cid);
+}
+
+void
+StateTracker::relocateCID(ConnectionID cid, 
+    unsigned int currentFrame, unsigned int newFrame)
+{
+    assure(CIDtoFrame_.find(cid) != CIDtoFrame_.end(), "Unknown frame for CID " << cid);
+    assure(CIDtoFrame_[cid] == currentFrame, "CID " << cid 
+        << " is not from this frame.");
+    assure(silentCIDs_.find(cid) != silentCIDs_.end(), 
+        "CID must be silenced before relocation");
+
+    CIDtoFrame_[cid] = newFrame;
+    /* Will become new persistent CID in new frame */
+    pastPeriodCIDs_[newFrame].insert(cid);
 }
 

@@ -86,8 +86,8 @@ class PersistentVoIP
                      const SchedulerStatePtr& schedulerState,
                      const SchedulingMapPtr& schedulingMap);
 
-        ConnectionSet
-        getUnpersistentConnections(const persistentvoip::StateTracker::ClassifiedConnections&);
+        void
+        relocateCIDs(const ConnectionSet& cids);
 
         bool firstScheduling_;
         bool neverUsed_;
