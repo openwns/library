@@ -58,8 +58,8 @@ namespace wns { namespace scheduler { namespace tests {
                 wns::SmartPtr<const wns::service::phy::phymode::PhyModeInterface> getBestPhyMode(const wns::Ratio& sinr);
                 UserID getMyUserID();
                 simTimeType getOverhead(int numBursts);
-                ChannelQualityOnOneSubChannel estimateTxSINRAt(const UserID user, int slot);
-                ChannelQualityOnOneSubChannel estimateRxSINROf(const UserID user, int slot);
+                ChannelQualityOnOneSubChannel estimateTxSINRAt(const UserID user, int slot, int timeSlot);
+                ChannelQualityOnOneSubChannel estimateRxSINROf(const UserID user, int slot, int timeSlot);
                 Bits getQueueSizeLimitPerConnection();
                 void setQueueSizeLimitPerConnection(Bits bits);
                 wns::service::dll::StationType getStationType(const UserID user);
@@ -76,11 +76,13 @@ namespace wns { namespace scheduler { namespace tests {
                 wns::Ratio
                 getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
                     const std::set<unsigned int>& scs, 
+                    const int timeSlot,
                     const wns::Power& txPower);
 
                 wns::Ratio
                 getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
                     const std::set<unsigned int>& scs, 
+                    const int timeSlot,
                     const wns::Power& txPower);
 
                 virtual wns::scheduler::PowerCapabilities

@@ -163,14 +163,14 @@ RegistryProxyStub::getMyUserID()
 }
 
 ChannelQualityOnOneSubChannel
-RegistryProxyStub::estimateTxSINRAt(const UserID user, int slot = 0)
+RegistryProxyStub::estimateTxSINRAt(const UserID user, int, int)
 {
     return ChannelQualityOnOneSubChannel(wns::Ratio::from_dB(80.0),
               wns::Power::from_dBm(-95.0), wns::Power::from_dBm(-80.0));
 }
 
 ChannelQualityOnOneSubChannel
-RegistryProxyStub::estimateRxSINROf(const UserID user, int slot = 0)
+RegistryProxyStub::estimateRxSINROf(const UserID user, int, int)
 {
     return ChannelQualityOnOneSubChannel(wns::Ratio::from_dB(80.0),
               wns::Power::from_dBm(-95.0), wns::Power::from_dBm(-80.0));
@@ -340,7 +340,8 @@ RegistryProxyStub::getCQIAvailable() const
 
 wns::Ratio
 RegistryProxyStub::getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
-    const std::set<unsigned int>& scs, 
+    const std::set<unsigned int>& scs,
+    const int,
     const wns::Power& txPower)
 {
     std::vector<wns::Power> i;
@@ -364,7 +365,8 @@ RegistryProxyStub::getEffectiveUplinkSINR(const wns::scheduler::UserID sender,
 
 wns::Ratio
 RegistryProxyStub::getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
-    const std::set<unsigned int>& scs, 
+    const std::set<unsigned int>& scs,
+    const int, 
     const wns::Power& txPower)
 {
     return wns::Ratio::from_factor(1);

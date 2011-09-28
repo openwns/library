@@ -95,18 +95,18 @@ void LinkAdaptationTest::testLAStub()
     scs.insert(0);
 
     wns::Ratio eSINR;
-    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     /* RB 0 has TxPower - 4.0 dB = 0 dB */
     CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, eSINR.get_factor(), 0.001);
 
     scs.clear();
     scs.insert(0);
     scs.insert(1);
-    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     /* RB 0 and 1 both have TxPower - 4.0 dB = 0 dB (1.0 linear) */
     CPPUNIT_ASSERT_DOUBLES_EQUAL(eSINR.get_factor(), 1.0, 0.001);
 
-    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(5.0));
+    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(5.0));
     /* RB 0 and 1 both have TxPower - 4.0 dB = 1 dB (1.259 linear) 
     if TxPower is increased to 5 dBm */
     CPPUNIT_ASSERT_DOUBLES_EQUAL(1.258925, eSINR.get_factor(), 0.001);
@@ -114,7 +114,7 @@ void LinkAdaptationTest::testLAStub()
     scs.clear();
     scs.insert(1);
     scs.insert(2);
-    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     /* 
     RB 1 has 4.0 dBm - 4.0 dB = 0 dB
     RB 2 has 4.0 dBm - (-1.0 dB) = 5 dB
@@ -128,7 +128,7 @@ void LinkAdaptationTest::testLAStub()
     scs.clear();
     scs.insert(3);
     scs.insert(4);
-    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     /* 
     RB 3 has 4.0 dBm - (-1.0 dB) = 5 dB
     RB 4 has 4.0 dBm - (-7.0 dB) = 11 dB
@@ -146,7 +146,7 @@ void LinkAdaptationTest::testLAStub()
     scs.insert(3);
     scs.insert(4);
     scs.insert(5);
-    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    eSINR = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     /* 
     RBs 0 and 1 have 4.0 dBm - 4.0 dB = 0 dB
     RBs 2 and 3 have 4.0 dBm - (-1.0 dB) = 5 dB
@@ -168,15 +168,15 @@ void LinkAdaptationTest::testLAStub()
     
     scs.clear();
     scs.insert(0);
-    wns::Ratio eSINR1 = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    wns::Ratio eSINR1 = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, eSINR1.get_factor(), 0.001); // 0 dB
     scs.clear();
     scs.insert(2);
-    wns::Ratio eSINR2 = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    wns::Ratio eSINR2 = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     CPPUNIT_ASSERT_DOUBLES_EQUAL(3.16227, eSINR2.get_factor(), 0.001); // 5 dB
     scs.clear();
     scs.insert(4);
-    wns::Ratio eSINR3 = reg_.getEffectiveUplinkSINR(UserID(), scs, wns::Power::from_dBm(4.0));
+    wns::Ratio eSINR3 = reg_.getEffectiveUplinkSINR(UserID(), scs, 0, wns::Power::from_dBm(4.0));
     CPPUNIT_ASSERT_DOUBLES_EQUAL(12.5893, eSINR3.get_factor(), 0.001); // 11 dB
 
     wns::service::phy::phymode::PhyModeInterfacePtr pm1;

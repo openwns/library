@@ -185,7 +185,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         << " CIDs in frame " << currentFrame_ << ".");
 
     // TODO: Everything below here is only possible if enough PDCCH resources are available
-        
+
     /* Now take care of unpersistent CIDs */
     for(it = cc.unpersistentCIDs.begin();
         it != cc.unpersistentCIDs.end();
@@ -195,11 +195,12 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
         /* TODO: Probe how many CIDs did not get resources */
         result = scheduleData(*it, false, schedulerState, schedulingMap);
-        if(result != MapInfoCollectionPtr())
+        if(result->size() > 0)
             mapInfoCollection->join(*result);
-        /*TODO: else
-            probe failure
-        */
+        else
+        {
+        // TODO: Probe failure
+        }
     }             
 
     /* Give what is left to CIDs belonging to other frames */
@@ -212,11 +213,12 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
         /* TODO: Probe how many CIDs did not get resources */
         result = scheduleData(*it, false, schedulerState, schedulingMap);
-        if(result != MapInfoCollectionPtr())
+        if(result->size() > 0)
             mapInfoCollection->join(*result);
-        /*TODO: else
-            probe failure
-        */
+        else
+        {
+        // TODO: Probe failure
+        }
     }
 
     return mapInfoCollection;
@@ -250,6 +252,7 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
         if(!success)
         {
             MESSAGE_SINGLE(NORMAL, logger, "No free resources for CID " << cid
+                << " (" << colleagues.registry->getUserForCID(cid) << ")"
                 << " in frame " << currentFrame_ << ".");
             return mapInfoCollection;
         }
@@ -287,10 +290,28 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
         mapInfoEntry->txPower = tb->getTxPower();
         mapInfoEntry->phyModePtr = tb->getMCS();
 
-        /*TODO: Where should we write this?*/
-        mapInfoEntry->estimatedCQI.carrier = wns::Power::from_mW(tb->getEstimatedSINR().get_factor());
-        mapInfoEntry->estimatedCQI.pathloss = wns::Ratio::from_factor(1.0);
-        mapInfoEntry->estimatedCQI.interference = wns::Power::from_mW(1.0);
+        /* SINR Estimation */
+        mapInfoEntry->estimatedCQI.effectiveSINR = tb->getEstimatedSINR();
+        mapInfoEntry->estimatedCQI.timeSlot = currentFrame_;
+        if(colleagues.strategy->getSchedulerSpotType() == 
+            wns::scheduler::SchedulerSpot::DLMaster())
+        {
+            ChannelQualityOnOneSubChannel est;
+            est = colleagues.registry->estimateTxSINRAt(user, mapInfoEntry->subBand);
+            mapInfoEntry->estimatedCQI.pathloss = est.pathloss;
+            mapInfoEntry->estimatedCQI.interference = est.interference;
+            mapInfoEntry->estimatedCQI.carrier = mapInfoEntry->txPower / est.pathloss;
+        }
+        else
+        {
+            ChannelQualityOnOneSubChannel est;
+            est = colleagues.registry->estimateRxSINROf(user, mapInfoEntry->subBand);
+            mapInfoEntry->estimatedCQI.pathloss = est.pathloss;
+            mapInfoEntry->estimatedCQI.interference = 
+                colleagues.registry->estimateTxSINRAt(schedulerState->myUserID, 
+                    mapInfoEntry->subBand, currentFrame_).interference;
+            mapInfoEntry->estimatedCQI.carrier = mapInfoEntry->txPower / est.pathloss;
+        }
 
         int freeBits = schedulingMap->getFreeBitsOnSubChannel(mapInfoEntry);
         
@@ -387,7 +408,9 @@ PersistentVoIP::schedulePersistently(const ConnectionSet& cids)
         }
         else
         {
-            MESSAGE_SINGLE(NORMAL, logger, "No free resources for CID " << *it);
+            MESSAGE_SINGLE(NORMAL, logger, "No free resources for persistent CID " 
+                << *it << " (" << colleagues.registry->getUserForCID(*it) << ")"
+                << " in frame " << currentFrame_);
             stateTracker_.silenceCID(*it, currentFrame_);
             result.second.insert(*it);
         }
@@ -422,7 +445,9 @@ PersistentVoIP::relocateCIDs(const ConnectionSet& cids)
         it != cids.end();    
         it++)
     {
-        m << *it << "->" << newFrames[*it] << " ";
+        m << *it 
+          << " (" << colleagues.registry->getUserForCID(*it) << ")"
+          << " -> " << newFrames[*it] << " ";
     }
     MESSAGE_END();
 #endif

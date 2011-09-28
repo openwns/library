@@ -569,7 +569,7 @@ ResourceGrid::fitsPersistentReservation(unsigned int frame, ConnectionID cid, Bi
 
     TransmissionBlockPtr tb = frames_[frame]->getReservation(cid, true);
 
-    return linkAdaptor_->canFit(tb->getStart(), tb->getLength(), cid, pduSize).fits;
+    return linkAdaptor_->canFit(tb->getStart(), tb->getLength(), frame, cid, pduSize).fits;
 }
 
 void

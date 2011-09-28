@@ -60,7 +60,8 @@ class ILinkAdaptation
         setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize) = 0;
 
         virtual CanFitResult
-        canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize) = 0;
+        canFit(unsigned int start, unsigned int length, unsigned int frame, 
+            ConnectionID cid, Bit pduSize) = 0;
 
         virtual void
         setLinkAdaptationProxy(ILinkAdaptationProxy* lp) = 0;
@@ -86,7 +87,8 @@ class LinkAdaptation :
         setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize);
 
         virtual CanFitResult
-        canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize);
+        canFit(unsigned int start, unsigned int length, unsigned int frame, 
+            ConnectionID cid, Bit pduSize);
 
         virtual void
         setLinkAdaptationProxy(ILinkAdaptationProxy* lp);

@@ -111,7 +111,8 @@ LinkAdaptation::getMoreRobustMCS(Bit pduSize,
 }
 
 ILinkAdaptation::CanFitResult
-LinkAdaptation::canFit(unsigned int start, unsigned int length, ConnectionID cid, Bit pduSize)
+LinkAdaptation::canFit(unsigned int start, unsigned int length, 
+    unsigned int frame, ConnectionID cid, Bit pduSize)
 {
     CanFitResult result;
 
@@ -124,9 +125,9 @@ LinkAdaptation::canFit(unsigned int start, unsigned int length, ConnectionID cid
     wns::Power txp = getTxPower(user);
     wns::Ratio effSINR;
     if(spot_ == wns::scheduler::SchedulerSpot::DLMaster())
-        effSINR = lproxy_->getEffectiveDownlinkSINR(user, rbs, txp);
+        effSINR = lproxy_->getEffectiveDownlinkSINR(user, rbs, frame, txp);
     else
-        effSINR = lproxy_->getEffectiveUplinkSINR(user, rbs, txp);
+        effSINR = lproxy_->getEffectiveUplinkSINR(user, rbs, frame, txp);
     
     result.sinr = effSINR;
 
@@ -154,7 +155,7 @@ AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit p
         do
         {
             testLength++;
-            cfResult = canFit(it->start, testLength, cid, pduSize);
+            cfResult = canFit(it->start, testLength, it->frame, cid, pduSize);
         }
         while(testLength < it->length && !cfResult.fits);
         if(cfResult.fits)
@@ -195,7 +196,7 @@ All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSi
             do
             {
                 testLength++;
-                cfResult = canFit(it->start + s, testLength, cid, pduSize);
+                cfResult = canFit(it->start + s, testLength, it->frame, cid, pduSize);
             }
             while(testLength + s < it->length && !cfResult.fits);
             if(cfResult.fits)

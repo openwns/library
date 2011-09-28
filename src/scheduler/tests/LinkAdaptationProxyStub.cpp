@@ -77,7 +77,7 @@ LinkAdaptationProxyStub::getBestPhyMode(const wns::Ratio& sinr)
 }
 
 ChannelQualityOnOneSubChannel
-LinkAdaptationProxyStub::estimateTxSINRAt(const UserID user, int slot = 0)
+LinkAdaptationProxyStub::estimateTxSINRAt(const UserID user, int, int)
 {
     /*PL = 80; I = -95; C = -80 => CIR = 15 dB*/
     return ChannelQualityOnOneSubChannel(
@@ -87,7 +87,7 @@ LinkAdaptationProxyStub::estimateTxSINRAt(const UserID user, int slot = 0)
 }
 
 ChannelQualityOnOneSubChannel
-LinkAdaptationProxyStub::estimateRxSINROf(const UserID user, int slot = 0)
+LinkAdaptationProxyStub::estimateRxSINROf(const UserID user, int, int)
 {
     /*PL = 80; I = -95; C = -80 => CIR = 15 dB*/
     return ChannelQualityOnOneSubChannel(
@@ -118,7 +118,8 @@ LinkAdaptationProxyStub::getPowerCapabilities() const
 
 wns::Ratio
 LinkAdaptationProxyStub::getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
-    const std::set<unsigned int>& scs, 
+    const std::set<unsigned int>& scs,
+    const int, 
     const wns::Power& txPower)
 {
     std::vector<wns::Power> i;
@@ -144,9 +145,10 @@ LinkAdaptationProxyStub::getEffectiveUplinkSINR(const wns::scheduler::UserID sen
 wns::Ratio
 LinkAdaptationProxyStub::getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
     const std::set<unsigned int>& scs, 
+    const int,
     const wns::Power& txPower)
 {
-    wns::Ratio eSINR = getEffectiveUplinkSINR(receiver, scs, txPower);
+    wns::Ratio eSINR = getEffectiveUplinkSINR(receiver, scs, 0, txPower);
     wns::Ratio offset = wns::Ratio::from_dB(1.0);
 
     return (eSINR + offset);

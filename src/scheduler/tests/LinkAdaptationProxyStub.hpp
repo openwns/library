@@ -50,19 +50,21 @@ namespace wns { namespace scheduler { namespace tests {
                 getBestPhyMode(const wns::Ratio&);
                 
                 ChannelQualityOnOneSubChannel 
-                estimateTxSINRAt(const UserID user, int slot);
+                estimateTxSINRAt(const UserID user, int slot, int timeSlot = ANYTIME);
                 
                 ChannelQualityOnOneSubChannel 
-                estimateRxSINROf(const UserID user, int slot);
+                estimateRxSINROf(const UserID user, int slot, int timeSlot = ANYTIME);
 
                 wns::Ratio
                 getEffectiveUplinkSINR(const wns::scheduler::UserID sender, 
                     const std::set<unsigned int>& scs, 
+                    const int timeSlot,
                     const wns::Power& txPower);
 
                 wns::Ratio
                 getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
                     const std::set<unsigned int>& scs, 
+                    const int timeSlot,
                     const wns::Power& txPower);
 
                 virtual wns::scheduler::PowerCapabilities

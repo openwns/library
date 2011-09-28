@@ -56,6 +56,9 @@ namespace wns { namespace scheduler {
             class StrategyInterface;
         }
 
+#define WIDEBAND std::numeric_limits<int>::max()
+#define ANYTIME std::numeric_limits<int>::max()
+
     class UserID:
         public wns::IOutputStreamable
     {
@@ -491,10 +494,15 @@ namespace wns { namespace scheduler {
             ChannelQualityOnOneSubChannel(wns::Ratio _pathloss, 
                                         wns::Power _interference, 
                                         wns::Power _carrier,
-                                        wns::Power _iIntra = wns::Power::from_mW(0.0)):
+                                        wns::Power _iIntra = wns::Power::from_mW(0.0),
+                                        wns::Ratio _effSINR = wns::Ratio::from_factor(1.0),
+                                        int _timeSlot = ANYTIME):
                 pathloss(_pathloss),
                 interference(_interference),
-                carrier(_carrier)
+                carrier(_carrier),
+                effectiveSINR(_effSINR),
+                timeSlot(_timeSlot)
+                
             {
                 sdma.iIntra = _iIntra;
             }
@@ -505,6 +513,12 @@ namespace wns { namespace scheduler {
             wns::Ratio pathloss;
             /** @brief measured (I + N) */
             wns::Power interference;
+
+            /** @brief Effective SINR*/
+            wns::Ratio effectiveSINR;
+
+            /** @biref For time (frame) dependent measurements */
+            int timeSlot;
             struct {
                 // estimated intra-cell interference
                 wns::Power iIntra;
