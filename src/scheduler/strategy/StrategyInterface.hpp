@@ -39,11 +39,15 @@
 #include <WNS/StaticFactory.hpp>
 #include <WNS/PyConfigViewCreator.hpp>
 #include <WNS/SmartPtr.hpp>
+#include <WNS/scheduler/metascheduler/IMetaScheduler.hpp>
 
 namespace wns { namespace scheduler {
         namespace queue {
             class QueueInterface;
         }
+        namespace metascheduler {
+            class IMetaScheduler;
+	}
         namespace harq {
             class HARQInterface;
         }
@@ -71,7 +75,13 @@ namespace wns { namespace scheduler { namespace strategy {
                               int _numberOfTimeSlots,
                               int _maxSpatialLayers,
                               CallBackInterface* _callBackObject);
-
+               /** @brief constructor for master scheduling with metascheduler */
+                StrategyInput(int _fChannels,
+                              double _slotLength,
+                              int _numberOfTimeSlots,
+                              int _maxSpatialLayers,
+                              wns::scheduler::metascheduler::IMetaScheduler *,
+                              CallBackInterface* _callBackObject);
                 /** @brief constructor for slave scheduling */
                 StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
                               CallBackInterface* _callBackObject);
@@ -127,9 +137,9 @@ namespace wns { namespace scheduler { namespace strategy {
                 wns::scheduler::SchedulingMapPtr getEmptySchedulingMap() const;
 
                 /** @brief get parameter inputSchedulingMap. */
-                virtual 
-                wns::scheduler::SchedulingMapPtr getInputSchedulingMap() const;
-
+                virtual wns::scheduler::SchedulingMapPtr getInputSchedulingMap() const;
+		/** @brief get parameter inputSchedulingMap. */
+                wns::scheduler::SchedulingMapPtr getPreDefinedSchedulingMap() const;
                 /** @brief set (optional!) parameter inputSchedulingMap
                     If this is set, the scheduler operates on previously allocated resources */
                 virtual void 
@@ -152,7 +162,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief true: use beamforming if(maxSpatialLayers>1).
                 false: use MIMO if(maxSpatialLayers>1) */
                 bool beamforming;
-
+		wns::scheduler::metascheduler::IMetaScheduler* metaScheduler;
                 /** @brief size of resources in spatial direction.
                 This can be beamforming spatialLayers (available for WiMAC)
                 or MIMO paths (not yet available). */

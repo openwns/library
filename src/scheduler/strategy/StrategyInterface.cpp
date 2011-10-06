@@ -51,6 +51,29 @@ StrategyInput::StrategyInput(int _fChannels,
     assure(mapInfoEntryFromMaster==MapInfoEntryPtr(),"SmartPtr must be initialized with NULL");
 }
 
+//interface for master scheduling with metascheduler
+StrategyInput::StrategyInput(int _fChannels,
+                             double _slotLength,
+                             int _numberOfTimeSlots,
+                             int _maxSpatialLayers,
+			     wns::scheduler::metascheduler::IMetaScheduler * _metaScheduler,
+                             CallBackInterface* _callBackObject)
+    : fChannels(_fChannels),
+      slotLength(_slotLength),
+      numberOfTimeSlots(_numberOfTimeSlots), // TODO
+      beamforming(_maxSpatialLayers>1), // in the old strategies we assume "beamforming" if maxSpatialLayers>1.
+      maxSpatialLayers(_maxSpatialLayers),
+      metaScheduler(_metaScheduler),
+      callBackObject(_callBackObject),
+      mapInfoEntryFromMaster(), // empty SmartPtr
+      frameNr(-1)
+{
+    // these two checks are equivalent:
+    assure(mapInfoEntryFromMaster.getPtr()==NULL,"SmartPtr must be initialized with NULL");
+    assure(mapInfoEntryFromMaster==MapInfoEntryPtr(),"SmartPtr must be initialized with NULL");
+}
+
+
 // interface for slave scheduling
 StrategyInput::StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
                              CallBackInterface* _callBackObject)
@@ -130,6 +153,21 @@ StrategyInput::toString() const
     //s << "\t"<<std::endl;
     return s.str();
 };
+
+wns::scheduler::SchedulingMapPtr StrategyInput::getPreDefinedSchedulingMap()const
+{
+  // make SmartPtr here
+	wns::scheduler::SchedulingMapPtr schedulingMap = wns::scheduler::SchedulingMapPtr(
+        new wns::scheduler::SchedulingMap(slotLength, fChannels, numberOfTimeSlots, maxSpatialLayers, frameNr));
+	
+	//std::cout<<"inside getPredefinedSchedulingMap"<<std::endl;
+	metaScheduler->provideMetaConfiguration(this,schedulingMap);
+	//std::cout<<"exit getPreDefinedSchedulingMap"<<std::endl;
+	return schedulingMap;
+
+}
+
+
 
 wns::scheduler::SchedulingMapPtr
 StrategyInput::getEmptySchedulingMap() const

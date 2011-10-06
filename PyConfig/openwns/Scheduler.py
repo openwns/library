@@ -150,6 +150,8 @@ class PersistentVoIP(SubStrategy):
 
     def setParentLogger(self,parentLogger = None):
         self.logger = openwns.logger.Logger("WNS", "PersistentVoIP", True, parentLogger)
+        
+
 
 # As long as DSA has resources for any CID of a USER, try scheduling this USER.
 # If no more resources are left, try the next USER.
@@ -329,6 +331,8 @@ class DoAHeuristicPreferredAngle(DoAGrouper):
 
 class RegistryProxy(object):
     nameInRegistryProxyFactory = None
+
+
 
 ######################################################
 ### SimpleQueue (stores segmented PDUs of size<=segmentSize)

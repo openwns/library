@@ -60,6 +60,14 @@ class DSASlave(DSAStrategy):
         super(DSASlave,self).__init__(**kw)
         oneUserOnOneSubChannel = True # must be enforced
 
+# this strategy is used for meta scheduling
+class DSAMeta(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInDSAStrategyFactory = "DSAMeta"
+        super(DSAMeta,self).__init__(**kw)
+        
+
 # The most simple DSA strategy.
 # Just start with subChannel 0 and go up linearly, no matter how the CQI is
 class LinearFFirst(DSAStrategy):
@@ -123,5 +131,4 @@ class BestCapacity(DSAStrategy):
         self.nameInDSAStrategyFactory = "BestCapacity"
         super(BestCapacity,self).__init__(**kw)
         self.useRandomChannelAtBeginning = useRandomChannel
-
 

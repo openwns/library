@@ -251,7 +251,14 @@ srcFiles = [
     'src/search/SimpleBinarySearch.cpp',
     'src/search/tests/SimpleBinarySearchTest.cpp',
 
-    # scheduler framework
+    ### scheduler framework
+    
+    # the metascheduler
+   
+    'src/scheduler/metascheduler/IMetaScheduler.cpp',
+    'src/scheduler/metascheduler/MetaScheduler.cpp',
+    'src/scheduler/metascheduler/NoMetaScheduler.cpp',
+    
     # the groupers
     'src/scheduler/grouper/NoGrouper.cpp',
     'src/scheduler/grouper/SpatialGrouper.cpp',
@@ -303,6 +310,7 @@ srcFiles = [
     # the scheduler helpers
     'src/scheduler/strategy/dsastrategy/DSAStrategy.cpp',
     'src/scheduler/strategy/dsastrategy/DoNotUseDSA.cpp',
+    'src/scheduler/strategy/dsastrategy/DSAMeta.cpp',
     'src/scheduler/strategy/dsastrategy/LinearFFirst.cpp',
     'src/scheduler/strategy/dsastrategy/DSASlave.cpp',
     'src/scheduler/strategy/dsastrategy/BestChannel.cpp',
@@ -968,6 +976,10 @@ hppFiles = [
 'src/search/SearchCreator.hpp',
 'src/search/SimpleBinarySearch.hpp',
 'src/scheduler/CallBackInterface.hpp',
+
+'src/scheduler/metascheduler/IMetaScheduler.hpp',
+'src/scheduler/metascheduler/MetaScheduler.hpp',
+'src/scheduler/metascheduler/NoMetaScheduler.hpp',
 'src/scheduler/grouper/AllPossibleGroupsGrouper.hpp',
 'src/scheduler/grouper/DoAGrouper.hpp',
 'src/scheduler/grouper/DoAHeuristicLinearCost.hpp',
@@ -1024,6 +1036,7 @@ hppFiles = [
 'src/scheduler/strategy/dsastrategy/DSAStrategy.hpp',
 'src/scheduler/strategy/dsastrategy/DoNotUseDSA.hpp',
 'src/scheduler/strategy/dsastrategy/DSASlave.hpp',
+'src/scheduler/strategy/dsastrategy/DSAMeta.hpp',
 'src/scheduler/strategy/dsastrategy/LinearFFirst.hpp',
 'src/scheduler/strategy/dsastrategy/Random.hpp',
 'src/scheduler/strategy/dsastrategy/Fixed.hpp',
@@ -1226,6 +1239,7 @@ pyconfig = [
 'openwns/toolsupport/pytreevisitors/FUN.py',
 'openwns/scheduler/__init__.py',
 'openwns/scheduler/APCStrategy.py',
+'openwns/scheduler/metascheduler.py',
 'openwns/scheduler/DSAStrategy.py',
 'openwns/markov/mmpp_example.gdf',
 'openwns/markov/markov_onoff1.gdf',
