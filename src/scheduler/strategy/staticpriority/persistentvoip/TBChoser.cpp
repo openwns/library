@@ -36,6 +36,7 @@ STATIC_FACTORY_REGISTER(First, ITBChoser, "First");
 STATIC_FACTORY_REGISTER(BestFit, ITBChoser, "BestFit");
 STATIC_FACTORY_REGISTER(WorstFit, ITBChoser, "WorstFit");
 STATIC_FACTORY_REGISTER(Random, ITBChoser, "Random");
+STATIC_FACTORY_REGISTER(Smallest, ITBChoser, "Smallest");
 
 Frame::SearchResult
 TBChoser::choseTB(const Frame::SearchResultSet& tbs)
@@ -110,4 +111,21 @@ Random::doChoseTB(const Frame::SearchResultSet& tbs)
     return *it;
 }
 
+Frame::SearchResult
+Smallest::doChoseTB(const Frame::SearchResultSet& tbs)
+{
+    Frame::SearchResultSet::iterator it;
+    Frame::SearchResult result;
+    unsigned int smallest = std::numeric_limits<unsigned int>::max();;
+    for(it = tbs.begin(); it != tbs.end(); it++)
+    {
+        if(it->tbLength < smallest)
+        {
+            result = *it;
+            smallest = it->tbLength;
+        }
+    }
+    assure(smallest < std::numeric_limits<unsigned int>::max(), "Failed to find smallest TB");
 
+    return result;    
+}

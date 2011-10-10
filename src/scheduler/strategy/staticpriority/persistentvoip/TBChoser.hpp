@@ -93,6 +93,13 @@ class Random :
         wns::distribution::StandardUniform rnd_;
 };
 
+class Smallest :
+    public TBChoser
+{       
+        virtual Frame::SearchResult
+        doChoseTB(const Frame::SearchResultSet& tbs);
+};
+
 
 }}}}}
 

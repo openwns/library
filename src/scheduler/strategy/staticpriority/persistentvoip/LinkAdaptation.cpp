@@ -202,6 +202,7 @@ All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSi
             if(cfResult.fits)
             {
                 Frame::SearchResult sr;
+                sr.success = true;
                 sr.start = it->start;
                 sr.length = it->length;
                 sr.frame = it->frame;

@@ -38,6 +38,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
         CPPUNIT_TEST(testFirst);
         CPPUNIT_TEST(testBest);
         CPPUNIT_TEST(testWorst);
+        CPPUNIT_TEST(testSmallest);
         CPPUNIT_TEST(testRandom);
         CPPUNIT_TEST(testEmpty);
 		CPPUNIT_TEST_SUITE_END();
@@ -50,6 +51,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
         void testBest();
         void testWorst();
         void testRandom();
+        void testSmallest();
         void testEmpty();
 
     private:
@@ -76,16 +78,18 @@ void TBChoserTest::prepare()
     Frame::SearchResult sr;
 
     /* Index     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 */
-    /* Occupied  0 0 0 0 1 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 */
+    /* Occupied  T T 0 0 1 1 1 T 0 1 1 1 1 1 1 T T T 0 0 */
     sr.success = true;
-    sr.tbLength = 2;
 
+    sr.tbLength = 2;
     sr.start = 0;
     sr.length = 4;
     srs1.insert(sr);
+    sr.tbLength = 1;
     sr.start = 7;
     sr.length = 2;
     srs1.insert(sr);
+    sr.tbLength = 3;
     sr.start = 15;
     sr.length = 5;
     srs1.insert(sr);
@@ -143,6 +147,18 @@ void TBChoserTest::testRandom()
     CPPUNIT_ASSERT_DOUBLES_EQUAL(mean, calcMean, 0.01);
     delete tbc_;
 }
+
+void TBChoserTest::testSmallest()
+{
+    tbc_ = new Smallest();
+    Frame::SearchResult sr;
+
+    sr = tbc_->choseTB(srs1);
+    CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)7);
+    CPPUNIT_ASSERT_EQUAL(sr.length, (unsigned int)2);
+    delete tbc_;
+}
+
 
 void TBChoserTest::testEmpty()
 {
