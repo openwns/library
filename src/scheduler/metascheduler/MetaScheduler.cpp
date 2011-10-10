@@ -36,12 +36,12 @@
 #include <WNS/scheduler/metascheduler/MetaScheduler.hpp>
 #include <WNS/scheduler/strategy/StrategyInterface.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
+#include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/scheduler/strategy/Strategy.hpp>
 
 #include <boost/algorithm/string.hpp>
 
 #include <WIMAC/scheduler/Scheduler.hpp>
-#include <LTE/timing/RegistryProxy.hpp>
 
 using namespace wimac::scheduler;
 using namespace wns::scheduler::strategy;
