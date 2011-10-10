@@ -34,19 +34,18 @@ import openwns.logger
 
 class MetaScheduler(object):
 
-    def __init__(self, numberBaseStations):
-        self.numberBaseStations = numberBaseStations
-       # print "NBS" + str(numberBaseStations)
+    def __init__(self, initialICacheValues):
+        self.initialICacheValues = initialICacheValues        
         #self.logger = openwns.logger.Logger("WNS", "MetaScheduler", True, parentLogger);
 
 class NoMetaScheduler(MetaScheduler):
     plugin = "NoMetaScheduler"
   
-    def __init__(self):
-	MetaScheduler.__init__(self, 0)
+    def __init__(self, initialICacheValues):
+        MetaScheduler.__init__(self, initialICacheValues)
 
 class GreedyMetaScheduler(MetaScheduler):
     plugin = "GreedyMetaScheduler"
   
-    def __init__(self):
-	MetaScheduler.__init__(self, 0)
+    def __init__(self, initialICacheValues):
+        MetaScheduler.__init__(self, initialICacheValues)
