@@ -41,7 +41,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-using namespace wimac::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::metascheduler;
 
