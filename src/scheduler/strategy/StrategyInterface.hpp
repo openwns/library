@@ -162,7 +162,10 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief true: use beamforming if(maxSpatialLayers>1).
                 false: use MIMO if(maxSpatialLayers>1) */
                 bool beamforming;
-		wns::scheduler::metascheduler::IMetaScheduler* metaScheduler;
+
+                /** @brief Meta scheduler for central RRM */
+                wns::scheduler::metascheduler::IMetaScheduler* metaScheduler;
+
                 /** @brief size of resources in spatial direction.
                 This can be beamforming spatialLayers (available for WiMAC)
                 or MIMO paths (not yet available). */

@@ -56,7 +56,7 @@ StrategyInput::StrategyInput(int _fChannels,
                              double _slotLength,
                              int _numberOfTimeSlots,
                              int _maxSpatialLayers,
-			     wns::scheduler::metascheduler::IMetaScheduler * _metaScheduler,
+                             wns::scheduler::metascheduler::IMetaScheduler* _metaScheduler,
                              CallBackInterface* _callBackObject)
     : fChannels(_fChannels),
       slotLength(_slotLength),
@@ -82,6 +82,7 @@ StrategyInput::StrategyInput(MapInfoEntryPtr _mapInfoEntryFromMaster,
       beamforming(false),
       numberOfTimeSlots(1),
       maxSpatialLayers(1),
+      metaScheduler(NULL),
       callBackObject(_callBackObject),
       mapInfoEntryFromMaster(_mapInfoEntryFromMaster), // SmartPtr
       inputSchedulingMap(), // SmartPtr
@@ -156,15 +157,11 @@ StrategyInput::toString() const
 
 wns::scheduler::SchedulingMapPtr StrategyInput::getPreDefinedSchedulingMap()const
 {
-  // make SmartPtr here
 	wns::scheduler::SchedulingMapPtr schedulingMap = wns::scheduler::SchedulingMapPtr(
         new wns::scheduler::SchedulingMap(slotLength, fChannels, numberOfTimeSlots, maxSpatialLayers, frameNr));
 	
-	//std::cout<<"inside getPredefinedSchedulingMap"<<std::endl;
 	metaScheduler->provideMetaConfiguration(this,schedulingMap);
-	//std::cout<<"exit getPreDefinedSchedulingMap"<<std::endl;
 	return schedulingMap;
-
 }
 
 

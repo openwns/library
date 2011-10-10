@@ -111,7 +111,7 @@ RevolvingState::RevolvingState(const strategy::StrategyInput* _strategyInput)
         // initialize working datastructure with an nonempty schedulingMap
         schedulingMap = strategyInput->inputSchedulingMap;
     } else { // empty inputSchedulingMap
-        schedulingMap = strategyInput->getPreDefinedSchedulingMap();
+        schedulingMap = strategyInput->getEmptySchedulingMap();
     }
 }
 
