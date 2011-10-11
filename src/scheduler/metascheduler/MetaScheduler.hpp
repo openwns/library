@@ -52,7 +52,7 @@
 
 namespace wns { namespace scheduler{ namespace metascheduler{
 	
-	class InterferenceMatrix {
+	class UtilityMatrix {
 	  public:
 	    void createMatrix (int baseStations, std::vector<int>& userTerminalsInBaseStations);
 	    void setValue (std::vector<int>& userIndices, double value);
@@ -190,10 +190,11 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		 
 	  private:
 		 
-	         InterferenceMatrix interferenceMatrix;
+	    UtilityMatrix throughputMatrix;
+             
 		 
 	  protected:
-	        wns::Power defaultCarrier;
+        wns::Power defaultCarrier;
 		wns::Power defaultInterference;
 		wns::Ratio defaultPathloss;
 	    

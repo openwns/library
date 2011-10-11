@@ -171,10 +171,8 @@ StrategyInput *NoMetaScheduler::returnStrategyInputUT(wns::scheduler::RegistryPr
 
 
 void NoMetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap)
-{
-   
+{ 
   return;
-  
 }
 
 

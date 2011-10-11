@@ -59,7 +59,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(MetaScheduler,
 
 */
 
-void InterferenceMatrix::createMatrix (int baseStations, std::vector<int>& userTerminalsInBaseStations)
+void UtilityMatrix::createMatrix (int baseStations, std::vector<int>& userTerminalsInBaseStations)
 {
   _baseStations = baseStations;
   _userTerminalsInBaseStations = userTerminalsInBaseStations;
@@ -73,10 +73,10 @@ void InterferenceMatrix::createMatrix (int baseStations, std::vector<int>& userT
     numberOfElements *= _userTerminalsInBaseStations[i];
     
   }
-  _data.resize (numberOfElements);//, wns::Power::from_mW(0.0));
+  _data.resize (numberOfElements);
 }
 
-void InterferenceMatrix::setValue (std::vector<int>& userIndices, double value)
+void UtilityMatrix::setValue (std::vector<int>& userIndices, double value)
 {
   int index = 0;
   for (int i=0; i < _baseStations; ++i)
@@ -87,7 +87,7 @@ void InterferenceMatrix::setValue (std::vector<int>& userIndices, double value)
   
 }
 
-double InterferenceMatrix::getValue (std::vector<int>& userIndices)
+double UtilityMatrix::getValue (std::vector<int>& userIndices)
 {
   int index = 0;
   for (int i=0; i < _baseStations; ++i)
@@ -97,7 +97,7 @@ double InterferenceMatrix::getValue (std::vector<int>& userIndices)
   return _data[index];
 }
 
-void InterferenceMatrix::Print (void)
+void UtilityMatrix::Print (void)
 {
   //only for 2 and 3 BS 
   if (_baseStations < 2)
@@ -371,7 +371,7 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
     iMatrixSize *= iSize;
   }
   
-  interferenceMatrix.createMatrix(iBaseStations, BaseStationsSize);
+  throughputMatrix.createMatrix(iBaseStations, BaseStationsSize);
   
   //Setup Matrix
   for (int i=0; i < iMatrixSize; ++i)
@@ -402,10 +402,10 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
       //std::cout << "BS: " << baseStations[j]->name << " Victim: " << baseStations[j]->vActiveUsers[BaseStationsCounter[j]].getName() << " NumberOfInterferer: " << interferer.size() << std::endl;
       //dValue += GetUserScore (baseStations[j], baseStations[j]->vActiveUsers[BaseStationsCounter[j]], interferer);
     }
-    interferenceMatrix.setValue(BaseStationsCounter, dValue);
+    throughputMatrix.setValue(BaseStationsCounter, dValue);
   }
   
-  //interferenceMatrix.Print();
+  throughputMatrix.Print();
     
   
   BaseStationsCounter.clear();
