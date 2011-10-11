@@ -46,8 +46,7 @@
 
 namespace wns { namespace scheduler{ namespace metascheduler{
 	
-	class NoMetaScheduler:public MetaScheduler
-	//, public wns::scheduler::strategy::Strategy 
+	class NoMetaScheduler:public IMetaScheduler
 	      {
 	  
 	  public:
@@ -57,21 +56,37 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		~NoMetaScheduler(){};
 				
 		
-		void optimize(void);
-		
-		void doOptimize(void);
-		
-		/**
-		 * @brief Modifys a SchedulingMap.
-		 *
-		 */			
-		//void provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap);
-		
-	
-	   protected:
-
-		std::vector<std::string> frequencyMap;
-		std::vector<peerGroup> resourceGroups;
+        /**
+         * @brief Attach a Scheduler to the MetaScheduler
+         *
+         * Called by the constructor of the Scheduler, hence there is no
+         * need to call this method explictly.
+         */     
+        virtual void 
+        attachBS(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy, bool IamUplinkMaster);
+        virtual void 
+        attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy);   
+        virtual void 
+        detach(const std::string &oldScheduler);
+        
+        
+        /**
+         * @brief Returns a StrategyInput.
+         *
+         */                     
+        virtual wns::scheduler::strategy::StrategyInput 
+        *returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster);
+        virtual wns::scheduler::strategy::StrategyInput *
+        returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy);
+    
+        
+        /**
+         * @brief Modifys a SchedulingMap.
+         *
+         */         
+        void provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, 
+                              wns::scheduler::SchedulingMapPtr schedulingMap);
+      
 			
 			
 	 };		  

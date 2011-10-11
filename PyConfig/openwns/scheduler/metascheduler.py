@@ -28,24 +28,26 @@
 from openwns.pyconfig import attrsetter
 import openwns.logger
 
-
-######################################################
-### MetaScheduler Setup)
+class InitVals(object):
+    def __init__(self, c = "0.0 dBm" , i = "0.0 dBm" , pl = "0.0 dB"):
+        self.c = c
+        self.i = i
+        self.pl = pl
 
 class MetaScheduler(object):
-
-    def __init__(self, initialICacheValues):
-        self.initialICacheValues = initialICacheValues        
+ 
+    def __init__(self, initialICacheValues = InitVals()):
+        self.initialICacheValues = initialICacheValues
         #self.logger = openwns.logger.Logger("WNS", "MetaScheduler", True, parentLogger);
 
 class NoMetaScheduler(MetaScheduler):
     plugin = "NoMetaScheduler"
-  
-    def __init__(self, initialICacheValues):
+    
+    def __init__(self, initialICacheValues = InitVals()):
         MetaScheduler.__init__(self, initialICacheValues)
 
 class GreedyMetaScheduler(MetaScheduler):
     plugin = "GreedyMetaScheduler"
   
-    def __init__(self, initialICacheValues):
+    def __init__(self, initialICacheValues = InitVals()):
         MetaScheduler.__init__(self, initialICacheValues)

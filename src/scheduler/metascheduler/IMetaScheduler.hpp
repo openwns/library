@@ -131,71 +131,44 @@ namespace wns {namespace scheduler{ namespace metascheduler {
 		
 		IMetaScheduler();
 		virtual ~IMetaScheduler() = 0;
-		
+        
+        
+        /**
+         * @brief Returns a pointer to a MetaScheduler according to PyConfig and ensures it to be a Singleton
+         */     
+        static IMetaScheduler* getMetaScheduler(const wns::pyconfig::View& config);
+        
+    		
   		/**
-		 * @brief Attach a Scheduler to the MetaScheduler
+		 * @brief Attach/Detach a Scheduler to the MetaScheduler
 		 *
 		 * Called by the constructor of the Scheduler, hence there is no
 		 * need to call this method explictly.
 		 */
 			
-		virtual void attachBS(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy, bool IamUplinkMaster)=0;
-		
-		virtual void attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy)=0;
-		
-		/**
-		 * @brief Remove Scheduler from the MetaScheduler (not in use)
-		 */
-		virtual void detach(const std::string &oldScheduler)=0;
+		virtual void 
+		attachBS(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy, bool IamUplinkMaster)=0;	
+		virtual void 
+		attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy)=0;
+		virtual void 
+		detach(const std::string &oldScheduler)=0;
 
-		
-		/**
-		 * @brief Returns a pointer to a MetaScheduler according to PyConfig and ensures it to be a Singleton
-		 */		
-		static IMetaScheduler* getMetaScheduler(const wns::pyconfig::View& config);
-		
-		
+
 		/**
 		 * @brief Creates a StrategyInput Object, registers it to the according UT/SS and returns a pointer
 		 */
 		virtual wns::scheduler::strategy::StrategyInput 
 		*returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster)=0;
-		
-		
 		virtual wns::scheduler::strategy::StrategyInput 
 		*returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy)=0;
 		
-		virtual void optimize(void)=0;
+        
 		 /**
 		 * @brief Provides the changes to an existing schedulingMap according to the applied MetaScheduler strategy
 		 */
 		virtual void provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap)=0;
 		
-		/*
-		//virtual void setActiveUserSet(BSInfo* p_BSInfo, int frameNr) = 0;
-		//virtual void computeRessourceBlockSizes (BSInfo* p_BSInfo) = 0;
-		//virtual void applyPeerMapping (peerGroup* PeerGroup) = 0;
-		//virtual void applyPeerMapping (void) = 0;
-		//virtual void applyFrequencyMap (void) = 0;
-		//virtual void applyBestPermutation (void) = 0;
-		//virtual void updateUserSubchannels (void) = 0;
-		//virtual bool computeInterferenceMap (void) = 0;
-		//virtual void GetInterfererOnFrequency (BSInfo* pBS, int iFrequency,
-				      std::vector<std::vector<int> >& currentCombination,
-				      std::set<wns::scheduler::UserID>& interferer) = 0;
-		//virtual void GetInterfererOnFrequency (wns::scheduler::UserID user, int iFrequency,
-				      std::set<wns::scheduler::UserID>& interferer) = 0;
 
-		//virtual double GetUserScore (BSInfo* pBS,
-					   wns::scheduler::UserID user,
-					   std::set<wns::scheduler::UserID>& interferer) = 0;
-		//virtual wns::Ratio estimateSINR (BSInfo* pBS,
-					   wns::scheduler::UserID user,
-					   std::set<wns::scheduler::UserID>& interferer) = 0;
-		//virtual wns::scheduler::ChannelQualityOnOneSubChannel getMeasurementsForUser (wns::scheduler::UserID) = 0;
-//	  private:
-	    
-		*/
 	  protected:
 		static IMetaScheduler* metaScheduler;
 		

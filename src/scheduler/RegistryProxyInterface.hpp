@@ -149,8 +149,7 @@ namespace wns { namespace scheduler {
                 Eventually for a future frameNr (prediction). */
             virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnUplink(UserID user, int frameNr) = 0;
             virtual ChannelQualitiesOnAllSubBandsPtr getChannelQualities4UserOnDownlink(UserID user, int frameNr) = 0;
-
-
+	    
 	    /**
 	     *@todo dbn: DEPRECATED: calcULResources is only used in old PCRR scheduling strategy. To be removed
 	     */

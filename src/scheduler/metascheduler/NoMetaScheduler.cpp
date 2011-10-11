@@ -53,30 +53,128 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(NoMetaScheduler,
 
 
 				     
-NoMetaScheduler::NoMetaScheduler(const wns::pyconfig::View& _config):MetaScheduler(_config)
+NoMetaScheduler::NoMetaScheduler(const wns::pyconfig::View& _config):
+    IMetaScheduler()
 {
 }
 
 
-void NoMetaScheduler::optimize(void)
-{
 
+void NoMetaScheduler::attachBS(const wns::pyconfig::View *pyConfig, 
+                 wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster)
+{
+  if(BSMap.find(registryProxy->getMyUserID()) != BSMap.end())
+  {
+    if(!IamUplinkMaster)
+    {
+      BSMap.find(registryProxy->getMyUserID())->second->PyConfigDL=pyConfig;
+      BSMap.find(registryProxy->getMyUserID())->second->regProxyDL=registryProxy;
+    } else {
+      BSMap.find(registryProxy->getMyUserID())->second->PyConfigUL=pyConfig;
+      BSMap.find(registryProxy->getMyUserID())->second->regProxyUL=registryProxy;
+    }
+  }else{        
+    if(!IamUplinkMaster)
+    {
+      BSInfo* tempBS= new BSInfo ;
+      tempBS->BSID = registryProxy->getMyUserID();
+      tempBS->regProxyDL = registryProxy;
+      tempBS->PyConfigDL = pyConfig;
+      tempBS->availableFreqChannels = pyConfig->get<int>("freqChannels");
+      tempBS->inputDL = NULL;
+        
+      //0baseStations.push_back (tempBS);
+      BSMap.insert(std::make_pair(registryProxy->getMyUserID(), tempBS));
+    } else {
+      BSInfo* tempBS= new BSInfo ;
+      tempBS->BSID = registryProxy->getMyUserID();
+      tempBS->regProxyUL = registryProxy;
+      tempBS->PyConfigUL = pyConfig;
+      tempBS->availableFreqChannels = pyConfig->get<int>("freqChannels");
+      tempBS->inputUL = NULL;
+                
+      BSMap.insert(std::make_pair(registryProxy->getMyUserID(), tempBS));
+      baseStations.push_back (tempBS);
+    }               
+  }   
 }
 
-void NoMetaScheduler::doOptimize(void)
+void NoMetaScheduler::attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy)
 {
-  return;
+  UTInfo* tempUT= new UTInfo ;
+  tempUT->UTID = registryProxy->getMyUserID();
+  tempUT->PyConfig = pyConfig;
+  tempUT->regProxy = registryProxy;
+  tempUT->inputUL = NULL;
+            
+  UTMap.insert(std::make_pair(registryProxy->getMyUserID(), tempUT));
+}
+    
+void NoMetaScheduler::detach(const std::string &oldScheduler)
+{
+}
+
+StrategyInput *NoMetaScheduler::returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy
+    ,bool IamUplinkMaster)
+{
+  
+  if(BSMap.find(registryProxy->getMyUserID()) != BSMap.end())
+  {
+    if (IamUplinkMaster)
+    {     
+      BSInfo* BS = BSMap.find(registryProxy->getMyUserID())->second;
+      StrategyInput *p_strategy= new StrategyInput(BS->PyConfigUL->get<int>("freqChannels"), 
+                            BS->PyConfigUL->get<double>("slotDuration"), 
+                            BS->PyConfigUL->get<int>("numberOfTimeSlots"), 
+                            BS->PyConfigUL->get<int>("maxBeams"),
+                            metaScheduler
+                            ,NULL);
+      BS->inputUL = p_strategy;
+      return p_strategy;
+    }
+    else
+    {
+      BSInfo* BS = BSMap.find(registryProxy->getMyUserID())->second;
+      StrategyInput *p_strategy= new StrategyInput(BS->PyConfigDL->get<int>("freqChannels"), 
+                            BS->PyConfigDL->get<double>("slotDuration"), 
+                            BS->PyConfigDL->get<int>("numberOfTimeSlots"), 
+                            BS->PyConfigDL->get<int>("maxBeams"),
+                            metaScheduler
+                            ,NULL);
+      BS->inputDL = p_strategy; 
+      return p_strategy;
+    }
+  }
+  else
+  {
+    return NULL;
+  }
+}
+
+StrategyInput *NoMetaScheduler::returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy)
+{
+  if(UTMap.find(registryProxy->getMyUserID()) != UTMap.end())
+  {
+    UTInfo* UT = UTMap.find(registryProxy->getMyUserID())->second;
+    StrategyInput *p_strategy= new StrategyInput(UT->PyConfig->get<int>("freqChannels"), 
+                          UT->PyConfig->get<double>("slotDuration"), 
+                          UT->PyConfig->get<int>("numberOfTimeSlots"), 
+                          UT->PyConfig->get<int>("maxBeams"),
+                          metaScheduler
+                          ,NULL);
+    UT->inputUL = p_strategy;
+    return p_strategy;
+  }
+  return NULL;
+  
 }
 
 
-/*
 void NoMetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap)
 {
- 
- return;
-
+   
+  return;
+  
 }
-*/
-
 
 

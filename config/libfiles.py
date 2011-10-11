@@ -258,6 +258,7 @@ srcFiles = [
     'src/scheduler/metascheduler/IMetaScheduler.cpp',
     'src/scheduler/metascheduler/MetaScheduler.cpp',
     'src/scheduler/metascheduler/NoMetaScheduler.cpp',
+    'src/scheduler/metascheduler/GreedyMetaScheduler.cpp',
     
     # the groupers
     'src/scheduler/grouper/NoGrouper.cpp',
@@ -980,6 +981,7 @@ hppFiles = [
 'src/scheduler/metascheduler/IMetaScheduler.hpp',
 'src/scheduler/metascheduler/MetaScheduler.hpp',
 'src/scheduler/metascheduler/NoMetaScheduler.hpp',
+'src/scheduler/metascheduler/GreedyMetaScheduler.hpp',
 'src/scheduler/grouper/AllPossibleGroupsGrouper.hpp',
 'src/scheduler/grouper/DoAGrouper.hpp',
 'src/scheduler/grouper/DoAHeuristicLinearCost.hpp',
