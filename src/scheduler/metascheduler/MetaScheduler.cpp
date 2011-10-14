@@ -299,13 +299,17 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
   //TODO: Separation of MetaScheduler for uplink and downlink
   if(mp_CurrentBSInfo->inputUL == strategyInput)
   {   
+    //std::cout<<"###########################################################################"<<std::endl;
     for (int b=0; b < iBaseStations; b++)
     {     
-      if (baseStations[b]->inputUL=NULL)
+      if (baseStations[b]->inputUL == NULL)
         return;
+      
       if (setActiveUserSet (baseStations[b], frameNr))
         bChangeInNumberUTs = true;
       computeRessourceBlockSizes (baseStations[b]);
+      
+      //std::cout<<baseStations[b]->BSID.getName()<<" "<<baseStations[b]->activeUsers.size()<<std::endl;
     }
     // determine the number of BSs and check if the number of active UTs of each BS have the same size 
     bool bBaseStationIsEmpty = false;
@@ -322,6 +326,20 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
       if (iUserCount != baseStations[b]->activeUsers.size())
       {    
         bAllBaseStationHaveSameSize = false;
+        
+        //TODO: apply Fixed-->future different strategy
+        for (int b = 0; b < iBaseStations; b++)
+        {
+          baseStations[b]->bestCombination.clear();
+          if (baseStations[b]->bestCombination.empty())
+          {
+            for (int i=0; i < baseStations[b]->vActiveUsers.size(); ++i)
+            {
+              baseStations[b]->bestCombination.push_back(i);
+            }
+          }
+        }
+          
         bChangeInNumberUTs = false;
       }
     }
@@ -334,7 +352,7 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
   // check if an assignment (meta schedule) has already been computed and if the number of UTs changed 
   if (bComputed &&  (!bChangeInNumberUTs))
   {
-    std::cout<<" 1 ";
+    //std::cout<<" 1 ";
     //Apply old mapping
     applyMetaSchedule();
     return;
@@ -347,7 +365,7 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
     {
       for (int i=0; i < baseStations[b]->vActiveUsers.size(); ++i)
       {
-	baseStations[b]->bestCombination.push_back(i);
+        baseStations[b]->bestCombination.push_back(i);
       }
     }
   }
@@ -414,6 +432,7 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
     throughputMatrix.setValue(BaseStationsCounter, dValue);
   }
   
+  //std::cout<<"Throughput Matrix:"<<std::endl;
   //throughputMatrix.Print();
   
   BaseStationsCounter.clear();
@@ -566,7 +585,6 @@ void
 MetaScheduler::updateUserSubchannels (void)
 {
   
-/*
   std::map< int, std::set<int> > mapping;
   
   for (int b=0; b < baseStations.size(); ++b)
@@ -577,14 +595,28 @@ MetaScheduler::updateUserSubchannels (void)
     }
     
     int frequencies = baseStations[b]->availableFreqChannels;
+    
+    //std::cout<<"availableFreqChannels: "<<baseStations[b]->availableFreqChannels<<std::endl;
+    
     for (int l=0; l < frequencies; l++)
     {
       //Reserve user
+      
+      /*
+      std::cout<<"reserve user: "<<l<<" ";
+      for (int m=0;m<baseStations[b]->bestCombination.size();m++)
+      {
+      
+        std::cout<<baseStations[b]->bestCombination[m]<<" ";
+    
+      }
+      */
       wns::scheduler::UserID user = baseStations[b]->getUserInFrequency (l, baseStations[b]->bestCombination);
       mapping[user.getNodeID()].insert(l);
     }
   }
   
+  //std::cout<<" 5 "<<std::endl;
   
   for (int b=0; b < baseStations.size(); ++b)
   {
@@ -592,11 +624,13 @@ MetaScheduler::updateUserSubchannels (void)
     {
       for (int i= 0; i < baseStations[b2]->vActiveUsers.size(); i++)
       {
-	baseStations[b]->regProxyUL->updateUserSubchannels ( baseStations[b2]->vActiveUsers[i], mapping[baseStations[b2]->vActiveUsers[i].getNodeID()]);
+        //std::cout<<"10"<<std::endl;
+        baseStations[b]->regProxyUL->updateUserSubchannels(baseStations[b2]->vActiveUsers[i], 
+                                                           mapping[baseStations[b2]->vActiveUsers[i].getNodeID()]);
       }
     }
   }
-  */
+
 }
 
 void 

@@ -154,3 +154,8 @@ LinkAdaptationProxyStub::getEffectiveDownlinkSINR(const wns::scheduler::UserID r
     return (eSINR + offset);
 }
 
+void 
+LinkAdaptationProxyStub::updateUserSubchannels (const wns::scheduler::UserID user, std::set<int>& channels)
+{
+  return;
+}

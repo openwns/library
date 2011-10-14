@@ -87,6 +87,9 @@ namespace wns { namespace scheduler {
                 const std::set<unsigned int>& scs, 
                 const int,
                 const wns::Power& txPower) = 0;
+                
+            virtual void 
+            updateUserSubchannels (const wns::scheduler::UserID user, std::set<int>& channels)=0;
         };
 
     }} // namespace wns::scheduler

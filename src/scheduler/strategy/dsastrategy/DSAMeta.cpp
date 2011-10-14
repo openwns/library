@@ -55,14 +55,8 @@ DSAMeta::~DSAMeta()
 void
 DSAMeta::initialize(SchedulerStatePtr schedulerState,
                      SchedulingMapPtr schedulingMap)
-{
-    /*std::cout<< "*******************************************\n"; 
-    std::cout<< "************DSAMeta::initialize************\n"; 
-    std::cout<< "*******************************************\n";
-    std::cout<< "schedulingMap: " << (long)schedulingMap.getPtr() << " " << *schedulingMap.getPtr() << std::endl;*/
-    
+{    
     DSAStrategy::initialize(schedulerState,schedulingMap); // must always initialize base class too
-    // schedulingMap is an inputSchedulingMap
 }
 
 DSAResult
@@ -80,10 +74,6 @@ DSAMeta::getSubChannelWithDSA(RequestForResource& request,
     int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
     int maxSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
     
-    //std::cout<<std::endl;
-    //std::cout<<request.toString() << "******** schedulingMap DSAMeta ******** " << (long)schedulingMap.getPtr() << std::endl;
-    
-    //std::cout << "DSAMeta: maxSpa: " << maxSpatialLayers << " maxTS: " << numberOfTimeSlots << " maxSubC: " << maxSubChannel << std::endl;
     if(request.user.isBroadcast())
     { 
         assure(channelIsUsable(0, 

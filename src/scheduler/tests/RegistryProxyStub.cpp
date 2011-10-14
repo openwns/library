@@ -372,3 +372,8 @@ RegistryProxyStub::getEffectiveDownlinkSINR(const wns::scheduler::UserID receive
     return wns::Ratio::from_factor(1);
 }
 
+void 
+RegistryProxyStub::updateUserSubchannels (const wns::scheduler::UserID user, std::set<int>& channels)
+{
+  return;
+}

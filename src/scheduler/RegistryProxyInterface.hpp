@@ -108,7 +108,6 @@ namespace wns { namespace scheduler {
              * names to a user internally only known by its UserID (wns::node::Node*)
              */
             virtual std::string getNameForUser(const UserID user) = 0;
-
             /**
              * @brief Returns the station's own UserID.
              */

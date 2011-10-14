@@ -84,6 +84,10 @@ namespace wns { namespace scheduler { namespace tests {
                     const std::set<unsigned int>& scs, 
                     const int timeSlot,
                     const wns::Power& txPower);
+                
+                void 
+                updateUserSubchannels (const wns::scheduler::UserID user, std::set<int>& channels);
+
 
                 virtual wns::scheduler::PowerCapabilities
                 getPowerCapabilities(const UserID user) const;
