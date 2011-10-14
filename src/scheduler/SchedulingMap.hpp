@@ -190,6 +190,14 @@ namespace wns { namespace scheduler {
             bool isEmpty() const;
             /** @brief get userID this resource has been reserved for or NULL if empty */
             wns::scheduler::UserID getUserID() const;
+            /** @brief set userID of a reserved resource */
+            void setUserID(wns::scheduler::UserID aUserID);
+        
+            /** @brief get MetaUserID this resource has been reserved for or NULL if empty */
+            wns::scheduler::UserID getMetaUserID() const {return this->metaUserID;}
+            /** @brief set MetaUserID of a reserved resource */
+            void setMetaUserID(wns::scheduler::UserID MetaUserID) {this->metaUserID = MetaUserID;}
+            
             wns::scheduler::UserID getSourceUserID() const;
             /** @brief get txPower assigned to this resource.
                 Assumes that all contents are for ONE user only and have all equal power. */
@@ -216,6 +224,9 @@ namespace wns { namespace scheduler {
             /** @brief determine the length in bits stored in this resource */
             int getNetBlockSizeInBits() const;
 
+            void 
+            setPhyMode(wns::service::phy::phymode::PhyModeInterfacePtr PhyModePtr) { phyModePtr = PhyModePtr; }  
+            
             wns::service::phy::phymode::PhyModeInterfacePtr
             getPhyMode() { return phyModePtr; }
 
@@ -305,6 +316,7 @@ namespace wns { namespace scheduler {
             ScheduledCompoundsList scheduledCompounds;
             /** @brief usually all compounds in a PRB must have the same user */
             wns::scheduler::UserID userID;
+            wns::scheduler::UserID metaUserID;
             wns::scheduler::UserID sourceUserID;
             /** @brief phyMode used in this subChannel (all compounds should have the same) */
             wns::service::phy::phymode::PhyModeInterfacePtr phyModePtr;
@@ -478,6 +490,10 @@ namespace wns { namespace scheduler {
             simTimeType slotLength;
             /** @brief isUsable = flag to exclude certain subchannels from DSA */
             bool subChannelIsUsable;
+            /** @brief isReserved = flag to reserve certain subchannels for metascheduling */
+            bool subChannelIsReserved;
+          /** @brief provides the option to the metascheduler to reserve a subChannel for a certain userID */
+            wns::scheduler::UserID subChannelIsReservedForUser;
             /** @brief collection of all PhysicalResourceBlocks (one per MIMO beam; only one for SISO) */
             //PhysicalResourceBlockVector physicalResources; // [0..M-1] for MIMO
             /** @brief collection of and all temporal resources = TDMA slots. SmartPtr inside. */

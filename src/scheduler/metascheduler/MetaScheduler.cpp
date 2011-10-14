@@ -59,7 +59,8 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(MetaScheduler,
 
 */
 
-void UtilityMatrix::createMatrix (int baseStations, std::vector<int>& userTerminalsInBaseStations)
+void 
+UtilityMatrix::createMatrix (int baseStations, std::vector<int>& userTerminalsInBaseStations)
 {
   _baseStations = baseStations;
   _userTerminalsInBaseStations = userTerminalsInBaseStations;
@@ -76,7 +77,8 @@ void UtilityMatrix::createMatrix (int baseStations, std::vector<int>& userTermin
   _data.resize (numberOfElements);
 }
 
-void UtilityMatrix::setValue (std::vector<int>& userIndices, double value)
+void 
+UtilityMatrix::setValue (std::vector<int>& userIndices, double value)
 {
   int index = 0;
   for (int i=0; i < _baseStations; ++i)
@@ -87,7 +89,8 @@ void UtilityMatrix::setValue (std::vector<int>& userIndices, double value)
   
 }
 
-double UtilityMatrix::getValue (std::vector<int>& userIndices)
+double 
+UtilityMatrix::getValue (std::vector<int>& userIndices)
 {
   int index = 0;
   for (int i=0; i < _baseStations; ++i)
@@ -150,8 +153,9 @@ MetaScheduler::MetaScheduler(const wns::pyconfig::View& _config) :
 MetaScheduler::~MetaScheduler () {}
 
 
-void MetaScheduler::attachBS(const wns::pyconfig::View *pyConfig, 
-			     wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster)
+void 
+MetaScheduler::attachBS(const wns::pyconfig::View *pyConfig, 
+                        wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster)
 {
   if(BSMap.find(registryProxy->getMyUserID()) != BSMap.end())
   {
@@ -189,7 +193,8 @@ void MetaScheduler::attachBS(const wns::pyconfig::View *pyConfig,
   }	  
 }
 
-void MetaScheduler::attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy)
+void 
+MetaScheduler::attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy)
 {
   UTInfo* tempUT= new UTInfo ;
   tempUT->UTID = registryProxy->getMyUserID();
@@ -200,12 +205,13 @@ void MetaScheduler::attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler
   UTMap.insert(std::make_pair(registryProxy->getMyUserID(), tempUT));
 }
 	
-void MetaScheduler::detach(const std::string &oldScheduler)
+void 
+MetaScheduler::detach(const std::string &oldScheduler)
 {
 }
 
-StrategyInput *MetaScheduler::returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy
-	,bool IamUplinkMaster)
+StrategyInput* 
+MetaScheduler::returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy ,bool IamUplinkMaster)
 {
   
   if(BSMap.find(registryProxy->getMyUserID()) != BSMap.end())
@@ -241,7 +247,8 @@ StrategyInput *MetaScheduler::returnStrategyInputBS(wns::scheduler::RegistryProx
   }
 }
 
-StrategyInput *MetaScheduler::returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy)
+StrategyInput* 
+MetaScheduler::returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy)
 {
   if(UTMap.find(registryProxy->getMyUserID()) != UTMap.end())
   {
@@ -260,7 +267,9 @@ StrategyInput *MetaScheduler::returnStrategyInputUT(wns::scheduler::RegistryProx
 }
 
 
-void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap)
+void 
+MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, 
+                                        wns::scheduler::SchedulingMapPtr schedulingMap)
 {
    
   mp_StrategyInput = strategyInput;
@@ -274,8 +283,11 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
   
   double bestDataRate = 0.0;
   
+  // has a schedule been determined
   static bool bComputed = false;
   
+  //has the number of transmitting UTs changed
+  static bool bChangeInNumberUTs = false;
   
   
   if(!setCurrentBS(strategyInput))
@@ -290,8 +302,9 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
     for (int b=0; b < iBaseStations; b++)
     {     
       if (baseStations[b]->inputUL=NULL)
-	return;
-      setActiveUserSet (baseStations[b], frameNr);
+        return;
+      if (setActiveUserSet (baseStations[b], frameNr))
+        bChangeInNumberUTs = true;
       computeRessourceBlockSizes (baseStations[b]);
     }
     // determine the number of BSs and check if the number of active UTs of each BS have the same size 
@@ -299,36 +312,29 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
     int  iUserCount = BSMap.begin()->second->activeUsers.size();
     bool bAllBaseStationHaveSameSize = true;
     
+    
     for (int b=0; b < baseStations.size(); b++)
     {
-      //std::cout<<"#################################"<<std::endl;
-      //std::cout<<"BS: "<<baseStations[b]->BSID.getName()<<" Number UTs: "<<baseStations[b]->activeUsers.size()<<std::endl;
-      //std::cout<<"#################################"<<std::endl;
       
       if (baseStations[b]->activeUsers.empty())
-	bBaseStationIsEmpty = true;
+          bBaseStationIsEmpty = true;
       
       if (iUserCount != baseStations[b]->activeUsers.size())
-	bAllBaseStationHaveSameSize = false;
+      {    
+        bAllBaseStationHaveSameSize = false;
+        bChangeInNumberUTs = false;
+      }
     }
-    
     if (bBaseStationIsEmpty)
     {
       return;
     }
   
-  //Setup Utility Matrix
   
-  //typedef boost::multi_array<double, iBaseStations> array_type;
-  //typedef array_type::index index;
-  //array_type utilityMatrix(boost::extents[3][4][2]);
-  
-  
-  
-  
-  // check if an assignment (meta schedule) has already been computed  
-  if (bComputed)
+  // check if an assignment (meta schedule) has already been computed and if the number of UTs changed 
+  if (bComputed &&  (!bChangeInNumberUTs))
   {
+    std::cout<<" 1 ";
     //Apply old mapping
     applyMetaSchedule();
     return;
@@ -348,7 +354,9 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
   
   bool bNoDefaultValues = computeInterferenceMap();
   
-  if (!bNoDefaultValues)
+  
+  //TODO: Add strategies for not same size (schedule is only computed if the UTs in all cells is of the same number
+  if ((!bNoDefaultValues)||(!bChangeInNumberUTs))
   {
     //Apply default mapping
     applyMetaSchedule();
@@ -357,6 +365,7 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
   else
   {
     bComputed = true;
+    bChangeInNumberUTs = false;
   }
   
   //Setup data
@@ -400,17 +409,17 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
 	interferer.insert(baseStations[k]->vActiveUsers[BaseStationsCounter[k]]);
       }
       //std::cout << "BS: " << baseStations[j]->name << " Victim: " << baseStations[j]->vActiveUsers[BaseStationsCounter[j]].getName() << " NumberOfInterferer: " << interferer.size() << std::endl;
-      //dValue += GetUserScore (baseStations[j], baseStations[j]->vActiveUsers[BaseStationsCounter[j]], interferer);
+      dValue += getMaximumThroughputForUser (baseStations[j], baseStations[j]->vActiveUsers[BaseStationsCounter[j]], interferer);
     }
     throughputMatrix.setValue(BaseStationsCounter, dValue);
   }
   
-  throughputMatrix.Print();
-    
+  //throughputMatrix.Print();
   
   BaseStationsCounter.clear();
   BaseStationsCounter.resize(iBaseStations, 0);
   std::vector< std::vector<bool> > ValidIndices (iBaseStations);
+  
   ValidIndices.resize(iBaseStations);
   for (int b=0; b < iBaseStations; ++b)
   {
@@ -435,7 +444,8 @@ void MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Str
   
 }
 
-bool MetaScheduler::setCurrentBS(const wns::scheduler::strategy::StrategyInput* strategyInput)
+bool 
+MetaScheduler::setCurrentBS(const wns::scheduler::strategy::StrategyInput* strategyInput)
 {
   mp_CurrentBSInfo = NULL;
   
@@ -451,12 +461,16 @@ bool MetaScheduler::setCurrentBS(const wns::scheduler::strategy::StrategyInput* 
 }
 
 
-void MetaScheduler::setActiveUserSet(BSInfo* p_BSInfo, int frameNr)
+bool
+MetaScheduler::setActiveUserSet(BSInfo* p_BSInfo, int frameNr)
 {   
-  
+  wns::scheduler::UserSet oldActiveUserSet(p_BSInfo->activeUsers);
+ 
   //if set is already present, clear it and recompute
   if (!p_BSInfo->activeUsers.empty())
+  {  
     p_BSInfo->activeUsers.clear();
+  }
   
   if (!p_BSInfo->vActiveUsers.empty())
     p_BSInfo->vActiveUsers.clear();
@@ -472,8 +486,8 @@ void MetaScheduler::setActiveUserSet(BSInfo* p_BSInfo, int frameNr)
   }
   
   wns::scheduler::ConnectionSet::iterator it;
-
-  ////std::cout << "ActiveUsers: ";
+  wns::scheduler::UserSet::iterator itUS;
+    
   for(it = conns.begin(); it != conns.end(); it++)
   {
     wns::scheduler::UserID user = p_BSInfo->regProxyUL->getUserForCID(*it);
@@ -483,16 +497,21 @@ void MetaScheduler::setActiveUserSet(BSInfo* p_BSInfo, int frameNr)
       //Set assumptions does not hold for UserID, so an extra comparision is necessary
       if ( p_BSInfo->activeUsers.find(user) == p_BSInfo->activeUsers.end())
       {
-	p_BSInfo->activeUsers.insert(user);
-	p_BSInfo->vActiveUsers.push_back(user);
-	////std::cout << " " << user.toString();
+        p_BSInfo->activeUsers.insert(user);
+        p_BSInfo->vActiveUsers.push_back(user);
       }
     }
   }
-  ////std::cout << std::endl;
+  // TODO: Compare the UserIDs for changes
+  if (p_BSInfo->activeUsers.size() == oldActiveUserSet.size())
+    return false;
+  return true;
+   
+  
 }
 
-void MetaScheduler::computeRessourceBlockSizes (BSInfo* p_BSInfo)
+void 
+MetaScheduler::computeRessourceBlockSizes (BSInfo* p_BSInfo)
 {
   p_BSInfo->resourceBlockSizes.clear();
   int numberOfUEs = p_BSInfo->activeUsers.size();
@@ -517,12 +536,12 @@ void MetaScheduler::computeRessourceBlockSizes (BSInfo* p_BSInfo)
 
 
 
-void MetaScheduler::applyMetaSchedule (void)
+void 
+MetaScheduler::applyMetaSchedule (void)
 {
   
   updateUserSubchannels();  
   
-  /*
   for (int b=0; b < baseStations.size(); ++b)
   {
     //Only apply mapping of the current base station
@@ -539,15 +558,15 @@ void MetaScheduler::applyMetaSchedule (void)
 	}
     }
   }
-  */
   
 }
 
 
-void MetaScheduler::updateUserSubchannels (void)
+void 
+MetaScheduler::updateUserSubchannels (void)
 {
   
-  /*
+/*
   std::map< int, std::set<int> > mapping;
   
   for (int b=0; b < baseStations.size(); ++b)
@@ -580,34 +599,39 @@ void MetaScheduler::updateUserSubchannels (void)
   */
 }
 
-void MetaScheduler::setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, int subChannel, int timeSlot, int spatialLayer)
+void 
+MetaScheduler::setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, 
+                                int subChannel, int timeSlot, int spatialLayer)
 {
- /*
+ 
   std::set<wns::scheduler::UserID> interferer;
-  GetInterfererOnFrequency (userID, subChannel, interferer);
-  wns::Ratio r = estimateSINR (mp_CurrentBSInfo, userID, interferer);
+  getInterfererOnFrequency (userID, subChannel, interferer);
+  wns::Ratio r = getSINR (mp_CurrentBSInfo, userID, interferer);
     
   //std::cout << "SchedulingMap: " << (long)&schedulingMap << " BS: " << mp_CurrentBSInfo->name << " UserID: " << 
   //userID.getName() << " Interferer: " << interferer.begin()->getName() << " Size:" << interferer.size() << " subChannel: " << subChannel << " SINR: " << r.get_dB()<<"Data Rate: "<<mp_CurrentBSInfo->regProxyUL->getBestPhyMode(r)->getDataRate()<<  "\n";
   //std::cout << "Estimated SIR for: "<<userID.getName()<<" "<<r.get_dB()<<std::endl;
   
   schedulingMap.subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].setPhyMode(mp_CurrentBSInfo->regProxyUL->getBestPhyMode(r));
- */
+ 
 }
 
-void MetaScheduler::setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, int subChannel, int timeSlot, int spatialLayer, wns::service::phy::phymode::PhyModeInterfacePtr pm)
+void 
+MetaScheduler::setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, 
+                                int subChannel, int timeSlot, int spatialLayer, wns::service::phy::phymode::PhyModeInterfacePtr pm)
 {
- /*
+ 
   //std::cout << "SchedulingMap: " << (long)&schedulingMap << " BS: " << mp_CurrentBSInfo->name << " UserID: " << 
   //userID.getName() << " Interferer: " << interferer.begin()->getName() << " Size:" << interferer.size() << " subChannel: " << subChannel << " SINR: " << r.get_dB()<<"Data Rate: "<<mp_CurrentBSInfo->regProxyUL->getBestPhyMode(r)->getDataRate()<<  "\n";
   //std::cout << "Estimated SIR for: "<<userID.getName()<<" "<<r.get_dB()<<std::endl;
   
   schedulingMap.subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].setPhyMode(pm);
-*/
+
 }
 
 
-bool MetaScheduler::computeInterferenceMap (void)
+bool 
+MetaScheduler::computeInterferenceMap (void)
 {
 
   
@@ -667,4 +691,82 @@ bool MetaScheduler::computeInterferenceMap (void)
   /**/
 }
 
+double 
+MetaScheduler::getMaximumThroughputForUser (BSInfo* pBS, wns::scheduler::UserID user, 
+                                                   std::set<wns::scheduler::UserID>& interferer)
+{
+  return pBS->regProxyUL->getBestPhyMode(getSINR (pBS, user, interferer))->getDataRate();
+}
 
+
+ wns::Ratio 
+ MetaScheduler::getSINR (BSInfo* pBS, wns::scheduler::UserID user, std::set<wns::scheduler::UserID>& interferer)
+ {
+  //TODO: fix extimation
+  wns::Power interference ;
+  interference.set_dBm(-116.440);
+  
+  for (std::set<wns::scheduler::UserID>::iterator it = interferer.begin(); it != interferer.end(); ++it)
+  { 
+    interference +=  pBS->interferenceMap[(*it).getNodeID()].carrier;
+  }
+   wns::Ratio SINR = (pBS->interferenceMap[user.getNodeID()].carrier/interference);
+   
+   return SINR;
+}
+
+
+void 
+MetaScheduler::reservePRB(wns::scheduler::PhysicalResourceBlock *prbDescriptor,wns::scheduler::UserID userID)
+{
+  prbDescriptor->setUserID(userID);
+}
+
+
+void 
+MetaScheduler::reservePRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, 
+                          int subChannel, int timeSlot, int spatialLayer)
+{
+  schedulingMap.subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].setMetaUserID(userID);
+
+  ////std::cout<<"____________________UserID prescheduled for____________"<<schedulingMap.subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].getMetaUserID().getName();
+
+}
+
+
+void 
+MetaScheduler::getInterfererOnFrequency (BSInfo* pBS, int iFrequency, 
+                                         std::vector<std::vector<int> >& currentCombination,
+                                         std::set<wns::scheduler::UserID>& interferer)
+{
+  
+  for (int j=0; j<baseStations.size(); j++)
+  {
+    if (baseStations[j] == pBS)
+      continue;
+    interferer.insert (baseStations[j]->getUserInFrequency (iFrequency, currentCombination[j]));
+  
+  }
+  /*
+  int j=0;
+  for (baseStationContainerIterator itaAB=BSMap.begin(); itaAB != BSMap.end(); itaAB++, j++)
+  {
+    //Don't select interferer for yourself
+    if (itaAB->second == pBS)
+      continue;
+    
+    interferer.insert (itaAB->second->getUserInFrequency (iFrequency, currentCombination[j]));    
+  }
+  */
+}
+
+void 
+MetaScheduler::getInterfererOnFrequency (wns::scheduler::UserID user, int iFrequency, std::set<wns::scheduler::UserID>& interferer)
+{
+  for (int b=0; b < baseStations.size(); ++b)
+  {
+    wns::scheduler::UserID foundUser = baseStations[b]->getUserInFrequency (iFrequency, baseStations[b]->bestCombination);
+    if (foundUser.getNodeID() != user.getNodeID())
+      interferer.insert (baseStations[b]->getUserInFrequency (iFrequency, baseStations[b]->bestCombination));    
+  }
+}

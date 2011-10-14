@@ -104,7 +104,7 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		 * need to call this method explictly.
 		 */		
 		virtual void 
-		attachBS(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy, bool IamUplinkMaster);
+        attachBS(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy, bool IamUplinkMaster);
 		
 		virtual void 
 		attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy);	
@@ -127,67 +127,110 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		 * @brief Modifys a SchedulingMap.
 		 *
 		 */			
-		void provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, 
-						      wns::scheduler::SchedulingMapPtr schedulingMap);
+		void 
+		provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap);
 		
 		/**
-		 * @brief Determines the active UTs of a BS in a frame.
+		 * @brief Determines the active UTs of a BS in a frame and returns a change.
 		 *
 		 */			
-		void setActiveUserSet(BSInfo* p_BSInfo, int frameNr);
+		bool 
+		setActiveUserSet(BSInfo* p_BSInfo, int frameNr);
 		
 		
 		/**
 		 * @brief Determines the active UTs of a BS in a frame.
 		 *
 		 */
-		void computeRessourceBlockSizes (BSInfo* p_BSInfo);				      
+		void 
+		computeRessourceBlockSizes (BSInfo* p_BSInfo);				      
 						      
 		
 		/**
 		 * @brief Writes the meta schedule into the schedulingMap 
 		 *
 		 */
-		void applyMetaSchedule(void);
+		void 
+		applyMetaSchedule(void);
 		
 		/**
 		 * @brief Calls an assignment strategy 
 		 *
 		 */
-		virtual void doOptimize(void)=0;
+		virtual void 
+		doOptimize(void)=0;
 		
 		
 		/**
 		 * @brief Removes subchannels from the interference cache that are not used by the UT 
 		 *
 		 */		
-		void updateUserSubchannels(void);
+		void 
+		updateUserSubchannels(void);
 		
 
 		/**
 		 * @brief Sets a Phy-Mode for a UT in a schedulingMap 
 		 *
 		 */		
-		void setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, 
-				      int subChannel, int timeSlot, int spatialLayer);
-		void setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, 
-				      int subChannel, int timeSlot, int spatialLayer, 
-				      wns::service::phy::phymode::PhyModeInterfacePtr pm);
+		void 
+		setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap,
+                         int subChannel, int timeSlot, int spatialLayer);
+		void 
+		setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap,
+                         int subChannel, int timeSlot, int spatialLayer, wns::service::phy::phymode::PhyModeInterfacePtr pm);
 				
 		/**
 		 * @brief Returns the current schedulerName belonging to the StrategyInput
 		 *
 		 */				
-		 bool setCurrentBS(const wns::scheduler::strategy::StrategyInput *strategyInput);		
+		bool 
+		setCurrentBS(const wns::scheduler::strategy::StrategyInput *strategyInput);		
 
 		 
 		 /**
 		 * @brief Determines the Interference Map for each BS
 		 *
 		 */				
-		 bool computeInterferenceMap (void);	
+        bool 
+        computeInterferenceMap (void);
+         
+        
+         /**
+         * @brief Computes the Maximum Throughput for an UT with given Interferer
+         *
+         */             
+        double 
+        getMaximumThroughputForUser (BSInfo* pBS, wns::scheduler::UserID user, 
+                                     std::set<wns::scheduler::UserID>& interferer);
+        wns::Ratio 
+        getSINR (BSInfo* pBS, wns::scheduler::UserID user, std::set<wns::scheduler::UserID>& interferer);
 		 
 		 
+         /**
+         * @brief reserves PRBs according to the parameters 
+         *
+         */
+        void 
+        reservePRB(wns::scheduler::PhysicalResourceBlock *prbDescriptor,wns::scheduler::UserID userID);
+        void 
+        reservePRB(wns::scheduler::UserID userID , wns::scheduler::SchedulingMap & schedulingMap, 
+                   int subChannel, int timeSlot, int spatialLayer);
+        
+        
+        
+        /**
+         * @brief provides interferer on a RB 
+         *
+         */            
+        void 
+        getInterfererOnFrequency (BSInfo* pBS, int iFrequency, std::vector<std::vector<int> >& currentCombination,
+                                  std::set<wns::scheduler::UserID>& interferer);
+        void 
+        getInterfererOnFrequency (wns::scheduler::UserID user, int iFrequency, 
+                                  std::set<wns::scheduler::UserID>& interferer);
+                      
+                   
 	  private:
 		 
 	    UtilityMatrix throughputMatrix;

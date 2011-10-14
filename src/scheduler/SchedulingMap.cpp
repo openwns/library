@@ -145,7 +145,8 @@ PhysicalResourceBlock::PhysicalResourceBlock()
       phyModePtr(),
       txPower(),
       estimatedCQI(),
-      antennaPattern()
+      antennaPattern(),
+      metaUserID(NULL)
 {
 }
 
@@ -162,7 +163,8 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
       phyModePtr(),
       txPower(),
       estimatedCQI(),
-      antennaPattern()
+      antennaPattern(),
+      metaUserID(NULL)
 {
 }
 
@@ -179,7 +181,8 @@ PhysicalResourceBlock::PhysicalResourceBlock(const PhysicalResourceBlock& other)
     phyModePtr(other.phyModePtr),
     txPower(other.txPower),
     estimatedCQI(other.estimatedCQI),
-    antennaPattern(other.antennaPattern)
+    antennaPattern(other.antennaPattern),
+    metaUserID (other.metaUserID)
 {
     for (ScheduledCompoundsList::const_iterator it=other.scheduledCompounds.begin();
          it != other.scheduledCompounds.end();
@@ -1167,6 +1170,12 @@ int
 SchedulingMap::getFrameNr() const
 {
     return this->frameNr;
+}
+
+void 
+PhysicalResourceBlock::setUserID(wns::scheduler::UserID aUserID)
+{
+  userID = aUserID;
 }
 
 double
