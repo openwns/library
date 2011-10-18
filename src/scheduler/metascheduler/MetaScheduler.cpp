@@ -761,7 +761,7 @@ void
 MetaScheduler::reservePRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, 
                           int subChannel, int timeSlot, int spatialLayer)
 {
-  schedulingMap.subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].setMetaUserID(userID);
+  schedulingMap.subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].setUserID(userID);
 
   ////std::cout<<"____________________UserID prescheduled for____________"<<schedulingMap.subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].getMetaUserID().getName();
 

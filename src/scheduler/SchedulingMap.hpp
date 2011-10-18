@@ -192,12 +192,6 @@ namespace wns { namespace scheduler {
             wns::scheduler::UserID getUserID() const;
             /** @brief set userID of a reserved resource */
             void setUserID(wns::scheduler::UserID aUserID);
-        
-            /** @brief get MetaUserID this resource has been reserved for or NULL if empty */
-            wns::scheduler::UserID getMetaUserID() const {return this->metaUserID;}
-            /** @brief set MetaUserID of a reserved resource */
-            void setMetaUserID(wns::scheduler::UserID MetaUserID) {this->metaUserID = MetaUserID;}
-            
             wns::scheduler::UserID getSourceUserID() const;
             /** @brief get txPower assigned to this resource.
                 Assumes that all contents are for ONE user only and have all equal power. */

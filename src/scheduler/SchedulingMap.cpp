@@ -145,8 +145,7 @@ PhysicalResourceBlock::PhysicalResourceBlock()
       phyModePtr(),
       txPower(),
       estimatedCQI(),
-      antennaPattern(),
-      metaUserID(NULL)
+      antennaPattern()
 {
 }
 
@@ -163,8 +162,7 @@ PhysicalResourceBlock::PhysicalResourceBlock(int _subChannelIndex, int _timeSlot
       phyModePtr(),
       txPower(),
       estimatedCQI(),
-      antennaPattern(),
-      metaUserID(NULL)
+      antennaPattern()
 {
 }
 
