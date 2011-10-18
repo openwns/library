@@ -159,7 +159,6 @@ wns::scheduler::SchedulingMapPtr StrategyInput::getPreDefinedSchedulingMap()cons
 {
 	wns::scheduler::SchedulingMapPtr schedulingMap = wns::scheduler::SchedulingMapPtr(
         new wns::scheduler::SchedulingMap(slotLength, fChannels, numberOfTimeSlots, maxSpatialLayers, frameNr));
-	
 	metaScheduler->provideMetaConfiguration(this,schedulingMap);
 	return schedulingMap;
 }

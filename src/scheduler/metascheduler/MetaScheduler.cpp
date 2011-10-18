@@ -271,7 +271,9 @@ void
 MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, 
                                         wns::scheduler::SchedulingMapPtr schedulingMap)
 {
-   
+  
+  std::cout<<"Inside MetaScheduler::provideMetaConfiguration"<<std::endl;
+  
   mp_StrategyInput = strategyInput;
   mp_schedulingMap = schedulingMap;
   

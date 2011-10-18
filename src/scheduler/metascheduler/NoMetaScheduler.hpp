@@ -71,16 +71,6 @@ namespace wns { namespace scheduler{ namespace metascheduler{
         
         
         /**
-         * @brief Returns a StrategyInput.
-         *
-         */                     
-        virtual wns::scheduler::strategy::StrategyInput 
-        *returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster);
-        virtual wns::scheduler::strategy::StrategyInput *
-        returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy);
-    
-        
-        /**
          * @brief Modifys a SchedulingMap.
          *
          */         

@@ -282,6 +282,12 @@ PhysicalResourceBlock::addCompound(simTimeType compoundDuration,
     if (!userID.isValid())
     { // master schedulers set this; slave schedulers get this already set.
         userID = _userID; // all compounds must have the same user; oneUserOnOneSubChannel = True ?
+     }
+    else
+    {//ensure userID of comound is the same as defined in PRB
+      wns::scheduler::UserID prbUserID = this->getUserID();
+      assure(prbUserID==_sourceUserID,
+               "PRB userID mismatches Source: "<<prbUserID.getName()<<" != "<<_sourceUserID.getName());
     }
 
     if (predecessors>0) { // && oneUserOnOneSubChannel) {

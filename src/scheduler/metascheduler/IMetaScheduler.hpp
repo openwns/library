@@ -154,15 +154,6 @@ namespace wns {namespace scheduler{ namespace metascheduler {
 		detach(const std::string &oldScheduler)=0;
 
 
-		/**
-		 * @brief Creates a StrategyInput Object, registers it to the according UT/SS and returns a pointer
-		 */
-		virtual wns::scheduler::strategy::StrategyInput 
-		*returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster)=0;
-		virtual wns::scheduler::strategy::StrategyInput 
-		*returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy)=0;
-		
-        
 		 /**
 		 * @brief Provides the changes to an existing schedulingMap according to the applied MetaScheduler strategy
 		 */

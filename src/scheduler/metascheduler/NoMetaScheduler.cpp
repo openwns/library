@@ -114,61 +114,6 @@ void NoMetaScheduler::detach(const std::string &oldScheduler)
 {
 }
 
-StrategyInput *NoMetaScheduler::returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy
-    ,bool IamUplinkMaster)
-{
-  
-  if(BSMap.find(registryProxy->getMyUserID()) != BSMap.end())
-  {
-    if (IamUplinkMaster)
-    {     
-      BSInfo* BS = BSMap.find(registryProxy->getMyUserID())->second;
-      StrategyInput *p_strategy= new StrategyInput(BS->PyConfigUL->get<int>("freqChannels"), 
-                            BS->PyConfigUL->get<double>("slotDuration"), 
-                            BS->PyConfigUL->get<int>("numberOfTimeSlots"), 
-                            BS->PyConfigUL->get<int>("maxBeams"),
-                            metaScheduler
-                            ,NULL);
-      BS->inputUL = p_strategy;
-      return p_strategy;
-    }
-    else
-    {
-      BSInfo* BS = BSMap.find(registryProxy->getMyUserID())->second;
-      StrategyInput *p_strategy= new StrategyInput(BS->PyConfigDL->get<int>("freqChannels"), 
-                            BS->PyConfigDL->get<double>("slotDuration"), 
-                            BS->PyConfigDL->get<int>("numberOfTimeSlots"), 
-                            BS->PyConfigDL->get<int>("maxBeams"),
-                            metaScheduler
-                            ,NULL);
-      BS->inputDL = p_strategy; 
-      return p_strategy;
-    }
-  }
-  else
-  {
-    return NULL;
-  }
-}
-
-StrategyInput *NoMetaScheduler::returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy)
-{
-  if(UTMap.find(registryProxy->getMyUserID()) != UTMap.end())
-  {
-    UTInfo* UT = UTMap.find(registryProxy->getMyUserID())->second;
-    StrategyInput *p_strategy= new StrategyInput(UT->PyConfig->get<int>("freqChannels"), 
-                          UT->PyConfig->get<double>("slotDuration"), 
-                          UT->PyConfig->get<int>("numberOfTimeSlots"), 
-                          UT->PyConfig->get<int>("maxBeams"),
-                          metaScheduler
-                          ,NULL);
-    UT->inputUL = p_strategy;
-    return p_strategy;
-  }
-  return NULL;
-  
-}
-
 
 void NoMetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap)
 { 
