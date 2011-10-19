@@ -108,27 +108,16 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		
 		virtual void 
 		attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy);	
-		
-		virtual void 
-		detach(const std::string &oldScheduler);
-		
-		
-		/**
-		 * @brief Returns a StrategyInput.
-		 *
-		 */						
-		virtual wns::scheduler::strategy::StrategyInput 
-		*returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy,bool IamUplinkMaster);
-		virtual wns::scheduler::strategy::StrategyInput *
-		returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy);
-	
-		
+
+        
 		/**
 		 * @brief Modifys a SchedulingMap.
 		 *
 		 */			
 		void 
-		provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap);
+		provideMetaConfiguration(wns::scheduler::UserID UserID, 
+                                 wns::scheduler::SchedulingMapPtr schedulingMap, bool bUplink, 
+                                 const wns::scheduler::strategy::StrategyInput* strategyInput);
 		
 		/**
 		 * @brief Determines the active UTs of a BS in a frame and returns a change.
@@ -180,12 +169,6 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap,
                          int subChannel, int timeSlot, int spatialLayer, wns::service::phy::phymode::PhyModeInterfacePtr pm);
 				
-		/**
-		 * @brief Returns the current schedulerName belonging to the StrategyInput
-		 *
-		 */				
-		bool 
-		setCurrentBS(const wns::scheduler::strategy::StrategyInput *strategyInput);		
 
 		 
 		 /**

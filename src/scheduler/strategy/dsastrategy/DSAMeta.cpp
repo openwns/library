@@ -74,6 +74,7 @@ DSAMeta::getSubChannelWithDSA(RequestForResource& request,
     int numberOfTimeSlots = schedulerState->currentState->strategyInput->getNumberOfTimeSlots();
     int maxSpatialLayers = schedulerState->currentState->strategyInput->getMaxSpatialLayers();
     
+
     if(request.user.isBroadcast())
     { 
         assure(channelIsUsable(0, 
@@ -98,10 +99,7 @@ DSAMeta::getSubChannelWithDSA(RequestForResource& request,
 	for (subChannel = 0; subChannel < maxSubChannel; subChannel++)
 	{
 	  if (channelIsUsable(subChannel, timeSlot, spatialLayer, request, schedulerState, schedulingMap))
-	  {
-	    
-	    //std::cout<<request.user<<":"<<subChannel<<std::endl;
-	    
+	  {	    
 	    MESSAGE_SINGLE(NORMAL, logger, "getSubChannelWithDSA(): subChannel="<<subChannel<<"."<<timeSlot<<"."<<spatialLayer);
 	    dsaResult.subChannel = subChannel;
 	    dsaResult.timeSlot = timeSlot;

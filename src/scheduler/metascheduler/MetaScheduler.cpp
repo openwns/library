@@ -204,78 +204,25 @@ MetaScheduler::attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::Reg
 		    
   UTMap.insert(std::make_pair(registryProxy->getMyUserID(), tempUT));
 }
-	
-void 
-MetaScheduler::detach(const std::string &oldScheduler)
-{
-}
-
-StrategyInput* 
-MetaScheduler::returnStrategyInputBS(wns::scheduler::RegistryProxyInterface* registryProxy ,bool IamUplinkMaster)
-{
-  
-  if(BSMap.find(registryProxy->getMyUserID()) != BSMap.end())
-  {
-    if (IamUplinkMaster)
-    {     
-      BSInfo* BS = BSMap.find(registryProxy->getMyUserID())->second;
-      StrategyInput *p_strategy= new StrategyInput(BS->PyConfigUL->get<int>("freqChannels"), 
-						    BS->PyConfigUL->get<double>("slotDuration"), 
-						    BS->PyConfigUL->get<int>("numberOfTimeSlots"), 
-						    BS->PyConfigUL->get<int>("maxBeams"),
-						    metaScheduler
-						    ,NULL);
-      BS->inputUL = p_strategy;
-      return p_strategy;
-    }
-    else
-    {
-      BSInfo* BS = BSMap.find(registryProxy->getMyUserID())->second;
-      StrategyInput *p_strategy= new StrategyInput(BS->PyConfigDL->get<int>("freqChannels"), 
-						    BS->PyConfigDL->get<double>("slotDuration"), 
-						    BS->PyConfigDL->get<int>("numberOfTimeSlots"), 
-						    BS->PyConfigDL->get<int>("maxBeams"),
-						    metaScheduler
-						    ,NULL);
-      BS->inputDL = p_strategy; 
-      return p_strategy;
-    }
-  }
-  else
-  {
-    return NULL;
-  }
-}
-
-StrategyInput* 
-MetaScheduler::returnStrategyInputUT(wns::scheduler::RegistryProxyInterface* registryProxy)
-{
-  if(UTMap.find(registryProxy->getMyUserID()) != UTMap.end())
-  {
-    UTInfo* UT = UTMap.find(registryProxy->getMyUserID())->second;
-    StrategyInput *p_strategy= new StrategyInput(UT->PyConfig->get<int>("freqChannels"), 
-						  UT->PyConfig->get<double>("slotDuration"), 
-						  UT->PyConfig->get<int>("numberOfTimeSlots"), 
-						  UT->PyConfig->get<int>("maxBeams"),
-						  metaScheduler
-						  ,NULL);
-    UT->inputUL = p_strategy;
-    return p_strategy;
-  }
-  return NULL;
-  
-}
 
 
 void 
-MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, 
-                                        wns::scheduler::SchedulingMapPtr schedulingMap)
+MetaScheduler::provideMetaConfiguration(wns::scheduler::UserID UserID, 
+                                        wns::scheduler::SchedulingMapPtr schedulingMap, 
+                                        bool bUplink, const wns::scheduler::strategy::StrategyInput* strategyInput)
 {
+  //TODO: Separation of MetaScheduler for uplink and downlink
+  if (!bUplink)
+    return;
+      
+  if (mp_StrategyInput = NULL)
+    return;
   
-  std::cout<<"Inside MetaScheduler::provideMetaConfiguration"<<std::endl;
-  
-  mp_StrategyInput = strategyInput;
   mp_schedulingMap = schedulingMap;
+  mp_CurrentBSInfo = BSMap.find(UserID)->second;
+  BSMap.find(UserID)->second->inputUL = strategyInput;
+  mp_StrategyInput = strategyInput;
+  
   
   int iBaseStations = baseStations.size();
   int iMatrixSize = 1;
@@ -292,36 +239,32 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
   static bool bChangeInNumberUTs = false;
   
   
-  if(!setCurrentBS(strategyInput))
-    return;
+  //if(!setCurrentBS(mp_StrategyInput))
+    //return;
   
-  int frameNr = strategyInput->getFrameNr();
+  int frameNr = mp_StrategyInput->getFrameNr();
   
-  
-  //TODO: Separation of MetaScheduler for uplink and downlink
-  if(mp_CurrentBSInfo->inputUL == strategyInput)
-  {   
-    //std::cout<<"###########################################################################"<<std::endl;
-    for (int b=0; b < iBaseStations; b++)
-    {     
-      if (baseStations[b]->inputUL == NULL)
-        return;
+  // start computing after all strategyInputs have been assigned
+  for (int b=0; b < iBaseStations; b++)
+  {     
+    if (baseStations[b]->inputUL == NULL)
+      return;
       
-      if (setActiveUserSet (baseStations[b], frameNr))
-        bChangeInNumberUTs = true;
-      computeRessourceBlockSizes (baseStations[b]);
+    if (setActiveUserSet (baseStations[b], frameNr))
+      bChangeInNumberUTs = true;
+    
+    computeRessourceBlockSizes (baseStations[b]);
       
       //std::cout<<baseStations[b]->BSID.getName()<<" "<<baseStations[b]->activeUsers.size()<<std::endl;
-    }
-    // determine the number of BSs and check if the number of active UTs of each BS have the same size 
-    bool bBaseStationIsEmpty = false;
-    int  iUserCount = BSMap.begin()->second->activeUsers.size();
-    bool bAllBaseStationHaveSameSize = true;
+  }
+  
+  // determine the number of BSs and check if the number of active UTs of each BS have the same size 
+  bool bBaseStationIsEmpty = false;
+  int  iUserCount = BSMap.begin()->second->activeUsers.size();
+  bool bAllBaseStationHaveSameSize = true;
     
-    
-    for (int b=0; b < baseStations.size(); b++)
-    {
-      
+  for (int b=0; b < baseStations.size(); b++)
+  {  
       if (baseStations[b]->activeUsers.empty())
           bBaseStationIsEmpty = true;
       
@@ -345,8 +288,8 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
         bChangeInNumberUTs = false;
       }
     }
-    if (bBaseStationIsEmpty)
-    {
+  if (bBaseStationIsEmpty)
+  {
       return;
     }
   
@@ -449,36 +392,6 @@ MetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::Strategy
     
     doOptimize();
     applyMetaSchedule();
-    
-  }
-  //TODO
-  else if (mp_CurrentBSInfo->inputDL == strategyInput)
-  {
-    mp_StrategyInput = NULL;
-    return;
-  }
-  else
-  {
-    mp_StrategyInput = NULL;
-    return;
-  }
-  
-}
-
-bool 
-MetaScheduler::setCurrentBS(const wns::scheduler::strategy::StrategyInput* strategyInput)
-{
-  mp_CurrentBSInfo = NULL;
-  
-  for (int b=0; b < baseStations.size(); ++b)
-  {
-    if ((baseStations[b]->inputDL==strategyInput)||(baseStations[b]->inputUL==strategyInput))
-    {
-      mp_CurrentBSInfo = baseStations[b];
-      return true;
-    } 
-  }
-  return false;
 }
 
 

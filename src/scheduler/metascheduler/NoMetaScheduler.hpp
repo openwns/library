@@ -66,20 +66,19 @@ namespace wns { namespace scheduler{ namespace metascheduler{
         attachBS(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy, bool IamUplinkMaster);
         virtual void 
         attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy);   
-        virtual void 
-        detach(const std::string &oldScheduler);
+
         
         
         /**
          * @brief Modifys a SchedulingMap.
          *
          */         
-        void provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, 
-                              wns::scheduler::SchedulingMapPtr schedulingMap);
+        void provideMetaConfiguration(wns::scheduler::UserID UserID, 
+                              wns::scheduler::SchedulingMapPtr schedulingMap, bool bUplink, 
+                              const wns::scheduler::strategy::StrategyInput* strategyInput);
       
-			
-			
-	 };		  
+		
+        };		  
       }
    }
 }

@@ -110,12 +110,10 @@ void NoMetaScheduler::attachUT(const wns::pyconfig::View *pyConfig, wns::schedul
   UTMap.insert(std::make_pair(registryProxy->getMyUserID(), tempUT));
 }
     
-void NoMetaScheduler::detach(const std::string &oldScheduler)
-{
-}
 
-
-void NoMetaScheduler::provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap)
+void NoMetaScheduler::
+provideMetaConfiguration(wns::scheduler::UserID UserID, wns::scheduler::SchedulingMapPtr schedulingMap, bool bUplink, 
+                         const wns::scheduler::strategy::StrategyInput* strategyInput)
 { 
   return;
 }

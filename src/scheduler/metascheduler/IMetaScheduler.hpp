@@ -70,7 +70,7 @@ namespace wns {namespace scheduler{ namespace metascheduler {
 		  //UL
 		  wns::scheduler::RegistryProxyInterface* regProxyUL;
 		  const wns::pyconfig::View *PyConfigUL;
-		  wns::scheduler::strategy::StrategyInput *inputUL;
+		  const wns::scheduler::strategy::StrategyInput* inputUL;
 		  
 		  std::vector<int> resourceBlockSizes;
 		  std::vector<wns::scheduler::UserID> vActiveUsers;
@@ -150,14 +150,15 @@ namespace wns {namespace scheduler{ namespace metascheduler {
 		attachBS(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy, bool IamUplinkMaster)=0;	
 		virtual void 
 		attachUT(const wns::pyconfig::View *pyConfig, wns::scheduler::RegistryProxyInterface* registryProxy)=0;
-		virtual void 
-		detach(const std::string &oldScheduler)=0;
+
 
 
 		 /**
 		 * @brief Provides the changes to an existing schedulingMap according to the applied MetaScheduler strategy
 		 */
-		virtual void provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap)=0;
+		virtual void provideMetaConfiguration(wns::scheduler::UserID UserID, 
+                                              wns::scheduler::SchedulingMapPtr schedulingMap, bool uplink, 
+                                              const wns::scheduler::strategy::StrategyInput* strategyInput)=0;
 		
 
 	  protected:

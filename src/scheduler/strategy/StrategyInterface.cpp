@@ -155,11 +155,11 @@ StrategyInput::toString() const
     return s.str();
 };
 
-wns::scheduler::SchedulingMapPtr StrategyInput::getPreDefinedSchedulingMap()const
+wns::scheduler::SchedulingMapPtr StrategyInput::getPreDefinedSchedulingMap(wns::scheduler::UserID UserID, bool uplink)const
 {
 	wns::scheduler::SchedulingMapPtr schedulingMap = wns::scheduler::SchedulingMapPtr(
         new wns::scheduler::SchedulingMap(slotLength, fChannels, numberOfTimeSlots, maxSpatialLayers, frameNr));
-	metaScheduler->provideMetaConfiguration(this,schedulingMap);
+	metaScheduler->provideMetaConfiguration(UserID, schedulingMap, uplink, this);
 	return schedulingMap;
 }
 

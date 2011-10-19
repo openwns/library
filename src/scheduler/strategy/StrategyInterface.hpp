@@ -139,7 +139,7 @@ namespace wns { namespace scheduler { namespace strategy {
                 /** @brief get parameter inputSchedulingMap. */
                 virtual wns::scheduler::SchedulingMapPtr getInputSchedulingMap() const;
 		/** @brief get parameter inputSchedulingMap. */
-                wns::scheduler::SchedulingMapPtr getPreDefinedSchedulingMap() const;
+                wns::scheduler::SchedulingMapPtr getPreDefinedSchedulingMap(wns::scheduler::UserID UserID, bool uplink) const;
                 /** @brief set (optional!) parameter inputSchedulingMap
                     If this is set, the scheduler operates on previously allocated resources */
                 virtual void 

@@ -343,6 +343,20 @@ DSAStrategy::channelIsUsable(int subChannel,
 	// check if another user is blocking the subChannel
 	if (oneUserOnOneSubChannel)
 	{
+        //Only check userIDs for UEs that are non broadcasting
+        bool bBroadcast = request.user.isBroadcast();
+        bool bUserIDIsValid = schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].getUserID().isValid();
+        
+        if (!bBroadcast && bUserIDIsValid)
+        {
+          bool bStationIsUE = (colleagues.registry->getStationType(request.user) == wns::service::dll::StationTypes::UE() );
+          if (bStationIsUE)
+          {
+            if (schedulingMap->subChannels[subChannel].temporalResources[timeSlot]->physicalResources[spatialLayer].getUserID() != request.user)
+              return false;
+          }
+        }
+      
 		// checking the first packet is sufficient
 		// uID of first packet or resource as a whole
 		UserID otherUser = prbDescriptor.getUserID();
