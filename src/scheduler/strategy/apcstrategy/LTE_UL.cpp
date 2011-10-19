@@ -89,23 +89,32 @@ LTE_UL::doStartAPC(RequestForResource& request,
 
     MESSAGE_SINGLE(NORMAL, logger,"doStartAPC(" << request.toString() << "): "
         << "estd. PL = " << pathloss << ", estd I. = " << interference);
+        
     if (schedulerState->defaultPhyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr())
     { // predefined, e.g. in slave mode
         apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
     }
     else
     {
-        wns::Ratio sinr = apcResult.txPower/(interference * pathloss);
-
-        apcResult.phyModePtr = phyModeMapper->getBestPhyMode(sinr - sinrMargin_);
-        apcResult.sinr = sinr;
-
-        // Now we introduce some limiting
-        if (phyModeMapper->getIndexForPhyMode(*apcResult.phyModePtr) < minimumPhyMode_)
+        if (schedulingMap->getPhyModeUsedInResource(request.subChannel,request.timeSlot,request.spatialLayer) != 
+          wns::service::phy::phymode::PhyModeInterfacePtr())
+        {       
+          apcResult.phyModePtr = schedulingMap->getPhyModeUsedInResource(request.subChannel,request.timeSlot,request.spatialLayer);          
+        }
+        else
         {
-            apcResult.phyModePtr = phyModeMapper->getPhyModeForIndex(minimumPhyMode_);
-            MESSAGE_SINGLE(NORMAL, logger, "doStartAPC"
-                           << "Below minimum phy mode, raising to " << *(apcResult.phyModePtr));
+          wns::Ratio sinr = apcResult.txPower/(interference * pathloss);
+
+          apcResult.phyModePtr = phyModeMapper->getBestPhyMode(sinr - sinrMargin_);
+          apcResult.sinr = sinr;
+
+          // Now we introduce some limiting
+          if (phyModeMapper->getIndexForPhyMode(*apcResult.phyModePtr) < minimumPhyMode_)
+          {
+              apcResult.phyModePtr = phyModeMapper->getPhyModeForIndex(minimumPhyMode_);
+              MESSAGE_SINGLE(NORMAL, logger, "doStartAPC"
+                            << "Below minimum phy mode, raising to " << *(apcResult.phyModePtr));
+          }
         }
     }
 
