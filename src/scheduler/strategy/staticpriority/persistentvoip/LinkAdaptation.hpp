@@ -32,13 +32,14 @@
 #include <WNS/scheduler/RegistryProxyInterface.hpp>
 #include <WNS/distribution/Uniform.hpp>
 #include <WNS/StaticFactory.hpp>
+#include <WNS/PyConfigViewCreator.hpp>
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority { namespace persistentvoip {
 
 class ILinkAdaptation
 {
     public:         
-        typedef wns::Creator<ILinkAdaptation> Creator;
+        typedef wns::PyConfigViewCreator<ILinkAdaptation> Creator;
         typedef wns::StaticFactory<Creator> Factory;
 
         struct CanFitResult
@@ -81,7 +82,7 @@ class LinkAdaptation :
     public ILinkAdaptation
 {
     public:         
-        LinkAdaptation();
+        LinkAdaptation(const wns::pyconfig::View& config);
     
         virtual Frame::SearchResultSet
         setTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize);
@@ -114,7 +115,7 @@ class LinkAdaptation :
         ILinkAdaptationProxy* lproxy_;
         wns::simulator::Time slotDuration_;
         wns::scheduler::SchedulerSpotType spot_;
-
+        bool reduceMCS_;
 
     private:
         virtual Frame::SearchResultSet
@@ -125,6 +126,10 @@ class LinkAdaptation :
 class AtStart :
     public LinkAdaptation
 {
+    public:
+        AtStart(const wns::pyconfig::View& config);
+
+    private:
         virtual Frame::SearchResultSet
         doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID, Bit pduSize);
 };
@@ -132,6 +137,10 @@ class AtStart :
 class All :
     public LinkAdaptation
 {
+    public:
+        All(const wns::pyconfig::View& config);
+
+    private:
         virtual Frame::SearchResultSet
         doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID, Bit pduSize);
 };

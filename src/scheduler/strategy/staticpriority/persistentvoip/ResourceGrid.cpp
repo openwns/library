@@ -463,8 +463,8 @@ ResourceGrid::ResourceGrid(const wns::pyconfig::View& config,
     std::string tbChoserName = config.get<std::string>("tbChoser");
     tbChoser_ = ITBChoser::Factory::creator(tbChoserName)->create();
 
-    std::string laName = config.get<std::string>("linkAdaptation");
-    linkAdaptor_ = ILinkAdaptation::Factory::creator(laName)->create();
+    std::string laName = config.get<std::string>("linkAdaptation.__plugin__");
+    linkAdaptor_ = ILinkAdaptation::Factory::creator(laName)->create(config.get("linkAdaptation"));
 
     linkAdaptor_->setLinkAdaptationProxy(registry);
     linkAdaptor_->setSlotDuration(slotDuration);

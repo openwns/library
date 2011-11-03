@@ -30,12 +30,16 @@
 using namespace wns::scheduler::strategy::staticpriority::persistentvoip;
 
 
-STATIC_FACTORY_REGISTER(AtStart, ILinkAdaptation, "AtStart");
-STATIC_FACTORY_REGISTER(All, ILinkAdaptation, "All");
+STATIC_FACTORY_REGISTER_WITH_CREATOR(AtStart, ILinkAdaptation, 
+    "AtStart", wns::PyConfigViewCreator);
 
-LinkAdaptation::LinkAdaptation() :
+STATIC_FACTORY_REGISTER_WITH_CREATOR(All, ILinkAdaptation, 
+    "All", wns::PyConfigViewCreator);
+
+LinkAdaptation::LinkAdaptation(const wns::pyconfig::View& config) :
     lproxy_(NULL),
-    slotDuration_(0.0)
+    slotDuration_(0.0),
+    reduceMCS_(config.get<bool>("reduceMCS"))
 {
 }
 
@@ -141,6 +145,11 @@ LinkAdaptation::canFit(unsigned int start, unsigned int length,
     return result;
 }
 
+AtStart::AtStart(const wns::pyconfig::View& config) :
+    LinkAdaptation(config)
+{
+}
+
 Frame::SearchResultSet
 AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSize)
 {
@@ -163,7 +172,10 @@ AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit p
             Frame::SearchResult sr = *it;
             sr.tbLength = cfResult.length;
             sr.tbStart = sr.start;
-            sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
+            if(reduceMCS_)
+                sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
+            else
+                sr.phyMode = cfResult.phyModePtr;
             sr.estimatedSINR = cfResult.sinr;
             sr.txPower = cfResult.txPower;
 
@@ -177,6 +189,11 @@ AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit p
         
     }
     return result; 
+}
+
+All::All(const wns::pyconfig::View& config) :
+    LinkAdaptation(config)
+{
 }
 
 Frame::SearchResultSet
@@ -208,7 +225,10 @@ All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSi
                 sr.frame = it->frame;
                 sr.tbLength = cfResult.length;
                 sr.tbStart = sr.start + s;
-                sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
+                if(reduceMCS_)
+                    sr.phyMode = getMoreRobustMCS(pduSize, cfResult.phyModePtr);
+                else
+                    sr.phyMode = cfResult.phyModePtr;
                 sr.estimatedSINR = cfResult.sinr;
                 sr.txPower = cfResult.txPower;
 

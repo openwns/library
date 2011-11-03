@@ -28,6 +28,7 @@
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/LinkAdaptation.hpp>
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
 #include <WNS/scheduler/tests/LinkAdaptationProxyStub.hpp>
+#include <WNS/pyconfig/Parser.hpp>
 
 #include <WNS/CppUnit.hpp>
 #include <WNS/logger/Logger.hpp>
@@ -76,14 +77,17 @@ LinkAdaptationTest::~LinkAdaptationTest()
 
 void LinkAdaptationTest::prepare()
 {
+	wns::pyconfig::Parser parser;
+	parser.loadString("class LA(object):\n\treduceMCS = True\nla = LA()");
+
     slotDuration_ = 1E-3;
 
-    laStart_ = new AtStart();
+    laStart_ = new AtStart(parser.get("la"));
     laStart_->setLinkAdaptationProxy(&reg_);
     laStart_->setSlotDuration(slotDuration_);
     laStart_->setSchedulerSpot(wns::scheduler::SchedulerSpot::ULMaster()); 
 
-    laAll_ = new All();
+    laAll_ = new All(parser.get("la"));
     laAll_->setLinkAdaptationProxy(&reg_);
     laAll_->setSlotDuration(slotDuration_);
     laAll_->setSchedulerSpot(wns::scheduler::SchedulerSpot::ULMaster()); 
