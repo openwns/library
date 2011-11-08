@@ -61,7 +61,7 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		 * @brief Applies a Greedy Algorithm to the ThroughputMatrix.
 		 *
 		 */			
-		void optimize(UtilityMatrix* throughputMatrix, std::vector< std::vector<int> >& vBestCombinations);	
+		void optimize(const UtilityMatrix& throughputMatrix, std::vector< std::vector<int> >& vBestCombinations);	
 		
 	private:
 

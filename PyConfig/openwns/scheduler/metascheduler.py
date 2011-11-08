@@ -51,3 +51,9 @@ class GreedyMetaScheduler(MetaScheduler):
   
     def __init__(self, initialICacheValues = InitVals()):
         MetaScheduler.__init__(self, initialICacheValues)
+
+class MaxRegretMetaScheduler(MetaScheduler):
+    plugin = "MaxRegretMetaScheduler"
+  
+    def __init__(self, initialICacheValues = InitVals()):
+        MetaScheduler.__init__(self, initialICacheValues)

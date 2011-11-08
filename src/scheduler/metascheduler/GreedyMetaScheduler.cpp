@@ -68,14 +68,14 @@ GreedyMetaScheduler::GreedyMetaScheduler(const wns::pyconfig::View& _config):
 }
 
 
-void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix, 
+void GreedyMetaScheduler::optimize(const UtilityMatrix& throughputMatrix, 
                                    std::vector< std::vector<int> >& vBestCombinations)
 {
   
   // matrix parameter
-  int iBaseStations = throughputMatrix->getDimensions().first;
-  int iNumberUTperBS = throughputMatrix->getDimensions().second[0];
-  int iMatrixSize = throughputMatrix->getMatrixSize();
+  int iBaseStations = throughputMatrix.getDimensions().first;
+  int iNumberUTperBS = throughputMatrix.getDimensions().second[0];
+  int iMatrixSize = throughputMatrix.getMatrixSize();
 
   
   // variables
@@ -87,11 +87,8 @@ void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix,
   // Setup data
   for (int i = 0; i < iBaseStations; i++)
   {
-    std::vector<int> vCombination;
-    int iSize = baseStations[i]->vActiveUsers.size();
-    
+    int iSize = baseStations[i]->vActiveUsers.size(); 
     vBaseStationsSize.push_back(iSize);
-    vBaseStationsCounter.push_back(0);
     vValidIndices[i].resize (vBaseStationsSize[i], true);
     iMatrixSize *= iSize;
   }
@@ -135,7 +132,7 @@ void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix,
           if (bBlocked)
             continue;
       
-          double dValue = throughputMatrix->getValue(vBaseStationsCounter);
+          double dValue = throughputMatrix.getValue(vBaseStationsCounter);
           if (dValue > currentBestValue)
           {
             currentBestValue = dValue;
@@ -154,7 +151,7 @@ void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix,
   }
   
  // Print Best Combination
- /*
+ /**/
  std::cout<<"Greedy"<<std::endl;
   for (int b=0; b < iBaseStations; ++b)
   {
@@ -165,5 +162,5 @@ void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix,
     }
     std::cout << std::endl;
   }
-*/
+
 }

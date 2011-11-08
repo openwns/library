@@ -90,7 +90,7 @@ UtilityMatrix::setValue (std::vector<int>& userIndices, double value)
 }
 
 double 
-UtilityMatrix::getValue (std::vector<int>& userIndices)
+UtilityMatrix::getValue (std::vector<int>& userIndices) const
 {
   int index = 0;
   for (int i=0; i < _baseStations; ++i)
@@ -101,14 +101,14 @@ UtilityMatrix::getValue (std::vector<int>& userIndices)
 }
 
 std::pair<int, std::vector<int> > 
-UtilityMatrix::getDimensions(void)
+UtilityMatrix::getDimensions(void) const
 {
   std::pair<int, std::vector<int> > p_dimensions(_baseStations,_userTerminalsInBaseStations);
   return p_dimensions;
 
 }
 
-int UtilityMatrix::getMatrixSize(void)
+int UtilityMatrix::getMatrixSize(void) const
 {
   return _matrixSize;
 }
@@ -392,7 +392,7 @@ MetaScheduler::provideMetaConfiguration(wns::scheduler::UserID UserID,
   //throughputMatrix.Print();
   
   // optimize schedule 
-  optimize(& throughputMatrix, vBestCombinations); 
+  optimize(throughputMatrix, vBestCombinations); 
   
   // apply changes to each BS
   for (int b=0; b < iBaseStations; ++b)
