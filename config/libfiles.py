@@ -260,6 +260,7 @@ srcFiles = [
     'src/scheduler/metascheduler/NoMetaScheduler.cpp',
     'src/scheduler/metascheduler/GreedyMetaScheduler.cpp',
     'src/scheduler/metascheduler/MaxRegretMetaScheduler.cpp',
+    'src/scheduler/metascheduler/tests/MetaScheduler.cpp',
     
     # the groupers
     'src/scheduler/grouper/NoGrouper.cpp',
