@@ -392,7 +392,7 @@ MetaScheduler::provideMetaConfiguration(wns::scheduler::UserID UserID,
   //throughputMatrix.Print();
   
   // optimize schedule 
-  optimize(& throughputMatrix, &vBestCombinations); 
+  optimize(& throughputMatrix, vBestCombinations); 
   
   // apply changes to each BS
   for (int b=0; b < iBaseStations; ++b)

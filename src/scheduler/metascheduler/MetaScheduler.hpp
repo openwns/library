@@ -149,7 +149,7 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		 *
 		 */
         virtual void 
-        optimize(UtilityMatrix* throughputMatrix, std::vector< std::vector<int> >* vBestCombinations)=0;
+        optimize(UtilityMatrix* throughputMatrix, std::vector< std::vector<int> >& vBestCombinations)=0;
         
 		
 		

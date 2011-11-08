@@ -68,7 +68,8 @@ GreedyMetaScheduler::GreedyMetaScheduler(const wns::pyconfig::View& _config):
 }
 
 
-void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix, std::vector< std::vector<int> >* vBestCombinations)
+void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix, 
+                                   std::vector< std::vector<int> >& vBestCombinations)
 {
   
   // matrix parameter
@@ -146,7 +147,7 @@ void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix, std::vector<
     
     for (int j=0; j < iBaseStations; ++j)
     {
-      (*vBestCombinations)[j][b] = vCurrentBest[j];
+      (vBestCombinations)[j][b] = vCurrentBest[j];
       vValidIndices[j][vCurrentBest[j]] = false;
     }
  
@@ -160,7 +161,7 @@ void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix, std::vector<
     std::cout  << "BS: " << baseStations[b]->BSID.getName() << " ";
     for (int i=0; i < baseStations[b]->bestCombination.size(); ++i)
     {
-      std::cout  << (*vBestCombinations)[b][i]<< ", ";//baseStations[b]->bestCombination[i] <<"-"<<(*vBestCombinations)[b][i]<< ", ";
+      std::cout  << (vBestCombinations)[b][i]<< ", ";//baseStations[b]->bestCombination[i] <<"-"<<(vBestCombinations)[b][i]<< ", ";
     }
     std::cout << std::endl;
   }
