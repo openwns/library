@@ -41,13 +41,9 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <WIMAC/scheduler/Scheduler.hpp>
-
-
 #include "boost/multi_array.hpp"
 #include <cassert>
 
-using namespace wimac::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::metascheduler;
 
