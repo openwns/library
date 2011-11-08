@@ -57,12 +57,14 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 	    void createMatrix (int baseStations, std::vector<int>& userTerminalsInBaseStations);
 	    void setValue (std::vector<int>& userIndices, double value);
 	    double getValue (std::vector<int>& userIndices);
-	    
+	    std::pair<int, std::vector<int> >getDimensions();
+        int getMatrixSize(void);
 	    void Print (void);
 	    //friend std::ostream& operator<<(std::ostream &stream, const InterferenceMatrix& m);
 	    
 	  private:
 	    int _baseStations;
+        int _matrixSize;
 	    std::vector<int> _userTerminalsInBaseStations;
 	    std::vector<int> _indexJumpOfBaseStation;
 	    std::vector<double> _data;
@@ -146,8 +148,9 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		 * @brief Calls an assignment strategy 
 		 *
 		 */
-		virtual void 
-		doOptimize(void)=0;
+        virtual void 
+        optimize(UtilityMatrix* throughputMatrix, std::vector< std::vector<int> >* vBestCombinations)=0;
+        
 		
 		
 		/**

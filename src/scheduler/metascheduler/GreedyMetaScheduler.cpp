@@ -68,21 +68,101 @@ GreedyMetaScheduler::GreedyMetaScheduler(const wns::pyconfig::View& _config):
 }
 
 
-void GreedyMetaScheduler::optimize(void)
-{
-  return;
-}
-
-
-void GreedyMetaScheduler::doOptimize(void)
-{
-  return;
-}
-
-
-
-void GreedyMetaScheduler::Greedy (void)
+void GreedyMetaScheduler::optimize(UtilityMatrix* throughputMatrix, std::vector< std::vector<int> >* vBestCombinations)
 {
   
-}
+  // matrix parameter
+  int iBaseStations = throughputMatrix->getDimensions().first;
+  int iNumberUTperBS = throughputMatrix->getDimensions().second[0];
+  int iMatrixSize = throughputMatrix->getMatrixSize();
 
+  
+  // variables
+  double dAccumValue = 0;
+  std::vector<int> vBaseStationsCounter;
+  std::vector<int> vBaseStationsSize;
+  std::vector< std::vector<bool> > vValidIndices (iBaseStations);
+   
+  // Setup data
+  for (int i = 0; i < iBaseStations; i++)
+  {
+    std::vector<int> vCombination;
+    int iSize = baseStations[i]->vActiveUsers.size();
+    
+    vBaseStationsSize.push_back(iSize);
+    vBaseStationsCounter.push_back(0);
+    vValidIndices[i].resize (vBaseStationsSize[i], true);
+    iMatrixSize *= iSize;
+  }
+  
+  
+  //greedy
+  for (int b=0; b < iNumberUTperBS; ++b)
+  {
+    std::vector<int> vCurrentBest (iBaseStations, 0);
+    double currentBestValue = 0;
+    
+    vBaseStationsCounter.clear();
+    vBaseStationsCounter.resize(iBaseStations, 0);
+  
+    for (int i=0; i < iMatrixSize; ++i)
+    {
+      //Walk over matrix
+      for (int j=0; j < iBaseStations; ++j)
+      {
+        vBaseStationsCounter[j]++;
+        
+        if (vBaseStationsCounter[j] == vBaseStationsSize[j])
+        {
+          vBaseStationsCounter[j] = 0;
+          continue;
+        }
+        else
+          break;
+      }
+      
+      //test if a previously used line is present in the counter and skip it
+      bool bBlocked = false;
+      for (int j=0; j < iBaseStations; ++j)
+      {
+        if (!vValidIndices[j][vBaseStationsCounter[j]])
+        {
+      bBlocked = true;
+      break;
+        }
+      }
+          if (bBlocked)
+            continue;
+      
+          double dValue = throughputMatrix->getValue(vBaseStationsCounter);
+          if (dValue > currentBestValue)
+          {
+            currentBestValue = dValue;
+            vCurrentBest = vBaseStationsCounter;
+          }
+    }
+    
+    dAccumValue += currentBestValue;  
+    
+    for (int j=0; j < iBaseStations; ++j)
+    {
+      (*vBestCombinations)[j][b] = vCurrentBest[j];
+      vValidIndices[j][vCurrentBest[j]] = false;
+    }
+ 
+  }
+  
+ // Print Best Combination
+ /*
+ std::cout<<"Greedy"<<std::endl;
+  for (int b=0; b < iBaseStations; ++b)
+  {
+    std::cout  << "BS: " << baseStations[b]->BSID.getName() << " ";
+    for (int i=0; i < baseStations[b]->bestCombination.size(); ++i)
+    {
+      std::cout  << (*vBestCombinations)[b][i]<< ", ";//baseStations[b]->bestCombination[i] <<"-"<<(*vBestCombinations)[b][i]<< ", ";
+    }
+    std::cout << std::endl;
+  }
+*/
+}

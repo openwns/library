@@ -72,7 +72,6 @@ LTE_UL::doStartAPC(RequestForResource& request,
 {
     // no power control, just nominal values
     APCResult apcResult;
-
     wns::Ratio pathloss     = request.cqiOnSubChannel.pathloss;
     wns::Power interference = request.cqiOnSubChannel.interference;
 
@@ -89,7 +88,7 @@ LTE_UL::doStartAPC(RequestForResource& request,
 
     MESSAGE_SINGLE(NORMAL, logger,"doStartAPC(" << request.toString() << "): "
         << "estd. PL = " << pathloss << ", estd I. = " << interference);
-        
+    
     if (schedulerState->defaultPhyModePtr != wns::service::phy::phymode::PhyModeInterfacePtr())
     { // predefined, e.g. in slave mode
         apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
@@ -117,7 +116,6 @@ LTE_UL::doStartAPC(RequestForResource& request,
           }
         }
     }
-
     apcResult.estimatedCandI = 
         ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
 

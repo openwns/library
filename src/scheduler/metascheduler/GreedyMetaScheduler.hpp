@@ -54,23 +54,14 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 	  
 	  public:
 	    
-		GreedyMetaScheduler(const wns::pyconfig::View& _config);//: availableFrequencyChannels(0), numberBS(0),numberCount(1) {}						
-		
+		GreedyMetaScheduler(const wns::pyconfig::View& _config);
 		~GreedyMetaScheduler(){};
 				
 		/**
-		 * @brief Modifys a SchedulingMap.
+		 * @brief Applies a Greedy Algorithm to the ThroughputMatrix.
 		 *
 		 */			
-		//void provideMetaConfiguration(const wns::scheduler::strategy::StrategyInput* strategyInput, wns::scheduler::SchedulingMapPtr schedulingMap);
-		
-		void optimize(void);
-		
-		void doOptimize(void);
-			
-		void Greedy (void);
-		
-		
+		void optimize(UtilityMatrix* throughputMatrix, std::vector< std::vector<int> >* vBestCombinations);	
 		
 	private:
 
