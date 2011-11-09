@@ -178,6 +178,7 @@ AtStart::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit p
                 sr.phyMode = cfResult.phyModePtr;
             sr.estimatedSINR = cfResult.sinr;
             sr.txPower = cfResult.txPower;
+            sr.cid = cid;
 
             assure(sr.tbLength <= sr.length, "TB does not fit.");
             assure(sr.tbStart >= sr.start, "Wrong TB start.");
@@ -231,6 +232,7 @@ All::doSetTBSizes(const Frame::SearchResultSet& tbs, ConnectionID cid, Bit pduSi
                     sr.phyMode = cfResult.phyModePtr;
                 sr.estimatedSINR = cfResult.sinr;
                 sr.txPower = cfResult.txPower;
+                sr.cid = cid;
 
                 assure(sr.tbLength <= sr.length, "TB does not fit.");
                 assure(sr.tbStart >= sr.start, "Wrong TB start.");

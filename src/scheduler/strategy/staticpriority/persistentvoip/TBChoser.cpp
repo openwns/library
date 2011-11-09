@@ -32,11 +32,12 @@
 using namespace wns::scheduler::strategy::staticpriority::persistentvoip;
 
 
-STATIC_FACTORY_REGISTER(First, ITBChoser, "First");
-STATIC_FACTORY_REGISTER(BestFit, ITBChoser, "BestFit");
-STATIC_FACTORY_REGISTER(WorstFit, ITBChoser, "WorstFit");
-STATIC_FACTORY_REGISTER(Random, ITBChoser, "Random");
-STATIC_FACTORY_REGISTER(Smallest, ITBChoser, "Smallest");
+STATIC_FACTORY_REGISTER_WITH_CREATOR(First, ITBChoser, "First", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(BestFit, ITBChoser, "BestFit", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(WorstFit, ITBChoser, "WorstFit", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(Random, ITBChoser, "Random", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(Smallest, ITBChoser, "Smallest", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(Smallest, ITBChoser, "Previous", wns::PyConfigViewCreator);
 
 Frame::SearchResult
 TBChoser::choseTB(const Frame::SearchResultSet& tbs)
@@ -52,10 +53,18 @@ TBChoser::choseTB(const Frame::SearchResultSet& tbs)
 
 }
 
+First::First(const wns::pyconfig::View& config)
+{
+}
+
 Frame::SearchResult
 First::doChoseTB(const Frame::SearchResultSet& tbs)
 {
     return *(tbs.begin()); 
+}
+
+BestFit::BestFit(const wns::pyconfig::View& config)
+{
 }
 
 Frame::SearchResult
@@ -78,6 +87,10 @@ BestFit::doChoseTB(const Frame::SearchResultSet& tbs)
     return best;
 }
 
+WorstFit::WorstFit(const wns::pyconfig::View& config)
+{
+}
+
 Frame::SearchResult
 WorstFit::doChoseTB(const Frame::SearchResultSet& tbs)
 {
@@ -97,6 +110,10 @@ WorstFit::doChoseTB(const Frame::SearchResultSet& tbs)
     return worst;
 }
 
+Random::Random(const wns::pyconfig::View& config)
+{
+}
+
 Frame::SearchResult
 Random::doChoseTB(const Frame::SearchResultSet& tbs)
 {
@@ -109,6 +126,10 @@ Random::doChoseTB(const Frame::SearchResultSet& tbs)
         it++;
 
     return *it;
+}
+
+Smallest::Smallest(const wns::pyconfig::View& config)
+{
 }
 
 Frame::SearchResult
@@ -128,4 +149,48 @@ Smallest::doChoseTB(const Frame::SearchResultSet& tbs)
     assure(smallest < std::numeric_limits<unsigned int>::max(), "Failed to find smallest TB");
 
     return result;    
+}
+
+Previous::Previous(const wns::pyconfig::View& config)
+{
+    std::string tbChoserName = config.get<std::string>("fallbackChoser.__plugin__");
+    fallbackChoser_ = ITBChoser::Factory::creator(
+        tbChoserName)->create(config.get("fallbackChoser"));
+}
+
+Previous::~Previous()
+{
+    delete fallbackChoser_;
+}
+
+Frame::SearchResult
+Previous::doChoseTB(const Frame::SearchResultSet& tbs)
+{
+    Frame::SearchResult result;
+    if(history_.find(tbs.begin()->cid) == history_.end())
+    {
+        std::cout << "New\n";
+        result = fallbackChoser_->choseTB(tbs);
+        assure(result.cid == tbs.begin()->cid, "CIDs do not match"); 
+
+        history_[tbs.begin()->cid] = std::set<unsigned int>();
+        std::cout << "Res " << result.cid << " " << result.tbStart << " " << result.tbLength << "\n";
+        
+        for(int i = 0; i < result.tbLength; i++)
+        {
+            history_[tbs.begin()->cid].insert(i + result.tbStart);
+            std::cout << "Put " << i + result.tbStart << "\n";
+        }
+
+        return result;
+    }
+    else
+    {
+        unsigned int match = 0;
+        
+        
+    }
+
+    std::cout << "Old\n";
+    return fallbackChoser_->choseTB(tbs);
 }

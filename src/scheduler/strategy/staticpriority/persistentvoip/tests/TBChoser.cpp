@@ -26,6 +26,7 @@
  ******************************************************************************/
 
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/TBChoser.hpp>
+#include <WNS/pyconfig/Parser.hpp>
 
 #include <WNS/CppUnit.hpp>
 
@@ -39,6 +40,7 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
         CPPUNIT_TEST(testBest);
         CPPUNIT_TEST(testWorst);
         CPPUNIT_TEST(testSmallest);
+        CPPUNIT_TEST(testPrevious);
         CPPUNIT_TEST(testRandom);
         CPPUNIT_TEST(testEmpty);
 		CPPUNIT_TEST_SUITE_END();
@@ -52,11 +54,13 @@ namespace wns { namespace scheduler { namespace strategy { namespace staticprior
         void testWorst();
         void testRandom();
         void testSmallest();
+        void testPrevious();
         void testEmpty();
 
     private:
         ITBChoser* tbc_;
         Frame::SearchResultSet srs1;
+        wns::pyconfig::Parser parser_;
 	};
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TBChoserTest);
@@ -80,6 +84,7 @@ void TBChoserTest::prepare()
     /* Index     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 */
     /* Occupied  T T 0 0 1 1 1 T 0 1 1 1 1 1 1 T T T 0 0 */
     sr.success = true;
+    sr.cid = 1;
 
     sr.tbLength = 2;
     sr.start = 0;
@@ -93,11 +98,16 @@ void TBChoserTest::prepare()
     sr.start = 15;
     sr.length = 5;
     srs1.insert(sr);
+
+	parser_.loadString("class TBC(object):\n"
+                            "\t__plugin__ = \"Random\"\n"
+                        "tbc = TBC()\n"
+                        "tbc.fallbackChoser = TBC()\n");
 }
 
 void TBChoserTest::testFirst()
 {
-    tbc_ = new First();
+    tbc_ = new First(parser_.get("tbc"));
     Frame::SearchResult sr;
     sr = tbc_->choseTB(srs1);
     CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)0);
@@ -107,7 +117,7 @@ void TBChoserTest::testFirst()
 
 void TBChoserTest::testBest()
 {
-    tbc_ = new BestFit();
+    tbc_ = new BestFit(parser_.get("tbc"));
     Frame::SearchResult sr;
     sr = tbc_->choseTB(srs1);
     CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)7);
@@ -117,7 +127,7 @@ void TBChoserTest::testBest()
 
 void TBChoserTest::testWorst()
 {
-    tbc_ = new WorstFit();
+    tbc_ = new WorstFit(parser_.get("tbc"));
     Frame::SearchResult sr;
     sr = tbc_->choseTB(srs1);
     CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)15);
@@ -127,7 +137,7 @@ void TBChoserTest::testWorst()
 
 void TBChoserTest::testRandom()
 {
-    tbc_ = new Random();
+    tbc_ = new Random(parser_.get("tbc"));
     Frame::SearchResult sr;
 
     unsigned int trials = 1000000;
@@ -150,7 +160,7 @@ void TBChoserTest::testRandom()
 
 void TBChoserTest::testSmallest()
 {
-    tbc_ = new Smallest();
+    tbc_ = new Smallest(parser_.get("tbc"));
     Frame::SearchResult sr;
 
     sr = tbc_->choseTB(srs1);
@@ -159,6 +169,15 @@ void TBChoserTest::testSmallest()
     delete tbc_;
 }
 
+void TBChoserTest::testPrevious()
+{
+    tbc_ = new Previous(parser_.get("tbc"));
+    Frame::SearchResult sr;
+
+    sr = tbc_->choseTB(srs1);
+    sr = tbc_->choseTB(srs1);
+    delete tbc_;
+}
 
 void TBChoserTest::testEmpty()
 {
@@ -170,22 +189,22 @@ void TBChoserTest::testEmpty()
     sr.start = 0;
     srs.insert(sr);
 
-    tbc_ = new First();
+    tbc_ = new First(parser_.get("tbc"));
     sr = tbc_->choseTB(srs);
     CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)0);
     CPPUNIT_ASSERT_EQUAL(sr.length, (unsigned int)10);
     delete tbc_;
-    tbc_ = new BestFit();
+    tbc_ = new BestFit(parser_.get("tbc"));
     sr = tbc_->choseTB(srs);
     CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)0);
     CPPUNIT_ASSERT_EQUAL(sr.length, (unsigned int)10);
     delete tbc_;
-    tbc_ = new WorstFit();
+    tbc_ = new WorstFit(parser_.get("tbc"));
     sr = tbc_->choseTB(srs);
     CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)0);
     CPPUNIT_ASSERT_EQUAL(sr.length, (unsigned int)10);
     delete tbc_;
-    tbc_ = new Random();
+    tbc_ = new Random(parser_.get("tbc"));
     sr = tbc_->choseTB(srs);
     CPPUNIT_ASSERT_EQUAL(sr.start, (unsigned int)0);
     CPPUNIT_ASSERT_EQUAL(sr.length, (unsigned int)10);

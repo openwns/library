@@ -143,8 +143,12 @@ class PersistentVoIP(SubStrategy):
                 self.__plugin__ = plugin
                 self.reduceMCS = reduceMCS
 
+        class TBChoser(object):
+            def __init__(self, plugin):
+                self.__plugin__ = plugin
+
         def __init__(self, tbChoser, linkAdaptation, reduceMCS = True, parentLogger = None):
-            self.tbChoser = tbChoser
+            self.tbChoser = PersistentVoIP.ResourceGrid.TBChoser(tbChoser)
             self.linkAdaptation = PersistentVoIP.ResourceGrid.LinkAdaptation(
                 linkAdaptation, reduceMCS)
 

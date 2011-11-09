@@ -169,6 +169,7 @@ class Frame :
             wns::service::phy::phymode::PhyModeInterfacePtr phyMode;
             wns::Ratio estimatedSINR;
             wns::Power txPower;
+            ConnectionID cid;
         };
 
         typedef std::set<SearchResult> SearchResultSet;

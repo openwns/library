@@ -31,13 +31,14 @@
 #include <WNS/scheduler/strategy/staticpriority/persistentvoip/ResourceGrid.hpp>
 #include <WNS/distribution/Uniform.hpp>
 #include <WNS/StaticFactory.hpp>
+#include <WNS/PyConfigViewCreator.hpp>
 
 namespace wns { namespace scheduler { namespace strategy { namespace staticpriority { namespace persistentvoip {
 
 class ITBChoser
 {
     public:         
-        typedef wns::Creator<ITBChoser> Creator;
+        typedef wns::PyConfigViewCreator<ITBChoser> Creator;
         typedef wns::StaticFactory<Creator> Factory;
 
         virtual Frame::SearchResult
@@ -66,6 +67,10 @@ class TBChoser :
 class First :
     public TBChoser
 {
+    public:
+        First(const wns::pyconfig::View& config);
+
+    private:       
         virtual Frame::SearchResult
         doChoseTB(const Frame::SearchResultSet& tbs);
 };
@@ -73,6 +78,10 @@ class First :
 class BestFit :
     public TBChoser
 {        
+    public:
+        BestFit(const wns::pyconfig::View& config);
+
+    private:       
         virtual Frame::SearchResult
         doChoseTB(const Frame::SearchResultSet& tbs);
 };
@@ -80,6 +89,10 @@ class BestFit :
 class WorstFit :
     public TBChoser
 {         
+    public:
+        WorstFit(const wns::pyconfig::View& config);
+
+    private:       
         virtual Frame::SearchResult
         doChoseTB(const Frame::SearchResultSet& tbs);
 };
@@ -87,6 +100,10 @@ class WorstFit :
 class Random :
     public TBChoser
 {       
+    public:
+        Random(const wns::pyconfig::View& config);
+
+    private:       
         virtual Frame::SearchResult
         doChoseTB(const Frame::SearchResultSet& tbs);
 
@@ -95,9 +112,30 @@ class Random :
 
 class Smallest :
     public TBChoser
-{       
+{
+    public:
+        Smallest(const wns::pyconfig::View& config);
+
+    private:       
         virtual Frame::SearchResult
         doChoseTB(const Frame::SearchResultSet& tbs);
+};
+
+class Previous :
+    public TBChoser
+{       
+    public:
+        Previous(const wns::pyconfig::View& config);
+        ~Previous();
+
+    private:       
+        virtual Frame::SearchResult
+        doChoseTB(const Frame::SearchResultSet& tbs);
+
+        std::map<ConnectionID, std::set<unsigned int> > history_;
+
+        ITBChoser* fallbackChoser_;
+        
 };
 
 
