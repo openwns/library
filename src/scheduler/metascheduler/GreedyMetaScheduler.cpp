@@ -83,7 +83,7 @@ void GreedyMetaScheduler::optimize(const UtilityMatrix& throughputMatrix,
   // Setup data
   for (int i = 0; i < iBaseStations; i++)
   {
-    int iSize = baseStations[i]->vActiveUsers.size(); 
+    int iSize = iNumberUTperBS; 
     vBaseStationsSize.push_back(iSize);
     vValidIndices[i].resize (vBaseStationsSize[i], true);
     iMatrixSize *= iSize;
@@ -145,18 +145,4 @@ void GreedyMetaScheduler::optimize(const UtilityMatrix& throughputMatrix,
     }
  
   }
-  
- // Print Best Combination
- /**/
- std::cout<<"Greedy"<<std::endl;
-  for (int b=0; b < iBaseStations; ++b)
-  {
-    std::cout  << "BS: " << baseStations[b]->BSID.getName() << " ";
-    for (int i=0; i < baseStations[b]->bestCombination.size(); ++i)
-    {
-      std::cout  << (vBestCombinations)[b][i]<< ", ";//baseStations[b]->bestCombination[i] <<"-"<<(vBestCombinations)[b][i]<< ", ";
-    }
-    std::cout << std::endl;
-  }
-
 }

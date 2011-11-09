@@ -39,7 +39,7 @@ namespace wns { namespace scheduler { namespace metascheduler { namespace tests 
 	{
 		CPPUNIT_TEST_SUITE(MetaSchedulerTest);
         CPPUNIT_TEST(testGreedyTwoBS);
-        CPPUNIT_TEST(testGreedyThreeBS);
+        //CPPUNIT_TEST(testGreedyThreeBS);
 		CPPUNIT_TEST_SUITE_END();
 	public:
 		MetaSchedulerTest();
@@ -47,7 +47,7 @@ namespace wns { namespace scheduler { namespace metascheduler { namespace tests 
 		void prepare();
 		void cleanup();
         void testGreedyTwoBS();
-        void testGreedyThreeBS();
+        //void testGreedyThreeBS();
 
     private:
         wns::logger::Logger logger_;
@@ -90,30 +90,59 @@ void MetaSchedulerTest::testGreedyTwoBS()
 
     um.createMatrix(numBS, uts);
 
-    /* um.setValue ...
+    /* Write utility matrix
     1 2 3
     4 5 6
     7 8 9
     */
-
+    std::vector<int> index(2);
+    index[0] = 0;
+    index[1] = 0;
+    um.setValue(index, 1);
+    index[1] = 1;
+    um.setValue(index, 2);
+    index[1] = 2;
+    um.setValue(index, 3);
+    index[0] = 1;
+    index[1] = 0;
+    um.setValue(index, 4);
+    index[1] = 1;
+    um.setValue(index, 5);
+    index[1] = 2;
+    um.setValue(index, 6);
+    index[0] = 2;
+    index[1] = 0;
+    um.setValue(index, 7);
+    index[1] = 1;
+    um.setValue(index, 8);
+    index[1] = 2;
+    um.setValue(index, 9);
+    
     std::vector<std::vector<int> > vBestCombinations(numBS);
     for(int i = 0; i < numBS; i++)
-        vBestCombinations.resize(numUTs);
+        vBestCombinations[i].resize(numUTs);
 
     GreedyMetaScheduler gms = GreedyMetaScheduler(parser_.get("ms"));    
 
-    //Currently causes SIGSEGV
-    //gms.optimize(um, vBestCombinations);
+    gms.optimize(um, vBestCombinations);
 
-    /* Check result in vBestCombinations:
-    [3,3]; [2,2]; [1,1]
-    */
+    /* BS0 UT2 with BS1 UT2 */
+    CPPUNIT_ASSERT(vBestCombinations[0][0] == 2);
+    CPPUNIT_ASSERT(vBestCombinations[1][0] == 2);
+
+    /* BS0 UT1 with BS1 UT1 */
+    CPPUNIT_ASSERT(vBestCombinations[0][1] == 1);
+    CPPUNIT_ASSERT(vBestCombinations[1][1] == 1);
+
+    /* BS0 UT0 with BS1 UT0 */
+    CPPUNIT_ASSERT(vBestCombinations[0][2] == 0);
+    CPPUNIT_ASSERT(vBestCombinations[1][2] == 0);
 }
 
-void MetaSchedulerTest::testGreedyThreeBS()
+/*void MetaSchedulerTest::testGreedyThreeBS()
 {
     
-}
+}*/
 
 void MetaSchedulerTest::cleanup()
 {
