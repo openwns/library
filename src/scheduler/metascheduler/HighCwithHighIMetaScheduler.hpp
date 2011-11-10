@@ -25,8 +25,8 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_METASCHEDULER_MAXREGRETMETASCHEDULER_HPP
-#define WNS_SCHEDULER_METASCHEDULER_MAXREGRETMETASCHEDULER_HPP
+#ifndef WNS_SCHEDULER_METASCHEDULER_HIGHCWITHHIGHIMETASCHEDULER_HPP
+#define WNS_SCHEDULER_METASCHEDULER_HIGHCWITHHIGHIMETASCHEDULER_HPP
 
 #include <vector>
 #include <string>
@@ -46,59 +46,33 @@
 
 
 namespace wns { namespace scheduler{ namespace metascheduler{
-	
-	
-struct WeightTuple
-{
-  WeightTuple (double weight, std::vector<int> pos) {_weight = weight; _pos = pos;}
-  
-  double _weight;
-  std::vector<int> _pos;
-  
-  bool operator < (const WeightTuple& wt) const
-  {
-    if (_weight < wt._weight)
-      return true;
-    else if (_weight > wt._weight)
-      return false;
-    else
+    
+    
+    class HighCwithHighIMetaScheduler:public MetaScheduler
+    //, public wns::scheduler::strategy::Strategy 
     {
-      for (int i=0; i < _pos.size(); i++)
-      {
-    if (_pos[i] < wt._pos[i])
-      return true;
-    else if (_pos[i] > wt._pos[i])
-      return false;
-    else
-      continue;
-      }
-    }
-  }
-};
-	class MaxRegretMetaScheduler:public MetaScheduler
-	{
-	  
-	  public:
-	    
-		MaxRegretMetaScheduler(const wns::pyconfig::View& _config);//: availableFrequencyChannels(0), numberBS(0),numberCount(1) {}						
-		
-		~MaxRegretMetaScheduler(){};
-				
+      
+      public:
+        
+        HighCwithHighIMetaScheduler(const wns::pyconfig::View& _config);
+        ~HighCwithHighIMetaScheduler(){};
+                
         /**
-         * @brief Applies a Max Regret Algorithm to the ThroughputMatrix.
+         * @brief Applies a Greedy Algorithm to the ThroughputMatrix.
          *
          */         
-        void optimize(const UtilityMatrix& throughputMatrix, std::vector< std::vector<int> >& vBestCombinations); 
+        void optimize(const UtilityMatrix& throughputMatrix, std::vector< std::vector<int> >& vBestCombinations);   
         
-      private:
+    private:
+
     };
-		  
-  }
- }
+          
+}
+}
 }
 
 
 
 
-#endif // WNS_SCHEDULER_METASCHEDULER_MAXREGRETMETASCHEDULER_HPP
+#endif // WNS_SCHEDULER_METASCHEDULER_HIGHCWITHHIGHIMETASCHEDULER_HPP
 

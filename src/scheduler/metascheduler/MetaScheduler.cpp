@@ -41,9 +41,13 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <WIMAC/scheduler/Scheduler.hpp>
+
+
 #include "boost/multi_array.hpp"
 #include <cassert>
 
+using namespace wimac::scheduler;
 using namespace wns::scheduler::strategy;
 using namespace wns::scheduler::metascheduler;
 
@@ -108,6 +112,49 @@ int UtilityMatrix::getMatrixSize(void) const
 {
   return _matrixSize;
 }
+
+std::string
+UtilityMatrix::doToString() const
+{
+    std::stringstream s;
+    
+    //only for 2 and 3 BS 
+  if (_baseStations < 2)
+    return s.str();
+  
+  if (_baseStations == 2)
+  {
+    for (int y=0; y < _userTerminalsInBaseStations[1]; ++y)
+    {
+      for (int x=0; x < _userTerminalsInBaseStations[0]; ++x)
+      {
+        s << _data[x + y * _indexJumpOfBaseStation[1]] << " ";
+      }
+      s << std::endl;
+    }
+  }
+  else if (_baseStations == 3)
+  {
+    for (int z=0; z < _userTerminalsInBaseStations[2]; ++z)
+    {
+      for (int y=0; y < _userTerminalsInBaseStations[1]; ++y)
+      {
+        for (int x=0; x < _userTerminalsInBaseStations[0]; ++x)
+        {
+          s << _data[x + y * _indexJumpOfBaseStation[1] + z * _indexJumpOfBaseStation[2]] << " ";
+        }
+        s << std::endl;
+      }
+      s << std::endl;
+      s << std::endl;
+    }
+  }
+  s << std::endl;
+  return s.str();
+    
+}
+
+
 
 void UtilityMatrix::Print (void)
 {
@@ -536,6 +583,19 @@ MetaScheduler::updateUserSubchannels (void)
 
 }
 
+int 
+MetaScheduler::getPositionOfUTinBSactiveUserSet(const BSInfo* pBS ,const wns::scheduler::UserID currentUser)
+{
+  bool NotFound = false;
+  for(int iPostion = 0; iPostion < pBS->vActiveUsers.size() ;iPostion++)
+  {
+    if (currentUser==pBS->vActiveUsers[iPostion])
+      return iPostion;
+  }
+  assure(NotFound, "getPositionOfUTinBSactiveUserSet: currentUser not found in vActiveUsers");
+}
+
+
 void 
 MetaScheduler::setPhyModeForPRB(wns::scheduler::UserID userID, wns::scheduler::SchedulingMap & schedulingMap, 
                                 int subChannel, int timeSlot, int spatialLayer)
@@ -566,9 +626,9 @@ MetaScheduler::computeInterferenceMap (void)
   for (int b=0; b < baseStations.size(); b++)
   {	
     baseStations[b]->interferenceMap.clear();
+    baseStations[b]->carrierMultimap.clear();
     for (int b2=0; b2 < baseStations.size(); b2++)
-    {
-      
+    {    
       for (int k=0; k < baseStations[b2]->vActiveUsers.size(); ++k)
       {
         wns::scheduler::UserID  user = baseStations[b2]->vActiveUsers[k];
@@ -599,6 +659,10 @@ MetaScheduler::computeInterferenceMap (void)
             
         baseStations[b]->interferenceMap.insert( 
           std::pair<int, wns::scheduler::ChannelQualityOnOneSubChannel>(user.getNodeID(), q) );
+             
+        if(baseStations[b]->activeUsers.find(user)!=baseStations[b]->activeUsers.end())
+          baseStations[b]->carrierMultimap.insert(
+            std::pair<wns::Power, wns::scheduler::UserID>(q.carrier, user));  
       }
     }
   }

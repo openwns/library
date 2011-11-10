@@ -57,3 +57,9 @@ class MaxRegretMetaScheduler(MetaScheduler):
   
     def __init__(self, initialICacheValues = InitVals()):
         MetaScheduler.__init__(self, initialICacheValues)
+        
+class HighCwithHighIMetaScheduler(MetaScheduler):
+    plugin = "HighCwithHighIMetaScheduler"
+  
+    def __init__(self, initialICacheValues = InitVals()):
+        MetaScheduler.__init__(self, initialICacheValues)

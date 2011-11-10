@@ -52,7 +52,7 @@
 
 namespace wns { namespace scheduler{ namespace metascheduler{
 	
-	class UtilityMatrix {
+	class UtilityMatrix: public wns::IOutputStreamable {
 	  public:
 	    void createMatrix (int baseStations, std::vector<int>& userTerminalsInBaseStations);
 	    void setValue (std::vector<int>& userIndices, double value);
@@ -64,7 +64,10 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 	    //friend std::ostream& operator<<(std::ostream &stream, const InterferenceMatrix& m);
 	    
 	  private:
-	    int _baseStations;
+        virtual std::string
+        doToString() const;
+	    
+        int _baseStations;
         int _matrixSize;
 	    std::vector<int> _userTerminalsInBaseStations;
 	    std::vector<int> _indexJumpOfBaseStation;
@@ -161,7 +164,17 @@ namespace wns { namespace scheduler{ namespace metascheduler{
 		void 
 		updateUserSubchannels(void);
 		
+        
+        /**
+         * @brief Returns the Position of an UT in its BS's activeUserSet 
+         *
+         */     
+        int 
+        getPositionOfUTinBSactiveUserSet(const BSInfo* pBS ,const wns::scheduler::UserID);
+        
 
+        
+        
 		/**
 		 * @brief Sets a Phy-Mode for a UT in a schedulingMap 
 		 *

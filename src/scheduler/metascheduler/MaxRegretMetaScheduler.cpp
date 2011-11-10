@@ -64,33 +64,6 @@ MaxRegretMetaScheduler::MaxRegretMetaScheduler(const wns::pyconfig::View& _confi
 
 }
 
-struct WeightTuple
-{
-  WeightTuple (double weight, std::vector<int> pos) {_weight = weight; _pos = pos;}
-  
-  double _weight;
-  std::vector<int> _pos;
-  
-  bool operator < (const WeightTuple& wt) const
-  {
-    if (_weight < wt._weight)
-      return true;
-    else if (_weight > wt._weight)
-      return false;
-    else
-    {
-      for (int i=0; i < _pos.size(); i++)
-      {
-	if (_pos[i] < wt._pos[i])
-	  return true;
-	else if (_pos[i] > wt._pos[i])
-	  return false;
-	else
-	  continue;
-      }
-    }
-  }
-};
   
 void MaxRegretMetaScheduler::optimize(const UtilityMatrix& throughputMatrix, std::vector< std::vector<int> >& vBestCombinations)
 {
@@ -143,7 +116,7 @@ void MaxRegretMetaScheduler::optimize(const UtilityMatrix& throughputMatrix, std
       for (int ut=0; ut < vBaseStationsSize[0]; ++ut)
       {
 	//std::cout << "BS: " << b2 << " UT: " << ut << "\n";
-	std::set<WeightTuple> twoBestVectors;
+	std::set<wns::scheduler::metascheduler::WeightTuple> twoBestVectors;
 	
 	if (!vValidIndices[b2][ut])
 	{
@@ -207,7 +180,7 @@ void MaxRegretMetaScheduler::optimize(const UtilityMatrix& throughputMatrix, std
 	  double dValue = throughputMatrix.getValue(vBaseStationsCounter);
 	  
 	  //std::cout << " Value: " << dValue << "\n";
-	  twoBestVectors.insert(WeightTuple(dValue, vBaseStationsCounter));
+	  twoBestVectors.insert(wns::scheduler::metascheduler::WeightTuple(dValue, vBaseStationsCounter));
 	  //std::cout << "CurrentValue:" << dValue << " big: " << twoBestVectors.rbegin()->_weight << "\n";
 	  if (twoBestVectors.size() > 2)
 	  {

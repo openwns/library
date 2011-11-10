@@ -260,7 +260,9 @@ srcFiles = [
     'src/scheduler/metascheduler/NoMetaScheduler.cpp',
     'src/scheduler/metascheduler/GreedyMetaScheduler.cpp',
     'src/scheduler/metascheduler/MaxRegretMetaScheduler.cpp',
-    'src/scheduler/metascheduler/tests/MetaScheduler.cpp',
+    'src/scheduler/metascheduler/HighCwithHighIMetaScheduler.cpp',
+
+    
     
     # the groupers
     'src/scheduler/grouper/NoGrouper.cpp',
@@ -985,6 +987,7 @@ hppFiles = [
 'src/scheduler/metascheduler/NoMetaScheduler.hpp',
 'src/scheduler/metascheduler/GreedyMetaScheduler.hpp',
 'src/scheduler/metascheduler/MaxRegretMetaScheduler.hpp',
+'src/scheduler/metascheduler/HighCwithHighIMetaScheduler.hpp',
 'src/scheduler/grouper/AllPossibleGroupsGrouper.hpp',
 'src/scheduler/grouper/DoAGrouper.hpp',
 'src/scheduler/grouper/DoAHeuristicLinearCost.hpp',

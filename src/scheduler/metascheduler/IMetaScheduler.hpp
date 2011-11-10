@@ -80,7 +80,9 @@ namespace wns {namespace scheduler{ namespace metascheduler {
 		  wns::scheduler::UserSet::const_iterator itaActiveUser;
 		  
 		  std::map<int, wns::scheduler::ChannelQualityOnOneSubChannel> interferenceMap;
-		  std::vector<int> bestCombination;
+          std::multimap<wns::Power, wns::scheduler::UserID> carrierMultimap;
+		  
+          std::vector<int> bestCombination;
 		  std::vector<int> bestCombinationBlockPhyMode;
 		  
 		  friend class IMetaScheduler;
