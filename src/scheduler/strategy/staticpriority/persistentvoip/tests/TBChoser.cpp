@@ -86,21 +86,24 @@ void TBChoserTest::prepare()
     sr.success = true;
     sr.cid = 1;
 
+    sr.tbStart = 0;
     sr.tbLength = 2;
     sr.start = 0;
     sr.length = 4;
     srs1.insert(sr);
+    sr.tbStart = 7;
     sr.tbLength = 1;
     sr.start = 7;
     sr.length = 2;
     srs1.insert(sr);
+    sr.tbStart = 15;
     sr.tbLength = 3;
     sr.start = 15;
     sr.length = 5;
     srs1.insert(sr);
 
 	parser_.loadString("class TBC(object):\n"
-                            "\t__plugin__ = \"Random\"\n"
+                            "\t__plugin__ = \"Smallest\"\n"
                         "tbc = TBC()\n"
                         "tbc.fallbackChoser = TBC()\n");
 }
@@ -174,8 +177,43 @@ void TBChoserTest::testPrevious()
     tbc_ = new Previous(parser_.get("tbc"));
     Frame::SearchResult sr;
 
+    /* Fallback strategy Smallest will pick RB 7 */
     sr = tbc_->choseTB(srs1);
+    unsigned int start = sr.tbStart;
+    unsigned int length = sr.tbLength;
+    CPPUNIT_ASSERT_EQUAL(start, (unsigned int)7);
+    CPPUNIT_ASSERT_EQUAL(length, (unsigned int)1);
+
+    /* RB 7 will be picked again */
     sr = tbc_->choseTB(srs1);
+    CPPUNIT_ASSERT_EQUAL(sr.tbStart, start);
+    CPPUNIT_ASSERT_EQUAL(sr.tbLength, length);
+
+    srs1.erase(sr);
+    /* Fallback strategy Smallest will pick RB 0 & 1 */
+    sr = tbc_->choseTB(srs1);
+    start = sr.tbStart;
+    length = sr.tbLength;
+    CPPUNIT_ASSERT_EQUAL(start, (unsigned int)0);
+    CPPUNIT_ASSERT_EQUAL(length, (unsigned int)2);
+
+    /* RB 0 & 1 will be picked again */
+    sr = tbc_->choseTB(srs1);
+    CPPUNIT_ASSERT_EQUAL(sr.tbStart, start);
+    CPPUNIT_ASSERT_EQUAL(sr.tbLength, length);
+
+    /* Block RB 0 but make RB 1,2,3 availbale now */
+    sr = *srs1.begin();
+    srs1.erase(sr);
+    sr.tbStart = 1;
+    sr.tbLength = 3;
+    srs1.insert(sr);
+
+    /* RB 1,2,3 will be picked now because RB 1 was used before */
+    sr = tbc_->choseTB(srs1);
+    CPPUNIT_ASSERT_EQUAL(sr.tbStart, (unsigned int)1);
+    CPPUNIT_ASSERT_EQUAL(sr.tbLength, (unsigned int)3);
+
     delete tbc_;
 }
 

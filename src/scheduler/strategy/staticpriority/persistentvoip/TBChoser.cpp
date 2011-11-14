@@ -169,28 +169,55 @@ Previous::doChoseTB(const Frame::SearchResultSet& tbs)
     Frame::SearchResult result;
     if(history_.find(tbs.begin()->cid) == history_.end())
     {
-        std::cout << "New\n";
         result = fallbackChoser_->choseTB(tbs);
         assure(result.cid == tbs.begin()->cid, "CIDs do not match"); 
 
         history_[tbs.begin()->cid] = std::set<unsigned int>();
-        std::cout << "Res " << result.cid << " " << result.tbStart << " " << result.tbLength << "\n";
-        
-        for(int i = 0; i < result.tbLength; i++)
-        {
-            history_[tbs.begin()->cid].insert(i + result.tbStart);
-            std::cout << "Put " << i + result.tbStart << "\n";
-        }
-
-        return result;
     }
     else
     {
-        unsigned int match = 0;
-        
-        
-    }
+        std::set<unsigned int> previous = history_.find(tbs.begin()->cid)->second;
+        assure(!previous.empty(), "List of past RBs is empty.");
 
-    std::cout << "Old\n";
-    return fallbackChoser_->choseTB(tbs);
+        unsigned int bestMatch = 0;
+        Frame::SearchResultSet theBest;
+        Frame::SearchResultSet::iterator it;
+        for(it = tbs.begin(); it != tbs.end(); it++)
+        {
+            int match = 0;
+            for(int i = 0; i < it->tbLength; i++)
+            {
+                if(previous.find(i + it->tbStart) != previous.end())
+                {
+                    match++;
+                }
+            }
+            if(match > bestMatch)
+            {
+                bestMatch = match;
+                theBest.clear();
+                theBest.insert(*it);
+            }
+            else if(match > 0 && match == bestMatch)
+            {
+                theBest.insert(*it);
+            }
+        }
+        if(bestMatch > 0)
+        {
+            assure(!theBest.empty(), "No best TB candidate set.");
+            history_[tbs.begin()->cid].clear();
+            result = fallbackChoser_->choseTB(theBest);
+        }
+        else
+        {
+            result = fallbackChoser_->choseTB(tbs);
+        }
+    }
+    for(int i = 0; i < result.tbLength; i++)
+    {
+        history_[tbs.begin()->cid].insert(i + result.tbStart);
+    }
+    return result;
 }
+
