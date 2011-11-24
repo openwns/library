@@ -64,7 +64,8 @@ StateTracker::StateTracker(unsigned int numberOfFrames, wns::logger::Logger& log
     numberOfFrames_(numberOfFrames),
     logger_(&logger),
     expectedCIDs_(numberOfFrames_),
-    pastPeriodCIDs_(numberOfFrames_)
+    pastPeriodCIDs_(numberOfFrames_),
+    timeRelocatedCIDs_(numberOfFrames_)
 {
 }
 
@@ -110,6 +111,23 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     std::pair<ConnectionSet, ConnectionSet> filteredFrameCIDs;
     filteredFrameCIDs = filterCIDsForFrame(activeCIDs, currentFrame);
     ConnectionSet activeFrameCIDs = filteredFrameCIDs.first;
+
+    // Not from this frame and not relocated to other frame
+    ConnectionSet otherFrameCIDs;
+    std::insert_iterator<ConnectionSet> iiOther(otherFrameCIDs, otherFrameCIDs.begin()); 
+    set_intersection(filteredFrameCIDs.second.begin(), 
+        filteredFrameCIDs.second.end(), 
+        unservedCIDs_.begin(), 
+        unservedCIDs_.end(), iiOther);
+
+    MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs not from this frame and not relocated to other frame: ");
+    for(it = otherFrameCIDs.begin();
+        it != otherFrameCIDs.end();    
+        it++)
+    {
+        m << *it << " ";
+    }
+    MESSAGE_END();
 
     MESSAGE_BEGIN(NORMAL, *logger_, m, "CIDs active belonging to this frame: ");
     for(it = activeFrameCIDs.begin();
@@ -298,7 +316,12 @@ StateTracker::updateState(const ConnectionSet& activeCIDs, unsigned int currentF
     cc.persistentCIDs = oldCIDs;
     cc.unpersistentCIDs = pastPeriodCIDs_[currentFrame];
     cc.silencedCIDs = silencedCIDs;
-    cc.otherFrameCIDs = filteredFrameCIDs.second;
+    cc.otherFrameCIDs = otherFrameCIDs;
+    cc.totalAppActive = filteredFrameCIDs.first.size() - timeRelocatedCIDs_[currentFrame].size();
+    assure(cc.totalAppActive >= 0, "Negative number of App active CIDs");
+
+    cc.totalActive = filteredFrameCIDs.first.size();
+    cc.totalQueued = activeCIDs.size();
 
     setFrameForCIDs(cc.newPersistentCIDs, currentFrame);
 
@@ -367,6 +390,10 @@ StateTracker::silenceCID(ConnectionID cid, unsigned int currentFrame)
         << " no longer expected in frame " << currentFrame);
 
     expectedCIDs_[currentFrame].erase(cid);
+
+    if(timeRelocatedCIDs_[currentFrame].find(cid) != timeRelocatedCIDs_[currentFrame].end())
+        timeRelocatedCIDs_[currentFrame].erase(cid);
+
     silentCIDs_.insert(cid);
 }
 
@@ -383,5 +410,24 @@ StateTracker::relocateCID(ConnectionID cid,
     CIDtoFrame_[cid] = newFrame;
     /* Will become new persistent CID in new frame */
     pastPeriodCIDs_[newFrame].insert(cid);
+
+    timeRelocatedCIDs_[newFrame].insert(cid);
 }
+
+
+void
+StateTracker::unservedCID(ConnectionID cid)
+{
+    unservedCIDs_.insert(cid);
+}
+
+void
+StateTracker::servedInOtherFrameCID(ConnectionID cid)
+{
+    assure(unservedCIDs_.find(cid) != unservedCIDs_.end(), 
+        cid << " was served in different frame but not previously markt as not served");
+
+    unservedCIDs_.erase(cid);
+}
+
 

@@ -46,6 +46,18 @@ class StateTracker
             ConnectionSet unpersistentCIDs;
             ConnectionSet silencedCIDs;
             ConnectionSet otherFrameCIDs;
+
+            /* Include the ones relocated from other frames but 
+            not CIDs with left over data */
+            unsigned int totalActive;
+
+            /* Do not include the ones relocated from other frames and 
+            not CIDs with left over data */
+            unsigned int totalAppActive;
+
+            /* All connections having data */
+            unsigned int totalQueued;
+
         private:
             virtual std::string
             doToString() const;
@@ -64,6 +76,12 @@ class StateTracker
         relocateCID(ConnectionID cid, 
             unsigned int currentFrame, unsigned int newFrame);
 
+        void
+        unservedCID(ConnectionID cid);
+
+        void
+        servedInOtherFrameCID(ConnectionID cid);
+
     private:
         void
         setFrameForCIDs(const ConnectionSet& cids, unsigned int frame);
@@ -75,9 +93,11 @@ class StateTracker
 
         std::vector<ConnectionSet> expectedCIDs_;
         std::vector<ConnectionSet> pastPeriodCIDs_;
+        std::vector<ConnectionSet> timeRelocatedCIDs_;
         std::map<ConnectionID, unsigned int> CIDtoFrame_;
         ConnectionSet silentCIDs_;
         ConnectionSet allCIDs_;
+        ConnectionSet unservedCIDs_;
 
         wns::logger::Logger* logger_;
 };

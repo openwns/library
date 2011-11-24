@@ -68,6 +68,9 @@ class PersistentVoIP
         void
         onNewPeriod();
 
+        unsigned int
+        probeHARQ();
+
         /* First the successfull, then the ones that did not get resources */
         ConnectionSetPair
         schedulePersistently(const ConnectionSet& cids);
@@ -102,6 +105,20 @@ class PersistentVoIP
         persistentvoip::StateTracker stateTracker_;
 
         wns::probe::bus::ContextCollector frameOccupationFairness_;
+        wns::probe::bus::ContextCollector activeCIDs_;
+        wns::probe::bus::ContextCollector allActiveCIDs_;
+        wns::probe::bus::ContextCollector queuedCIDs_;
+        wns::probe::bus::ContextCollector timeRelocatedCIDs_;
+        wns::probe::bus::ContextCollector freqRelocatedCIDs_;
+
+        wns::probe::bus::ContextCollector numPDCCH_;
+        wns::probe::bus::ContextCollector numDynamicPDCCH_;        
+        wns::probe::bus::ContextCollector numPersSetupPDCCH_;        
+        wns::probe::bus::ContextCollector numPersRelocPDCCH_;
+        wns::probe::bus::ContextCollector numSID_PDCCH_;        
+        wns::probe::bus::ContextCollector numOtherFrame_PDCCH_;
+        wns::probe::bus::ContextCollector numHARQ_PDCCH_;
+        wns::probe::bus::ContextCollector numHARQ_Users_;
 
         wns::pyconfig::View resourceGridConfig_;
 };

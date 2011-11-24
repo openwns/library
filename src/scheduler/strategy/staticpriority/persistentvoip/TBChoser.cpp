@@ -37,7 +37,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(BestFit, ITBChoser, "BestFit", wns::PyConfi
 STATIC_FACTORY_REGISTER_WITH_CREATOR(WorstFit, ITBChoser, "WorstFit", wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Random, ITBChoser, "Random", wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Smallest, ITBChoser, "Smallest", wns::PyConfigViewCreator);
-STATIC_FACTORY_REGISTER_WITH_CREATOR(Smallest, ITBChoser, "Previous", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(Previous, ITBChoser, "Previous", wns::PyConfigViewCreator);
 
 Frame::SearchResult
 TBChoser::choseTB(const Frame::SearchResultSet& tbs)
