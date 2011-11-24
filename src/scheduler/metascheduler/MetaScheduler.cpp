@@ -128,7 +128,7 @@ UtilityMatrix::doToString() const
     {
       for (int x=0; x < _userTerminalsInBaseStations[0]; ++x)
       {
-        s << _data[x + y * _indexJumpOfBaseStation[1]] << " ";
+        s << _data[y + x * _indexJumpOfBaseStation[1]] << " ";
       }
       s << std::endl;
     }
@@ -141,7 +141,7 @@ UtilityMatrix::doToString() const
       {
         for (int x=0; x < _userTerminalsInBaseStations[0]; ++x)
         {
-          s << _data[x + y * _indexJumpOfBaseStation[1] + z * _indexJumpOfBaseStation[2]] << " ";
+          s << _data[y + x * _indexJumpOfBaseStation[1] + z * _indexJumpOfBaseStation[2]] << " ";
         }
         s << std::endl;
       }

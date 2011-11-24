@@ -75,24 +75,26 @@ void GreedyMetaScheduler::optimize(const UtilityMatrix& throughputMatrix,
 
   
   // variables
-  double dAccumValue = 0;
+
+  
   std::vector<int> vBaseStationsCounter;
   std::vector<int> vBaseStationsSize;
   std::vector< std::vector<bool> > vValidIndices (iBaseStations);
    
+  
   // Setup data
   for (int i = 0; i < iBaseStations; i++)
   {
-    int iSize = iNumberUTperBS; 
-    vBaseStationsSize.push_back(iSize);
-    vValidIndices[i].resize (vBaseStationsSize[i], true);
-    iMatrixSize *= iSize;
+    vBaseStationsSize.push_back(iNumberUTperBS);
+    vValidIndices[i].resize (iNumberUTperBS , true);
   }
   
   
   //greedy
   for (int b=0; b < iNumberUTperBS; ++b)
   {
+    double dAccumValue = 0;
+       
     std::vector<int> vCurrentBest (iBaseStations, 0);
     double currentBestValue = 0;
     
@@ -106,7 +108,7 @@ void GreedyMetaScheduler::optimize(const UtilityMatrix& throughputMatrix,
       {
         vBaseStationsCounter[j]++;
         
-        if (vBaseStationsCounter[j] == vBaseStationsSize[j])
+        if (vBaseStationsCounter[j] == iNumberUTperBS)
         {
           vBaseStationsCounter[j] = 0;
           continue;
@@ -115,34 +117,38 @@ void GreedyMetaScheduler::optimize(const UtilityMatrix& throughputMatrix,
           break;
       }
       
+    
       //test if a previously used line is present in the counter and skip it
       bool bBlocked = false;
       for (int j=0; j < iBaseStations; ++j)
       {
         if (!vValidIndices[j][vBaseStationsCounter[j]])
         {
-      bBlocked = true;
-      break;
+          bBlocked = true;
+          break;
         }
       }
-          if (bBlocked)
-            continue;
+      if (bBlocked)
+      {
+        continue;
+      }
       
-          double dValue = throughputMatrix.getValue(vBaseStationsCounter);
-          if (dValue > currentBestValue)
-          {
-            currentBestValue = dValue;
-            vCurrentBest = vBaseStationsCounter;
-          }
+      double dValue = throughputMatrix.getValue(vBaseStationsCounter);
+      
+      if (dValue > currentBestValue)
+      {
+        currentBestValue = dValue;
+        vCurrentBest = vBaseStationsCounter;
+      }
     }
     
     dAccumValue += currentBestValue;  
     
-    for (int j=0; j < iBaseStations; ++j)
+    
+    for (int iBS=0; iBS < iBaseStations; ++iBS)
     {
-      (vBestCombinations)[j][b] = vCurrentBest[j];
-      vValidIndices[j][vCurrentBest[j]] = false;
-    }
- 
-  }
+      vBestCombinations[iBS][b] = vCurrentBest[iBS];
+      vValidIndices[iBS][vCurrentBest[iBS]] = false;
+    } 
+  } 
 }

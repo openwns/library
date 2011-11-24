@@ -261,6 +261,7 @@ srcFiles = [
     'src/scheduler/metascheduler/GreedyMetaScheduler.cpp',
     'src/scheduler/metascheduler/MaxRegretMetaScheduler.cpp',
     'src/scheduler/metascheduler/HighCwithHighIMetaScheduler.cpp',
+    'src/scheduler/metascheduler/tests/MetaScheduler.cpp',
 
     
     
