@@ -67,7 +67,7 @@ UniformRandomDecoder::UniformRandomDecoder(const UniformRandomDecoder& other):
 }
 
 bool
-UniformRandomDecoder::canDecode(SoftCombiningContainer input)
+UniformRandomDecoder::canDecode(const SoftCombiningContainer& input)
 {
     int numTransmissions = 0;
 
@@ -108,7 +108,7 @@ ChaseCombiningDecoder::ChaseCombiningDecoder(const ChaseCombiningDecoder& other)
 }
 
 bool
-ChaseCombiningDecoder::canDecode(SoftCombiningContainer input)
+ChaseCombiningDecoder::canDecode(const SoftCombiningContainer& input)
 {
     // input contains softcombining containers including multiple subchannels
 
@@ -855,7 +855,7 @@ HARQReceiverProcess::decode()
         for(it=positions.begin();it!=positions.end();++it)
         {
             wns::scheduler::SchedulingTimeSlotPtr ts;
-            ts = receptionBuffer_.getEntriesForRV(*it, 0).front().timeSlot_;
+            ts = receptionBuffer_.getEntriesForRV(*it, 0).back().timeSlot_;
             ts->harq.successfullyDecoded = true;
             tmp.push_back(HARQInterface::DecodeStatusContainerEntry(ts,
                                                                     HARQInterface::TimeSlotInfo(wns::service::phy::power::PowerMeasurementPtr(), 0)

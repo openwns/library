@@ -62,7 +62,7 @@ class IDecoder:
 public:
 
     virtual bool
-    canDecode(SoftCombiningContainer) = 0;
+    canDecode(const SoftCombiningContainer& input) = 0;
 };
 STATIC_FACTORY_DEFINE(IDecoder, wns::PyConfigViewCreator);
 
@@ -81,7 +81,7 @@ public:
     virtual ~UniformRandomDecoder() {}
 
     virtual bool
-    canDecode(SoftCombiningContainer);
+    canDecode(const SoftCombiningContainer& input);
 private:
 
     std::auto_ptr<wns::distribution::Distribution> dis_;
@@ -108,7 +108,7 @@ public:
     virtual ~ChaseCombiningDecoder() {}
 
     virtual bool
-    canDecode(SoftCombiningContainer);
+    canDecode(const SoftCombiningContainer& input);
 private:
 
     std::auto_ptr<wns::distribution::Distribution> dis_;
