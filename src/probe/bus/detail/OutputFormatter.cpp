@@ -319,7 +319,15 @@ LogEvalReadable::doPrint(std::ostream& strm,
             strm << sorters().at(counter).getMin(*index) << "\t";
             ++counter;
         }
-        strm << data.getByIndex(fixedIndices).get(valueType) << "\n";
+        if((valueType == "min" || valueType == "max") 
+            && data.getByIndex(fixedIndices).get("trials") == 0)
+        {
+            strm << 0.0 << "\n";
+        }
+        else
+        {
+            strm << data.getByIndex(fixedIndices).get(valueType) << "\n";
+        }
         return;
     }
     else
