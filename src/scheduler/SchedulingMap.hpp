@@ -58,6 +58,7 @@ namespace wns { namespace scheduler {
                 int tbPos;
                 boost::function<void ()> ackCallback;
                 boost::function<void ()> nackCallback;
+                wns::simulator::Time firstTxTime;
             };
 
 

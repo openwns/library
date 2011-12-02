@@ -268,6 +268,8 @@ HARQ::storeSchedulingTimeSlot(long int transportBlockID, const wns::scheduler::S
     // this is the userID seen from here (the sending peer):
     wns::scheduler::UserID userID = resourceBlock->physicalResources[0].getUserIDOfScheduledCompounds();
 
+    resourceBlock->harq.firstTxTime = wns::simulator::getEventScheduler()->getTime();
+
     HARQEntity* entity = this->findEntity(userID);
 
     assure(entity->hasCapacity(transportBlockID), "The HARQ Entity for peer UserID=" << userID.getName() << " does not have anymore capacity!");
