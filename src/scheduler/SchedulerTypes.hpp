@@ -41,6 +41,7 @@
 #include <WNS/CandI.hpp>
 #include <WNS/Enum.hpp>
 #include <WNS/SmartPtr.hpp>
+#include <WNS/Birthmark.hpp>
 
 #include <map>
 #include <vector>
@@ -60,7 +61,8 @@ namespace wns { namespace scheduler {
 #define ANYTIME std::numeric_limits<int>::max()
 
     class UserID:
-        public wns::IOutputStreamable
+        public wns::IOutputStreamable,
+        public wns::HasBirthmark
     {
     public:
         explicit UserID() { node_ = NULL; isBroadcast_ = false; };
@@ -145,13 +147,21 @@ namespace wns { namespace scheduler {
         bool
         operator< (const UserID& other) const
         {
-            if (node_ == other.node_)
+            if (isBroadcast() && !other.isBroadcast())
             {
-                return isBroadcast() != other.isBroadcast();
+                return false;
+            }
+            else if(!isBroadcast() && other.isBroadcast())
+            {
+                return true;
+            }
+            else if(isBroadcast() && other.isBroadcast())
+            {
+                return getBirthmark() < other.getBirthmark();
             }
             else
             {
-                return (node_ < other.node_);
+                return getNodeID() < other.getNodeID();
             }
         }
 
