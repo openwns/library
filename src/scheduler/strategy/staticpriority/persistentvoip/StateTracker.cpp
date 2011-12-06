@@ -408,8 +408,7 @@ StateTracker::relocateCID(ConnectionID cid,
         "CID must be silenced before relocation");
 
     CIDtoFrame_[cid] = newFrame;
-    /* Will become new persistent CID in new frame */
-    pastPeriodCIDs_[newFrame].insert(cid);
+    expectedCIDs_[newFrame].insert(cid);
 
     timeRelocatedCIDs_[newFrame].insert(cid);
 }

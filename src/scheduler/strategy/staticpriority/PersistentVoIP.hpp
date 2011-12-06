@@ -49,6 +49,53 @@ class PersistentVoIP
     public:
         typedef std::pair<ConnectionSet, ConnectionSet> ConnectionSetPair;
 
+        struct SchedStatus
+        {
+            SchedStatus(PersistentVoIP* parent):
+                parent(parent),
+                PDCCHCountValid(false){};
+
+            /* SID and first time active or reactivated */
+            ConnectionSetPair unpersistent;
+
+            /* Active connections scheduled persistently */
+            ConnectionSet persistent;
+
+            /* First time active */
+            ConnectionSetPair setup;
+
+            /* Active again */
+            ConnectionSetPair reactivate;
+
+            /* Active but not fitting previous persistent reservation */
+            ConnectionSetPair freqRelocate;
+
+            /* Relocated in time because not fitting application frame
+               but not fitting persistent reservation anymore done earlier. */
+            ConnectionSetPair timeRelocateFreqRelocate;
+
+            /* Not enough resources in application frame, relocated to most empty frame */
+            ConnectionSetPair timeRelocate;
+
+            /* Any other stuff done if PDCCH resources available */
+            ConnectionSetPair dynamic;
+
+            bool PDCCHCountValid;
+            unsigned int numPDCCH;
+            unsigned int numDynamicPDCCH;
+            unsigned int numHARQ_PDCCH;
+            unsigned int numSID_PDCCH;
+            unsigned int numOtherFramePDCCH;
+            unsigned int numPersSetupPDCCH;        
+            unsigned int numPersSetupTimeRelocatedPDCCH;        
+            unsigned int numPersRelocPDCCH;
+
+            PersistentVoIP* parent;
+
+            void
+            calculatePDCCH();
+        };
+
         PersistentVoIP(const wns::pyconfig::View& config);
 
         ~PersistentVoIP();
@@ -61,6 +108,8 @@ class PersistentVoIP
                              wns::scheduler::SchedulingMapPtr schedulingMap);
 
     private:
+        friend class SchedStatus;
+
         void 
         onFirstScheduling(const SchedulerStatePtr& schedulerState,
                              wns::scheduler::SchedulingMapPtr schedulingMap);
@@ -73,7 +122,7 @@ class PersistentVoIP
 
         /* First the successfull, then the ones that did not get resources */
         ConnectionSetPair
-        schedulePersistently(const ConnectionSet& cids);
+        schedulePersistently(const ConnectionSet& cids, unsigned int frame);
 
         void
         processSilenced(const ConnectionSet& cids);
@@ -89,8 +138,15 @@ class PersistentVoIP
                      const SchedulerStatePtr& schedulerState,
                      const SchedulingMapPtr& schedulingMap);
 
-        void
+        PersistentVoIP::ConnectionSetPair
         relocateCIDs(const ConnectionSet& cids);
+
+        void
+        probe(SchedStatus& stat);
+
+        void
+        probeN(const ConnectionSetPair& csp, 
+            const wns::probe::bus::ContextCollector& probe);
 
         bool firstScheduling_;
         bool neverUsed_;
@@ -98,6 +154,8 @@ class PersistentVoIP
 
         unsigned int numberOfFrames_;
         unsigned int currentFrame_;
+
+        std::vector<ConnectionSet> futurePersSetup_;
 
         Bit voicePDUSize_;
 
@@ -108,17 +166,25 @@ class PersistentVoIP
         wns::probe::bus::ContextCollector activeCIDs_;
         wns::probe::bus::ContextCollector allActiveCIDs_;
         wns::probe::bus::ContextCollector queuedCIDs_;
+
         wns::probe::bus::ContextCollector timeRelocatedCIDs_;
         wns::probe::bus::ContextCollector freqRelocatedCIDs_;
+        wns::probe::bus::ContextCollector timeFreqRelocatedCIDs_;
 
         wns::probe::bus::ContextCollector numPDCCH_;
         wns::probe::bus::ContextCollector numDynamicPDCCH_;        
         wns::probe::bus::ContextCollector numPersSetupPDCCH_;        
+        wns::probe::bus::ContextCollector numPersSetupTimeRelocatedPDCCH_;        
         wns::probe::bus::ContextCollector numPersRelocPDCCH_;
         wns::probe::bus::ContextCollector numSID_PDCCH_;        
         wns::probe::bus::ContextCollector numOtherFrame_PDCCH_;
         wns::probe::bus::ContextCollector numHARQ_PDCCH_;
-        wns::probe::bus::ContextCollector numHARQ_Users_;
+
+        wns::probe::bus::ContextCollector percFailedReactivations_;
+        wns::probe::bus::ContextCollector percFailedSetup_;
+        wns::probe::bus::ContextCollector percFailedFreqRelocation_;
+        wns::probe::bus::ContextCollector percFailedTimeRelocation_;
+        wns::probe::bus::ContextCollector percFailedTimeFreqRelocation_;
 
         wns::pyconfig::View resourceGridConfig_;
 };

@@ -28,6 +28,82 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      maxXValue = 1,
                                      resolution = 100))
 
+
+    sourceName = 'scheduler.persistentvoip.failedReactivations'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Failed Reactivations',
+                                     minXValue = 0,
+                                     maxXValue = 1,
+                                     resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','trials']))
+
+    sourceName = 'scheduler.persistentvoip.failedSetup'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Failed Setups',
+                                     minXValue = 0,
+                                     maxXValue = 1,
+                                     resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','trials']))
+
+    sourceName = 'scheduler.persistentvoip.failedFreqRelocation'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Failed Freq Relocations',
+                                     minXValue = 0,
+                                     maxXValue = 1,
+                                     resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','trials']))
+
+    sourceName = 'scheduler.persistentvoip.failedTimeRelocation'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Failed Time Relocations',
+                                     minXValue = 0,
+                                     maxXValue = 1,
+                                     resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','trials']))
+
+    sourceName = 'scheduler.persistentvoip.failedTimeFreqRelocation'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Need more from other frames',
+                                     minXValue = 0,
+                                     maxXValue = 1,
+                                     resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','trials']))
+
     sourceName = 'scheduler.persistentvoip.ActiveConnections'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
@@ -78,6 +154,16 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      maxXValue = stationCount,
                                      resolution = stationCount))
 
+    sourceName = 'scheduler.persistentvoip.TimeFreqRelocatedConnections'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Time & Frequency Relocated Connections',
+                                     minXValue = 0,
+                                     maxXValue = stationCount,
+                                     resolution = stationCount))
+
     sourceName = 'scheduler.persistentvoip.NumberOfPDCCHs'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
@@ -104,6 +190,16 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
     node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
     node.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'Number of Persistent Setup PDCCHs',
+                                     minXValue = 0,
+                                     maxXValue = stationCount,
+                                     resolution = stationCount))    
+
+    sourceName = 'scheduler.persistentvoip.NumberOfPersSetupTimeRelocatedPDCCHs'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Number of Persistent Setup PDCCHs from earlier frames',
                                      minXValue = 0,
                                      maxXValue = stationCount,
                                      resolution = stationCount))    
@@ -148,13 +244,4 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      maxXValue = stationCount,
                                      resolution = stationCount))
 
-    sourceName = 'scheduler.persistentvoip.NumberOfHARQ_Users'
-    node = openwns.evaluation.createSourceNode(sim, sourceName)
-    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
-    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
-    node.getLeafs().appendChildren(PDF(name = sourceName,
-                                     description = 'Number of HARQ Users',
-                                     minXValue = 0,
-                                     maxXValue = stationCount,
-                                     resolution = stationCount))
 
