@@ -76,7 +76,9 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     percFailedSetup_("scheduler.persistentvoip.failedSetup"),
     percFailedFreqRelocation_("scheduler.persistentvoip.failedFreqRelocation"),
     percFailedTimeRelocation_("scheduler.persistentvoip.failedTimeRelocation"),
-    percFailedTimeFreqRelocation_("scheduler.persistentvoip.failedTimeFreqRelocation")
+    percFailedTimeFreqRelocation_("scheduler.persistentvoip.failedTimeFreqRelocation"),
+    percFailedDynamic_("scheduler.persistentvoip.failedDynamic"),
+    percFailedSID_("scheduler.persistentvoip.failedSID")
 {
 }
 
@@ -162,12 +164,14 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     // Could be that those CIDs do not fit the allocation anymore (needMore),
     // In this case we use PDCCH resources for relocation, not setup
     ConnectionSet::iterator it;
-    for(it = needMore.begin(); it != needMore.end(); it++)
+    for(it = futurePersSetup_[currentFrame_].begin(); 
+        it != futurePersSetup_[currentFrame_].end(); 
+        it++)
     {
-        if(futurePersSetup_[currentFrame_].find(*it) != futurePersSetup_[currentFrame_].end())
-            status.timeRelocateFreqRelocate.second.insert(*it);
-        else
+        if(needMore.find(*it) != needMore.end())
             status.timeRelocateFreqRelocate.first.insert(*it);
+        else
+            status.timeRelocateFreqRelocate.second.insert(*it);
     }
 
     // Try to find resources for reactivated CIDs
@@ -211,8 +215,6 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         result = scheduleData(*it, true, schedulerState, schedulingMap);
         mapInfoCollection->join(*result);
         status.persistent.insert(*it);
-        if(colleagues.queue->getHeadOfLinePDUbits(*it))
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " has data: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
     }
 
     MESSAGE_SINGLE(NORMAL, logger, "Dynamically scheduling " << cc.unpersistentCIDs.size()
@@ -244,7 +246,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
     /* Give what is left to CIDs belonging to other frames */
 
-    for(it = cc.otherFrameCIDs.begin();
+    /*for(it = cc.otherFrameCIDs.begin();
         it != cc.otherFrameCIDs.end();
         it++)
     {
@@ -262,46 +264,35 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         {
             status.dynamic.second.insert(*it);
         }
+    }*/
+
+    activeConnections = colleagues.queue->filterQueuedCids(currentConnections);
+    for(it = activeConnections.begin();
+        it != activeConnections.end();
+        it++)
+    {
+        if(timeRelocationFrames_.find(*it) == timeRelocationFrames_.end() ||
+            timeRelocationFrames_[*it].find(currentFrame_) == timeRelocationFrames_[*it].end())
+        { 
+            MESSAGE_SINGLE(NORMAL, logger, "Trying to schedule data for CID " << *it 
+                << " from other frame");
+
+            result = scheduleData(*it, false, schedulerState, schedulingMap);
+            if(result->size() > 0)
+            {
+                mapInfoCollection->join(*result);
+                stateTracker_.servedInOtherFrameCID(*it);
+                status.dynamic.first.insert(*it);
+            }
+            else
+            {
+                status.dynamic.second.insert(*it);
+            }
+        }
     }
 
     probe(status);
     futurePersSetup_[currentFrame_].clear();
-
-    /*activeConnections = colleagues.queue->filterQueuedCids(currentConnections);
-    for(it = activeConnections.begin(); it != activeConnections.end(); it++)
-    {
-        std::cout << wns::simulator::getEventScheduler()->getTime() << " Pers " << currentFrame_ << " ";
-        if(status.unpersistent.first.find(*it) != status.unpersistent.first.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in unpersistent success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.persistent.find(*it) != status.persistent.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in persistent: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.setup.first.find(*it) != status.setup.first.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in setup success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.setup.second.find(*it) != status.setup.second.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in setup failed: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.reactivate.first.find(*it) != status.reactivate.first.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in reactivate success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.reactivate.second.find(*it) != status.reactivate.second.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in reactivate failed: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.freqRelocate.first.find(*it) != status.freqRelocate.first.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in freqRelocate success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.freqRelocate.second.find(*it) != status.freqRelocate.second.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in freqRelocate failed: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.timeRelocateFreqRelocate.first.find(*it) != status.timeRelocateFreqRelocate.first.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in timeRelocateFreqRelocate success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.timeRelocateFreqRelocate.second.find(*it) != status.timeRelocateFreqRelocate.second.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in timeRelocateFreqRelocate failed: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.timeRelocate.first.find(*it) != status.timeRelocate.first.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in timeRelocate success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.timeRelocate.second.find(*it) != status.timeRelocate.second.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in timeRelocate failed: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.dynamic.first.find(*it) != status.dynamic.first.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in dynamic success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else if(status.dynamic.second.find(*it) != status.dynamic.second.end())
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in dynamic failed: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-        else
-            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " no set: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
-    }*/
 
     return mapInfoCollection;
 } // doStartSubScheduling
@@ -503,6 +494,9 @@ void
 PersistentVoIP::processSilenced(const ConnectionSet& cids)
 {
     resources_->unscheduleCID(currentFrame_, cids);
+    ConnectionSet::iterator it;
+    for(it = cids.begin(); it != cids.end(); it++)
+            timeRelocationFrames_.erase(*it);
 }
 
 PersistentVoIP::ConnectionSetPair
@@ -522,10 +516,11 @@ PersistentVoIP::relocateCIDs(const ConnectionSet& cids)
         cid.insert(*it);
         ConnectionSetPair oneResult;
         unsigned int start = currentFrame_;
-        //unsigned int newFrame = resources_->getMostEmptyFrame();
         unsigned int newFrame = start;
+        std::set<unsigned int> frames;
         do
         {
+            frames.insert(newFrame);
             newFrame++;
             newFrame %= numberOfFrames_;
             oneResult = schedulePersistently(cid, newFrame);
@@ -540,15 +535,14 @@ PersistentVoIP::relocateCIDs(const ConnectionSet& cids)
             stateTracker_.relocateCID(*it, currentFrame_, newFrame);
             result.first.insert(*it);
             futurePersSetup_[newFrame].insert(*it);
+            timeRelocationFrames_[*it] = frames;
 #ifndef WNS_NDEBUG
             newFrames[*it] = newFrame;
 #endif
-            //std::cout << wns::simulator::getEventScheduler()->getTime() << " PersReloc " << currentFrame_ << "->" << newFrame << " " << *it << " " << colleagues.registry->getUserForCID(*it) << "\n";
         }
         /* Failure*/
         else
         {
-            //std::cout << wns::simulator::getEventScheduler()->getTime() << " PersRelocFailed " << currentFrame_ << *it << " " << colleagues.registry->getUserForCID(*it) << "\n";
             result.second.insert(*it);    
         }
     }
@@ -633,6 +627,8 @@ PersistentVoIP::probe(SchedStatus& status)
     probeN(status.freqRelocate, percFailedFreqRelocation_);
     probeN(status.timeRelocate, percFailedTimeRelocation_);
     probeN(status.timeRelocateFreqRelocate, percFailedTimeFreqRelocation_);
+    probeN(status.dynamic, percFailedDynamic_);
+    probeN(status.unpersistent, percFailedSID_);
 
     /* Count */
     timeRelocatedCIDs_.put(status.timeRelocate.first.size(), 

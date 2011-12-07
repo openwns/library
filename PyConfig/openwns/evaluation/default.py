@@ -104,6 +104,35 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                             resolution = max(loggingStations) + 1,
                                             statEvals = ['mean','trials']))
 
+    sourceName = 'scheduler.persistentvoip.failedDynamic'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Failed Dynamic',
+                                     minXValue = 0,
+                                     maxXValue = 1,
+                                     resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','trials']))
+
+    sourceName = 'scheduler.persistentvoip.failedSID'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Failed SID',
+                                     minXValue = 0,
+                                     maxXValue = 1,
+                                     resolution = 100))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','trials']))
     sourceName = 'scheduler.persistentvoip.ActiveConnections'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))

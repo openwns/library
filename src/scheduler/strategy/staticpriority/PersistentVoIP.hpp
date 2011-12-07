@@ -156,6 +156,7 @@ class PersistentVoIP
         unsigned int currentFrame_;
 
         std::vector<ConnectionSet> futurePersSetup_;
+        std::map<ConnectionID, std::set<unsigned int> > timeRelocationFrames_;
 
         Bit voicePDUSize_;
 
@@ -185,6 +186,8 @@ class PersistentVoIP
         wns::probe::bus::ContextCollector percFailedFreqRelocation_;
         wns::probe::bus::ContextCollector percFailedTimeRelocation_;
         wns::probe::bus::ContextCollector percFailedTimeFreqRelocation_;
+        wns::probe::bus::ContextCollector percFailedDynamic_;
+        wns::probe::bus::ContextCollector percFailedSID_;
 
         wns::pyconfig::View resourceGridConfig_;
 };
