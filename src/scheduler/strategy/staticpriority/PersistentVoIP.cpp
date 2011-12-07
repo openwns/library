@@ -211,6 +211,8 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         result = scheduleData(*it, true, schedulerState, schedulingMap);
         mapInfoCollection->join(*result);
         status.persistent.insert(*it);
+        if(colleagues.queue->getHeadOfLinePDUbits(*it))
+            std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " has data: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
     }
 
     MESSAGE_SINGLE(NORMAL, logger, "Dynamically scheduling " << cc.unpersistentCIDs.size()
@@ -266,10 +268,9 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     futurePersSetup_[currentFrame_].clear();
 
     /*activeConnections = colleagues.queue->filterQueuedCids(currentConnections);
-    if(activeConnections.size() > 0)
-        std::cout << wns::simulator::getEventScheduler()->getTime() << " Pers " << currentFrame_ << " ";
     for(it = activeConnections.begin(); it != activeConnections.end(); it++)
     {
+        std::cout << wns::simulator::getEventScheduler()->getTime() << " Pers " << currentFrame_ << " ";
         if(status.unpersistent.first.find(*it) != status.unpersistent.first.end())
             std::cout << *it << " " << colleagues.registry->getUserForCID(*it) << " in unpersistent success: " << colleagues.queue->getHeadOfLinePDUbits(*it) << "\n";
         else if(status.persistent.find(*it) != status.persistent.end())
@@ -518,12 +519,20 @@ PersistentVoIP::relocateCIDs(const ConnectionSet& cids)
     for(it = cids.begin(); it != cids.end(); it++)
     {
         cid.clear();
-        unsigned int newFrame = resources_->getMostEmptyFrame();
         cid.insert(*it);
         ConnectionSetPair oneResult;
-        oneResult = schedulePersistently(cid, newFrame);
-        assure(oneResult.first.size() + oneResult.second.size() == 1, 
-            "Result size sum must be one");
+        unsigned int start = currentFrame_;
+        //unsigned int newFrame = resources_->getMostEmptyFrame();
+        unsigned int newFrame = start;
+        do
+        {
+            newFrame++;
+            newFrame %= numberOfFrames_;
+            oneResult = schedulePersistently(cid, newFrame);
+            assure(oneResult.first.size() + oneResult.second.size() == 1, 
+                "Result size sum must be one");
+        }
+        while(oneResult.first.size() != 1 && newFrame != start);
 
         /* Succcess */
         if(oneResult.first.size() == 1)
@@ -534,10 +543,12 @@ PersistentVoIP::relocateCIDs(const ConnectionSet& cids)
 #ifndef WNS_NDEBUG
             newFrames[*it] = newFrame;
 #endif
+            //std::cout << wns::simulator::getEventScheduler()->getTime() << " PersReloc " << currentFrame_ << "->" << newFrame << " " << *it << " " << colleagues.registry->getUserForCID(*it) << "\n";
         }
         /* Failure*/
         else
         {
+            //std::cout << wns::simulator::getEventScheduler()->getTime() << " PersRelocFailed " << currentFrame_ << *it << " " << colleagues.registry->getUserForCID(*it) << "\n";
             result.second.insert(*it);    
         }
     }
