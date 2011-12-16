@@ -80,6 +80,13 @@ HARQRetransmissionProxy::schedulePeerRetransmissions(wns::scheduler::UserID peer
     assure(downlinkHARQ_, "There is no downlinkHARQ set.");
     downlinkHARQ_->schedulePeerRetransmissions(peer, processID);
 }
+
+void
+HARQRetransmissionProxy::schedulePeerRetransmission(wns::scheduler::UserID peer, int processID)
+{
+    assure(downlinkHARQ_, "There is no downlinkHARQ set.");
+    downlinkHARQ_->schedulePeerRetransmission(peer, processID);
+}
 void
 HARQRetransmissionProxy::sendPendingFeedback()
 {

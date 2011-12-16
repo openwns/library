@@ -55,8 +55,10 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     stateTracker_(numberOfFrames_, logger),
     futurePersSetup_(numberOfFrames_),
     resources_(NULL),
+    harq_(NULL),
     voicePDUSize_(config.get<Bit>("voicePDUSize")),
     resourceGridConfig_(config.get("resourceGrid")),
+    harqConfig_(config.get("harq")),
     frameOccupationFairness_("scheduler.persistentvoip.FrameOccupationFairness"),
     activeCIDs_("scheduler.persistentvoip.ActiveConnections"),
     allActiveCIDs_("scheduler.persistentvoip.AllActiveConnections"),
@@ -78,7 +80,8 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     percFailedTimeRelocation_("scheduler.persistentvoip.failedTimeRelocation"),
     percFailedTimeFreqRelocation_("scheduler.persistentvoip.failedTimeFreqRelocation"),
     percFailedDynamic_("scheduler.persistentvoip.failedDynamic"),
-    percFailedSID_("scheduler.persistentvoip.failedSID")
+    percFailedSID_("scheduler.persistentvoip.failedSID"),
+    percFailedHARQ_("scheduler.persistentvoip.failedHARQ")
 {
 }
 
@@ -217,6 +220,16 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         status.persistent.insert(*it);
     }
 
+    assure(harq_ != NULL, "Need valid HARQ scheduler");
+    status.harq.first = colleagues.harq->getPeersWithPendingRetransmissions();
+    result = harq_->doStartSubScheduling(schedulerState, schedulingMap);
+    mapInfoCollection->join(*result);
+    status.harq.second = colleagues.harq->getPeersWithPendingRetransmissions();
+    UserSet::iterator iter;
+    /* Remove failed HARQ users from first */
+    for(iter = status.harq.second.begin(); iter != status.harq.second.end(); iter++)
+        status.harq.first.erase(*iter);
+
     MESSAGE_SINGLE(NORMAL, logger, "Dynamically scheduling " << cc.unpersistentCIDs.size()
         << " CIDs in frame " << currentFrame_ << ".");
 
@@ -243,28 +256,6 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
             status.unpersistent.second.insert(*it);
         }
     }             
-
-    /* Give what is left to CIDs belonging to other frames */
-
-    /*for(it = cc.otherFrameCIDs.begin();
-        it != cc.otherFrameCIDs.end();
-        it++)
-    {
-        MESSAGE_SINGLE(NORMAL, logger, "Trying to schedule data for CID " << *it 
-            << " from other frame");
-
-        result = scheduleData(*it, false, schedulerState, schedulingMap);
-        if(result->size() > 0)
-        {
-            mapInfoCollection->join(*result);
-            stateTracker_.servedInOtherFrameCID(*it);
-            status.dynamic.first.insert(*it);
-        }
-        else
-        {
-            status.dynamic.second.insert(*it);
-        }
-    }*/
 
     activeConnections = colleagues.queue->filterQueuedCids(currentConnections);
     for(it = activeConnections.begin();
@@ -578,27 +569,18 @@ PersistentVoIP::onFirstScheduling(const SchedulerStatePtr& schedulerState,
         numberOfFrames_, numberOfSubchannels_, 
         colleagues.registry, schedulingMap->getSlotLength(),
         colleagues.strategy->getSchedulerSpotType());
+
+    std::string substrategyName = harqConfig_.get<std::string>("__plugin__");
+    MESSAGE_SINGLE(NORMAL, logger, "Creating HARQ scheduler of type " << substrategyName);
+	wns::scheduler::strategy::staticpriority::SubStrategyCreator* subStrategyCreator;
+	subStrategyCreator = 
+        wns::scheduler::strategy::staticpriority::SubStrategyFactory::creator(substrategyName);
+	harq_ = subStrategyCreator->create(harqConfig_);
+    harq_->setColleagues(colleagues.strategy,
+                         colleagues.queue,
+                         colleagues.registry,
+                         colleagues.harq);
 }
-
-unsigned int
-PersistentVoIP::probeHARQ()
-{
-    unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
-    wns::scheduler::UserSet us = colleagues.harq->getPeersWithPendingRetransmissions();
-    wns::scheduler::UserSet::iterator user;
-
-    unsigned numHARQ_PDCCH = 0;
-    for(user = us.begin(); user!=us.end(); ++user)
-    {
-        std::list<int> processesToSchedule = 
-            colleagues.harq->getPeerProcessesWithRetransmissions(*user);
-
-        numHARQ_PDCCH+= processesToSchedule.size();
-    }
-    numHARQ_PDCCH_.put(numHARQ_PDCCH, boost::make_tuple("nodeID",nodeID));
-    return numHARQ_PDCCH;
-}
-
 
 void
 PersistentVoIP::probe(SchedStatus& status)
@@ -629,7 +611,12 @@ PersistentVoIP::probe(SchedStatus& status)
     probeN(status.timeRelocateFreqRelocate, percFailedTimeFreqRelocation_);
     probeN(status.dynamic, percFailedDynamic_);
     probeN(status.unpersistent, percFailedSID_);
-
+    UserSet::iterator it;
+    for(it = status.harq.first.begin(); it != status.harq.first.end(); it++)
+        percFailedHARQ_.put(0, boost::make_tuple("nodeID",nodeID, "schedUserID", it->getNodeID()));
+    for(it = status.harq.second.begin(); it != status.harq.second.end(); it++)
+        percFailedHARQ_.put(1, boost::make_tuple("nodeID",nodeID, "schedUserID", it->getNodeID()));
+    
     /* Count */
     timeRelocatedCIDs_.put(status.timeRelocate.first.size(), 
         boost::make_tuple("nodeID",nodeID));
@@ -705,7 +692,7 @@ PersistentVoIP::onNewPeriod()
 void
 PersistentVoIP::SchedStatus::calculatePDCCH()
 {
-    numHARQ_PDCCH = parent->probeHARQ();
+    numHARQ_PDCCH = harq.first.size();
     numSID_PDCCH = unpersistent.first.size();
     numOtherFramePDCCH = dynamic.first.size();
     numDynamicPDCCH = numOtherFramePDCCH + numSID_PDCCH + numHARQ_PDCCH;

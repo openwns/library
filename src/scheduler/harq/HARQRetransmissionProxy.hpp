@@ -68,6 +68,9 @@ namespace wns { namespace scheduler { namespace harq {
         
         virtual void
         schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID);
+        
+        virtual void
+        schedulePeerRetransmission(wns::scheduler::UserID peer, int processID);
 
         virtual void
         sendPendingFeedback();

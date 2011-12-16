@@ -489,6 +489,15 @@ HARQ::schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID)
 }
 
 void
+HARQ::schedulePeerRetransmission(wns::scheduler::UserID peer, int processID)
+{
+    if(harqEntities_.knows(peer))
+    {
+        return harqEntities_.find(peer)->schedulePeerRetransmission(processID);
+    }
+}
+
+void
 HARQ::sendPendingFeedback()
 {
     for(HARQEntityContainer::const_iterator it = harqEntities_.begin();
@@ -720,6 +729,12 @@ HARQEntity::schedulePeerRetransmissions(int processID)
 }
 
 void
+HARQEntity::schedulePeerRetransmission(int processID)
+{
+    receiverProcesses_[processID].schedulePeerRetransmission();
+}
+
+void
 HARQEntity::sendPendingFeedback()
 {
     std::vector<HARQReceiverProcess>::iterator it;
@@ -834,6 +849,28 @@ HARQReceiverProcess::decode()
         return tmp;
     }
 
+    /* mue: The whole TB has not been received yet. 
+    This can happen if there were not enough RBs 
+    for the whole retransmission. The scheduler should
+    only retransmit complete TBs. */
+    std::list<int>::iterator it;
+    int sisSize = 0;
+    for(it = positions.begin(); it != positions.end(); it++)
+    {
+        std::list<SchedulingTimeSlotInfo> sis = receptionBuffer_.getEntriesForRV(*it, 0);
+        std::list<SchedulingTimeSlotInfo>::iterator iter;
+        for(iter = sis.begin(); iter != sis.end(); ++iter)
+        {
+            if(sisSize != 0 && sisSize != sis.size())
+            {
+                assure(false, "Partial HARQ retransmission in receive buffer.");
+                std::cout << "Partial HARQ retransmission in receive buffer." << std::endl;
+            	exit(1);
+            }
+            sisSize = sis.size();
+        }
+    }
+
     // After we leave this function we will always be waiting for new input
     waitingForRetransmissions_ = true;
 
@@ -901,6 +938,15 @@ HARQReceiverProcess::setNumPendingPeerRetransmissions(int num)
 }
 
 void
+HARQReceiverProcess::decreaseNumPendingPeerRetransmissions()
+{
+    assure(numPendingPeerRetransmissions_ > 0, "Cannot decrease HARQ pending ret. count, already 0");
+    numPendingPeerRetransmissions_--;
+    MESSAGE_SINGLE(NORMAL, logger_, "decreseNumPendingPeerRetransmissins() decreased to " 
+        << numPendingPeerRetransmissions_);
+}
+
+void
 HARQReceiverProcess::sendPendingFeedback()
 {
     BOOST_FOREACH(HARQReceiverProcess::Feedback fb, pendingFeedback_)
@@ -936,6 +982,12 @@ void
 HARQReceiverProcess::schedulePeerRetransmissions()
 {
     setNumPendingPeerRetransmissions(0);
+}
+
+void
+HARQReceiverProcess::schedulePeerRetransmission()
+{
+    decreaseNumPendingPeerRetransmissions();
 }
 
 int

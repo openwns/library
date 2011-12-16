@@ -131,6 +131,9 @@ public:
     virtual void
     schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID) = 0;
 
+    virtual void
+    schedulePeerRetransmission(wns::scheduler::UserID peer, int processID) = 0;
+
     /**
     * @brief Send HARQ feedback that was delayed. Especially needed for TDD.
     * Triggered by TimingScheduler via ResourceScheduler

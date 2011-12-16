@@ -155,7 +155,13 @@ public:
     setNumPendingPeerRetransmissions(int num);
 
     void
+    decreaseNumPendingPeerRetransmissions();
+
+    void
     schedulePeerRetransmissions();
+
+    void
+    schedulePeerRetransmission();
 
     int
     processID() const;
@@ -332,6 +338,9 @@ public:
     schedulePeerRetransmissions(int processID);
 
     void
+    schedulePeerRetransmission(int processID);
+
+    void
     sendPendingFeedback();
 
     std::auto_ptr<IDecoder> decoder_;
@@ -443,6 +452,9 @@ public:
 
     void
     schedulePeerRetransmissions(wns::scheduler::UserID peer, int processID);
+
+    void
+    schedulePeerRetransmission(wns::scheduler::UserID peer, int processID);
 
     virtual void
     sendPendingFeedback();

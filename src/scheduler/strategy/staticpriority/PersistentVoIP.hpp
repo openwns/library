@@ -48,6 +48,7 @@ class PersistentVoIP
 {
     public:
         typedef std::pair<ConnectionSet, ConnectionSet> ConnectionSetPair;
+        typedef std::pair<UserSet, UserSet> UserSetPair;
 
         struct SchedStatus
         {
@@ -79,6 +80,9 @@ class PersistentVoIP
 
             /* Any other stuff done if PDCCH resources available */
             ConnectionSetPair dynamic;
+
+            /* HARQ retransmissions (HARQ operates on User IDs not CIDs) */
+            UserSetPair harq;
 
             bool PDCCHCountValid;
             unsigned int numPDCCH;
@@ -116,9 +120,6 @@ class PersistentVoIP
 
         void
         onNewPeriod();
-
-        unsigned int
-        probeHARQ();
 
         /* First the successfull, then the ones that did not get resources */
         ConnectionSetPair
@@ -188,8 +189,11 @@ class PersistentVoIP
         wns::probe::bus::ContextCollector percFailedTimeFreqRelocation_;
         wns::probe::bus::ContextCollector percFailedDynamic_;
         wns::probe::bus::ContextCollector percFailedSID_;
+        wns::probe::bus::ContextCollector percFailedHARQ_;
 
         wns::pyconfig::View resourceGridConfig_;
+        wns::pyconfig::View harqConfig_;
+        SubStrategyInterface* harq_;
 };
 
 }}}}

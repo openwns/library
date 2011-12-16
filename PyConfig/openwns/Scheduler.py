@@ -163,6 +163,7 @@ class PersistentVoIP(SubStrategy):
         self.voicePDUSize = voicePDUSize
         self.logger = openwns.logger.Logger("WNS", "PersistentVoIP", True, parentLogger)
         self.resourceGrid = PersistentVoIP.ResourceGrid("First", "AtStart", self.logger)
+        self.harq = None
         attrsetter(self, kw)
 
     def setParentLogger(self,parentLogger = None):

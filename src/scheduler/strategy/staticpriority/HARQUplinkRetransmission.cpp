@@ -119,8 +119,11 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
         int numRetransmissionsForUser = colleagues.harq->getNumberOfPeerRetransmissions(*user, processToSchedule);
 
         MESSAGE_SINGLE(NORMAL, logger, "HARQUplinkRetransmission(): need to schedule " << numRetransmissionsForUser << " on " << numAvailable << " available SCs");
-
-        colleagues.harq->schedulePeerRetransmissions(*user, processToSchedule);
+        if(numRetransmissionsForUser > numAvailable)
+        {
+            MESSAGE_SINGLE(NORMAL, logger, "HARQUplinkRetransmission(): Not enough free SCs for  retransmission");
+            continue;
+        }
 
         while ( (numRetransmissionsForUser > 0) && (numAvailable > 0) )
         {
@@ -128,8 +131,7 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
             int sc = resource.subChannel;
 
             // Could be the scheduler has no resources for us
-            if(sc == wns::scheduler::strategy::dsastrategy::DSAsubChannelNotFound)
-                break;            
+            assure(sc != wns::scheduler::strategy::dsastrategy::DSAsubChannelNotFound, "No more free resources.");
 
             int ts = resource.timeSlot;
             int numberOfSpatialLayers = schedulingMap->subChannels[sc].temporalResources[ts]->numSpatialLayers;
@@ -154,12 +156,14 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                     // Set flag so slave strategy can find TimeSlotPtrs for HARQ Retransmissions
                     schedulingMap->subChannels[sc].temporalResources[ts]->harq.reservedForRetransmission = true;
                     schedulingMap->subChannels[sc].temporalResources[ts]->harq.processID = processToSchedule;
+                    colleagues.harq->schedulePeerRetransmission(*user, processToSchedule);
                     numRetransmissionsForUser--;
                 }
             }
             subchannels = getUsableSubChannelsIDs(*user, schedulingMap);
             numAvailable = subchannels.size();
         }
+        assure(numRetransmissionsForUser == 0, "Not all SCs could be retransmitted.");
     }
 
     return mapInfoCollection;
