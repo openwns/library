@@ -290,3 +290,17 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = stationCount))
 
 
+    sourceName = 'scheduler.persistentvoip.dynPDUSize'
+    node = openwns.evaluation.createSourceNode(sim, sourceName)
+    node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
+    node.getLeafs().appendChildren(Accept(by='nodeID', ifIn = loggingStations, suffix='CenterCell'))
+    node.getLeafs().appendChildren(PDF(name = sourceName,
+                                     description = 'Dynamic PDU Size',
+                                     minXValue = 0,
+                                     maxXValue = 1000,
+                                     resolution = 1000))
+    node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
+                                            minX = 0,
+                                            maxX = max(loggingStations) + 1,
+                                            resolution = max(loggingStations) + 1,
+                                            statEvals = ['mean','deviation','max']))

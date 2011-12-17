@@ -81,7 +81,8 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     percFailedTimeFreqRelocation_("scheduler.persistentvoip.failedTimeFreqRelocation"),
     percFailedDynamic_("scheduler.persistentvoip.failedDynamic"),
     percFailedSID_("scheduler.persistentvoip.failedSID"),
-    percFailedHARQ_("scheduler.persistentvoip.failedHARQ")
+    percFailedHARQ_("scheduler.persistentvoip.failedHARQ"),
+    dynPDUSize_("scheduler.persistentvoip.dynPDUSize")
 {
 }
 
@@ -310,18 +311,31 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
         know the HoL PDU Size in the UL, only the total queue length.
         Limit the request size to voicePDUSize.
         */
-        pduSize = std::min(pduSize, voicePDUSize_);
+        //pduSize = std::min(pduSize, voicePDUSize_);
 
-        bool success = resources_->scheduleCID(currentFrame_, cid, pduSize, false);
+        int i = 1;
+        bool success = false;
+        do
+        {
+            success = resources_->scheduleCID(currentFrame_, cid, int(pduSize / i), false);
+            i = i * 2;
+        }
+        while(!success && i <= pduSize);
+        
+        unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
         if(!success)
         {
             MESSAGE_SINGLE(NORMAL, logger, "No free resources for CID " << cid
                 << " (" << colleagues.registry->getUserForCID(cid) << ")"
                 << " in frame " << currentFrame_ << ".");
+            dynPDUSize_.put(0.0, boost::make_tuple("nodeID",nodeID, 
+                "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID())); 
             return mapInfoCollection;
         }
         else
         {
+            dynPDUSize_.put(int(pduSize / (i / 2)), boost::make_tuple("nodeID",nodeID, 
+                "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID())); 
             tb = resources_->getReservation(currentFrame_, cid, false);
         }
     }

@@ -191,6 +191,8 @@ class PersistentVoIP
         wns::probe::bus::ContextCollector percFailedSID_;
         wns::probe::bus::ContextCollector percFailedHARQ_;
 
+        wns::probe::bus::ContextCollector dynPDUSize_;
+
         wns::pyconfig::View resourceGridConfig_;
         wns::pyconfig::View harqConfig_;
         SubStrategyInterface* harq_;
