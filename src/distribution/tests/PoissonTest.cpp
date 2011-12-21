@@ -58,10 +58,11 @@ PoissonTest::testIt()
     Poisson dis(config.get("dist"));
 
     Average<double> average;
-    for(long int ii = 0; ii < 100000; ++ii) {
+    for (long int ii = 0; ii < 100000; ++ii)
+    {
         average.put(dis());
     }
- 
+
     WNS_ASSERT_MAX_REL_ERROR(dis.getMean(), average.get(), 0.01);
 } // testIt
 
@@ -71,10 +72,11 @@ PoissonTest::testVar()
     Poisson dis = Poisson(10.0);
 
     VarEstimator var;
-    for(long int ii = 0; ii < 100000; ++ii) {
+    for (long int ii = 0; ii < 100000; ++ii)
+    {
         var.put(dis());
     }
- 
+
     WNS_ASSERT_MAX_REL_ERROR(10.0, var.get(), 0.01);
 } // testIt
 

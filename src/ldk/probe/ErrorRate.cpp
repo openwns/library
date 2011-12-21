@@ -34,64 +34,67 @@ using namespace wns::ldk;
 using namespace wns::ldk::probe;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	ErrorRate,
-	Probe,
-	"wns.probe.ErrorRate",
-	FUNConfigCreator);
+    ErrorRate,
+    Probe,
+    "wns.probe.ErrorRate",
+    FUNConfigCreator);
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	ErrorRate,
-	FunctionalUnit,
-	"wns.probe.ErrorRate",
-	FUNConfigCreator);
+    ErrorRate,
+    FunctionalUnit,
+    "wns.probe.ErrorRate",
+    FUNConfigCreator);
 
 ErrorRate::ErrorRate(fun::FUN* fuNet, const wns::pyconfig::View& config) :
-	fu::Plain<ErrorRate>(fuNet),
-	Forwarding<ErrorRate>(),
-	errorRateProviderName(config.get<std::string>("errorRateProvider")),
-	logger(config.get("logger"))
+    fu::Plain<ErrorRate>(fuNet),
+    Forwarding<ErrorRate>(),
+    errorRateProviderName(config.get<std::string>("errorRateProvider")),
+    logger(config.get("logger"))
 {
-	// this is for the new probe bus
-	wns::probe::bus::ContextProviderCollection* cpcParent = &fuNet->getLayer()->getContextProviderCollection();
+    // this is for the new probe bus
+    wns::probe::bus::ContextProviderCollection* cpcParent = &fuNet->getLayer()->getContextProviderCollection();
 
-	wns::probe::bus::ContextProviderCollection cpc(cpcParent);
+    wns::probe::bus::ContextProviderCollection cpc(cpcParent);
 
-	probe = wns::probe::bus::ContextCollectorPtr(
-		new wns::probe::bus::ContextCollector(cpc, config.get<std::string>("probeName")));
+    probe = wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(cpc, config.get<std::string>("probeName")));
 } // ErrorRate
 
 ErrorRate::~ErrorRate()
-{}
+{
+}
 
 void
 ErrorRate::onFUNCreated()
 {
-	friends.errorRateProvider = getFUN()->findFriend<FunctionalUnit*>(errorRateProviderName);
-	assure(
-		friends.errorRateProvider,
-		"ErrorRate probe requires a ErrorRateProvider friend with name '" + errorRateProviderName + "'");
+    friends.errorRateProvider = getFUN()->findFriend<FunctionalUnit*>(errorRateProviderName);
+    assure(
+        friends.errorRateProvider,
+        "ErrorRate probe requires a ErrorRateProvider friend with name '" + errorRateProviderName + "'");
 }
 
 void
 ErrorRate::processOutgoing(const CompoundPtr& compound)
 {
-	// nothing to do here, simply forward the PDU
-	Forwarding<ErrorRate>::processOutgoing(compound);
-} // processOutgoing
+    // nothing to do here, simply forward the PDU
+    Forwarding<ErrorRate>::processOutgoing(compound);
+}
+    // processOutgoing
 
 
 void
 ErrorRate::processIncoming(const CompoundPtr& compound)
 {
-	ErrorRateProviderInterface* ppi = dynamic_cast<ErrorRateProviderInterface*>(
-		friends.errorRateProvider->getCommand(compound->getCommandPool()));
+    ErrorRateProviderInterface* ppi = dynamic_cast<ErrorRateProviderInterface*>(
+        friends.errorRateProvider->getCommand(compound->getCommandPool()));
 
-	assure(ppi, "Expected a ErrorRateProviderInterface instance.");
+    assure(ppi, "Expected a ErrorRateProviderInterface instance.");
 
-	probe->put(ppi->getErrorRate());
+    probe->put(ppi->getErrorRate());
 
-	Forwarding<ErrorRate>::processIncoming(compound);
-} // processIncoming
+    Forwarding<ErrorRate>::processIncoming(compound);
+}
+    // processIncoming
 
 
 

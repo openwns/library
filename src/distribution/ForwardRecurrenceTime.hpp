@@ -33,21 +33,22 @@
 
 namespace wns { namespace distribution {
 
-	/**
-	 * @brief this function gives back a random value
-	 * that is suitable as a forward recurrence time
-	 * when the random value given as an argument
-	 * is drawn from the original distribution.
-	 * The first interarrival time should be calculated like this.
-	 */
-	inline double
-	forwardRecurrenceTime(double randomValue)
-	{
-		StandardUniform dis;
-		return randomValue * dis();
-	}
+    /**
+     * @brief this function gives back a random value
+     * that is suitable as a forward recurrence time
+     * when the random value given as an argument
+     * is drawn from the original distribution.
+     * The first interarrival time should be calculated like this.
+     */
+    inline double
+    forwardRecurrenceTime(double randomValue)
+    {
+        StandardUniform dis;
+        return randomValue * dis();
+    }
 
-}}
+}
+}
 
 #endif // NOT defined WNS_DISTRIBUTION_FRT_HPP
 

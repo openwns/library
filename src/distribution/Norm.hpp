@@ -36,11 +36,11 @@ namespace wns { namespace distribution {
 
     typedef wns::rng::VariateGenerator< boost::normal_distribution<> > NormalDist;
 
-	class Norm :
+    class Norm :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         Norm(double mean, double variance, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
@@ -51,23 +51,23 @@ namespace wns { namespace distribution {
         explicit
         Norm(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~Norm();
+        virtual
+        ~Norm();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
+    private:
         double mean_;
         double variance_;
-		NormalDist dis_;
-	}; // Norm
+        NormalDist dis_;
+    }; // Norm
 
 } // distribution
 } // wns

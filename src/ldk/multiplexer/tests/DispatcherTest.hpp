@@ -39,36 +39,39 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	class DispatcherTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( DispatcherTest );
-		CPPUNIT_TEST( testOutgoing );
-		CPPUNIT_TEST( testIncoming );
-		CPPUNIT_TEST( testSizes );
-		CPPUNIT_TEST( testPyConfig );
-		CPPUNIT_TEST( testWakeup );
-		CPPUNIT_TEST_SUITE_END();
+    class DispatcherTest : public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( DispatcherTest );
+        CPPUNIT_TEST( testOutgoing );
+        CPPUNIT_TEST( testIncoming );
+        CPPUNIT_TEST( testSizes );
+        CPPUNIT_TEST( testPyConfig );
+        CPPUNIT_TEST( testWakeup );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void setUp();
-		void tearDown();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testOutgoing();
-		void testIncoming();
-		void testSizes();
-		void testPyConfig();
-		void testWakeup();
+        void testOutgoing();
+        void testIncoming();
+        void testSizes();
+        void testPyConfig();
+        void testWakeup();
 
-	private:
-		ILayer* layer;
-		fun::Main* fuNet;
+    private:
+        ILayer* layer;
+        fun::Main* fuNet;
 
-		tools::Stub* upper1;
-		tools::Stub* upper2;
-		Dispatcher* dispatcher;
-		tools::Stub* lower;
-	};
+        tools::Stub* upper1;
+        tools::Stub* upper2;
+        Dispatcher* dispatcher;
+        tools::Stub* lower;
+    };
 
-}}}
+}
+}
+}
 
 
 #endif // NOT defined WNS_LDK_MULTIPLEXER_DISPATCHER_TEST_HPP

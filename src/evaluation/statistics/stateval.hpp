@@ -45,7 +45,9 @@ namespace wns { namespace evaluation { namespace statistics {
             {
             public:
                 virtual
-                ~StatEvalInterface(){}
+                ~StatEvalInterface()
+                {
+                }
 
                 virtual void
                 put(double) = 0;
@@ -327,8 +329,8 @@ namespace wns { namespace evaluation { namespace statistics {
             typedef wns::PyConfigViewCreator<StatEvalInterface, StatEvalInterface> Creator;
             typedef wns::StaticFactory<Creator> Factory;
 
-        } // statistics
-    } //evaluation
+} // statistics
+} //evaluation
 } // wns
 
 #endif  // WNS_EVALUATION_STATISTICS_STATEVAL_HPP

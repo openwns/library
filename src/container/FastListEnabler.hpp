@@ -53,7 +53,8 @@ namespace wns { namespace container {
          */
         FastListEnabler()
             : listsAndNodes(MapType())
-        {}
+        {
+        }
 
         /**
          * @brief Destructor - Removes this objects from all lists
@@ -101,7 +102,8 @@ namespace wns { namespace container {
         {
             typename MapType::iterator itr;
             itr = listsAndNodes.begin();
-            while(itr != listsAndNodes.end()) {
+            while(itr != listsAndNodes.end())
+            {
                 itr->first->remove(itr->second->getData());
                 itr = listsAndNodes.begin();
             }
@@ -144,7 +146,8 @@ namespace wns { namespace container {
         SingleFastListEnabler()
             : list(NULL),
               node(NULL)
-        {};
+        {
+        };
 
         /**
          * @brief Destructor - removes from object from the FastList
@@ -202,7 +205,8 @@ namespace wns { namespace container {
          */
         void removeFromAllLists()
         {
-            if(list || node) {
+            if(list || node)
+            {
                 assure(list, "Invalid list");
                 assure(node, "Invalid node");
                 list->remove(node->getData());
@@ -228,5 +232,6 @@ namespace wns { namespace container {
          */
         FastListNode<T>* node;
     };
-}}
+}
+}
 #endif

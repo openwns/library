@@ -82,7 +82,8 @@ namespace wns { namespace events { namespace scheduler {
 
         virtual
         ~ICommand()
-        {}
+        {
+        }
 
         /**
          * @brief Return true, if the Command is not submitted to the queue so

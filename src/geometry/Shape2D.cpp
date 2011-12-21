@@ -34,7 +34,8 @@ Shape2D::Shape2D()
     :a(),
      b(),
      boundingBox()
-{}
+{
+}
 
 Shape2D::Shape2D(const Point& a, const Point& b)
     :a(zeroZ(a)),
@@ -47,15 +48,17 @@ Shape2D::Shape2D(const Point& a, const Vector& db)
     :a(zeroZ(a)),
      b(zeroZ(a + db)),
      boundingBox()
-{}
+{
+}
 
-bool Shape2D::intersectsBoundingBoxOf(const Shape2D& other) const
+bool
+Shape2D::intersectsBoundingBoxOf(const Shape2D& other) const
 {
     return boundingBox.intersects(other.boundingBox);
 }
 
 
-Point 
+Point
 Shape2D::zeroZ(const Point& p)
 {
     Point zZeroP(p);
@@ -65,24 +68,24 @@ Shape2D::zeroZ(const Point& p)
 
 
 // Operators
-void 
+void
 Shape2D::operator=(const Shape2D& other)
 {
-	a = other.a;
-	b = other.b;
-	boundingBox = other.boundingBox;
+    a = other.a;
+    b = other.b;
+    boundingBox = other.boundingBox;
 }
 
-bool 
+bool
 Shape2D::operator==(const Shape2D& other) const
 {
-	return
-		a == other.a &&
-		b == other.b;
+    return
+        a == other.a &&
+        b == other.b;
 }
 
-bool 
+bool
 Shape2D::operator!=(const Shape2D& other) const
 {
-	return !(*this == other);
+    return !(*this == other);
 }

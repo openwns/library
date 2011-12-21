@@ -31,14 +31,14 @@
 using namespace wns::events::scheduler;
 
 STATIC_FACTORY_REGISTER(
-	RealTime,
-	Interface,
-	"wns.events.scheduler.RealTime");
+    RealTime,
+    Interface,
+    "wns.events.scheduler.RealTime");
 
 RealTime::RealTime() :
-	Map(),
-	timeOfSchedulerStart_(),
-	inSync_(true)
+    Map(),
+    timeOfSchedulerStart_(),
+    inSync_(true)
 {
 }
 
@@ -104,20 +104,20 @@ RealTime::onNewSimTime(const wns::simulator::Time& nextTime)
 void
 RealTime::doReset()
 {
-	inSync_ = true;
-	Map::doReset();
+    inSync_ = true;
+    Map::doReset();
 }
 
 void
 RealTime::doStart()
 {
-	gettimeofday(&timeOfSchedulerStart_, NULL);
-	Map::doStart();
+    gettimeofday(&timeOfSchedulerStart_, NULL);
+    Map::doStart();
 }
 
 
 double
 RealTime::timevalToDouble(const timeval* t)
 {
-	return static_cast<double>(t->tv_sec) + static_cast<double>(t->tv_usec)/1E6;
+    return static_cast<double>(t->tv_sec) + static_cast<double>(t->tv_usec)/1E6;
 }

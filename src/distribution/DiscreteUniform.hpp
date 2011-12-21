@@ -36,37 +36,37 @@ namespace wns { namespace distribution {
 
     typedef wns::rng::VariateGenerator< boost::uniform_smallint<> > DiscreteUniformDist;
 
-	class DiscreteUniform :
+    class DiscreteUniform :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         DiscreteUniform(const pyconfig::View& config);
 
         explicit
         DiscreteUniform(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		DiscreteUniform(int _low, int _high, 
+        DiscreteUniform(int _low, int _high, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
 
-		virtual
-		~DiscreteUniform();
+        virtual
+        ~DiscreteUniform();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
-		int low_;
-		int high_;
-		DiscreteUniformDist dis_;
-	}; // DiscreteUniform
+    private:
+        int low_;
+        int high_;
+        DiscreteUniformDist dis_;
+    }; // DiscreteUniform
 
 } // distribution
 } // wns

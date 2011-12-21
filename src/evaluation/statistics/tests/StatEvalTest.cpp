@@ -82,7 +82,10 @@ namespace wns { namespace evaluation { namespace statistics { namespace tests {
                     bool outputEqual(StatEvalInterface* first, StatEvalInterface* second) const;
                 };
 
-            }}}}
+}
+}
+}
+}
 
 using namespace wns::evaluation::statistics::tests;
 

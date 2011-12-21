@@ -42,12 +42,12 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	class OpcodeSetter;
+    class OpcodeSetter;
 
-	/**
-	 * @brief Tag compounds of multiple paths, delivering incoming compounds to the right FU.
-	 *
-	 * <PRE>
+    /**
+     * @brief Tag compounds of multiple paths, delivering incoming compounds to the right FU.
+     *
+     * <PRE>
          ------    ------           ------
         | FU 1 |  | FU 2 |   ...   | FU N |
          ------    ------           ------
@@ -61,49 +61,51 @@ namespace wns { namespace ldk { namespace multiplexer {
                        -------
                       | lower |
                        -------
-	 * </PRE>
-	 *
-	 * Dispatcher is an OpcodeProvider. Incoming compounds get tagged
-	 * according to the FU they came from. After tagging, they get delivered to
-	 * the lower FU. <p>
-	 *
-	 * Incoming compounds can be directly delivered to the FrameDispatcher. They
-	 * get delivered to the FU they have been originally received from.
-	 */
-	class Dispatcher :
-		public CommandTypeSpecifier<OpcodeCommand>,
-		public HasReceptor<RoundRobinReceptor>,
-		public HasConnector<>,
-		public HasDeliverer<OpcodeDeliverer>,
-		public Processor<Dispatcher>,
-		public Cloneable<Dispatcher>
-	{
-	public:
-		Dispatcher(fun::FUN* fuNet, const pyconfig::View& _config);
+     * </PRE>
+     *
+     * Dispatcher is an OpcodeProvider. Incoming compounds get tagged
+     * according to the FU they came from. After tagging, they get delivered to
+     * the lower FU. <p>
+     *
+     * Incoming compounds can be directly delivered to the FrameDispatcher. They
+     * get delivered to the FU they have been originally received from.
+     */
+    class Dispatcher :
+        public CommandTypeSpecifier<OpcodeCommand>,
+        public HasReceptor<RoundRobinReceptor>,
+        public HasConnector<>,
+        public HasDeliverer<OpcodeDeliverer>,
+        public Processor<Dispatcher>,
+        public Cloneable<Dispatcher>
+    {
+    public:
+        Dispatcher(fun::FUN* fuNet, const pyconfig::View& _config);
 
-		virtual ~Dispatcher();
+        virtual ~Dispatcher();
 
-		// connection setup modification
-		virtual FunctionalUnit* whenConnecting();
+        // connection setup modification
+        virtual FunctionalUnit* whenConnecting();
 
-		// processor interface
-		virtual void processOutgoing(const CompoundPtr& compound);
-		virtual void processIncoming(const CompoundPtr& compound);
+        // processor interface
+        virtual void processOutgoing(const CompoundPtr& compound);
+        virtual void processIncoming(const CompoundPtr& compound);
 
-		virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
+        virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
-		int getOpcodeSize() const { return opcodeSize; }
-	private:
-		pyconfig::View config;
+        int getOpcodeSize() const { return opcodeSize; }
+    private:
+        pyconfig::View config;
 
-		std::list<OpcodeSetter*> opcodeSetters;
+        std::list<OpcodeSetter*> opcodeSetters;
 
-		int opcodeSize;
-		int opcode;
+        int opcodeSize;
+        int opcode;
 
-		logger::Logger logger;
-	};
-}}}
+        logger::Logger logger;
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_MULTIPLEXER_DISPATCHER_HPP
 

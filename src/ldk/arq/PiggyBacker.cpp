@@ -37,17 +37,17 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(PiggyBacker, FunctionalUnit, "wns.arq.Piggy
 
 
 PiggyBacker::PiggyBacker(fun::FUN* fuNet, const pyconfig::View& config) :
-		wns::ldk::fu::Plain<PiggyBacker, PiggyBackerCommand>(fuNet),
+        wns::ldk::fu::Plain<PiggyBacker, PiggyBackerCommand>(fuNet),
 
-		arqName(config.get<std::string>("arq")),
-		bitsIfPiggyBacked(config.get<Bit>("bitsIfPiggyBacked")),
-		bitsIfNotPiggyBacked(config.get<Bit>("bitsIfNotPiggyBacked")),
-		addACKPDUSize(config.get<bool>("addACKPDUSize")),
+        arqName(config.get<std::string>("arq")),
+        bitsIfPiggyBacked(config.get<Bit>("bitsIfPiggyBacked")),
+        bitsIfNotPiggyBacked(config.get<Bit>("bitsIfNotPiggyBacked")),
+        addACKPDUSize(config.get<bool>("addACKPDUSize")),
 
-		i(),
-		rr(),
-		inControl(false),
-		logger("WNS", "PiggyBacker")
+        i(),
+        rr(),
+        inControl(false),
+        logger("WNS", "PiggyBacker")
 {
 }
 
@@ -55,42 +55,48 @@ PiggyBacker::PiggyBacker(fun::FUN* fuNet, const pyconfig::View& config) :
 void
 PiggyBacker::onFUNCreated()
 {
-	friends.arq = getFUN()->findFriend<ARQ*>(arqName);
-	assure(friends.arq, "PiggyBacker requires an ARQ friend with name '" + arqName + "'");
+    friends.arq = getFUN()->findFriend<ARQ*>(arqName);
+    assure(friends.arq, "PiggyBacker requires an ARQ friend with name '" + arqName + "'");
 }
 
 
 bool
 PiggyBacker::doIsAccepting(const CompoundPtr& compound) const
 {
-	ARQCommand* arqPCI = getARQPCI(compound);
+    ARQCommand* arqPCI = getARQPCI(compound);
 
-	if(arqPCI->isACK()) {
-		return rr == CompoundPtr();
-	} else {
-		return i == CompoundPtr();
-	}
+    if(arqPCI->isACK())
+    {
+        return rr == CompoundPtr();
+    }
+    else
+    {
+        return i == CompoundPtr();
+    }
 } // isAccepting
 
 
 void
 PiggyBacker::doSendData(const CompoundPtr& compound)
 {
-	assure(isAccepting(compound), "sendData called although PiggyBacker is not accepting.");
+    assure(isAccepting(compound), "sendData called although PiggyBacker is not accepting.");
 
-	activateCommand(compound->getCommandPool());
+    activateCommand(compound->getCommandPool());
 
-	ARQCommand* arqPCI = getARQPCI(compound);
-	if(arqPCI->isACK()) {
-		rr = compound;
-	} else {
-		i = compound;
-	}
+    ARQCommand* arqPCI = getARQPCI(compound);
+    if(arqPCI->isACK())
+    {
+        rr = compound;
+    }
+    else
+    {
+        i = compound;
+    }
 
-	if(inControl)
-		return;
+    if(inControl)
+        return;
 
-	wakeup();
+    wakeup();
 } // doSendData
 
 
@@ -110,94 +116,108 @@ PiggyBacker::doOnData(const CompoundPtr& compound)
 void
 PiggyBacker::doWakeup()
 {
-	inControl = true;
-	{
-		if(!i) {
-			friends.arq->preferACK(false);
-			getReceptor()->wakeup();
-			friends.arq->preferACK(true);
-		}
-		if(i && !rr) {
-			getReceptor()->wakeup();
-		}
-	}
-	inControl = false;
+    inControl = true;
+    {
+        if(!i)
+        {
+            friends.arq->preferACK(false);
+            getReceptor()->wakeup();
+            friends.arq->preferACK(true);
+        }
+        if(i && !rr)
+        {
+            getReceptor()->wakeup();
+        }
+    }
+    inControl = false;
 
-	tryToSend();
+    tryToSend();
 } // wakeup
 
 
 void
 PiggyBacker::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
 {
-	//What are the sizes in the upper Layers
-	getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
+    //What are the sizes in the upper Layers
+    getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
 
-	PiggyBackerCommand* command = getCommand(commandPool);
-	if(command->peer.piggyBacked) {
-		commandPoolSize += bitsIfPiggyBacked;
+    PiggyBackerCommand* command = getCommand(commandPool);
+    if(command->peer.piggyBacked)
+    {
+        commandPoolSize += bitsIfPiggyBacked;
 
-		if(addACKPDUSize) {
-			Bit ackPCISize;
-			Bit ackSDUSize;
-			getFUN()->calculateSizes(command->peer.piggyBacked->getCommandPool(), ackPCISize, ackSDUSize, this);
+        if(addACKPDUSize)
+        {
+            Bit ackPCISize;
+            Bit ackSDUSize;
+            getFUN()->calculateSizes(command->peer.piggyBacked->getCommandPool(), ackPCISize, ackSDUSize, this);
 
-			commandPoolSize += ackPCISize + ackSDUSize;
-		}
-	} else {
-		commandPoolSize += bitsIfNotPiggyBacked;
-	}
+            commandPoolSize += ackPCISize + ackSDUSize;
+        }
+    }
+    else
+    {
+        commandPoolSize += bitsIfNotPiggyBacked;
+    }
 } // calculateSizes
 
 
 void
 PiggyBacker::tryToSend()
 {
-	CompoundPtr it = CompoundPtr();
+    CompoundPtr it = CompoundPtr();
 
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	if(rr || i) {
-		m << " send (";
-		if(i)
-			m << "i ";
-		if(rr)
-			m << "rr";
-		m << ")";
-	}
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    if(rr || i)
+    {
+        m << " send (";
+        if(i)
+            m << "i ";
+        if(rr)
+            m << "rr";
+        m << ")";
+    }
+    MESSAGE_END();
 
-	if(rr && i) {
-		PiggyBackerCommand* command = getCommand(i->getCommandPool());
-		command->peer.piggyBacked = rr;
+    if(rr && i)
+    {
+        PiggyBackerCommand* command = getCommand(i->getCommandPool());
+        command->peer.piggyBacked = rr;
 
-		it = i;
+        it = i;
 
-	} else if(i) {
-		it = i;
+    }
+    else if(i)
+    {
+        it = i;
 
-	} else if(rr) {
-		it = rr;
+    }
+    else if(rr)
+    {
+        it = rr;
 
-	} else {
-		return;
-	}
+    }
+    else
+    {
+        return;
+    }
 
-	if(!getConnector()->hasAcceptor(it))
-		return;
+    if(!getConnector()->hasAcceptor(it))
+        return;
 
-	getConnector()->getAcceptor(it)->sendData(it);
-	rr = CompoundPtr();
-	i = CompoundPtr();
+    getConnector()->getAcceptor(it)->sendData(it);
+    rr = CompoundPtr();
+    i = CompoundPtr();
 } // tryToSend
 
 
 ARQCommand*
 PiggyBacker::getARQPCI(const CompoundPtr& compound) const
 {
-	ARQCommand* arqPCI = dynamic_cast<ARQCommand*>(friends.arq->getCommand(compound->getCommandPool()));
-	assure(arqPCI, "Expected an ARQCommand instance.");
+    ARQCommand* arqPCI = dynamic_cast<ARQCommand*>(friends.arq->getCommand(compound->getCommandPool()));
+    assure(arqPCI, "Expected an ARQCommand instance.");
 
-	return arqPCI;
+    return arqPCI;
 } // getARQPCI
 
 

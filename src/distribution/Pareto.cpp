@@ -86,7 +86,7 @@ Pareto::operator()()
     double x = scaleParamB_;
     // Avoid endless loops
     unsigned long int max_num_loops = 1000; 
-    
+
     while (max_num_loops--)
     {
         f = dis_();
@@ -116,9 +116,9 @@ Pareto::getMean() const
 std::string
 Pareto::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Pareto(A=" << shapeParamA_ << ",B=" << scaleParamB_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Pareto(A=" << shapeParamA_ << ",B=" << scaleParamB_ << ")";
+    return tmp.str();
 }
 
 /*

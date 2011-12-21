@@ -40,74 +40,77 @@
 
 namespace wns { namespace ldk { namespace fun {
 
-	class SubFUNInterfaceTest :
-		public FUNTest
-	{
-		CPPUNIT_TEST_SUB_SUITE( SubFUNInterfaceTest, FUNTest );
-		CPPUNIT_TEST_SUITE_END();
+    class SubFUNInterfaceTest :
+        public FUNTest
+    {
+        CPPUNIT_TEST_SUB_SUITE( SubFUNInterfaceTest, FUNTest );
+        CPPUNIT_TEST_SUITE_END();
 
-	protected:
-		virtual FUN*
-		newCandidate(ILayer* layer)
-		{
-			return new Sub(new Main(layer));
-		} // newCandidate
+    protected:
+        virtual FUN*
+        newCandidate(ILayer* layer)
+        {
+            return new Sub(new Main(layer));
+        } // newCandidate
 
-		virtual void
-		deleteCandidate(FUN* fun)
-		{
-			Sub* sub = dynamic_cast<Sub*>(fun);
+        virtual void
+        deleteCandidate(FUN* fun)
+        {
+            Sub* sub = dynamic_cast<Sub*>(fun);
 
-			delete sub->getParent();
-			delete sub;
-		} // deleteCandidate
-	};
+            delete sub->getParent();
+            delete sub;
+        } // deleteCandidate
+    };
 
 
-	class SubTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( SubTest );
-		CPPUNIT_TEST( testFindParent );
-		/*
-		 * This test has been disabled due to changes in the meaning of FU
-		 * names. Now, the names of FUs are role names and hence have to be
-		 * unique throughout a FUN including SubFUNs.
-		 *
-		 * But anyway, to introduce a shadowing-like behavior the role names of
-		 * FUs inside a SubFUN could be prepended by a SubFUN name. Currently,
-		 * SubFUNs do not have a name.
-		 *
-		 * @todo ksw,msg
-		 * - Add support for SubFUN names
-		 * - Add automatic SubFUN name prepending
-		 */
-// 		CPPUNIT_TEST( testShadowParent );
-		CPPUNIT_TEST( testCloneFUs );
-		CPPUNIT_TEST( testCloneConnectionsExist );
-		CPPUNIT_TEST( testCloneConnections );
-		CPPUNIT_TEST( testCommand );
-		CPPUNIT_TEST_SUITE_END();
+    class SubTest : public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( SubTest );
+        CPPUNIT_TEST( testFindParent );
+        /*
+         * This test has been disabled due to changes in the meaning of FU
+         * names. Now, the names of FUs are role names and hence have to be
+         * unique throughout a FUN including SubFUNs.
+         *
+         * But anyway, to introduce a shadowing-like behavior the role names of
+         * FUs inside a SubFUN could be prepended by a SubFUN name. Currently,
+         * SubFUNs do not have a name.
+         *
+         * @todo ksw,msg
+         * - Add support for SubFUN names
+         * - Add automatic SubFUN name prepending
+         */
+//      CPPUNIT_TEST( testShadowParent );
+        CPPUNIT_TEST( testCloneFUs );
+        CPPUNIT_TEST( testCloneConnectionsExist );
+        CPPUNIT_TEST( testCloneConnections );
+        CPPUNIT_TEST( testCommand );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void setUp();
-		void tearDown();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testFindParent();
-// 		void testShadowParent();
-		void testCloneFUs();
-		void testCloneConnectionsExist();
-		void testCloneConnections();
-		void testCommand();
-	private:
-		ILayer* layer;
-		Main* mainNet;
-		Sub* subNet;
+        void testFindParent();
+//      void testShadowParent();
+        void testCloneFUs();
+        void testCloneConnectionsExist();
+        void testCloneConnections();
+        void testCommand();
+    private:
+        ILayer* layer;
+        Main* mainNet;
+        Sub* subNet;
 
-		tools::Stub* mainFU;
-		tools::Stub* subFU;
-		tools::Stub* otherSubFU;
-	};
+        tools::Stub* mainFU;
+        tools::Stub* subFU;
+        tools::Stub* otherSubFU;
+    };
 
-}}}
+}
+}
+}
 
 
 

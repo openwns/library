@@ -41,10 +41,10 @@ void None::reset()
 {
 
 }
-		
+
 double None::getSuccessRate(const CompoundPtr& /*compound*/)
 {
-	return(1.0);
+    return(1.0);
 }
 
 void None::onSuccessfullTransmission(const CompoundPtr& /*compound*/)

@@ -41,57 +41,72 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	/**
-	 * @brief Command used Opcode holder by different functional units.
-	 *
-	 */
-	class OpcodeCommand :
-		public Command
-	{
-	public:
-		enum {
-			USERDATA = 0,
-			FLOWCONTROL = 1,
-			NOOP = 2
-		};
+    /**
+     * @brief Command used Opcode holder by different functional units.
+     *
+     */
+    class OpcodeCommand :
+        public Command
+    {
+    public:
+        enum
+        {
+            USERDATA = 0,
+            FLOWCONTROL = 1,
+            NOOP = 2
+        };
 
-		OpcodeCommand()
-		{
-			peer.opcode = NOOP;
-		}
+        OpcodeCommand()
+        {
+            peer.opcode = NOOP;
+        }
 
-		struct {} local;
-		struct {
-			int opcode;
-		} peer;
-		struct {} magic;
-	};
+        struct
+        {
+        }
+        local;
+
+        struct
+        {
+            int opcode;
+        }
+        peer;
+
+        struct
+        {
+        }
+        magic;
+    };
 
 
-	/**
-	 * @brief Noop FunctionalUnit providing an OpcodeCommand to a fun::FUN.
-	 *
-	 */
-	class OpcodeProvider :
-		public CommandTypeSpecifier<OpcodeCommand>,
-		public HasReceptor<>,
-		public HasConnector<>,
-		public HasDeliverer<>,
-		public Forwarding<OpcodeProvider>,
-		public Cloneable<OpcodeProvider>
-	{
-	public:
-		OpcodeProvider(fun::FUN* fuNet, const wns::pyconfig::View& config);
-		virtual ~OpcodeProvider() {}
+    /**
+     * @brief Noop FunctionalUnit providing an OpcodeCommand to a fun::FUN.
+     *
+     */
+    class OpcodeProvider :
+        public CommandTypeSpecifier<OpcodeCommand>,
+        public HasReceptor<>,
+        public HasConnector<>,
+        public HasDeliverer<>,
+        public Forwarding<OpcodeProvider>,
+        public Cloneable<OpcodeProvider>
+    {
+    public:
+        OpcodeProvider(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        virtual ~OpcodeProvider()
+        {
+        }
 
-		virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
+        virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
-	private:
-		int opcodeSize;
-		logger::Logger logger;
-	};
+    private:
+        int opcodeSize;
+        logger::Logger logger;
+    };
 
-}}}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_MULTIPLEXER_OPCODE_HPP
 

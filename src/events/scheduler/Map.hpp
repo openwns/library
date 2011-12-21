@@ -222,7 +222,8 @@ namespace wns { namespace events { namespace scheduler {
          */
         virtual void
         onNewSimTime(const wns::simulator::Time& /*next Time*/)
-        {}
+        {
+        }
 
         // MEMBER
         wns::simulator::Time simTime_;

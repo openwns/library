@@ -34,106 +34,105 @@
 using namespace wns::events;
 
 PeriodicTimeout::PeriodicTimeoutFunctor::PeriodicTimeoutFunctor(PeriodicTimeout* _dest, wns::simulator::Time _period) :
-	period_(_period),
-	dest_(_dest)
-{}
+    period_(_period),
+    dest_(_dest)
+{
+}
 
 
 void
 PeriodicTimeout::PeriodicTimeoutFunctor::operator()()
 {
-	this->dest_->periodicEv_ =
-		wns::simulator::getEventScheduler()->scheduleDelay(*this, this->period_);
-	this->dest_->periodically();
+    this->dest_->periodicEv_ =
+        wns::simulator::getEventScheduler()->scheduleDelay(*this, this->period_);
+    this->dest_->periodically();
 }
 
 simTimeType
 PeriodicTimeout::PeriodicTimeoutFunctor::getPeriod() const
 {
-	return this->period_;
+    return this->period_;
 }
 
 void
 PeriodicTimeout::PeriodicTimeoutFunctor::print(std::ostream& aStreamRef) const
 {
-	aStreamRef << "<" << TypeInfo::create(*this) <<" instance at "
-		   << static_cast<const void* const>(this) << ">";
+    aStreamRef << "<" << TypeInfo::create(*this) <<" instance at "
+           << static_cast<const void* const>(this) << ">";
 
-	aStreamRef << ", target: " << wns::TypeInfo::create(*this->dest_);
+    aStreamRef << ", target: " << wns::TypeInfo::create(*this->dest_);
 }
 
 
 PeriodicTimeout::PeriodicTimeout() :
-	period_(-1),
-	periodicEv_(scheduler::IEventPtr())
+    period_(-1),
+    periodicEv_(scheduler::IEventPtr())
 {
 }
 
 
 PeriodicTimeout::~PeriodicTimeout()
 {
-	if(this->hasPeriodicTimeoutSet())
-	{
-		this->cancelPeriodicTimeout();
-	}
+    if(this->hasPeriodicTimeoutSet())
+    {
+        this->cancelPeriodicTimeout();
+    }
 }
 
 
 PeriodicTimeout::PeriodicTimeout(const PeriodicTimeout& other) :
-	period_(other.period_),
-	periodicEv_(scheduler::IEventPtr())
+    period_(other.period_),
+    periodicEv_(scheduler::IEventPtr())
 {
-	if(other.hasPeriodicTimeoutSet())
-	{
-		this->startPeriodicTimeout(other.period_,
-					   other.periodicEv_->getScheduled() - wns::simulator::getEventScheduler()->getTime());
+    if(other.hasPeriodicTimeoutSet())
+    {
+        this->startPeriodicTimeout(other.period_,
+                       other.periodicEv_->getScheduled() - wns::simulator::getEventScheduler()->getTime());
 
-		assure(this->periodicEv_ != other.periodicEv_,
-		       "PeriodicTimeout(const PeriodicTimeout& other): "
-		       "Events of source and destination "
-		       "must not be the same");
-	}
+        assure(this->periodicEv_ != other.periodicEv_,
+               "PeriodicTimeout(const PeriodicTimeout& other): "
+               "Events of source and destination "
+               "must not be the same");
+    }
 }
 
 
 void
 PeriodicTimeout::startPeriodicTimeout(wns::simulator::Time _period, wns::simulator::Time delay)
 {
-	assure(_period > 0,
-		   "The peroid must be >0, otherwise PeriodicTimeout will get stuck in an endless event loop!");
+    assure(_period > 0,
+           "The peroid must be >0, otherwise PeriodicTimeout will get stuck in an endless event loop!");
 
-	if (this->hasPeriodicTimeoutSet())
-	{
-		this->cancelPeriodicTimeout();
-	}
+    if (this->hasPeriodicTimeoutSet())
+    {
+        this->cancelPeriodicTimeout();
+    }
 
-	this->period_ = _period;
+    this->period_ = _period;
 
-	this->periodicEv_ = wns::simulator::getEventScheduler()->
-		scheduleDelay(PeriodicTimeoutFunctor(this, this->period_), delay);
+    this->periodicEv_ = wns::simulator::getEventScheduler()->
+        scheduleDelay(PeriodicTimeoutFunctor(this, this->period_), delay);
 }
 
 
 bool
 PeriodicTimeout::hasPeriodicTimeoutSet() const
 {
-	return this->periodicEv_ != NULL;
+    return this->periodicEv_ != NULL;
 }
 
 
 void
 PeriodicTimeout::cancelPeriodicTimeout()
 {
-	if (!hasPeriodicTimeoutSet())
-	{
-		return;
-	}
-	wns::simulator::getEventScheduler()->cancelEvent(this->periodicEv_);
-	this->periodicEv_ = scheduler::IEventPtr();
+    if (!hasPeriodicTimeoutSet())
+    {
+        return;
+    }
+    wns::simulator::getEventScheduler()->cancelEvent(this->periodicEv_);
+    this->periodicEv_ = scheduler::IEventPtr();
 
-	// invalidate period
-	this->period_ = -1;
+    // invalidate period
+    this->period_ = -1;
 }
-
-
 

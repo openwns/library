@@ -30,10 +30,10 @@
 using namespace wns::events::scheduler;
 
 CommandQueue::CommandQueue() :
-	queue_(),
+    queue_(),
     mutex_()
 {
-	pthread_mutex_init(&mutex_, 0);
+    pthread_mutex_init(&mutex_, 0);
 }
 
 CommandQueue::~CommandQueue()
@@ -67,10 +67,10 @@ CommandQueue::runCommands()
 void
 CommandQueue::reset()
 {
-	// clear Command queue
-	pthread_mutex_lock(&mutex_);
+    // clear Command queue
+    pthread_mutex_lock(&mutex_);
     queue_.clear();
-	pthread_mutex_unlock(&mutex_);
+    pthread_mutex_unlock(&mutex_);
 }
 
 wns::events::scheduler::ICommandPtr

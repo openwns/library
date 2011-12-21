@@ -229,12 +229,12 @@ HARQFU::HARQFU(wns::ldk::fun::FUN* fuNet, const wns::pyconfig::View& config) :
     numRVs_(config.get<int>("numRVs")),
     logger_(config.get("logger"))
 {
-    for (int ii=0; ii < numSenderProcesses_; ++ii)
+    for (int ii = 0; ii < numSenderProcesses_; ++ii)
     {
         senderProcesses_.push_back(HARQSenderProcess(ii, numRVs_, this, logger_));
     }
 
-    for (int ii=0; ii < numReceiverProcesses_; ++ii)
+    for (int ii = 0; ii < numReceiverProcesses_; ++ii)
     {
         receiverProcesses_.push_back(
             HARQFU::HARQReceiverProcess(config.get("receiverProcesses", ii), ii, this));
@@ -248,7 +248,7 @@ HARQFU::~HARQFU()
 void
 HARQFU::onFUNCreated()
 {
-    for (int ii=0; ii < numReceiverProcesses_; ++ii)
+    for (int ii = 0; ii < numReceiverProcesses_; ++ii)
     {
         receiverProcesses_[ii].onFUNCreated();
     }
@@ -257,7 +257,7 @@ HARQFU::onFUNCreated()
 bool
 HARQFU::hasCapacity() const
 {
-    for (int ii=0; ii < numSenderProcesses_; ++ii)
+    for (int ii = 0; ii < numSenderProcesses_; ++ii)
     {
         // Any of my send processes idle?
         if (senderProcesses_[ii].hasCapacity())
@@ -300,7 +300,7 @@ HARQFU::processOutgoing(const wns::ldk::CompoundPtr& compound)
 {
     activateCommand(compound->getCommandPool());
 
-    for (int ii=0; ii < numSenderProcesses_; ++ii)
+    for (int ii = 0; ii < numSenderProcesses_; ++ii)
     {
         // Any of my send processes idle?
         if (senderProcesses_[ii].hasCapacity())

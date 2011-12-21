@@ -30,13 +30,13 @@
 
 namespace wns { namespace events { namespace tests {
 
-	class CallableTest :
-		public wns::TestFixture
+    class CallableTest :
+        public wns::TestFixture
     {
     public:
         CPPUNIT_TEST_SUITE( CallableTest );
-		CPPUNIT_TEST( testCallable );
-		CPPUNIT_TEST_SUITE_END();
+        CPPUNIT_TEST( testCallable );
+        CPPUNIT_TEST_SUITE_END();
 
         struct Foo
         {
@@ -82,7 +82,7 @@ namespace wns { namespace events { namespace tests {
         }
     };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( CallableTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( CallableTest );
 }
 }
 }

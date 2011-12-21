@@ -32,15 +32,15 @@ using namespace wns::ldk::multiplexer;
 STATIC_FACTORY_REGISTER_WITH_CREATOR(OpcodeProvider, FunctionalUnit, "wns.multiplexer.OpcodeProvider", FUNConfigCreator);
 
 OpcodeProvider::OpcodeProvider(fun::FUN* fuNet, const wns::pyconfig::View& config) :
-		CommandTypeSpecifier<OpcodeCommand>(fuNet),
-		HasReceptor<>(),
-		HasConnector<>(),
-		HasDeliverer<>(),
-		Forwarding<OpcodeProvider>(),
-		Cloneable<OpcodeProvider>(),
+        CommandTypeSpecifier<OpcodeCommand>(fuNet),
+        HasReceptor<>(),
+        HasConnector<>(),
+        HasDeliverer<>(),
+        Forwarding<OpcodeProvider>(),
+        Cloneable<OpcodeProvider>(),
 
-		opcodeSize(config.get<int>("opcodeSize")),
-		logger("WNS", "Opcode")
+        opcodeSize(config.get<int>("opcodeSize")),
+        logger("WNS", "Opcode")
 {
 } // OpcodeProvider
 
@@ -48,9 +48,9 @@ OpcodeProvider::OpcodeProvider(fun::FUN* fuNet, const wns::pyconfig::View& confi
 void
 OpcodeProvider::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
 {
-	getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
+    getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
 
-	commandPoolSize += opcodeSize;
+    commandPoolSize += opcodeSize;
 } // calculateSizes
 
 

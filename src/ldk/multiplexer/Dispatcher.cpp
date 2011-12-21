@@ -32,23 +32,23 @@ using namespace wns::ldk;
 using namespace wns::ldk::multiplexer;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Dispatcher, wns::ldk::FunctionalUnit,
-									 "wns.multiplexer.Dispatcher",
-									 wns::ldk::FUNConfigCreator);
+                                     "wns.multiplexer.Dispatcher",
+                                     wns::ldk::FUNConfigCreator);
 
 Dispatcher::Dispatcher(fun::FUN* fuNet, const pyconfig::View& _config) :
-		CommandTypeSpecifier<OpcodeCommand>(fuNet),
-		HasReceptor<RoundRobinReceptor>(),
-		HasConnector<>(),
-		HasDeliverer<OpcodeDeliverer>(),
-		Processor<Dispatcher>(),
-		Cloneable<Dispatcher>(),
-		config(_config),
-		opcodeSetters(),
-		opcodeSize(config.get<int>("opcodeSize")),
-		opcode(),
-		logger(_config.get("logger"))
+        CommandTypeSpecifier<OpcodeCommand>(fuNet),
+        HasReceptor<RoundRobinReceptor>(),
+        HasConnector<>(),
+        HasDeliverer<OpcodeDeliverer>(),
+        Processor<Dispatcher>(),
+        Cloneable<Dispatcher>(),
+        config(_config),
+        opcodeSetters(),
+        opcodeSize(config.get<int>("opcodeSize")),
+        opcode(),
+        logger(_config.get("logger"))
 {
-	getDeliverer()->setOpcodeProvider(this);
+    getDeliverer()->setOpcodeProvider(this);
 }
 
 
@@ -56,14 +56,14 @@ Dispatcher::~Dispatcher()
 {
 // Call destructor for all opcodeSetters
 for(std::list<OpcodeSetter*>::const_iterator it = opcodeSetters.begin();
-		it != opcodeSetters.end();)
-	{
-		OpcodeSetter* opcodeSetter;
-		opcodeSetter = (*it);
-		++it;
+        it != opcodeSetters.end();)
+    {
+        OpcodeSetter* opcodeSetter;
+        opcodeSetter = (*it);
+        ++it;
 
-		delete opcodeSetter;
-	}
+        delete opcodeSetter;
+    }
 
 }
 
@@ -71,54 +71,54 @@ for(std::list<OpcodeSetter*>::const_iterator it = opcodeSetters.begin();
 FunctionalUnit*
 Dispatcher::whenConnecting()
 {
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " adding new OpcodeSetter for opcode "
-	  << opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " adding new OpcodeSetter for opcode "
+      << opcode;
+    MESSAGE_END();
 
-	OpcodeSetter *opcodeSetter = new OpcodeSetter(getFUN(), this, config, opcode++);
+    OpcodeSetter *opcodeSetter = new OpcodeSetter(getFUN(), this, config, opcode++);
 
-	opcodeSetters.push_front(opcodeSetter);
+    opcodeSetters.push_front(opcodeSetter);
 
-	opcodeSetter->getConnector()->add(this);
-	this->getReceptor()->add(opcodeSetter);
+    opcodeSetter->getConnector()->add(this);
+    this->getReceptor()->add(opcodeSetter);
 
-	this->getDeliverer()->add(opcodeSetter);
+    this->getDeliverer()->add(opcodeSetter);
 
-	return opcodeSetter;
+    return opcodeSetter;
 } // whenConnecting
 
 
 void
 Dispatcher::processOutgoing(const CompoundPtr& compound)
 {
-	OpcodeCommand* command = getCommand(compound->getCommandPool());
+    OpcodeCommand* command = getCommand(compound->getCommandPool());
 
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " sending opcode "
-	  << command->peer.opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " sending opcode "
+      << command->peer.opcode;
+    MESSAGE_END();
 } // processOutgoing
 
 
 void
 Dispatcher::processIncoming(const CompoundPtr& compound)
 {
-	OpcodeCommand* command = getCommand(compound->getCommandPool());
+    OpcodeCommand* command = getCommand(compound->getCommandPool());
 
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " delivering opcode "
-	  << command->peer.opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " delivering opcode "
+      << command->peer.opcode;
+    MESSAGE_END();
 } // processIncoming
 
 
 void
 Dispatcher::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
 {
-	getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
+    getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
 
-	commandPoolSize += opcodeSize;
+    commandPoolSize += opcodeSize;
 } // calculateSizes
 
 

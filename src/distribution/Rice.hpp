@@ -18,14 +18,14 @@
 #include <WNS/distribution/Norm.hpp>
 
 namespace wns { namespace distribution {
-	/**
-	 * @brief Rice distributed random numbers.
-	 *
-	 */
-	class Rice :
-		public Distribution
-	{
-	public:
+    /**
+     * @brief Rice distributed random numbers.
+     *
+     */
+    class Rice :
+        public Distribution
+    {
+    public:
         explicit
         Rice(double mean, double variance, wns::rng::RNGen* rng);
 
@@ -35,22 +35,22 @@ namespace wns { namespace distribution {
         explicit
         Rice(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~Rice();
+        virtual
+        ~Rice();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
+    private:
         double losFactor_;
         double variance_;
 
         Norm disA_;
         Norm disB_;
-	}; // Geometric
+    }; // Geometric
 } // distribution
 } // wns
 

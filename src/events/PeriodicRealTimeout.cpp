@@ -35,119 +35,122 @@
 using namespace wns::events;
 
 PeriodicRealTimeout::PeriodicRealTimeout() :
-	mutex(),
-	period(0),
-	delay(0),
-	running(false),
-	thread(),
-	currentCommand(scheduler::makeNullCommand())
+    mutex(),
+    period(0),
+    delay(0),
+    running(false),
+    thread(),
+    currentCommand(scheduler::makeNullCommand())
 {
-	pthread_mutex_init(&this->mutex, 0);
-	pthread_cond_init(&this->dataRead, 0);
+    pthread_mutex_init(&this->mutex, 0);
+    pthread_cond_init(&this->dataRead, 0);
 } // PeriodicRealTimeout
 
 
 PeriodicRealTimeout::~PeriodicRealTimeout()
 {
-	this->cancelPeriodicRealTimeout();
-	pthread_cond_destroy(&this->dataRead);
-	pthread_mutex_destroy(&this->mutex);
+    this->cancelPeriodicRealTimeout();
+    pthread_cond_destroy(&this->dataRead);
+    pthread_mutex_destroy(&this->mutex);
 } // ~PeriodicRealTimeout
 
 
 void
 PeriodicRealTimeout::startPeriodicTimeout(double _period, double _delay)
 {
-	this->cancelPeriodicRealTimeout();
+    this->cancelPeriodicRealTimeout();
 
-	pthread_mutex_lock(&this->mutex);
-	{
-		this->period = _period;
-		this->delay = _delay;
+    pthread_mutex_lock(&this->mutex);
+    {
+        this->period = _period;
+        this->delay = _delay;
 
-		pthread_create(&this->thread, 0, PeriodicRealTimeout::worker, this);
-		pthread_cond_wait( &this->dataRead, &this->mutex );
-	}
-	pthread_mutex_unlock(&this->mutex);
+        pthread_create(&this->thread, 0, PeriodicRealTimeout::worker, this);
+        pthread_cond_wait( &this->dataRead, &this->mutex );
+    }
+    pthread_mutex_unlock(&this->mutex);
 } // setPeriodicRealTimeout
 
 
 bool
 PeriodicRealTimeout::hasPeriodicRealTimeoutSet()
 {
-	return this->running;	// this is a funky method anyway...
+    return this->running;	// this is a funky method anyway...
 } // hasPeriodicRealTimeoutSet
 
 
 void
 PeriodicRealTimeout::cancelPeriodicRealTimeout()
 {
-	pthread_mutex_lock(&this->mutex);
-	if (this->running)
-	{
-		if (this->currentCommand->isQueued())
-		{
-			wns::simulator::getEventScheduler()->dequeueCommand(this->currentCommand);
-		}
-		pthread_cancel(this->thread);
-		pthread_join(this->thread, 0);
-		this->running = false;
-		this->currentCommand = scheduler::makeNullCommand();
-	}
-	pthread_mutex_unlock(&this->mutex);
+    pthread_mutex_lock(&this->mutex);
+    if (this->running)
+    {
+        if (this->currentCommand->isQueued())
+        {
+            wns::simulator::getEventScheduler()->dequeueCommand(this->currentCommand);
+        }
+        pthread_cancel(this->thread);
+        pthread_join(this->thread, 0);
+        this->running = false;
+        this->currentCommand = scheduler::makeNullCommand();
+    }
+    pthread_mutex_unlock(&this->mutex);
 } // cancelPeriodicRealTimeout
 
 
 void*
 PeriodicRealTimeout::worker(void* _arg)
 {
-	PeriodicRealTimeout* it = (PeriodicRealTimeout*) _arg;
+    PeriodicRealTimeout* it = (PeriodicRealTimeout*) _arg;
 
-	pthread_mutex_lock(&it->mutex);
-	it->running = true;
-	double delay;
-	double period;
-	delay = it->delay;
-	period = it->period;
-	pthread_mutex_unlock(&it->mutex);
-	pthread_cond_signal(&it->dataRead);
+    pthread_mutex_lock(&it->mutex);
+    it->running = true;
+    double delay;
+    double period;
+    delay = it->delay;
+    period = it->period;
+    pthread_mutex_unlock(&it->mutex);
+    pthread_cond_signal(&it->dataRead);
 
-	{
-		timespec t;
-		t.tv_sec = static_cast<time_t>(delay);
-		t.tv_nsec = static_cast<long>((delay-t.tv_sec)*1E9);
-		nanosleep(&t, NULL);
-	}
+    {
+        timespec t;
+        t.tv_sec = static_cast<time_t>(delay);
+        t.tv_nsec = static_cast<long>((delay-t.tv_sec)*1E9);
+        nanosleep(&t, NULL);
+    }
 
-	while(true) {
+    while(true)
+    {
 
-		int oldState;
-		pthread_testcancel();
-		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldState);
-		pthread_mutex_lock(&it->mutex);
-		{
-			if(it->currentCommand->isFinished() || it->currentCommand->isNotSubmitted())
-			{
-				it->currentCommand =
-					wns::simulator::getEventScheduler()->queueCommand(PeriodicRealTimeoutCommand(it));
-			} else {
-				// old event has not yet been executed, wait
-				// until next iteration
-			}
-		}
-		pthread_mutex_unlock(&it->mutex);
-		pthread_setcancelstate(oldState, 0);
-		pthread_testcancel();
+        int oldState;
+        pthread_testcancel();
+        pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldState);
+        pthread_mutex_lock(&it->mutex);
+        {
+            if(it->currentCommand->isFinished() || it->currentCommand->isNotSubmitted())
+            {
+                it->currentCommand =
+                    wns::simulator::getEventScheduler()->queueCommand(PeriodicRealTimeoutCommand(it));
+            }
+            else
+            {
+                // old event has not yet been executed, wait
+                // until next iteration
+            }
+        }
+        pthread_mutex_unlock(&it->mutex);
+        pthread_setcancelstate(oldState, 0);
+        pthread_testcancel();
 
-		{
-			timespec t;
-			t.tv_sec = static_cast<time_t>(period);
-			t.tv_nsec = static_cast<long>((period-t.tv_sec)*1E9);
-			nanosleep(&t, NULL);
-		}
-	}
+        {
+            timespec t;
+            t.tv_sec = static_cast<time_t>(period);
+            t.tv_nsec = static_cast<long>((period-t.tv_sec)*1E9);
+            nanosleep(&t, NULL);
+        }
+    }
 
-	return 0;
+    return 0;
 } // worker
 
 

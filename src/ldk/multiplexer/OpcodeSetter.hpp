@@ -42,36 +42,40 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	class OpcodeSetter :
-		public CommandTypeSpecifier<>,
-		public HasReceptor<>,
-		public HasConnector<>,
-		public HasDeliverer<>,
-		public Processor<OpcodeSetter>,
-		public Cloneable<OpcodeSetter>
-	{
-	public:
-		OpcodeSetter(fun::FUN* fuNet, const pyconfig::View& config);
-		OpcodeSetter(fun::FUN* fuNet, FunctionalUnit* opcodeProvider, const pyconfig::View& config, int opcode);
+    class OpcodeSetter :
+        public CommandTypeSpecifier<>,
+        public HasReceptor<>,
+        public HasConnector<>,
+        public HasDeliverer<>,
+        public Processor<OpcodeSetter>,
+        public Cloneable<OpcodeSetter>
+    {
+    public:
+        OpcodeSetter(fun::FUN* fuNet, const pyconfig::View& config);
+        OpcodeSetter(fun::FUN* fuNet, FunctionalUnit* opcodeProvider, const pyconfig::View& config, int opcode);
 
-		virtual void onFUNCreated();
+        virtual void onFUNCreated();
 
-		// Processor interface
-		virtual void processOutgoing(const CompoundPtr& compound);
-		virtual void processIncoming(const CompoundPtr& compound);
+        // Processor interface
+        virtual void processOutgoing(const CompoundPtr& compound);
+        virtual void processIncoming(const CompoundPtr& compound);
 
-	private:
-		pyconfig::View config;
-		int opcode;
+    private:
+        pyconfig::View config;
+        int opcode;
 
-		struct _friends {
-			FunctionalUnit* opcodeProvider;
-		} friends;
+        struct _friends
+        {
+            FunctionalUnit* opcodeProvider;
+        }
+        friends;
 
-		logger::Logger logger;
-	};
+        logger::Logger logger;
+    };
 
-}}}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_MULTIPLEXER_OPCODESETTER_HPP
 

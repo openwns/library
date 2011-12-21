@@ -536,4 +536,6 @@ namespace wns { namespace container { namespace tests {
     };
 
     CPPUNIT_TEST_SUITE_REGISTRATION( FastListTest );
-}}}
+}
+}
+}

@@ -115,7 +115,7 @@ DynamicSAR::doOnData(const CompoundPtr& compound)
     {
         if (it != command->magic.segInfoPtr->receivedSegments.begin())
             m << ", ";
-        m << (*it);
+            m << (*it);
     }
     m << "]";
     MESSAGE_END();
@@ -168,7 +168,7 @@ DynamicSAR::doIsAccepting(const CompoundPtr& compound) const
     m << "Lower FU is ";
     if (!accepting)
         m << "not ";
-    m << "accepting the compound";
+        m << "accepting the compound";
     MESSAGE_END();
 
     return accepting;

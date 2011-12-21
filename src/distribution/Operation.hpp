@@ -33,68 +33,72 @@
 
 namespace wns { namespace distribution { namespace operation {
 
-	class Binary :
+    class Binary :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         Binary(const pyconfig::View& config);
         Binary(wns::rng::RNGen* rng, const pyconfig::View& config);
- 
-	protected:
-		Distribution* first_;
-		Distribution* second_;
+
+    protected:
+        Distribution* first_;
+        Distribution* second_;
         wns::pyconfig::View config_;
-    
+
     private:
         void
         init();
 
-	}; // Binary
+    }; // Binary
 
-	class ADD :
-		public Binary
-	{
-	public:
+    class ADD :
+        public Binary
+    {
+    public:
         ADD(const pyconfig::View& config) :
             Binary(config)
-        {}
+        {
+        }
 
         ADD(wns::rng::RNGen* rng, const pyconfig::View& config) :
             Binary(rng, config)
-        {}
+        {
+        }
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
- 		virtual double
- 		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
-	}; // ADD
+        virtual std::string
+        paramString() const;
+    }; // ADD
 
-	class MUL :
-		public Binary
-	{
-	public:
+    class MUL :
+        public Binary
+    {
+    public:
         MUL(const pyconfig::View& config) :
             Binary(config)
-        {}
+        {
+        }
 
         MUL(wns::rng::RNGen* rng,const pyconfig::View& config) :
             Binary(rng, config)
-        {}
- 
-		virtual double
-		operator()();
+        {
+        }
 
- 		virtual double
- 		getMean() const;
+        virtual double
+        operator()();
 
-		virtual std::string
-		paramString() const;
-	}; // MUL
+        virtual double
+        getMean() const;
+
+        virtual std::string
+        paramString() const;
+    }; // MUL
 
 	class SUB :
 		public Binary
@@ -102,99 +106,107 @@ namespace wns { namespace distribution { namespace operation {
 	public:
         SUB(const pyconfig::View& config) :
             Binary(config)
-        {}
+        {
+        }
 
         SUB(wns::rng::RNGen* rng, const pyconfig::View& config) :
             Binary(rng, config)
-        {}
+        {
+        }
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
- 		virtual double
- 		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
-	};  // SUB
+        virtual std::string
+        paramString() const;
+    };  // SUB
 
-	class DIV :
-		public Binary
-	{
-	public:
+    class DIV :
+        public Binary
+    {
+    public:
         DIV(const pyconfig::View& config) :
             Binary(config)
-        {}
+        {
+        }
 
         DIV(wns::rng::RNGen* rng, const pyconfig::View& config) :
             Binary(rng, config)
-        {}
+        {
+        }
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
- 		virtual double
- 		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
-	}; // DIV
+        virtual std::string
+        paramString() const;
+    }; // DIV
 
-	class DistributionAndFloat :
-		public Distribution
-	{
-	public:
+    class DistributionAndFloat :
+        public Distribution
+    {
+    public:
         DistributionAndFloat(const pyconfig::View& config);
         DistributionAndFloat(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-	protected:
-		Distribution* subject_;
-		double arg_;
+    protected:
+        Distribution* subject_;
+        double arg_;
         wns::pyconfig::View config_;
 
     private:
         void
         init();
 
-	}; // DistributionAndFloat
+    }; // DistributionAndFloat
 
-	class Above :
-		public DistributionAndFloat
-	{
-	public:
+    class Above :
+        public DistributionAndFloat
+    {
+    public:
         Above(const pyconfig::View& config) :
             DistributionAndFloat(config)
-        {}
+        {
+        }
 
         Above(wns::rng::RNGen* rng, const pyconfig::View& config) :
             DistributionAndFloat(rng, config)
-        {}
+        {
+        }
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual std::string
-		paramString() const;
-	}; // Above
+        virtual std::string
+        paramString() const;
+    }; // Above
 
-	class Below :
-		public DistributionAndFloat
-	{
-	public:
+    class Below :
+        public DistributionAndFloat
+    {
+    public:
         Below(const pyconfig::View& config) :
             DistributionAndFloat(config)
-        {}
+        {
+        }
 
         Below(wns::rng::RNGen* rng, const pyconfig::View& config) :
             DistributionAndFloat(rng, config)
-        {}
+        {
+        }
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual std::string
-		paramString() const;
-	}; // Below
+        virtual std::string
+        paramString() const;
+    }; // Below
 
 } // operation
 } // distribution

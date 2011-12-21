@@ -76,7 +76,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
 
             virtual
             ~SelfQueuing()
-            {}
+            {
+            }
         private:
             int count;
             wns::events::scheduler::Interface* scheduler;
@@ -102,7 +103,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
             }
 
             ~JistStyle()
-            {}
+            {
+            }
         private:
             int count;
             wns::events::scheduler::Interface* scheduler;

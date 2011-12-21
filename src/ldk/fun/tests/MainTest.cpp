@@ -48,54 +48,54 @@ CPPUNIT_TEST_SUITE_REGISTRATION( MainFUNInterfaceTest );
 void
 MainFUNInterfaceTest::testReconfigureFUN()
 {
-	pyconfig::Parser emptyConfig;
-	FunctionalUnit* oldFU = new tools::Stub(getFUN(), emptyConfig);
+    pyconfig::Parser emptyConfig;
+    FunctionalUnit* oldFU = new tools::Stub(getFUN(), emptyConfig);
 
-	getFUN()->addFunctionalUnit("upperStub", fu1);
-	getFUN()->addFunctionalUnit("lowerStub", fu2);
-	getFUN()->addFunctionalUnit("oldStub", oldFU);
+    getFUN()->addFunctionalUnit("upperStub", fu1);
+    getFUN()->addFunctionalUnit("lowerStub", fu2);
+    getFUN()->addFunctionalUnit("oldStub", oldFU);
 
-	getFUN()->connectFunctionalUnit("upperStub", "oldStub");
-	getFUN()->connectFunctionalUnit("oldStub", "lowerStub");
+    getFUN()->connectFunctionalUnit("upperStub", "oldStub");
+    getFUN()->connectFunctionalUnit("oldStub", "lowerStub");
 
-	fu1->sendData(getFUN()->createCompound());
-	CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(oldFU)->sent.size());
-	CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(fu2)->sent.size());
+    fu1->sendData(getFUN()->createCompound());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(oldFU)->sent.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(fu2)->sent.size());
 
-	fu2->onData(getFUN()->createCompound());
-	CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(oldFU)->received.size());
-	CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(fu1)->received.size());
+    fu2->onData(getFUN()->createCompound());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(oldFU)->received.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(fu1)->received.size());
 
-	fu2->wakeup();
-	CPPUNIT_ASSERT_EQUAL(long(1), dynamic_cast<tools::Stub*>(oldFU)->wakeupCalled);
-	CPPUNIT_ASSERT_EQUAL(long(1), dynamic_cast<tools::Stub*>(fu1)->wakeupCalled);
+    fu2->wakeup();
+    CPPUNIT_ASSERT_EQUAL(long(1), dynamic_cast<tools::Stub*>(oldFU)->wakeupCalled);
+    CPPUNIT_ASSERT_EQUAL(long(1), dynamic_cast<tools::Stub*>(fu1)->wakeupCalled);
 
-	pyconfig::Parser config;
-	config.loadString(
-		"from openwns.Tools import Stub\n"
-		"class ReconfigureFUN:\n"
-		"  replaceFU = \"oldStub\"\n"
-		"  newFUName = \"newStub\"\n"
-		"  newFUConfig = Stub()\n"
-		"reconfigureFUN = ReconfigureFUN()\n");
-	pyconfig::View reconfig(config, "reconfigureFUN");
+    pyconfig::Parser config;
+    config.loadString(
+        "from openwns.Tools import Stub\n"
+        "class ReconfigureFUN:\n"
+        "  replaceFU = \"oldStub\"\n"
+        "  newFUName = \"newStub\"\n"
+        "  newFUConfig = Stub()\n"
+        "reconfigureFUN = ReconfigureFUN()\n");
+    pyconfig::View reconfig(config, "reconfigureFUN");
 
-	getFUN()->reconfigureFUN(reconfig);
+    getFUN()->reconfigureFUN(reconfig);
 
-	fu1->sendData(getFUN()->createCompound());
-	CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(getFUN()->getFunctionalUnit("newStub"))->sent.size());
-	CPPUNIT_ASSERT_EQUAL(size_t(2), dynamic_cast<tools::Stub*>(fu2)->sent.size());
+    fu1->sendData(getFUN()->createCompound());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(getFUN()->getFunctionalUnit("newStub"))->sent.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(2), dynamic_cast<tools::Stub*>(fu2)->sent.size());
 
-	fu2->onData(getFUN()->createCompound());
-	CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(getFUN()->getFunctionalUnit("newStub"))->received.size());
-	CPPUNIT_ASSERT_EQUAL(size_t(2), dynamic_cast<tools::Stub*>(fu1)->received.size());
+    fu2->onData(getFUN()->createCompound());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), dynamic_cast<tools::Stub*>(getFUN()->getFunctionalUnit("newStub"))->received.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(2), dynamic_cast<tools::Stub*>(fu1)->received.size());
 
-	fu2->wakeup();
-	CPPUNIT_ASSERT_EQUAL(long(1), dynamic_cast<tools::Stub*>(getFUN()->getFunctionalUnit("newStub"))->wakeupCalled);
-	CPPUNIT_ASSERT_EQUAL(long(2), dynamic_cast<tools::Stub*>(fu1)->wakeupCalled);
+    fu2->wakeup();
+    CPPUNIT_ASSERT_EQUAL(long(1), dynamic_cast<tools::Stub*>(getFUN()->getFunctionalUnit("newStub"))->wakeupCalled);
+    CPPUNIT_ASSERT_EQUAL(long(2), dynamic_cast<tools::Stub*>(fu1)->wakeupCalled);
 
-	fu1 = NULL;
-	fu2 = NULL;
+    fu1 = NULL;
+    fu2 = NULL;
 } // testReconfigureFUN
 
 

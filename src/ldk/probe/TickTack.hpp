@@ -48,12 +48,22 @@ namespace wns { namespace ldk { namespace probe {
             magic.probed = false;
         }
 
-        struct {} local;
-        struct {} peer;
-        struct {
+        struct
+        {
+        }
+        local;
+
+        struct
+        {
+        }
+        peer;
+
+        struct
+        {
             wns::simulator::Time tickTime;
             bool probed;
-        } magic;
+        }
+        magic;
 
     };
 
@@ -146,7 +156,7 @@ namespace wns { namespace ldk { namespace probe {
         doWakeup()
         {
             getReceptor()->wakeup();
-        } 
+        }
 
         void
         probeIfNotProbed(const CompoundPtr& compound);
@@ -156,7 +166,7 @@ namespace wns { namespace ldk { namespace probe {
         wns::probe::bus::ContextCollectorPtr delayProbe_;
         wns::probe::bus::ContextCollectorPtr inSizeProbe_;
         bool probeOutgoing_;
-        
+
         fun::FUN* fun_;
 
         wns::logger::Logger logger_;

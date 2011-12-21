@@ -32,97 +32,98 @@
 
 namespace wns { namespace events { namespace tests {
 
-	class DelayedMemberFunctionTest :
-		public wns::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( DelayedMemberFunctionTest );
-		CPPUNIT_TEST( sendDelayed );
-		CPPUNIT_TEST_SUITE_END();
+    class DelayedMemberFunctionTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( DelayedMemberFunctionTest );
+        CPPUNIT_TEST( sendDelayed );
+        CPPUNIT_TEST_SUITE_END();
 
-		class TestObject
-		{
-		public:
-			TestObject() :
-				foo(0)
-			{}
+        class TestObject
+        {
+        public:
+            TestObject() :
+                foo(0)
+            {
+            }
 
-			void increaseFoo()
-			{
-				++foo;
-			}
+            void increaseFoo()
+            {
+                ++foo;
+            }
 
-			int foo;
-		};
+            int foo;
+        };
 
-	public:
- 		void prepare();
-		void cleanup();
+    public:
+        void prepare();
+        void cleanup();
 
-		void sendDelayed();
+        void sendDelayed();
 
-	};
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( DelayedMemberFunctionTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( DelayedMemberFunctionTest );
 
-	void
-	DelayedMemberFunctionTest::prepare()
-	{
-	}
+    void
+    DelayedMemberFunctionTest::prepare()
+    {
+    }
 
-	void
-	DelayedMemberFunctionTest::cleanup()
-	{
-	}
+    void
+    DelayedMemberFunctionTest::cleanup()
+    {
+    }
 
-	void
-	DelayedMemberFunctionTest::sendDelayed()
-	{
-		// begin example "wns.events.DelayedMemberFunction.sendDelayed.example"
-		std::vector<TestObject*> tos;
-		tos.push_back(new TestObject);
-		tos.push_back(new TestObject);
-		tos.push_back(new TestObject);
+    void
+    DelayedMemberFunctionTest::sendDelayed()
+    {
+        // begin example "wns.events.DelayedMemberFunction.sendDelayed.example"
+        std::vector<TestObject*> tos;
+        tos.push_back(new TestObject);
+        tos.push_back(new TestObject);
+        tos.push_back(new TestObject);
 
-		// counter should be zero for all objects
-		CPPUNIT_ASSERT_EQUAL(0, tos[0]->foo);
-		CPPUNIT_ASSERT_EQUAL(0, tos[1]->foo);
-		CPPUNIT_ASSERT_EQUAL(0, tos[2]->foo);
+        // counter should be zero for all objects
+        CPPUNIT_ASSERT_EQUAL(0, tos[0]->foo);
+        CPPUNIT_ASSERT_EQUAL(0, tos[1]->foo);
+        CPPUNIT_ASSERT_EQUAL(0, tos[2]->foo);
 
-		// queue Events for all objects, calling increaseFoo after 1 second
-		std::for_each(
-			tos.begin(),
-			tos.end(),
-			DelayedMemberFunction<TestObject>(&TestObject::increaseFoo, 1.0));
+        // queue Events for all objects, calling increaseFoo after 1 second
+        std::for_each(
+            tos.begin(),
+            tos.end(),
+            DelayedMemberFunction<TestObject>(&TestObject::increaseFoo, 1.0));
 
-		// only one of the objects should have the counter
-		// increased. Since events may be executed in unperdictble order
-		// we're testing the sum rather than one specifc element!
-		wns::simulator::getEventScheduler()->processOneEvent();
-		CPPUNIT_ASSERT_EQUAL(1, tos[0]->foo + tos[1]->foo + tos[2]->foo);
+        // only one of the objects should have the counter
+        // increased. Since events may be executed in unperdictble order
+        // we're testing the sum rather than one specifc element!
+        wns::simulator::getEventScheduler()->processOneEvent();
+        CPPUNIT_ASSERT_EQUAL(1, tos[0]->foo + tos[1]->foo + tos[2]->foo);
 
-		// two of the objects should have the counter
-		// increased. None of them should be called twice!
-		wns::simulator::getEventScheduler()->processOneEvent();
-		CPPUNIT_ASSERT_EQUAL(2, tos[0]->foo + tos[1]->foo + tos[2]->foo);
-		CPPUNIT_ASSERT(tos[0]->foo < 2 && tos[1]->foo < 2 && tos[2]->foo < 2);
+        // two of the objects should have the counter
+        // increased. None of them should be called twice!
+        wns::simulator::getEventScheduler()->processOneEvent();
+        CPPUNIT_ASSERT_EQUAL(2, tos[0]->foo + tos[1]->foo + tos[2]->foo);
+        CPPUNIT_ASSERT(tos[0]->foo < 2 && tos[1]->foo < 2 && tos[2]->foo < 2);
 
-		// two of the objects should have the counter
-		// increased. None of them should be called twice!
-		wns::simulator::getEventScheduler()->processOneEvent();
-		CPPUNIT_ASSERT_EQUAL(3, tos[0]->foo + tos[1]->foo + tos[2]->foo);
-		CPPUNIT_ASSERT(tos[0]->foo < 2 && tos[1]->foo < 2 && tos[2]->foo < 2);
+        // two of the objects should have the counter
+        // increased. None of them should be called twice!
+        wns::simulator::getEventScheduler()->processOneEvent();
+        CPPUNIT_ASSERT_EQUAL(3, tos[0]->foo + tos[1]->foo + tos[2]->foo);
+        CPPUNIT_ASSERT(tos[0]->foo < 2 && tos[1]->foo < 2 && tos[2]->foo < 2);
 
-		// end example
+        // end example
 
-		while(tos.empty() == false)
-		{
-			delete *tos.begin();
-			tos.erase(tos.begin());
-		}
+        while(tos.empty() == false)
+        {
+            delete *tos.begin();
+            tos.erase(tos.begin());
+        }
 
-		// There should be no more events ...
-		CPPUNIT_ASSERT(!wns::simulator::getEventScheduler()->processOneEvent());
-	}
+        // There should be no more events ...
+        CPPUNIT_ASSERT(!wns::simulator::getEventScheduler()->processOneEvent());
+    }
 
 } // tests
 } // events

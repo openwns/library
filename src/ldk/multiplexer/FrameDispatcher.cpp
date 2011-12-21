@@ -32,102 +32,102 @@ using namespace wns::ldk;
 using namespace wns::ldk::multiplexer;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	FrameDispatcher,
-	wns::ldk::FunctionalUnit,
-	"wns.multiplexer.FrameDispatcher",
-	wns::ldk::FUNConfigCreator);
+    FrameDispatcher,
+    wns::ldk::FunctionalUnit,
+    "wns.multiplexer.FrameDispatcher",
+    wns::ldk::FUNConfigCreator);
 
 FrameDispatcher::FrameDispatcher(fun::FUN* fuNet, const pyconfig::View& _config) :
-		CommandTypeSpecifier<OpcodeCommand>(fuNet),
-		HasReceptor<RoundRobinReceptor>(),
-		HasConnector<RoundRobinConnector>(),
-		HasDeliverer<OpcodeDeliverer>(),
-		Processor<FrameDispatcher>(),
-		Cloneable<FrameDispatcher>(),
-		config(_config),
-		opcodeSize(config.get<int>("opcodeSize")),
-		opcode(),
-		pending(),
-		logger(_config.get("logger"))
+        CommandTypeSpecifier<OpcodeCommand>(fuNet),
+        HasReceptor<RoundRobinReceptor>(),
+        HasConnector<RoundRobinConnector>(),
+        HasDeliverer<OpcodeDeliverer>(),
+        Processor<FrameDispatcher>(),
+        Cloneable<FrameDispatcher>(),
+        config(_config),
+        opcodeSize(config.get<int>("opcodeSize")),
+        opcode(),
+        pending(),
+        logger(_config.get("logger"))
 {
-	getDeliverer()->setOpcodeProvider(this);
+    getDeliverer()->setOpcodeProvider(this);
 }
 
 
 FunctionalUnit*
 FrameDispatcher::whenConnecting()
 {
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " adding new OpcodeSetter for opcode "
-	  << opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " adding new OpcodeSetter for opcode "
+      << opcode;
+    MESSAGE_END();
 
-	assure(!pending || downConnected || upConnected,
-		   "unit above dispatcher without corresponding unit below.");
+    assure(!pending || downConnected || upConnected,
+           "unit above dispatcher without corresponding unit below.");
 
-	pending = new OpcodeSetter(getFUN(), this, config, opcode++);
-	downConnected = false;
-	upConnected = false;
+    pending = new OpcodeSetter(getFUN(), this, config, opcode++);
+    downConnected = false;
+    upConnected = false;
 
-	this->getReceptor()->add(pending);
-	this->getDeliverer()->add(pending);
+    this->getReceptor()->add(pending);
+    this->getDeliverer()->add(pending);
 
-	return pending;
+    return pending;
 } // whenConnecting
 
 
 void
 FrameDispatcher::doDownConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort)
 {
-	assure(pending, "no unit above dispatcher waiting for a connect from below.");
-	assure(!downConnected, "you may only downconnect once.");
+    assure(pending, "no unit above dispatcher waiting for a connect from below.");
+    assure(!downConnected, "you may only downconnect once.");
 
         pending->downConnect(that, srcPort, dstPort);
-	downConnected = true;
+    downConnected = true;
 } // _downConnect
 
 
 void
 FrameDispatcher::doUpConnect(FunctionalUnit* that, const std::string& srcPort, const std::string& dstPort)
 {
-	assure(pending, "no unit above dispatcher waiting for a connect from below.");
-	assure(!upConnected, "you may only upconnect once.");
+    assure(pending, "no unit above dispatcher waiting for a connect from below.");
+    assure(!upConnected, "you may only upconnect once.");
 
         pending->upConnect(that, srcPort, dstPort);
-	upConnected = true;
+    upConnected = true;
 } // _upConnect
 
 
 void
 FrameDispatcher::processOutgoing(const CompoundPtr& compound)
 {
-	OpcodeCommand* command = getCommand(compound->getCommandPool());
+    OpcodeCommand* command = getCommand(compound->getCommandPool());
 
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " sending opcode "
-	  << command->peer.opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " sending opcode "
+      << command->peer.opcode;
+    MESSAGE_END();
 } // processOutgoing
 
 
 void
 FrameDispatcher::processIncoming(const CompoundPtr& compound)
 {
-	OpcodeCommand* command = getCommand(compound->getCommandPool());
+    OpcodeCommand* command = getCommand(compound->getCommandPool());
 
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " delivering opcode "
-	  << command->peer.opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " delivering opcode "
+      << command->peer.opcode;
+    MESSAGE_END();
 } // processIncoming
 
 
 void
 FrameDispatcher::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
 {
-	getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
+    getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
 
-	commandPoolSize += opcodeSize;
+    commandPoolSize += opcodeSize;
 } // calculateSizes
 
 

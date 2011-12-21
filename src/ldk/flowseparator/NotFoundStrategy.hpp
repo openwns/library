@@ -35,140 +35,140 @@
 
 namespace wns { namespace ldk { namespace flowseparator {
 
-	class CreatorStrategy;
-	class FlowInfoProvider;
+    class CreatorStrategy;
+    class FlowInfoProvider;
 
-	/**
-	 * @brief Interface for FlowSeparator strategies for dealing with unknown flows.
-	 */
-	class NotFoundStrategy
-	{
-	public:
-		virtual
-		~NotFoundStrategy();
+    /**
+     * @brief Interface for FlowSeparator strategies for dealing with unknown flows.
+     */
+    class NotFoundStrategy
+    {
+    public:
+        virtual
+        ~NotFoundStrategy();
 
-		/**
-		 * @brief Return a new FU for the given key
-		 *
-		 */
-		virtual FunctionalUnit*
-		ifNotFound(const ConstKeyPtr& key) const = 0;
+        /**
+         * @brief Return a new FU for the given key
+         *
+         */
+        virtual FunctionalUnit*
+        ifNotFound(const ConstKeyPtr& key) const = 0;
 
-		/** @brief enable dependency resolution
-		 */
-		virtual void
-		onFUNCreated() = 0;
+        /** @brief enable dependency resolution
+         */
+        virtual void
+        onFUNCreated() = 0;
 
             virtual FunctionalUnit*
             createPrototype() const = 0;
 
-	}; // class NotFoundStrategy
+    }; // class NotFoundStrategy
 
-	/**
-	 * @brief Do not create missing instances on the fly. Complain instead.
-	 *
-	 * @image html Complain.png "Sequence Diagram: Complain if no FU for Compound found" width=10cm
-	 */
-	class Complain :
-		public virtual NotFoundStrategy
-	{
-	public:
-		Complain();
+    /**
+     * @brief Do not create missing instances on the fly. Complain instead.
+     *
+     * @image html Complain.png "Sequence Diagram: Complain if no FU for Compound found" width=10cm
+     */
+    class Complain :
+        public virtual NotFoundStrategy
+    {
+    public:
+        Complain();
 
-		Complain(fun::FUN* fuNet, const pyconfig::View& config);
+        Complain(fun::FUN* fuNet, const pyconfig::View& config);
 
-		FunctionalUnit*
-		ifNotFound(const ConstKeyPtr& key) const;
+        FunctionalUnit*
+        ifNotFound(const ConstKeyPtr& key) const;
 
-            FunctionalUnit*
-            createPrototype() const;
+        FunctionalUnit*
+        createPrototype() const;
 
-		void
-		onFUNCreated();
-	};
+        void
+        onFUNCreated();
+    };
 
-	/**
-	 * @brief Autocreate missing instances.
-	 *
-	 * @image html CreateOnFirstCompound.png "Sequence Diagram: Create new FU if no FU for Compound found" width=10cm
-	 */
-	class CreateOnFirstCompound :
-		public virtual NotFoundStrategy
-	{
-	public:
-		CreateOnFirstCompound(fun::FUN* fuNet, const pyconfig::View& config);
-		CreateOnFirstCompound(CreatorStrategy* _creator);
+    /**
+     * @brief Autocreate missing instances.
+     *
+     * @image html CreateOnFirstCompound.png "Sequence Diagram: Create new FU if no FU for Compound found" width=10cm
+     */
+    class CreateOnFirstCompound :
+        public virtual NotFoundStrategy
+    {
+    public:
+        CreateOnFirstCompound(fun::FUN* fuNet, const pyconfig::View& config);
+        CreateOnFirstCompound(CreatorStrategy* _creator);
 
-		virtual
-		~CreateOnFirstCompound();
+        virtual
+        ~CreateOnFirstCompound();
 
-		FunctionalUnit* ifNotFound(const ConstKeyPtr& key) const;
+        FunctionalUnit* ifNotFound(const ConstKeyPtr& key) const;
 
-            FunctionalUnit*
-            createPrototype() const;
+        FunctionalUnit*
+        createPrototype() const;
 
-		void onFUNCreated();
+        void onFUNCreated();
 
-	private:
-		/**
-		 * @brief strategy for new fu creation
-		 */
-		std::auto_ptr<CreatorStrategy> creator;
-	};
+    private:
+        /**
+         * @brief strategy for new fu creation
+         */
+        std::auto_ptr<CreatorStrategy> creator;
+    };
 
-	/**
-	 * @brief Only create missing instances when the compound
-	 * (i.e. the key) belongs to a valid flow
-	 *
-	 * @image html CreateOnValidFlow.png "Sequence Diagram: Create new FU if no FU for Compound found, but ask FlowManager in advance" width=10cm
-	 */
-	class CreateOnValidFlow :
-		public virtual NotFoundStrategy
-	{
-	public:
-		CreateOnValidFlow(fun::FUN* fuNet, const pyconfig::View& config);
+    /**
+     * @brief Only create missing instances when the compound
+     * (i.e. the key) belongs to a valid flow
+     *
+     * @image html CreateOnValidFlow.png "Sequence Diagram: Create new FU if no FU for Compound found, but ask FlowManager in advance" width=10cm
+     */
+    class CreateOnValidFlow :
+        public virtual NotFoundStrategy
+    {
+    public:
+        CreateOnValidFlow(fun::FUN* fuNet, const pyconfig::View& config);
 
-		CreateOnValidFlow(CreatorStrategy* _creator, FlowInfoProvider* _flowInfo);
+        CreateOnValidFlow(CreatorStrategy* _creator, FlowInfoProvider* _flowInfo);
 
-		virtual
-		~CreateOnValidFlow();
+        virtual
+        ~CreateOnValidFlow();
 
-            FunctionalUnit*
-            createPrototype() const;
+        FunctionalUnit*
+        createPrototype() const;
 
-		FunctionalUnit*
-		ifNotFound(const ConstKeyPtr& key) const;
+        FunctionalUnit*
+        ifNotFound(const ConstKeyPtr& key) const;
 
-		void
-		onFUNCreated();
-	private:
-		/**
-		 * @brief needed to access the control service
-		 */
-		fun::FUN* fun;
+        void
+        onFUNCreated();
+    private:
+        /**
+         * @brief needed to access the control service
+         */
+        fun::FUN* fun;
 
-		/**
-		 * @brief strategy for new fu creation
-		 */
-		std::auto_ptr<CreatorStrategy> creator;
+        /**
+         * @brief strategy for new fu creation
+         */
+        std::auto_ptr<CreatorStrategy> creator;
 
-		/** @brief handle to the service that has the flow
-		 * info.
-		 *
-		 * The handle is obtained from the
-		 * ControlServiceRegistry of the FUN via the 'flowInfoProviderName'
-		 */
-		FlowInfoProvider* flowInfo;
+        /** @brief handle to the service that has the flow
+         * info.
+         *
+         * The handle is obtained from the
+         * ControlServiceRegistry of the FUN via the 'flowInfoProviderName'
+         */
+        FlowInfoProvider* flowInfo;
 
-		/**
-		 * @brief name under which to access the control
-		 * service that has the flow info
-		 */
-		std::string flowInfoProviderName;
-	};
+        /**
+         * @brief name under which to access the control
+         * service that has the flow info
+         */
+        std::string flowInfoProviderName;
+    };
 
-	typedef FUNConfigCreator<NotFoundStrategy> NotFoundStrategyCreator;
-	typedef wns::StaticFactory<NotFoundStrategyCreator> NotFoundStrategyFactory;
+    typedef FUNConfigCreator<NotFoundStrategy> NotFoundStrategyCreator;
+    typedef wns::StaticFactory<NotFoundStrategyCreator> NotFoundStrategyFactory;
 
 } // namespace flowseparator
 } // namespace ldk

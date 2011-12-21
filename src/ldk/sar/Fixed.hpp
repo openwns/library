@@ -41,29 +41,31 @@
 
 namespace wns { namespace ldk { namespace sar {
 
-	/**
-	 * @brief Segmentation and Reassembly with a fixed size MTU.
-	 */
-	class Fixed :
-		public SAR<SARCommand>,
-		public HasReceptor<>,
-		public HasConnector<>,
-		public HasDeliverer<>,
-		public Delayed<Fixed>,
-		public Cloneable<Fixed>
-	{
-	public:
-		Fixed(fun::FUN* fuNet, const wns::pyconfig::View& config);
-		//
-		// Completed Processor interface
-		//
-		virtual void processIncoming(const CompoundPtr& compound);
+    /**
+     * @brief Segmentation and Reassembly with a fixed size MTU.
+     */
+    class Fixed :
+        public SAR<SARCommand>,
+        public HasReceptor<>,
+        public HasConnector<>,
+        public HasDeliverer<>,
+        public Delayed<Fixed>,
+        public Cloneable<Fixed>
+    {
+    public:
+        Fixed(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        //
+        // Completed Processor interface
+        //
+        virtual void processIncoming(const CompoundPtr& compound);
 
-	private:
-		std::list<CompoundPtr> incoming;
-		int fragmentNumber;
-	};
-}}}
+    private:
+        std::list<CompoundPtr> incoming;
+        int fragmentNumber;
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_SAR_FIXED_HPP
 

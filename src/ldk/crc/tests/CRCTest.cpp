@@ -53,13 +53,13 @@ CRCTest::checkSumSize = 8;
 void
 CRCTest::setUp()
 {
-	layer = new wns::ldk::tests::LayerStub();
-	fuNet = new fun::Main(layer);
+    layer = new wns::ldk::tests::LayerStub();
+    fuNet = new fun::Main(layer);
 
-	wns::pyconfig::Parser emptyConfig;
-	upper = new tools::Stub(fuNet, emptyConfig);
+    wns::pyconfig::Parser emptyConfig;
+    upper = new tools::Stub(fuNet, emptyConfig);
 
-	//:BEWARE: Construction of this test's environment is not complete yet
+    //:BEWARE: Construction of this test's environment is not complete yet
 } // setUp
 // end example
 
@@ -67,19 +67,19 @@ CRCTest::setUp()
 void
 CRCTest::setUpCRC(const int _checkSumSize, const bool _Dropping)
 {
-	// Construct CRC FU
-	std::stringstream ss;
-	ss << "from openwns.CRC import CRC\n"
-	   << "crc = CRC(\"PERstub\",\n"
-	   << "  CRCsize = " << _checkSumSize << ",\n"
-	   << "  isDropping = "<< (_Dropping ? "True" : "False") << ")\n";
+    // Construct CRC FU
+    std::stringstream ss;
+    ss << "from openwns.CRC import CRC\n"
+       << "crc = CRC(\"PERstub\",\n"
+       << "  CRCsize = " << _checkSumSize << ",\n"
+       << "  isDropping = "<< (_Dropping ? "True" : "False") << ")\n";
 
-	wns::pyconfig::Parser all;
-	all.loadString(ss.str());
+    wns::pyconfig::Parser all;
+    all.loadString(ss.str());
 
-	wns::pyconfig::View config(all, "crc");
+    wns::pyconfig::View config(all, "crc");
 
-	crc = new CRC(fuNet, config);
+    crc = new CRC(fuNet, config);
 }
 // end example
 
@@ -87,25 +87,25 @@ CRCTest::setUpCRC(const int _checkSumSize, const bool _Dropping)
 void
 CRCTest::setUpPERProvider(const double _PER)
 {
-	// Construct fixed PER stub
-	std::stringstream ss;
-	ss << "fixedPER = "<< _PER <<"\n";
+    // Construct fixed PER stub
+    std::stringstream ss;
+    ss << "fixedPER = "<< _PER <<"\n";
 
-	wns::pyconfig::Parser all;
-	all.loadString(ss.str());
+    wns::pyconfig::Parser all;
+    all.loadString(ss.str());
 
-	lower = new PERProviderStub(fuNet, all);
+    lower = new PERProviderStub(fuNet, all);
 
-	upper
-		->connect(crc)
-		->connect(lower);
+    upper
+        ->connect(crc)
+        ->connect(lower);
 
-	fuNet->addFunctionalUnit("upper",upper);
-	fuNet->addFunctionalUnit("myCRC",crc);
-	fuNet->addFunctionalUnit("PERstub",lower);
-	fuNet->onFUNCreated();
+    fuNet->addFunctionalUnit("upper",upper);
+    fuNet->addFunctionalUnit("myCRC",crc);
+    fuNet->addFunctionalUnit("PERstub",lower);
+    fuNet->onFUNCreated();
 
-	wns::simulator::getEventScheduler()->reset();
+    wns::simulator::getEventScheduler()->reset();
 
 }
 // end example
@@ -113,24 +113,24 @@ CRCTest::setUpPERProvider(const double _PER)
 void
 CRCTest::tearDown()
 {
-	delete fuNet;
-	delete layer;
+    delete fuNet;
+    delete layer;
 } // tearDown
 
 // begin example "wns.ldk.crc.tests.CRCTest.testNoErrors.example"
 void
 CRCTest::testNoErrors()
 {
-	setUpCRC(checkSumSize, true);
-	setUpPERProvider(0.0);
+    setUpCRC(checkSumSize, true);
+    setUpPERProvider(0.0);
 
-	upper->sendData(fuNet->createCompound());
+    upper->sendData(fuNet->createCompound());
 
-	CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+    CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
 
-	lower->onData(lower->sent[0]);
+    lower->onData(lower->sent[0]);
 
-	CPPUNIT_ASSERT_EQUAL( size_t(1), upper->received.size() );
+    CPPUNIT_ASSERT_EQUAL( size_t(1), upper->received.size() );
 
 } // testNoErrors
 // end example
@@ -138,56 +138,56 @@ CRCTest::testNoErrors()
 void
 CRCTest::testErrors()
 {
-	setUpCRC(checkSumSize, true);
-	setUpPERProvider(1.0);
-	CPPUNIT_ASSERT(!crc->isMarking());
+    setUpCRC(checkSumSize, true);
+    setUpPERProvider(1.0);
+    CPPUNIT_ASSERT(!crc->isMarking());
 
-	upper->sendData(fuNet->createCompound());
+    upper->sendData(fuNet->createCompound());
 
-	CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+    CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
 
-	lower->onData(lower->sent[0]);
+    lower->onData(lower->sent[0]);
 
-	CPPUNIT_ASSERT_EQUAL( size_t(0), upper->received.size() );
+    CPPUNIT_ASSERT_EQUAL( size_t(0), upper->received.size() );
 
 } // testErrors
 
 void
 CRCTest::testMarking()
 {
-	setUpCRC(checkSumSize, false);
-	setUpPERProvider(1.0);
-	CPPUNIT_ASSERT(crc->isMarking());
+    setUpCRC(checkSumSize, false);
+    setUpPERProvider(1.0);
+    CPPUNIT_ASSERT(crc->isMarking());
 
-	upper->sendData(fuNet->createCompound());
+    upper->sendData(fuNet->createCompound());
 
-	CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+    CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
 
-	lower->onData(lower->sent[0]);
+    lower->onData(lower->sent[0]);
 
-	CPPUNIT_ASSERT_EQUAL( size_t(1), upper->received.size() );
+    CPPUNIT_ASSERT_EQUAL( size_t(1), upper->received.size() );
 
 } // testMarking
 
 void
 CRCTest::testSize()
 {
-	setUpCRC(checkSumSize, false);
-	setUpPERProvider(1.0);
+    setUpCRC(checkSumSize, false);
+    setUpPERProvider(1.0);
 
-	helper::FakePDUPtr innerPDU(new helper::FakePDU());
-	CommandPool* commandPool = fuNet->createCommandPool();
+    helper::FakePDUPtr innerPDU(new helper::FakePDU());
+    CommandPool* commandPool = fuNet->createCommandPool();
 
-	innerPDU->setLengthInBits(42);
+    innerPDU->setLengthInBits(42);
 
-	CompoundPtr aPDU(new Compound(commandPool, innerPDU));
+    CompoundPtr aPDU(new Compound(commandPool, innerPDU));
 
-	CPPUNIT_ASSERT_EQUAL(Bit(42), aPDU->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(42), aPDU->getLengthInBits());
 
-	upper->sendData(aPDU);
+    upper->sendData(aPDU);
 
-	CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
-	CPPUNIT_ASSERT_EQUAL( Bit(42+checkSumSize), lower->sent[0]->getLengthInBits() );
+    CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+    CPPUNIT_ASSERT_EQUAL( Bit(42+checkSumSize), lower->sent[0]->getLengthInBits() );
 
 } // testSize
 
@@ -195,14 +195,14 @@ CRCTest::testSize()
 void
 CRCTest::emptyBuffers()
 {
-	while (!lower->sent.empty())
-	{
-	    lower->sent.pop_front();
-	}
-	while (!upper->received.empty())
-	{
-		upper->received.pop_front();
-	}
+    while (!lower->sent.empty())
+    {
+        lower->sent.pop_front();
+    }
+    while (!upper->received.empty())
+    {
+        upper->received.pop_front();
+    }
 }
 
 

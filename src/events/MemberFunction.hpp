@@ -37,83 +37,83 @@
 
 namespace wns { namespace events {
 
-	/**
-	 * @brief Generate an event calling a member function in one line
-	 *
-	 * Usage is quite easy:
-	 * @include wns.events.MemberFunction.sendNow.example
-	 */
-	template <typename T>
-	class MemberFunction :
-		public TFunctor<T>,
-		public virtual PythonicOutput
-	{
-	public:
-		MemberFunction(T* obj, typename TFunctor<T>::functionPointer fptr) :
-			wns::TFunctor<T>(obj, fptr)
-		{
-		}
+    /**
+     * @brief Generate an event calling a member function in one line
+     *
+     * Usage is quite easy:
+     * @include wns.events.MemberFunction.sendNow.example
+     */
+    template <typename T>
+    class MemberFunction :
+        public TFunctor<T>,
+        public virtual PythonicOutput
+    {
+    public:
+        MemberFunction(T* obj, typename TFunctor<T>::functionPointer fptr) :
+            wns::TFunctor<T>(obj, fptr)
+        {
+        }
 
-		/**
-		 * @brief Destructor
-		 */
-		virtual
-		~MemberFunction()
-		{
-		}
-	};
-
-	/**
-	 * @brief Similar to wns::events::MemberFunction, but to be used in
-	 * std::for_each (or similar)
-	 *
-	 * Usage:
-	 * @include wns.events.DelayedMemberFunction.sendDelayed.example
-	 */
-	template <typename T>
-	class DelayedMemberFunction
-	{
-	public:
-		/**
-		 * @brief Takes a member function pointer and the delay
-		 */
-		DelayedMemberFunction(
-			typename TFunctor<T>::functionPointer _fptr,
-			wns::simulator::Time _delay) :
-			fptr(_fptr),
-			delay(_delay)
-		{
-		}
-
-		/**
-		 * @brief Destructor
-		 */
+        /**
+         * @brief Destructor
+         */
         virtual
-		~DelayedMemberFunction()
-		{
-		}
+        ~MemberFunction()
+        {
+        }
+    };
 
-		/**
-		 * @brief This is for pointers
-		 */
-		virtual void
-		operator()(T* obj)
-		{
-			wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(boost::bind(fptr, obj), this->delay);
-		}
+    /**
+     * @brief Similar to wns::events::MemberFunction, but to be used in
+     * std::for_each (or similar)
+     *
+     * Usage:
+     * @include wns.events.DelayedMemberFunction.sendDelayed.example
+     */
+    template <typename T>
+    class DelayedMemberFunction
+    {
+    public:
+        /**
+         * @brief Takes a member function pointer and the delay
+         */
+        DelayedMemberFunction(
+            typename TFunctor<T>::functionPointer _fptr,
+            wns::simulator::Time _delay) :
+            fptr(_fptr),
+            delay(_delay)
+        {
+        }
 
-		/**
-		 * @brief This is for value objects
-		 */
-		virtual void
-		operator()(T& obj)
-		{
-			wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(boost::bind(fptr, &obj), this->delay);
-		}
-	private:
-		typename TFunctor<T>::functionPointer fptr;
-		wns::simulator::Time delay;
-	};
+        /**
+         * @brief Destructor
+         */
+        virtual
+        ~DelayedMemberFunction()
+        {
+        }
+
+        /**
+         * @brief This is for pointers
+         */
+        virtual void
+        operator()(T* obj)
+        {
+            wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(boost::bind(fptr, obj), this->delay);
+        }
+
+        /**
+         * @brief This is for value objects
+         */
+        virtual void
+        operator()(T& obj)
+        {
+            wns::simulator::getInstance()->getEventScheduler()->scheduleDelay(boost::bind(fptr, &obj), this->delay);
+        }
+    private:
+        typename TFunctor<T>::functionPointer fptr;
+        wns::simulator::Time delay;
+    };
 
 } // events
 } // wns

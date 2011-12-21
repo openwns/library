@@ -36,31 +36,33 @@
 
 namespace wns { namespace ldk { namespace fun {
 
-	class MainFUNInterfaceTest :
-		public FUNTest
-	{
-		CPPUNIT_TEST_SUB_SUITE( MainFUNInterfaceTest, FUNTest );
-		CPPUNIT_TEST( testReconfigureFUN );
-		CPPUNIT_TEST_SUITE_END();
+    class MainFUNInterfaceTest :
+        public FUNTest
+    {
+        CPPUNIT_TEST_SUB_SUITE( MainFUNInterfaceTest, FUNTest );
+        CPPUNIT_TEST( testReconfigureFUN );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void testReconfigureFUN();
+    public:
+        void testReconfigureFUN();
 
-	protected:
-		virtual wns::ldk::fun::FUN*
-		newCandidate(wns::ldk::ILayer* layer)
-		{
-			return new Main(layer);
-		} // newCandidate
+    protected:
+        virtual wns::ldk::fun::FUN*
+        newCandidate(wns::ldk::ILayer* layer)
+        {
+            return new Main(layer);
+        } // newCandidate
 
-		virtual void
-		deleteCandidate(FUN* fun)
-		{
-			delete fun;
-		} // deleteCandidate
-	};
+        virtual void
+        deleteCandidate(FUN* fun)
+        {
+            delete fun;
+        } // deleteCandidate
+    };
 
-}}}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_FUN_TEST_MAIN_HPP
 

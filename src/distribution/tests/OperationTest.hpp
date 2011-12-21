@@ -34,36 +34,38 @@
 
 namespace wns { namespace distribution { namespace test {
 
-	class OperationTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( OperationTest );
-		CPPUNIT_TEST( testFixedAdd );
-		CPPUNIT_TEST( testAdd );
-		CPPUNIT_TEST( testFixedMul );
-		CPPUNIT_TEST( testMul );
-		CPPUNIT_TEST( testFixedSub );
-		CPPUNIT_TEST( testFixedDiv );
+    class OperationTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( OperationTest );
+        CPPUNIT_TEST( testFixedAdd );
+        CPPUNIT_TEST( testAdd );
+        CPPUNIT_TEST( testFixedMul );
+        CPPUNIT_TEST( testMul );
+        CPPUNIT_TEST( testFixedSub );
+        CPPUNIT_TEST( testFixedDiv );
         CPPUNIT_TEST( testConstant );
-		CPPUNIT_TEST( testAbove );
-		CPPUNIT_TEST( testBelow );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+        CPPUNIT_TEST( testAbove );
+        CPPUNIT_TEST( testBelow );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testFixedAdd();
-		void testAdd();
-		void testFixedMul();
-		void testMul();
-		void testFixedSub();
-		void testFixedDiv();
+        void testFixedAdd();
+        void testAdd();
+        void testFixedMul();
+        void testMul();
+        void testFixedSub();
+        void testFixedDiv();
         void testConstant();
-		void testAbove();
-		void testBelow();
-	private:
-	};
-}}}
+        void testAbove();
+        void testBelow();
+    private:
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_DISTRIBUTION_TEST_OPERATION_HPP
 

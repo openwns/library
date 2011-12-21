@@ -34,105 +34,108 @@
 
 namespace wns { namespace events {
 
-	/**
-	 * @brief Mixin to support classes that need a periodic timeout mechanism.
-	 *
-	 * To make use of this class, simply derive from it and overload the
-	 * periodically() method.
-	 *
-	 */
-	class PeriodicTimeout
-	{
-		class PeriodicTimeoutFunctor
-		{
-		public:
-			PeriodicTimeoutFunctor(PeriodicTimeout* _dest, wns::simulator::Time _period);
+    /**
+     * @brief Mixin to support classes that need a periodic timeout mechanism.
+     *
+     * To make use of this class, simply derive from it and overload the
+     * periodically() method.
+     *
+     */
+    class PeriodicTimeout
+    {
+        class PeriodicTimeoutFunctor
+        {
+        public:
+            PeriodicTimeoutFunctor(PeriodicTimeout* _dest, wns::simulator::Time _period);
 
-			virtual void
-			operator()();
+            virtual void
+            operator()();
 
-			virtual wns::simulator::Time
-			getPeriod() const;
+            virtual wns::simulator::Time
+            getPeriod() const;
 
-			virtual void
-			print(std::ostream& aStreamRef = std::cout) const;
+            virtual void
+            print(std::ostream& aStreamRef = std::cout) const;
 
-			virtual ~PeriodicTimeoutFunctor(){}
+            virtual ~PeriodicTimeoutFunctor()
+            {
+            }
 
-			PeriodicTimeoutFunctor(const PeriodicTimeoutFunctor& other):
-				period_(other.period_),
-				dest_(other.dest_)
-			{}
-		private:
-			wns::simulator::Time period_;
-			PeriodicTimeout* dest_;
+            PeriodicTimeoutFunctor(const PeriodicTimeoutFunctor& other):
+                period_(other.period_),
+                dest_(other.dest_)
+            {
+            }
+        private:
+            wns::simulator::Time period_;
+            PeriodicTimeout* dest_;
 
-			friend class PeriodicTimeout;
-		};
+            friend class PeriodicTimeout;
+        };
 
-	public:
-		/**
-		 * @brief Constructor
-		 */
-		explicit
-		PeriodicTimeout();
+    public:
+        /**
+         * @brief Constructor
+         */
+        explicit
+        PeriodicTimeout();
 
-		/**
-		 * @brief Destructor
-		 */
-		virtual
-		~PeriodicTimeout();
+        /**
+         * @brief Destructor
+         */
+        virtual
+        ~PeriodicTimeout();
 
-		/**
-		 * @brief Special copy constructor
-		 */
-		PeriodicTimeout(const PeriodicTimeout& other);
+        /**
+         * @brief Special copy constructor
+         */
+        PeriodicTimeout(const PeriodicTimeout& other);
 
-		/**
-		 * @brief Start the periodic timer.
-		 *
-		 * Starts the timer with the given period in seconds. The first timeout is delayed 
-		 * by the given value (default 0). When the period has
-		 * elapsed, the method periodically() is called. The method periodically()
-		 * has to be implemented by the deriver.
-		 * <p>
-		 * If the timer has been set before, it will be silently cancelled.
-		 * At any time there is only one valid timer.
-		 */
-		void
-		startPeriodicTimeout(wns::simulator::Time _period, wns::simulator::Time delay = 0.0);
+        /**
+         * @brief Start the periodic timer.
+         *
+         * Starts the timer with the given period in seconds. The first timeout is delayed 
+         * by the given value (default 0). When the period has
+         * elapsed, the method periodically() is called. The method periodically()
+         * has to be implemented by the deriver.
+         * <p>
+         * If the timer has been set before, it will be silently cancelled.
+         * At any time there is only one valid timer.
+         */
+        void
+        startPeriodicTimeout(wns::simulator::Time _period, wns::simulator::Time delay = 0.0);
 
-		/**
-		 * @brief Is a timer set?
-		 *
-		 */
-		bool
-		hasPeriodicTimeoutSet() const;
+        /**
+         * @brief Is a timer set?
+         *
+         */
+        bool
+        hasPeriodicTimeoutSet() const;
 
-		/**
-		 * @brief Cancel the timer.
-		 *
-		 * Cancel a previously set timer. Silently ignore, whether the timer has
-		 * not been set.
-		 */
-		void
-		cancelPeriodicTimeout();
+        /**
+         * @brief Cancel the timer.
+         *
+         * Cancel a previously set timer. Silently ignore, whether the timer has
+         * not been set.
+         */
+        void
+        cancelPeriodicTimeout();
 
-		/**
-		 * @brief Your callback. Implement this!
-		 *
-		 * The deriver is forced to implement this method. It gets called periodically,
-		 * whenever the timer fires.
-		 */
-		virtual void
-		periodically() = 0;
+        /**
+         * @brief Your callback. Implement this!
+         *
+         * The deriver is forced to implement this method. It gets called periodically,
+         * whenever the timer fires.
+         */
+        virtual void
+        periodically() = 0;
 
-	private:
-		wns::simulator::Time period_;
-		scheduler::IEventPtr periodicEv_;
+    private:
+        wns::simulator::Time period_;
+        scheduler::IEventPtr periodicEv_;
 
-		const PeriodicTimeout& operator=(const PeriodicTimeout& other);
-	}; // PeriodicTimeout
+        const PeriodicTimeout& operator=(const PeriodicTimeout& other);
+    }; // PeriodicTimeout
 
 } // events
 } // wns

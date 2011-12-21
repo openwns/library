@@ -36,15 +36,15 @@ using namespace wns::ldk::multiplexer;
 void
 OpcodeDeliverer::setOpcodeProvider(FunctionalUnit* opcodeProvider)
 {
-	friends.opcodeProvider = opcodeProvider;
+    friends.opcodeProvider = opcodeProvider;
 }
 
 IDelivererReceptacle*
 OpcodeDeliverer::getAcceptor(const CompoundPtr& compound)
 {
-	OpcodeCommand* command = dynamic_cast<OpcodeCommand*>(friends.opcodeProvider->getCommand(compound->getCommandPool()));
+    OpcodeCommand* command = dynamic_cast<OpcodeCommand*>(friends.opcodeProvider->getCommand(compound->getCommandPool()));
 
-	return recs.at(command->peer.opcode);
+    return recs.at(command->peer.opcode);
 }
 
 

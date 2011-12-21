@@ -45,6 +45,7 @@ CDFTable::CDFTable(const pyconfig::View& config) :
     int tableLen = config.len("cdfTable");
     assure(tableLen>0, "empty cdfTable");
     double lastCdfValue=0.0;
+
     for (int ii=0; ii<tableLen; ++ii)
     {
         std::stringstream index;
@@ -68,12 +69,13 @@ CDFTable::CDFTable(wns::rng::RNGen* rng, const pyconfig::View& config) :
     assure(tableLen>0, "empty cdfTable");
     double lastCdfValue=0.0;
     for (int ii=0; ii<tableLen; ++ii)
+
     {
         std::stringstream index;
         index << ii;
         std::string subviewName = "cdfTable" + std::string("[") + index.str() + std::string("]");
         double rnValue = config.get<double>(subviewName, 0);
-        double cdfValue = config.get<double>(subviewName,1);
+        double cdfValue = config.get<double>(subviewName, 1);
         mean_ += rnValue * (cdfValue - lastCdfValue);
         CDFRange cdfInterval = CDFRange::FromExcluding(lastCdfValue).ToIncluding(cdfValue);
         rangeMap_.insert(cdfInterval, rnValue);
@@ -88,7 +90,7 @@ CDFTable::~CDFTable()
 double
 CDFTable::operator()()
 {
-	return rangeMap_.get(dis_());
+    return rangeMap_.get(dis_());
 }
 
 double
@@ -100,9 +102,9 @@ CDFTable::getMean() const
 std::string
 CDFTable::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "CDFTable()";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "CDFTable()";
+    return tmp.str();
 }
 
 /*

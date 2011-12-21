@@ -31,75 +31,75 @@
 using namespace wns::ldk::arq::statuscollector;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(TwoSizesWindowed, 
-				     Interface,
-				     "StatusCollectorTwoSizesWindowed",
-				     wns::ldk::PyConfigCreator);
+                     Interface,
+                     "StatusCollectorTwoSizesWindowed",
+                     wns::ldk::PyConfigCreator);
 
 TwoSizesWindowed::TwoSizesWindowed(const wns::pyconfig::View& config) :
-		logger(config.get("logger")),
-		windowSize(config.get<wns::simulator::Time>("windowSize")),
-		minSamples(config.get<int>("minSamples")),
-		insufficientSamplesReturn(config.get<double>("insufficientSamplesReturn")),
-		frameSizeThreshold(config.get<Bit>("frameSizeThreshold"))
+        logger(config.get("logger")),
+        windowSize(config.get<wns::simulator::Time>("windowSize")),
+        minSamples(config.get<int>("minSamples")),
+        insufficientSamplesReturn(config.get<double>("insufficientSamplesReturn")),
+        frameSizeThreshold(config.get<Bit>("frameSizeThreshold"))
 {
-	smallFrames = new wns::SlidingWindow(windowSize);
-	bigFrames = new wns::SlidingWindow(windowSize);
+    smallFrames = new wns::SlidingWindow(windowSize);
+    bigFrames = new wns::SlidingWindow(windowSize);
 }
 
 TwoSizesWindowed::~TwoSizesWindowed()
 {
-	delete smallFrames;
-	delete bigFrames;
+    delete smallFrames;
+    delete bigFrames;
 }
 
 void TwoSizesWindowed::reset()
 {
-	smallFrames->reset();
-	bigFrames->reset();
+    smallFrames->reset();
+    bigFrames->reset();
 }
 
 void TwoSizesWindowed::onSuccessfullTransmission(const CompoundPtr& compound)
 {
-	if(compound->getLengthInBits() > frameSizeThreshold)
-	{
-		bigFrames->put(1.0);
-	}
-	else
-	{
-		smallFrames->put(1.0);
-	}
+    if(compound->getLengthInBits() > frameSizeThreshold)
+    {
+        bigFrames->put(1.0);
+    }
+    else
+    {
+        smallFrames->put(1.0);
+    }
 }
 
 void TwoSizesWindowed::onFailedTransmission(const CompoundPtr& compound)
 {
-	if(compound->getLengthInBits() > frameSizeThreshold)
-	{
-		bigFrames->put(0.0);
-	}
-	else
-	{
-		smallFrames->put(0.0);
-	}
+    if(compound->getLengthInBits() > frameSizeThreshold)
+    {
+        bigFrames->put(0.0);
+    }
+    else
+    {
+        smallFrames->put(0.0);
+    }
 }
 
 double TwoSizesWindowed::getSuccessRate(const CompoundPtr& compound)
 {
-	wns::SlidingWindow* window;
-	if(compound->getLengthInBits() > frameSizeThreshold)
-	{
-		window = bigFrames;
-	}
-	else
-	{
-		window = smallFrames;
-	}
-	
-	if(window->getNumSamples() < minSamples)
-	{
-		return(insufficientSamplesReturn);
-	}
-	else
-	{
-		return(window->getAbsolute() / window->getNumSamples());
-	}
+    wns::SlidingWindow* window;
+    if(compound->getLengthInBits() > frameSizeThreshold)
+    {
+        window = bigFrames;
+    }
+    else
+    {
+        window = smallFrames;
+    }
+
+    if(window->getNumSamples() < minSamples)
+    {
+        return(insufficientSamplesReturn);
+    }
+    else
+    {
+        return(window->getAbsolute() / window->getNumSamples());
+    }
 }

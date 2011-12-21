@@ -35,88 +35,90 @@
 using namespace wns::events;
 
 CanTimeout::CanTimeout() :
-	event(),
-	scheduler(wns::simulator::getEventScheduler())
+    event(),
+    scheduler(wns::simulator::getEventScheduler())
 {
 }
 
 
 CanTimeout::~CanTimeout()
 {
-	if (this->hasTimeoutSet()) {
-		this->cancelTimeout();
-	}
+    if (this->hasTimeoutSet())
+    {
+        this->cancelTimeout();
+    }
 }
 
 
 void
 CanTimeout::setTimeout(double delay)
 {
-	assure(!this->hasTimeoutSet(), "A timer has been set already.");
+    assure(!this->hasTimeoutSet(), "A timer has been set already.");
 
-	TimeoutEvent toEvent(this);
-	this->event =
-		this->scheduler->scheduleDelay(toEvent, delay);
+    TimeoutEvent toEvent(this);
+    this->event =
+        this->scheduler->scheduleDelay(toEvent, delay);
 }
 
 
 void
 CanTimeout::setNewTimeout(double delay)
 {
-	if (this->hasTimeoutSet()) {
-		this->cancelTimeout();
-	}
+    if (this->hasTimeoutSet())
+    {
+        this->cancelTimeout();
+    }
 
-	this->setTimeout(delay);
+    this->setTimeout(delay);
 }
 
 
 bool
 CanTimeout::hasTimeoutSet() const
 {
-	// will be automatically converted bool
-	return this->event;
+    // will be automatically converted bool
+    return this->event;
 }
 
 
 void
 CanTimeout::cancelTimeout()
 {
-	assure(this->hasTimeoutSet(), "No timer has been set.");
+    assure(this->hasTimeoutSet(), "No timer has been set.");
 
-	this->scheduler->cancelEvent(this->event);
-	this->event = scheduler::IEventPtr();
+    this->scheduler->cancelEvent(this->event);
+    this->event = scheduler::IEventPtr();
 }
 
 
 CanTimeout::TimeoutEvent::TimeoutEvent(CanTimeout* _target) :
-	target(_target)
+    target(_target)
 {
-	assure(this->target, "target not valid (NULL)");
+    assure(this->target, "target not valid (NULL)");
 }
 
 
 CanTimeout::TimeoutEvent::~TimeoutEvent()
 {
-	target = NULL;
+    target = NULL;
 }
 
 void
 CanTimeout::TimeoutEvent::operator()()
 {
-	assure(this->target, "target not valid (NULL)");
+    assure(this->target, "target not valid (NULL)");
 
-	this->target->event = scheduler::IEventPtr();
-	this->target->onTimeout();
+    this->target->event = scheduler::IEventPtr();
+    this->target->onTimeout();
 }
 
 void
 CanTimeout::TimeoutEvent::print(std::ostream& aStreamRef) const
 {
-	aStreamRef << "<" << TypeInfo::create(*this) <<" instance at "
-		   << static_cast<const void* const>(this) << ">";
+    aStreamRef << "<" << TypeInfo::create(*this) <<" instance at "
+           << static_cast<const void* const>(this) << ">";
 
-	aStreamRef << ", target: " << wns::TypeInfo::create(*this->target);
+    aStreamRef << ", target: " << wns::TypeInfo::create(*this->target);
 }
 
 /*

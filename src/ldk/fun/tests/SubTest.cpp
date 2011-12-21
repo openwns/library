@@ -49,51 +49,51 @@ CPPUNIT_TEST_SUITE_REGISTRATION( SubTest );
 void
 SubTest::setUp()
 {
-	layer = new ldk::tests::LayerStub();
-	mainNet = new Main(layer);
-	subNet = new Sub(mainNet);
+    layer = new ldk::tests::LayerStub();
+    mainNet = new Main(layer);
+    subNet = new Sub(mainNet);
 
-	pyconfig::Parser emptyConfig;
-	mainFU = new tools::Stub(mainNet, emptyConfig);
-	subFU = new tools::Stub(subNet, emptyConfig);
-	otherSubFU = new tools::Stub(subNet, emptyConfig);
+    pyconfig::Parser emptyConfig;
+    mainFU = new tools::Stub(mainNet, emptyConfig);
+    subFU = new tools::Stub(subNet, emptyConfig);
+    otherSubFU = new tools::Stub(subNet, emptyConfig);
 } // setUp
 
 
 void
 SubTest::tearDown()
 {
-	delete subNet;
-	delete mainNet;
+    delete subNet;
+    delete mainNet;
 
-	if(mainFU)
-		delete mainFU;
+    if(mainFU)
+        delete mainFU;
 
-	if(subFU)
-		delete subFU;
+    if(subFU)
+        delete subFU;
 
-	if(otherSubFU)
-		delete otherSubFU;
+    if(otherSubFU)
+        delete otherSubFU;
 
-	delete layer;
+    delete layer;
 } // tearDown
 
 
 void
 SubTest::testFindParent()
 {
-	mainNet->addFunctionalUnit("main", mainFU);
-	mainFU = NULL;
-	subNet->addFunctionalUnit("sub", subFU);
-	subFU = NULL;
+    mainNet->addFunctionalUnit("main", mainFU);
+    mainFU = NULL;
+    subNet->addFunctionalUnit("sub", subFU);
+    subFU = NULL;
 
-	CPPUNIT_ASSERT(mainNet->knowsFunctionalUnit("main"));
-	CPPUNIT_ASSERT(subNet->knowsFunctionalUnit("main"));
+    CPPUNIT_ASSERT(mainNet->knowsFunctionalUnit("main"));
+    CPPUNIT_ASSERT(subNet->knowsFunctionalUnit("main"));
 
-	CPPUNIT_ASSERT(!mainNet->knowsFunctionalUnit("sub"));
-	CPPUNIT_ASSERT(subNet->knowsFunctionalUnit("sub"));
+    CPPUNIT_ASSERT(!mainNet->knowsFunctionalUnit("sub"));
+    CPPUNIT_ASSERT(subNet->knowsFunctionalUnit("sub"));
 
-	CPPUNIT_ASSERT(subNet->getFunctionalUnit("main") == mainNet->getFunctionalUnit("main"));
+    CPPUNIT_ASSERT(subNet->getFunctionalUnit("main") == mainNet->getFunctionalUnit("main"));
 } // testFindParent
 
 
@@ -115,102 +115,102 @@ SubTest::testFindParent()
 void
 SubTest::testCloneFUs()
 {
-	mainNet->addFunctionalUnit("main", mainFU);
-	mainFU = NULL;
-	subNet->addFunctionalUnit("sub", subFU);
-	subFU = NULL;
-	subNet->addFunctionalUnit("other", otherSubFU);
-	otherSubFU = NULL;
+    mainNet->addFunctionalUnit("main", mainFU);
+    mainFU = NULL;
+    subNet->addFunctionalUnit("sub", subFU);
+    subFU = NULL;
+    subNet->addFunctionalUnit("other", otherSubFU);
+    otherSubFU = NULL;
 
-	FUN* otherSubNet = subNet->clone();
+    FUN* otherSubNet = subNet->clone();
 
-	CPPUNIT_ASSERT(otherSubNet->knowsFunctionalUnit("sub"));
-	CPPUNIT_ASSERT(otherSubNet->knowsFunctionalUnit("other"));
+    CPPUNIT_ASSERT(otherSubNet->knowsFunctionalUnit("sub"));
+    CPPUNIT_ASSERT(otherSubNet->knowsFunctionalUnit("other"));
 
-	delete otherSubNet;
+    delete otherSubNet;
 } // testCloneFUs
 
 
 void
 SubTest::testCloneConnectionsExist()
 {
-	mainNet->addFunctionalUnit("main", mainFU);
-	subNet->addFunctionalUnit("sub", subFU);
-	subNet->addFunctionalUnit("other", otherSubFU);
+    mainNet->addFunctionalUnit("main", mainFU);
+    subNet->addFunctionalUnit("sub", subFU);
+    subNet->addFunctionalUnit("other", otherSubFU);
 
-	subFU->connect(otherSubFU);
-	mainFU = NULL;
-	subFU = NULL;
-	otherSubFU = NULL;
+    subFU->connect(otherSubFU);
+    mainFU = NULL;
+    subFU = NULL;
+    otherSubFU = NULL;
 
-	FUN* otherSubNet = subNet->clone();
+    FUN* otherSubNet = subNet->clone();
 
-	tools::Stub* a = otherSubNet->findFriend<tools::Stub*>("sub");
-	tools::Stub* b = otherSubNet->findFriend<tools::Stub*>("other");
-	CPPUNIT_ASSERT_EQUAL(unsigned long int(0), a->getReceptor()->size());
-	CPPUNIT_ASSERT_EQUAL(unsigned long int(0), a->getDeliverer()->size());
-	CPPUNIT_ASSERT_EQUAL(unsigned long int(1), a->getConnector()->size());
+    tools::Stub* a = otherSubNet->findFriend<tools::Stub*>("sub");
+    tools::Stub* b = otherSubNet->findFriend<tools::Stub*>("other");
+    CPPUNIT_ASSERT_EQUAL(unsigned long int(0), a->getReceptor()->size());
+    CPPUNIT_ASSERT_EQUAL(unsigned long int(0), a->getDeliverer()->size());
+    CPPUNIT_ASSERT_EQUAL(unsigned long int(1), a->getConnector()->size());
 
-	CPPUNIT_ASSERT_EQUAL(unsigned long int(1), b->getReceptor()->size());
-	CPPUNIT_ASSERT_EQUAL(unsigned long int(1), b->getDeliverer()->size());
-	CPPUNIT_ASSERT_EQUAL(unsigned long int(0), b->getConnector()->size());
+    CPPUNIT_ASSERT_EQUAL(unsigned long int(1), b->getReceptor()->size());
+    CPPUNIT_ASSERT_EQUAL(unsigned long int(1), b->getDeliverer()->size());
+    CPPUNIT_ASSERT_EQUAL(unsigned long int(0), b->getConnector()->size());
 
-	delete otherSubNet;
+    delete otherSubNet;
 } // testCloneConnectionsExist
 
 
 void
 SubTest::testCloneConnections()
 {
-	mainNet->addFunctionalUnit("main", mainFU);
-	subNet->addFunctionalUnit("sub", subFU);
-	subNet->addFunctionalUnit("other", otherSubFU);
+    mainNet->addFunctionalUnit("main", mainFU);
+    subNet->addFunctionalUnit("sub", subFU);
+    subNet->addFunctionalUnit("other", otherSubFU);
 
-	subFU->connect(otherSubFU);
-	mainFU = NULL;
-	subFU = NULL;
-	otherSubFU = NULL;
+    subFU->connect(otherSubFU);
+    mainFU = NULL;
+    subFU = NULL;
+    otherSubFU = NULL;
 
-	FUN* otherSubNet = subNet->clone();
+    FUN* otherSubNet = subNet->clone();
 
-	CompoundPtr compound(otherSubNet->createCompound());
+    CompoundPtr compound(otherSubNet->createCompound());
 
-	tools::Stub* a = otherSubNet->findFriend<tools::Stub*>("sub");
-	tools::Stub* b = otherSubNet->findFriend<tools::Stub*>("other");
+    tools::Stub* a = otherSubNet->findFriend<tools::Stub*>("sub");
+    tools::Stub* b = otherSubNet->findFriend<tools::Stub*>("other");
 
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), a->received.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), a->sent.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), b->received.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), b->sent.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), a->received.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), a->sent.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), b->received.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), b->sent.size());
 
-	a->sendData(compound);
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), a->received.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), a->sent.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), b->received.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), b->sent.size());
+    a->sendData(compound);
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), a->received.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), a->sent.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), b->received.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), b->sent.size());
 
-	b->onData(compound);
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), a->received.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), a->sent.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), b->received.size());
-	CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), b->sent.size());
+    b->onData(compound);
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), a->received.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), a->sent.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), b->received.size());
+    CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), b->sent.size());
 
-	delete otherSubNet;
+    delete otherSubNet;
 } // testCloneConnections
 
 
 void
 SubTest::testCommand()
 {
-	subNet->addFunctionalUnit("sub", subFU);
-	CompoundPtr compound(subNet->createCompound());
-	Command* command = subFU->activateCommand(compound->getCommandPool());
-	subFU = NULL;
+    subNet->addFunctionalUnit("sub", subFU);
+    CompoundPtr compound(subNet->createCompound());
+    Command* command = subFU->activateCommand(compound->getCommandPool());
+    subFU = NULL;
 
-	FUN* otherSubNet = subNet->clone();
-	tools::Stub* copyOfSubFU = otherSubNet->findFriend<tools::Stub*>("sub");
+    FUN* otherSubNet = subNet->clone();
+    tools::Stub* copyOfSubFU = otherSubNet->findFriend<tools::Stub*>("sub");
 
-	CPPUNIT_ASSERT(command == copyOfSubFU->getCommand(compound->getCommandPool()));
+    CPPUNIT_ASSERT(command == copyOfSubFU->getCommand(compound->getCommandPool()));
 } // testCommand
 
 

@@ -33,23 +33,23 @@
 #include <WNS/distribution/Uniform.hpp>
 
 namespace wns { namespace distribution {
-	/**
-	 * @brief class for random numbers according to
-	 * Pareto distribution.
-	 *
-	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 *
-	 * The distriubtion is classified by the
-	 * shape parameter A (often called beta) and
-	 * the scale parameter B (proportional to mean outcome).
-	 *
-	 * @see http://en.wikipedia.org/wiki/Pareto_distribution
+    /**
+     * @brief class for random numbers according to
+     * Pareto distribution.
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     *
+     * The distriubtion is classified by the
+     * shape parameter A (often called beta) and
+     * the scale parameter B (proportional to mean outcome).
+     *
+     * @see http://en.wikipedia.org/wiki/Pareto_distribution
     **/
-	class Pareto :
+    class Pareto :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         Pareto(double shapeA, double scaleB, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
@@ -60,36 +60,36 @@ namespace wns { namespace distribution {
         explicit
         Pareto(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~Pareto();
+        virtual
+        ~Pareto();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
-		/**
-		 * @brief Shape parameter 'a'
-		 */
-		double shapeParamA_;
+    private:
+        /**
+         * @brief Shape parameter 'a'
+         */
+        double shapeParamA_;
 
-		/**
-		 * @brief Scale parameter 'b'
-		 *
-		 * @note b >= 0
-		 */
-		double scaleParamB_;
+        /**
+         * @brief Scale parameter 'b'
+         *
+         * @note b >= 0
+         */
+        double scaleParamB_;
 
- 		/**
-		 * @brief The distribution itself
-		 */
-		StandardUniform dis_;
-	}; // Pareto
+        /**
+         * @brief The distribution itself
+         */
+        StandardUniform dis_;
+    }; // Pareto
 
 } // distribution
 } // wns

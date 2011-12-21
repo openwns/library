@@ -32,25 +32,26 @@
 
 namespace wns { namespace ldk { namespace fsm {
 
-	class CompoundHandlerSignalInterface
-	{
-	public:
-		virtual
-		~CompoundHandlerSignalInterface()
-		{}
+    class CompoundHandlerSignalInterface
+    {
+    public:
+        virtual
+        ~CompoundHandlerSignalInterface()
+        {
+        }
 
-		virtual CompoundHandlerSignalInterface*
-		doSendData(const CompoundPtr& compound) = 0;
+        virtual CompoundHandlerSignalInterface*
+        doSendData(const CompoundPtr& compound) = 0;
 
-		virtual CompoundHandlerSignalInterface*
-		doOnData(const CompoundPtr& compound) = 0;
+        virtual CompoundHandlerSignalInterface*
+        doOnData(const CompoundPtr& compound) = 0;
 
-		virtual CompoundHandlerSignalInterface*
-		doWakeup() = 0;
+        virtual CompoundHandlerSignalInterface*
+        doWakeup() = 0;
 
-		virtual void
-		doIsAccepting(const CompoundPtr&, bool& accepting) const = 0;
-	};
+        virtual void
+        doIsAccepting(const CompoundPtr&, bool& accepting) const = 0;
+    };
 } // fsm
 } // ldk
 } // wns

@@ -122,7 +122,7 @@ namespace wns { namespace evaluation { namespace statistics {
 
             };
 
-        } // end namespace statistics
-    } // end namespace evaluation
+} // end namespace statistics
+} // end namespace evaluation
 } // end namespace wns
 #endif  // WNS_EVALUATION_STATISTICS_DLREG_HPP

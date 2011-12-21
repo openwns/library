@@ -32,25 +32,26 @@
 
 namespace wns { namespace ldk { namespace flowseparator {
 
-	/**
-	 * @brief Interface to be used by the CreateOnValidFlow
-	 * Strategy
-	 */
-	class FlowInfoProvider :
-		virtual ControlServiceInterface
-	{
-	public:
-		virtual
-		~FlowInfoProvider()
-		{}
+    /**
+     * @brief Interface to be used by the CreateOnValidFlow
+     * Strategy
+     */
+    class FlowInfoProvider :
+        virtual ControlServiceInterface
+    {
+    public:
+        virtual
+        ~FlowInfoProvider()
+        {
+        }
 
-		/** @brief return whether a flow according to the given
-		 * key is known, i.e. whether a new fu instance may be
-		 * created
-		 */
-		virtual bool
-		isValidFlow(const ConstKeyPtr& key) const = 0;
-	};
+        /** @brief return whether a flow according to the given
+         * key is known, i.e. whether a new fu instance may be
+         * created
+         */
+        virtual bool
+        isValidFlow(const ConstKeyPtr& key) const = 0;
+    };
 
 
 } // namespace flowseparator

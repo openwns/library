@@ -64,6 +64,7 @@ CDFTableTest::testIt()
         ->create(config));
 
     Average<double> average;
+
     for(int i = 0; i < 100000; ++i)
     {
         average.put((*dis)());
@@ -111,29 +112,30 @@ CDFTableTest::testVar()
 void
 CDFTableTest::testPyConfig()
 {
-	pyconfig::Parser config;
-	config.loadString(
-		"import openwns.distribution\n"
-		"dis = openwns.distribution.ExampleCDFTable()\n"
-	);
+    pyconfig::Parser config;
+    config.loadString(
+        "import openwns.distribution\n"
+        "dis = openwns.distribution.ExampleCDFTable()\n"
+    );
 
-	wns::pyconfig::View disConfig(config, "dis");
+    wns::pyconfig::View disConfig(config, "dis");
 
-	CDFTable* dis =
-		dynamic_cast<CDFTable*>(
-		wns::distribution::DistributionFactory::creator(disConfig.get<std::string>("__plugin__"))
-		->create(disConfig));
+    CDFTable* dis =
+        dynamic_cast<CDFTable*>(
+        wns::distribution::DistributionFactory::creator(disConfig.get<std::string>("__plugin__"))
+        ->create(disConfig));
 
-	Average<double> average;
-	for(int i = 0; i < 100000; ++i) {
-		average.put((*dis)());
-	}
+    Average<double> average;
+    for(int i = 0; i < 100000; ++i)
+    {
+        average.put((*dis)());
+    }
 
-	double calculatedAverage = dis->getMean();
+    double calculatedAverage = dis->getMean();
 
-	WNS_ASSERT_MAX_REL_ERROR(calculatedAverage, average.get(), 0.01);
+    WNS_ASSERT_MAX_REL_ERROR(calculatedAverage, average.get(), 0.01);
 
-	delete dis;
+    delete dis;
 }
 
 /*

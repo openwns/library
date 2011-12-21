@@ -42,75 +42,75 @@
 
 namespace wns { namespace ldk { namespace arq {
 
-	using namespace wns::ldk;
+    using namespace wns::ldk;
 
-	class PiggyBackerTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( PiggyBackerTest );
- 		CPPUNIT_TEST( testOutgoingI );
- 		CPPUNIT_TEST( testOutgoingACK );
- 		CPPUNIT_TEST( testOutgoingBoth );
- 		CPPUNIT_TEST( testIncomingI );
- 		CPPUNIT_TEST( testIncomingACK );
- 		CPPUNIT_TEST( testIncomingBoth );
- 		CPPUNIT_TEST( testWakeupNone_None );
- 		CPPUNIT_TEST( testWakeupNone_I );
- 		CPPUNIT_TEST( testWakeupNone_ACK );
- 		CPPUNIT_TEST( testWakeupNone_Both );
- 		CPPUNIT_TEST( testWakeupI_None );
- 		CPPUNIT_TEST( testWakeupI_ACK );
- 		CPPUNIT_TEST( testWakeupACK_None );
- 		CPPUNIT_TEST( testWakeupACK_I );
- 		CPPUNIT_TEST( testSizeI );
- 		CPPUNIT_TEST( testSizeACK );
- 		CPPUNIT_TEST( testSizeBoth );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+    class PiggyBackerTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( PiggyBackerTest );
+        CPPUNIT_TEST( testOutgoingI );
+        CPPUNIT_TEST( testOutgoingACK );
+        CPPUNIT_TEST( testOutgoingBoth );
+        CPPUNIT_TEST( testIncomingI );
+        CPPUNIT_TEST( testIncomingACK );
+        CPPUNIT_TEST( testIncomingBoth );
+        CPPUNIT_TEST( testWakeupNone_None );
+        CPPUNIT_TEST( testWakeupNone_I );
+        CPPUNIT_TEST( testWakeupNone_ACK );
+        CPPUNIT_TEST( testWakeupNone_Both );
+        CPPUNIT_TEST( testWakeupI_None );
+        CPPUNIT_TEST( testWakeupI_ACK );
+        CPPUNIT_TEST( testWakeupACK_None );
+        CPPUNIT_TEST( testWakeupACK_I );
+        CPPUNIT_TEST( testSizeI );
+        CPPUNIT_TEST( testSizeACK );
+        CPPUNIT_TEST( testSizeBoth );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testOutgoingI();
-		void testOutgoingACK();
-		void testOutgoingBoth();
-		void testIncomingI();
-		void testIncomingACK();
-		void testIncomingBoth();
-		void testWakeupNone_None();
-		void testWakeupNone_I();
-		void testWakeupNone_ACK();
-		void testWakeupNone_Both();
-		void testWakeupI_None();
-		void testWakeupI_ACK();
-		void testWakeupACK_None();
-		void testWakeupACK_I();
-		void testSizeI();
-		void testSizeACK();
-		void testSizeBoth();
-	private:
-		ILayer* layer;
-		fun::Main* fuNet;
+        void testOutgoingI();
+        void testOutgoingACK();
+        void testOutgoingBoth();
+        void testIncomingI();
+        void testIncomingACK();
+        void testIncomingBoth();
+        void testWakeupNone_None();
+        void testWakeupNone_I();
+        void testWakeupNone_ACK();
+        void testWakeupNone_Both();
+        void testWakeupI_None();
+        void testWakeupI_ACK();
+        void testWakeupACK_None();
+        void testWakeupACK_I();
+        void testSizeI();
+        void testSizeACK();
+        void testSizeBoth();
+    private:
+        ILayer* layer;
+        fun::Main* fuNet;
 
-		buffer::Bounded* buffer;
-		tools::Stub* upper;
-		PiggyBacker* piggy;
-		StopAndWait* arq;
-		tools::Stub* lower;
-		tools::Consumer* consumer;
+        buffer::Bounded* buffer;
+        tools::Stub* upper;
+        PiggyBacker* piggy;
+        StopAndWait* arq;
+        tools::Stub* lower;
+        tools::Consumer* consumer;
 
-		CompoundPtr ackCompound;
-		CompoundPtr iCompound;
+        CompoundPtr ackCompound;
+        CompoundPtr iCompound;
 
-		static const int bitsPerIFrame;
-		static const int bitsPerRRFrame;
+        static const int bitsPerIFrame;
+        static const int bitsPerRRFrame;
 
-		static const int bitsIfPiggyBacked;
-		static const int bitsIfNotPiggyBacked;
-	};
+        static const int bitsIfPiggyBacked;
+        static const int bitsIfNotPiggyBacked;
+    };
 
-}}}
+}
+}
+}
 
 
-#endif	// NOT defined WNS_LDK_ARQ_PIGGYBACKER_TEST_HPP
-
-
+#endif  // NOT defined WNS_LDK_ARQ_PIGGYBACKER_TEST_HPP

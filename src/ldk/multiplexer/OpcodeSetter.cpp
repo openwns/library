@@ -35,80 +35,80 @@ using namespace wns::ldk;
 using namespace wns::ldk::multiplexer;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(OpcodeSetter, wns::ldk::FunctionalUnit,
-				     "wns.multiplexer.OpcodeSetter",
-				     wns::ldk::FUNConfigCreator);
+                     "wns.multiplexer.OpcodeSetter",
+                     wns::ldk::FUNConfigCreator);
 
 OpcodeSetter::OpcodeSetter(fun::FUN* fuNet, const pyconfig::View& _config) :
-		CommandTypeSpecifier<>(fuNet),
-		HasReceptor<>(),
-		HasConnector<>(),
-		HasDeliverer<>(),
-		Processor<OpcodeSetter>(),
-		Cloneable<OpcodeSetter>(),
+        CommandTypeSpecifier<>(fuNet),
+        HasReceptor<>(),
+        HasConnector<>(),
+        HasDeliverer<>(),
+        Processor<OpcodeSetter>(),
+        Cloneable<OpcodeSetter>(),
 
-		config(_config),
-		opcode(config.get<int>("opcode")),
+        config(_config),
+        opcode(config.get<int>("opcode")),
 
-		logger("WNS", "OpcodeSetter")
+        logger("WNS", "OpcodeSetter")
 {
-	friends.opcodeProvider = 0;
+    friends.opcodeProvider = 0;
 }
 
 
 OpcodeSetter::OpcodeSetter(fun::FUN* fuNet, FunctionalUnit* _opcodeProvider, const pyconfig::View& _config, int _opcode) :
-		CommandTypeSpecifier<>(fuNet),
-		HasReceptor<>(),
-		HasConnector<>(),
-		HasDeliverer<>(),
-		Processor<OpcodeSetter>(),
-		Cloneable<OpcodeSetter>(),
+        CommandTypeSpecifier<>(fuNet),
+        HasReceptor<>(),
+        HasConnector<>(),
+        HasDeliverer<>(),
+        Processor<OpcodeSetter>(),
+        Cloneable<OpcodeSetter>(),
 
-		config(_config),
-		opcode(_opcode),
+        config(_config),
+        opcode(_opcode),
 
-		logger(_config.get("opcodeLogger"))
+        logger(_config.get("opcodeLogger"))
 {
-	friends.opcodeProvider = _opcodeProvider;
+    friends.opcodeProvider = _opcodeProvider;
 
-	// give each opcodeProvider a unique rolename
-	std::stringstream commandName;
-	commandName << friends.opcodeProvider->getName() << "_opcode_" << opcode;
+    // give each opcodeProvider a unique rolename
+    std::stringstream commandName;
+    commandName << friends.opcodeProvider->getName() << "_opcode_" << opcode;
 
-	setName(commandName.str());
+    setName(commandName.str());
 }
 
 
 void
 OpcodeSetter::onFUNCreated()
 {
-	if(friends.opcodeProvider)
-		return;
+    if(friends.opcodeProvider)
+        return;
 
-	std::string name = config.get<std::string>("opcodeProvider");
-	friends.opcodeProvider = getFUN()->findFriend<OpcodeProvider*>(name);
-	assure(friends.opcodeProvider, "required friend not found.");
+    std::string name = config.get<std::string>("opcodeProvider");
+    friends.opcodeProvider = getFUN()->findFriend<OpcodeProvider*>(name);
+    assure(friends.opcodeProvider, "required friend not found.");
 } // onFUNCreated
 
 
 void
 OpcodeSetter::processOutgoing(const CompoundPtr& compound)
 {
-	OpcodeCommand* command =
-		dynamic_cast<OpcodeCommand*>(friends.opcodeProvider->activateCommand(compound->getCommandPool()));
-	command->peer.opcode = opcode;
+    OpcodeCommand* command =
+        dynamic_cast<OpcodeCommand*>(friends.opcodeProvider->activateCommand(compound->getCommandPool()));
+    command->peer.opcode = opcode;
 
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " this is OpcodeSetter writing opcode " << opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " this is OpcodeSetter writing opcode " << opcode;
+    MESSAGE_END();
 } // processOutgoing
 
 
 void
 OpcodeSetter::processIncoming(const CompoundPtr& /* compound */)
 {
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " this is OpcodeSetter receiving opcode " << opcode;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " this is OpcodeSetter receiving opcode " << opcode;
+    MESSAGE_END();
 } // processIncoming
 
 

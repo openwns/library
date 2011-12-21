@@ -33,7 +33,8 @@ using namespace wns::geometry;
 
 AxisParallelRectangle::AxisParallelRectangle()
     :Shape2D(Point(0,0,0),Point(0,0,0))
-{}
+{
+}
 
 AxisParallelRectangle::AxisParallelRectangle(const Point& a, const Point& b)
     : Shape2D(a,b)
@@ -76,42 +77,46 @@ AxisParallelRectangle::intersects(const AxisParallelRectangle& other) const
 bool 
 AxisParallelRectangle::intersects(const LineSegment& line) const
 {
-    if (intersectsBoundingBoxOf(line)) {
-	if (contains(line.getA()) || contains(line.getB())) return true;
-	else return bordersIntersect(line);
-    } else return false;
+    if (intersectsBoundingBoxOf(line))
+    {
+        if (contains(line.getA()) || contains(line.getB())) return true;
+        else return bordersIntersect(line);
+    }
+    else return false;
 }
 
 unsigned int 
 AxisParallelRectangle::countBorderIntersections(const LineSegment& line) const
 {
-    if (intersectsBoundingBoxOf(line)) {
-	if (contains(line.getA()) xor contains(line.getB())) return 1;
-	else if (bordersIntersect(line)) return 2;
-	else return 0;
-    } else return 0;
+    if (intersectsBoundingBoxOf(line))
+    {
+        if (contains(line.getA()) xor contains(line.getB())) return 1;
+        else if (bordersIntersect(line)) return 2;
+        else return 0;
+    }
+    else return 0;
 }
 
-bool 
+bool
 AxisParallelRectangle::bordersIntersect(const LineSegment& line) const
 {
     const double& x1 = boundingBox.a.getX();
     const double& x2 = boundingBox.b.getX();
     const double& y1 = boundingBox.a.getY();
     const double& y2 = boundingBox.b.getY();
-    
+
     const Point A(x1, y1, 0);
     const Point B(x2, y1, 0);
     const Point C(x2, y2, 0);
     const Point D(x1, y2, 0);
-    
+
     const LineSegment a(A, B);
     const LineSegment b(B, C);
     const LineSegment c(C, D);
     const LineSegment d(D, A);
-    
+
     return a.intersects(line) || b.intersects(line)
-	|| c.intersects(line) || d.intersects(line);
+    || c.intersects(line) || d.intersects(line);
 }
 
 

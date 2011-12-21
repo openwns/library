@@ -63,7 +63,8 @@ ParetoTest::testIt()
     Pareto dis(config.get("dist"));
 
     Average<double> average;
-    for(long int ii = 0; ii < 1000000; ++ii) {
+    for(long int ii = 0; ii < 1000000; ++ii)
+    {
         average.put(dis());
     }
 
@@ -83,7 +84,8 @@ ParetoTest::testVar()
     Pareto dis = Pareto(3.0, 10.0);
 
     VarEstimator var;
-    for(long int ii = 0; ii < 1000000; ++ii) {
+    for(long int ii = 0; ii < 1000000; ++ii)
+    {
         var.put(dis());
     }
 

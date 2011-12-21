@@ -34,98 +34,99 @@
 
 namespace wns { namespace events {
 
-	/**
-	 * @brief Mixin to support classes that need a periodic timeout mechanism.
-	 *
-	 * To make use of this class, simply derive from it and overload the
-	 * periodically() method.
-	 *
-	 * Times are given in realtime. If you are looking for periodic simulation time
-	 * events, look at PeriodicTimeout instead.
-	 *
-	 */
-	class PeriodicRealTimeout
-	{
-		/**
-		 * @brief Command to be queued for real time execution
-		 */
-		class PeriodicRealTimeoutCommand
-		{
-		public:
-			explicit
-			PeriodicRealTimeoutCommand(PeriodicRealTimeout* _dest) :
-				dest(_dest)
-			{}
+    /**
+     * @brief Mixin to support classes that need a periodic timeout mechanism.
+     *
+     * To make use of this class, simply derive from it and overload the
+     * periodically() method.
+     *
+     * Times are given in realtime. If you are looking for periodic simulation time
+     * events, look at PeriodicTimeout instead.
+     *
+     */
+    class PeriodicRealTimeout
+    {
+        /**
+         * @brief Command to be queued for real time execution
+         */
+        class PeriodicRealTimeoutCommand
+        {
+        public:
+            explicit
+            PeriodicRealTimeoutCommand(PeriodicRealTimeout* _dest) :
+                dest(_dest)
+            {
+            }
 
-			void
-			operator()()
-			{
-				dest->periodically();
-			}
+            void
+            operator()()
+            {
+                dest->periodically();
+            }
 
-		private:
-			PeriodicRealTimeout* dest;
-		}; // PeriodicRealTimeoutCommand
+        private:
+            PeriodicRealTimeout* dest;
+        }; // PeriodicRealTimeoutCommand
 
-	public:
-		explicit
-		PeriodicRealTimeout();
+    public:
+        explicit
+        PeriodicRealTimeout();
 
-		virtual
-		~PeriodicRealTimeout();
+        virtual
+        ~PeriodicRealTimeout();
 
-		/**
-		 * @brief Start the periodic timer.
-		 *
-		 * Starts the timer with the given period in seconds. The first timeout is delayed
-		 * by the given value (default 0). When the period has
-		 * elapsed, the method periodically() is called. The method periodically()
-		 * has to be implemented by the deriver.
-		 * <p>
-		 * If the timer has been set before, it will be silently cancelled.
-		 * At any time there is only one valid timer.
-		 */
-		void
-		startPeriodicTimeout(double _period, double _delay = 0.0);
+        /**
+         * @brief Start the periodic timer.
+         *
+         * Starts the timer with the given period in seconds. The first timeout is delayed
+         * by the given value (default 0). When the period has
+         * elapsed, the method periodically() is called. The method periodically()
+         * has to be implemented by the deriver.
+         * <p>
+         * If the timer has been set before, it will be silently cancelled.
+         * At any time there is only one valid timer.
+         */
+        void
+        startPeriodicTimeout(double _period, double _delay = 0.0);
 
-		/**
-		 * @brief Is a timer set?
-		 *
-		 */
-		bool
-		hasPeriodicRealTimeoutSet();
+        /**
+         * @brief Is a timer set?
+         *
+         */
+        bool
+        hasPeriodicRealTimeoutSet();
 
-		/**
-		 * @brief Cancel the timer.
-		 *
-		 * Cancel a previously set timer. Silently ignore, whether the timer has
-		 * not been set.
-		 */
-		void
-		cancelPeriodicRealTimeout();
+        /**
+         * @brief Cancel the timer.
+         *
+         * Cancel a previously set timer. Silently ignore, whether the timer has
+         * not been set.
+         */
+        void
+        cancelPeriodicRealTimeout();
 
-		/**
-		 * @brief Your callback. Implement this!
-		 *
-		 * The deriver is forced to implement this method. It gets called periodically,
-		 * whenever the timer fires.
-		 */
-		virtual void
-		periodically() = 0;
+        /**
+         * @brief Your callback. Implement this!
+         *
+         * The deriver is forced to implement this method. It gets called periodically,
+         * whenever the timer fires.
+         */
+        virtual void
+        periodically() = 0;
 
-	private:
-		pthread_cond_t dataRead;
-		pthread_mutex_t mutex;
-		double period;
-		double delay;
+    private:
+        pthread_cond_t dataRead;
+        pthread_mutex_t mutex;
+        double period;
+        double delay;
 
 
-		bool running;
-		pthread_t thread;
-		wns::events::scheduler::ICommandPtr currentCommand;
+        bool running;
+        pthread_t thread;
+        wns::events::scheduler::ICommandPtr currentCommand;
 
-		static void* worker(void* _arg);
-	}; // PeriodicRealTimeOut
+        static void* worker(void* _arg);
+    }; // PeriodicRealTimeOut
 
 } // events
 } // wns

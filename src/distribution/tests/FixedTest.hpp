@@ -34,20 +34,22 @@
 
 namespace wns { namespace distribution { namespace fixedtest {
 
-	class FixedTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( FixedTest );
-		CPPUNIT_TEST( testIt );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+    class FixedTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( FixedTest );
+        CPPUNIT_TEST( testIt );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testIt();
-	private:
-	};
-}}}
+        void testIt();
+    private:
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_DISTRIBUTION_TEST_FIXED_HPP
 

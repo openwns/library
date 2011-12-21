@@ -36,10 +36,10 @@ using namespace  wns::ldk::fcf;
 /************ NewFrameProvider **********************/
 
 NewFrameProvider::NewFrameProvider(std::string stationName) :
-	observersToNotify_(),
-	newFrameObservers_(),
-	stationName_(stationName),
-	logger_("WNS", "NewFrameProvider")
+    observersToNotify_(),
+    newFrameObservers_(),
+    stationName_(stationName),
+    logger_("WNS", "NewFrameProvider")
 {
 } //NewFrameProvider
 
@@ -47,11 +47,11 @@ NewFrameProvider::NewFrameProvider(std::string stationName) :
 
 NewFrameProvider::~NewFrameProvider()
 {
-	for(NewFrameObservers::iterator iter = newFrameObservers_.begin();
-		iter != newFrameObservers_.end(); ++iter)
-	{
-		(*iter)->setNewFrameProvider(NULL);
-	}
+    for(NewFrameObservers::iterator iter = newFrameObservers_.begin();
+        iter != newFrameObservers_.end(); ++iter)
+    {
+        (*iter)->setNewFrameProvider(NULL);
+    }
 }
 
 
@@ -59,19 +59,19 @@ NewFrameProvider::~NewFrameProvider()
 void
 NewFrameProvider::attachObserver(NewFrameObserver* newFrameObserver)
 {
-	assure(std::find(newFrameObservers_.begin(),
-			 newFrameObservers_.end(),
-			 newFrameObserver)
-	       == newFrameObservers_.end(),
-	       "NewFrameObserver is already added to NewFrameProvider");
+    assure(std::find(newFrameObservers_.begin(),
+             newFrameObservers_.end(),
+             newFrameObserver)
+           == newFrameObservers_.end(),
+           "NewFrameObserver is already added to NewFrameProvider");
 
-	MESSAGE_BEGIN(NORMAL, logger_, m, stationName_ );
-	m << ": Attach observer! "
-	  << newFrameObserver->getObserverName();
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger_, m, stationName_ );
+    m << ": Attach observer! "
+      << newFrameObserver->getObserverName();
+    MESSAGE_END();
 
-	newFrameObservers_.push_back(newFrameObserver);
-	newFrameObserver->setNewFrameProvider(this);
+    newFrameObservers_.push_back(newFrameObserver);
+    newFrameObserver->setNewFrameProvider(this);
 } //attachNewFrameObserver
 
 
@@ -79,25 +79,25 @@ NewFrameProvider::attachObserver(NewFrameObserver* newFrameObserver)
 void
 NewFrameProvider::detachObserver(NewFrameObserver* newFrameObserver)
 {
-	assure(std::find(newFrameObservers_.begin(),
-			 newFrameObservers_.end(),
-			 newFrameObserver)
-	       != newFrameObservers_.end(),
-	       "unknown NewFrameObserver");
+    assure(std::find(newFrameObservers_.begin(),
+             newFrameObservers_.end(),
+             newFrameObserver)
+           != newFrameObservers_.end(),
+           "unknown NewFrameObserver");
 
-	MESSAGE_BEGIN(NORMAL, logger_, m, stationName_ );
-	m << ": Detach observer! "
-	  << newFrameObserver->getObserverName();
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger_, m, stationName_ );
+    m << ": Detach observer! "
+      << newFrameObserver->getObserverName();
+    MESSAGE_END();
 
-	newFrameObserver->setNewFrameProvider(NULL);
-	newFrameObserver->newFrameProviderDeleted();
-	newFrameObservers_.remove(newFrameObserver);
+    newFrameObserver->setNewFrameProvider(NULL);
+    newFrameObserver->newFrameProviderDeleted();
+    newFrameObservers_.remove(newFrameObserver);
 
-	// remove observer from list observersToNotify_, because it is detached
-	if(	std::find(observersToNotify_.begin(), observersToNotify_.end(),
-				  newFrameObserver) != newFrameObservers_.end() )
-		observersToNotify_.remove(newFrameObserver);
+    // remove observer from list observersToNotify_, because it is detached
+    if(	std::find(observersToNotify_.begin(), observersToNotify_.end(),
+                  newFrameObserver) != newFrameObservers_.end() )
+    	observersToNotify_.remove(newFrameObserver);
 
 } //detachNewFrameObserver
 
@@ -106,21 +106,21 @@ NewFrameProvider::detachObserver(NewFrameObserver* newFrameObserver)
 void
 NewFrameProvider::notifyNewFrameObservers()
 {
-	// Copy of list is necessary, because elements of List could deleted while
-	// iterating throw the list
-	observersToNotify_ = newFrameObservers_;
+    // Copy of list is necessary, because elements of List could deleted while
+    // iterating throw the list
+    observersToNotify_ = newFrameObservers_;
 
-	// Send NewFrame message to observer
-	MESSAGE_BEGIN(NORMAL, logger_, m, stationName_ );
-	m << ": Notify all observers! newFrameObservers_.size():" << observersToNotify_.size();
-	MESSAGE_END();
+    // Send NewFrame message to observer
+    MESSAGE_BEGIN(NORMAL, logger_, m, stationName_ );
+    m << ": Notify all observers! newFrameObservers_.size():" << observersToNotify_.size();
+    MESSAGE_END();
 
-	while(!observersToNotify_.empty())
-	{
-		NewFrameObserver* observer = observersToNotify_.front();
-		observersToNotify_.pop_front();
-		observer->messageNewFrame();
-	}
+    while(!observersToNotify_.empty())
+    {
+        NewFrameObserver* observer = observersToNotify_.front();
+        observersToNotify_.pop_front();
+        observer->messageNewFrame();
+    }
 } //notifyNewFrameObservers
 
 
@@ -128,19 +128,20 @@ NewFrameProvider::notifyNewFrameObservers()
 /************ NewFrameObserver **********************/
 
 NewFrameObserver::NewFrameObserver(std::string observerName):
-	observerName_(observerName),
-	newFrameProvider_(NULL)
-{} // NewFrameObserver
+    observerName_(observerName),
+    newFrameProvider_(NULL)
+{
+} // NewFrameObserver
 
 
 
 NewFrameObserver::~NewFrameObserver()
 {
-	if (newFrameProvider_)
-	{
-		newFrameProvider_->detachObserver(this);
-		newFrameProvider_ = NULL;
-	}
+    if (newFrameProvider_)
+    {
+        newFrameProvider_->detachObserver(this);
+        newFrameProvider_ = NULL;
+    }
 
 } // ~NewFrameObserver
 
@@ -149,7 +150,7 @@ NewFrameObserver::~NewFrameObserver()
 void
 NewFrameObserver::setNewFrameProvider(NewFrameProvider* newFrameProvider)
 {
-	newFrameProvider_ = newFrameProvider;
+    newFrameProvider_ = newFrameProvider;
 } // setNewFrameProvider
 
 

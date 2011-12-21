@@ -33,77 +33,78 @@
 
 namespace wns { namespace ldk { namespace flowseparator {
 
-	/**
-	 * @brief Interface for New Instance creation.
-	 *
-	 */
-	class CreatorStrategy
-	{
-	public:
-		virtual
-		~CreatorStrategy()
-		{}
+    /**
+     * @brief Interface for New Instance creation.
+     *
+     */
+    class CreatorStrategy
+    {
+    public:
+        virtual
+        ~CreatorStrategy()
+        {
+        }
 
-		/** @brief
-		 * Return a freshly created FU
-		 */
-		virtual FunctionalUnit*
-		create() const = 0;
+        /** @brief
+         * Return a freshly created FU
+         */
+        virtual FunctionalUnit*
+        create() const = 0;
 
             /** @brief
              * Return a prototype FU
              */
             virtual FunctionalUnit*
             createPrototype() const = 0;
-	};
+    };
 
-	/**
-	 * @brief Create FUs for unknown flows using a prototype.
-	 *
-	 */
-	class PrototypeCreator :
-		public virtual CreatorStrategy
-	{
-	public:
-		PrototypeCreator(fun::FUN* fuNet, const pyconfig::View& config);
+    /**
+     * @brief Create FUs for unknown flows using a prototype.
+     *
+     */
+    class PrototypeCreator :
+        public virtual CreatorStrategy
+    {
+    public:
+        PrototypeCreator(fun::FUN* fuNet, const pyconfig::View& config);
 
-		PrototypeCreator(fun::FUN* fuNet, std::string name, FunctionalUnit* prototype);
+        PrototypeCreator(fun::FUN* fuNet, std::string name, FunctionalUnit* prototype);
 
-		FunctionalUnit*
-		create() const;
+        FunctionalUnit*
+        create() const;
 
-            FunctionalUnit*
-            createPrototype() const;
+        FunctionalUnit*
+        createPrototype() const;
 
-	private:
-		FunctionalUnit* prototype;
-	};
+    private:
+        FunctionalUnit* prototype;
+    };
 
-	/**
-	 * @brief Create FUs for unknown flows using the prototype config.
-	 *
-	 */
-	class ConfigCreator :
-		public virtual CreatorStrategy
-	{
-	public:
-		ConfigCreator(fun::FUN* _fun, const pyconfig::View& _config);
+    /**
+     * @brief Create FUs for unknown flows using the prototype config.
+     *
+     */
+    class ConfigCreator :
+        public virtual CreatorStrategy
+    {
+    public:
+        ConfigCreator(fun::FUN* _fun, const pyconfig::View& _config);
 
-		FunctionalUnit*
-		create() const;
+        FunctionalUnit*
+        create() const;
 
-            FunctionalUnit*
-            createPrototype() const;
+        FunctionalUnit*
+        createPrototype() const;
 
-	private:
-		wns::ldk::fun::FUN* fun;
-		wns::pyconfig::View config;
-		std::string creatorName;
-		std::string commandName;
-	};
+    private:
+        wns::ldk::fun::FUN* fun;
+        wns::pyconfig::View config;
+        std::string creatorName;
+        std::string commandName;
+    };
 
-	typedef FUNConfigCreator<CreatorStrategy> CreatorStrategyCreator;
-	typedef wns::StaticFactory<CreatorStrategyCreator> CreatorStrategyFactory;
+    typedef FUNConfigCreator<CreatorStrategy> CreatorStrategyCreator;
+    typedef wns::StaticFactory<CreatorStrategyCreator> CreatorStrategyFactory;
 
 } // namespace flowseparator
 } // namespace ldk

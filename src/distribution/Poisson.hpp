@@ -32,19 +32,19 @@
 #include <WNS/distribution/Uniform.hpp>
 
 namespace wns { namespace distribution {
-	/**
-	 * @brief Poisson distributed random numbers.
-	 *
- 	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 *
-	 * Provided number of arrivals within a given time interval t with
-	 * (NegExp) arrival rate lambda. Here: lambda * t = mean
-	 */
-  	class Poisson :
+    /**
+     * @brief Poisson distributed random numbers.
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     *
+     * Provided number of arrivals within a given time interval t with
+     * (NegExp) arrival rate lambda. Here: lambda * t = mean
+     */
+    class Poisson :
         public Distribution,
         public IHasMean
-  	{
-  	public:
+    {
+    public:
         explicit
         Poisson(double mean, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
@@ -55,22 +55,22 @@ namespace wns { namespace distribution {
         explicit
         Poisson(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~Poisson();
+        virtual
+        ~Poisson();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
+    private:
         double mean_;
-		StandardUniform dis_;
-	}; // Poission
+        StandardUniform dis_;
+    }; // Poission
 
 } // distribution
 } // wns

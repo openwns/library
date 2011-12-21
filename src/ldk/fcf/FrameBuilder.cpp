@@ -37,87 +37,89 @@
 
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	 wns::ldk::fcf::FrameBuilder,
-	 wns::ldk::FunctionalUnit,
-	 "wns.ldk.fcf.FrameBuilder",
-	 wns::ldk::FUNConfigCreator );
+    wns::ldk::fcf::FrameBuilder,
+    wns::ldk::FunctionalUnit,
+    "wns.ldk.fcf.FrameBuilder",
+    wns::ldk::FUNConfigCreator );
 
 using namespace wns::ldk::fcf;
 using namespace std;
 
 
 FrameBuilder::FrameBuilder( wns::ldk::fun::FUN* fun, const wns::pyconfig::View& config ) :
-	wns::ldk::multiplexer::Dispatcher( fun, config ),
-	wns::ldk::fcf::NewFrameProvider(fun->getName()),
-	timingControl_(NULL),
-	logger("WNS", "FrameBuilder")
+    wns::ldk::multiplexer::Dispatcher( fun, config ),
+    wns::ldk::fcf::NewFrameProvider(fun->getName()),
+    timingControl_(NULL),
+    logger("WNS", "FrameBuilder")
 {
-	frameDuration_ = config.get<simTimeType>("frameDuration");
-	symbolDuration_ = config.get<simTimeType>("symbolDuration");
+    frameDuration_ = config.get<simTimeType>("frameDuration");
+    symbolDuration_ = config.get<simTimeType>("symbolDuration");
 
-	// Create Timing Control from static Factory
-	wns::pyconfig::View timingControlConfig( config, "timingControl");
-	std::string name = timingControlConfig.get<std::string>("name");
-	timingControl_ =  TimingControlFactory::creator(name)->create( this , timingControlConfig);
-	
-	// Create the phase descriptors 
-	for(int i = 0; i < config.len("phaseDescriptor"); i++) {
-		wns::pyconfig::View pDesc(config.get("phaseDescriptor", i));
-		std::string plugin = pDesc.get<std::string>("__plugin__");
-		PhaseDescriptorCreator* pCreator = PhaseDescriptorFactory::creator(plugin);
-		PhaseDescriptorPtr pDescPtr(pCreator->create(this, pDesc));
-		descriptors_.push_back(pDescPtr);
-	}
+    // Create Timing Control from static Factory
+    wns::pyconfig::View timingControlConfig( config, "timingControl");
+    std::string name = timingControlConfig.get<std::string>("name");
+    timingControl_ =  TimingControlFactory::creator(name)->create( this , timingControlConfig);
+
+    // Create the phase descriptors 
+    for(int i = 0; i < config.len("phaseDescriptor"); i++)
+    {
+        wns::pyconfig::View pDesc(config.get("phaseDescriptor", i));
+        std::string plugin = pDesc.get<std::string>("__plugin__");
+        PhaseDescriptorCreator* pCreator = PhaseDescriptorFactory::creator(plugin);
+        PhaseDescriptorPtr pDescPtr(pCreator->create(this, pDesc));
+        descriptors_.push_back(pDescPtr);
+    }
 }
 
 FrameBuilder::~FrameBuilder()
 {
-	delete timingControl_;
+    delete timingControl_;
 }
 
 void FrameBuilder::onFUNCreated()
 {
     for(FrameBuilder::Descriptors::const_iterator it = descriptors_.begin(); 
-		it != descriptors_.end(); 
-		++it) {
-		(*it)->onFUNCreated();
-	}
-	
-	// timing node must be configured after phase descriptors
-	timingControl_->configure();
+        it != descriptors_.end(); 
+        ++it)
+    {
+        (*it)->onFUNCreated();
+    }
+
+    // timing node must be configured after phase descriptors
+    timingControl_->configure();
 }
 
 void FrameBuilder::start()
 {
-	MESSAGE_BEGIN(NORMAL, logger,  m, "" );
-	m << getFUN()->getName() << ": starting FrameBuilder";
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger,  m, "" );
+    m << getFUN()->getName() << ": starting FrameBuilder";
+    MESSAGE_END();
 
-	timingControl_->start();
+    timingControl_->start();
 }
 
 void FrameBuilder::pause()
 {
-	MESSAGE_BEGIN(NORMAL, logger,  m, "" );
-	m << getFUN()->getName() <<": pausing FrameBuilder ";
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger,  m, "" );
+    m << getFUN()->getName() <<": pausing FrameBuilder ";
+    MESSAGE_END();
 
-	timingControl_->pause();
+    timingControl_->pause();
 }
 
 void FrameBuilder::stop()
 {
-	MESSAGE_BEGIN(NORMAL, logger,  m, "" );
-	m << getFUN()->getName() << ": stopping FrameBuilder";
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger,  m, "" );
+    m << getFUN()->getName() << ": stopping FrameBuilder";
+    MESSAGE_END();
 
-	timingControl_->stop();
+    timingControl_->stop();
 }
 
 
 void FrameBuilder::finishedPhase( CompoundCollectorInterface* collector )
 {
-	getTimingControl()->finishedPhase( collector );
+    getTimingControl()->finishedPhase( collector );
 }
 
 

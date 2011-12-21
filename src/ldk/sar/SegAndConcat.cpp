@@ -57,7 +57,7 @@ SegAndConcat::SegAndConcat(wns::ldk::fun::FUN* fun,
         sizeCC_ = wns::probe::bus::ContextCollectorPtr(
             new wns::probe::bus::ContextCollector(cpc, 
                 delayProbeName + ".stop.compoundSize"));
-    
+
         // Same name as the probe prefix
         probeHeaderReader_ = fun->getCommandReader(delayProbeName);
 

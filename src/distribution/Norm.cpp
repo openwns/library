@@ -74,21 +74,21 @@ Norm::~Norm()
 double
 Norm::operator()()
 {
-	return dis_();
+    return dis_();
 }
 
 double
 Norm::getMean() const
 {
-	return mean_;
+    return mean_;
 }
 
 std::string
 Norm::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Norm(mean=" << this->getMean() << ",v=" << variance_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Norm(mean=" << this->getMean() << ",v=" << variance_ << ")";
+    return tmp.str();
 }
 
 /*

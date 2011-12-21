@@ -33,36 +33,39 @@
 
 namespace wns { namespace ldk { namespace fcf {
 
-	class FrameBuilder;
+    class FrameBuilder;
 
-	/**
-	 * @brief Creator implementation to be used with StaticFactory.
-	 *
-	 * Useful for constructors with a FrameBuilder and pyconfig::View
-	 * parameter.
-	 *
-	 */
-	template <typename T, typename KIND = T>
-	struct FrameBuilderConfigCreator :
-		public FrameBuilderConfigCreator<KIND, KIND>
-	{
-		virtual KIND* create(FrameBuilder* frameBuilder, wns::pyconfig::View& config)
-		{
-			return new T(frameBuilder, config);
-		}
-	};
+    /**
+     * @brief Creator implementation to be used with StaticFactory.
+     *
+     * Useful for constructors with a FrameBuilder and pyconfig::View
+     * parameter.
+     *
+     */
+    template <typename T, typename KIND = T>
+    struct FrameBuilderConfigCreator :
+        public FrameBuilderConfigCreator<KIND, KIND>
+    {
+        virtual KIND* create(FrameBuilder* frameBuilder, wns::pyconfig::View& config)
+        {
+            return new T(frameBuilder, config);
+        }
+    };
 
-	template <typename KIND>
-	struct FrameBuilderConfigCreator<KIND, KIND>
-	{
-	public:
-		virtual KIND* create(FrameBuilder*, wns::pyconfig::View&) = 0;
+    template <typename KIND>
+    struct FrameBuilderConfigCreator<KIND, KIND>
+    {
+    public:
+        virtual KIND* create(FrameBuilder*, wns::pyconfig::View&) = 0;
 
-		virtual ~FrameBuilderConfigCreator()
-		{}
-	};
+        virtual ~FrameBuilderConfigCreator()
+        {
+        }
+    };
 
-}}}
+}
+}
+}
 #endif
 
 

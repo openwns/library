@@ -373,7 +373,7 @@ ReassemblyBuffer::enableDelayProbing(const wns::probe::bus::ContextCollectorPtr&
 void
 ReassemblyBuffer::prepareForProbing(int position,
     const wns::ldk::CompoundPtr& segment)
-{    
+{
     if(delayProbingEnabled_)
     {
         assure(position >= 0, "Invalid position " << position);
@@ -400,7 +400,7 @@ ReassemblyBuffer::probe(const SegmentContainer& sc)
     {
         assure(minDelayCC_ != NULL, "No valid min delay probe");
         assure(maxDelayCC_ != NULL, "No valid max delay probe");
-    
+
         SegmentContainer::const_iterator it;
         int i = 0;
         for (it = sc.begin(); it != sc.end(); ++it)

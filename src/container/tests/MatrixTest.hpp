@@ -34,70 +34,70 @@
 
 namespace wns { namespace container { namespace tests {
 
-	class MatrixTest :
-		public CppUnit::TestFixture
-	{
-		class DestructorCounter
-		{
-		public:
-			~DestructorCounter()
-			{
-				count++;
-			}
+    class MatrixTest :
+        public CppUnit::TestFixture
+    {
+        class DestructorCounter
+        {
+        public:
+            ~DestructorCounter()
+            {
+                count++;
+            }
 
-			bool
-			operator==(const DestructorCounter&) const
-			{
-				return true;
-			}
+            bool
+            operator==(const DestructorCounter&) const
+            {
+                return true;
+            }
 
-			bool
-			operator!=(const DestructorCounter&) const
-			{
-				return false;
-			}
+            bool
+            operator!=(const DestructorCounter&) const
+            {
+                return false;
+            }
 
-			static int count;
-		};
+            static int count;
+        };
 
-		CPPUNIT_TEST_SUITE( MatrixTest );
-		CPPUNIT_TEST( test1DDefaultConstructor );
-		CPPUNIT_TEST( test1DSizeConstructor );
-		CPPUNIT_TEST( test1DSize );
-		CPPUNIT_TEST( test1DAccessOperators );
-		CPPUNIT_TEST( test2DDefaultConstructor );
-		CPPUNIT_TEST( test2DSizeConstructor );
-		CPPUNIT_TEST( test2DSize );
-		CPPUNIT_TEST( test2DAccessOperators );
-		CPPUNIT_TEST( test3DDefaultConstructor );
-		CPPUNIT_TEST( test3DSizeConstructor );
-		CPPUNIT_TEST( test3DSize );
-		CPPUNIT_TEST( test3DAccessOperators );
-		CPPUNIT_TEST( testReturnReference );
-		CPPUNIT_TEST( testEqual );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
-		void test1DDefaultConstructor();
-		void test1DSizeConstructor();
-		void test1DSize();
-		void test1DAccessOperators();
-		void test2DDefaultConstructor();
-		void test2DSizeConstructor();
-		void test2DSize();
-		void test2DAccessOperators();
-		void test3DDefaultConstructor();
-		void test3DSizeConstructor();
-		void test3DSize();
-		void test3DAccessOperators();
-		void testReturnReference();
-		void testEqual();
-	private:
-		typedef Matrix<long int, 1> Matrix1D;
-		typedef Matrix<long int, 2> Matrix2D;
-		typedef Matrix<long int, 3> Matrix3D;
-	};
+        CPPUNIT_TEST_SUITE( MatrixTest );
+        CPPUNIT_TEST( test1DDefaultConstructor );
+        CPPUNIT_TEST( test1DSizeConstructor );
+        CPPUNIT_TEST( test1DSize );
+        CPPUNIT_TEST( test1DAccessOperators );
+        CPPUNIT_TEST( test2DDefaultConstructor );
+        CPPUNIT_TEST( test2DSizeConstructor );
+        CPPUNIT_TEST( test2DSize );
+        CPPUNIT_TEST( test2DAccessOperators );
+        CPPUNIT_TEST( test3DDefaultConstructor );
+        CPPUNIT_TEST( test3DSizeConstructor );
+        CPPUNIT_TEST( test3DSize );
+        CPPUNIT_TEST( test3DAccessOperators );
+        CPPUNIT_TEST( testReturnReference );
+        CPPUNIT_TEST( testEqual );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
+        void test1DDefaultConstructor();
+        void test1DSizeConstructor();
+        void test1DSize();
+        void test1DAccessOperators();
+        void test2DDefaultConstructor();
+        void test2DSizeConstructor();
+        void test2DSize();
+        void test2DAccessOperators();
+        void test3DDefaultConstructor();
+        void test3DSizeConstructor();
+        void test3DSize();
+        void test3DAccessOperators();
+        void testReturnReference();
+        void testEqual();
+    private:
+        typedef Matrix<long int, 1> Matrix1D;
+        typedef Matrix<long int, 2> Matrix2D;
+        typedef Matrix<long int, 3> Matrix3D;
+    };
 
 }
 }

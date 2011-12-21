@@ -33,19 +33,19 @@
 #include <WNS/distribution/Uniform.hpp>
 
 namespace wns { namespace distribution {
-	/**
-	 * @brief Binomial distributed random numbers.
-	 *
-	 * Provides number of successes (int) when drawing n = numberOfTrials times with single
-	 * success probability p = probability. p is constant over all trials.
-	 *
- 	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 */
-	class Binomial :
+    /**
+     * @brief Binomial distributed random numbers.
+     *
+     * Provides number of successes (int) when drawing n = numberOfTrials times with single
+     * success probability p = probability. p is constant over all trials.
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     */
+    class Binomial :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         Binomial(int numTrials , double probability, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
@@ -56,23 +56,23 @@ namespace wns { namespace distribution {
         explicit
         Binomial(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~Binomial();
+        virtual
+        ~Binomial();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
-		long int numberOfTrials_;
-		double probability_;
-		StandardUniform dis_;
-	}; // Binomial
+    private:
+        long int numberOfTrials_;
+        double probability_;
+        StandardUniform dis_;
+    }; // Binomial
 } // distribution
 } // wns
 

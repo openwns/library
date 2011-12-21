@@ -34,22 +34,24 @@
 
 namespace wns { namespace distribution { namespace test {
 
-	class PoissonTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( PoissonTest );
+    class PoissonTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( PoissonTest );
         CPPUNIT_TEST( testIt );
         CPPUNIT_TEST( testVar );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
         void testIt();
         void testVar();
-	private:
-	};
-}}}
+    private:
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_DISTRIBUTION_TEST_POISSON_HPP
 

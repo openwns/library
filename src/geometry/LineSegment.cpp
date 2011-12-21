@@ -27,24 +27,25 @@
 
 #include "LineSegment.hpp"
 #include "Vector.hpp"
- 
+
 using namespace wns::geometry;
 
 //Constructors
 LineSegment::LineSegment()
-	: Shape2D()
-{}
+    : Shape2D()
+{
+}
 
 LineSegment::LineSegment(const Point& a, const Point& b)
-	: Shape2D(a,b)
+    : Shape2D(a,b)
 {
-	boundingBox = AABoundingBox(a, b);
+    boundingBox = AABoundingBox(a, b);
 }
 
 LineSegment::LineSegment(const Point& a, const Vector& db)
-	: Shape2D(a, a + db)
+    : Shape2D(a, a + db)
 {
-	boundingBox = AABoundingBox(a, a + db);
+    boundingBox = AABoundingBox(a, a + db);
 }
 
 LineSegment::LineSegment(const wns::pyconfig::View& config)
@@ -56,66 +57,64 @@ LineSegment::LineSegment(const wns::pyconfig::View& config)
 }
 
 LineSegment::~LineSegment()
-{}
+{
+}
 
 
-bool 
+bool
 LineSegment::contains(const Point& point) const
 {
-	return crossProduct(point) == 0.0
-		&& boundingBox.contains(point);
+    return crossProduct(point) == 0.0
+        && boundingBox.contains(point);
 }
 
 
-bool 
+bool
 LineSegment::leftOf(const Point& point) const
 {
-	return crossProduct(point) > 0.0;
+    return crossProduct(point) > 0.0;
 }
 
-bool 
+bool
 LineSegment::rightOf(const Point& point) const
 {
-	return crossProduct(point) < 0.0;
+    return crossProduct(point) < 0.0;
 }
 
 //LineSegment contains one endpoint of other
-bool 
+bool
 LineSegment::touches(const LineSegment& other) const
 {
-	return contains(other.a) != contains(other.b) 
-		&& (crossProduct(other.a) != 0.0 
-		    || crossProduct(other.b) != 0.0);
+    return contains(other.a) != contains(other.b) 
+        && (crossProduct(other.a) != 0.0 
+            || crossProduct(other.b) != 0.0);
 }
 
 
-bool 
+bool
 LineSegment::intersects(const LineSegment& that) const
 {
-	return intersectsBoundingBoxOf(that)
-		&& ( (this->straddles(that)
-		      && that.straddles(*this))
-		     ||(this->touches(that)
-			|| that.touches(*this)));
+    return intersectsBoundingBoxOf(that)
+        && ( (this->straddles(that)
+          && that.straddles(*this))
+            ||(this->touches(that)
+            || that.touches(*this)));
 }
 
 unsigned int 
 LineSegment::countBorderIntersections(const LineSegment& line) const
 {
-	return intersects(line) ? 1 : 0;
+    return intersects(line) ? 1 : 0;
 }
 
-double 
+double
 LineSegment::crossProduct(const Point& x) const
 {
-	return (b - a).cross(x - a).getDeltaZ();
+    return (b - a).cross(x - a).getDeltaZ();
 }
 
-bool 
+bool
 LineSegment::straddles(const LineSegment& other) const
 {
-	return (other.leftOf(a) == other.rightOf(b));
+    return (other.leftOf(a) == other.rightOf(b));
 }
-
-
-

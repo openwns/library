@@ -75,10 +75,12 @@ StatEval::StatEval(const wns::pyconfig::View& config) :
     desc_(config.get<std::string>("description")),
     prefix_(config.get<std::string>("prefix")),
     scalingFactor_(config.get<double>("scalingFactor"))
-{}
+{
+}
 
 StatEval::~StatEval()
-{}
+{
+}
 
 
 void

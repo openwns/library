@@ -42,45 +42,45 @@
 
 namespace wns { namespace ldk { namespace crc {
 
-	using namespace wns::ldk;
+    using namespace wns::ldk;
 
-	class CRCTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( CRCTest );
-		CPPUNIT_TEST( testNoErrors );
-		CPPUNIT_TEST( testErrors );
-		CPPUNIT_TEST( testMarking );
-		CPPUNIT_TEST( testSize );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+    class CRCTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( CRCTest );
+        CPPUNIT_TEST( testNoErrors );
+        CPPUNIT_TEST( testErrors );
+        CPPUNIT_TEST( testMarking );
+        CPPUNIT_TEST( testSize );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testNoErrors();
-		void testErrors();
-		void testMarking();
-		void testSize();
+        void testNoErrors();
+        void testErrors();
+        void testMarking();
+        void testSize();
 
-	private:
-		void emptyBuffers();
-		ILayer* layer;
-		fun::Main* fuNet;
+    private:
+        void emptyBuffers();
+        ILayer* layer;
+        fun::Main* fuNet;
 
-		tools::Stub* upper;
-		CRC* crc;
-		tools::PERProviderStub* lower;
+        tools::Stub* upper;
+        CRC* crc;
+        tools::PERProviderStub* lower;
 
-		static const int checkSumSize;
-		void setUpCRC(const int _checkSumSize, const bool _Dropping);
-		void setUpPERProvider(const double _PER);
-	};
+        static const int checkSumSize;
+        void setUpCRC(const int _checkSumSize, const bool _Dropping);
+        void setUpPERProvider(const double _PER);
+    };
 
 } // crc
 } // ldk
 } // wns
 
 
-#endif	// NOT defined WNS_LDK_CRC_CRCTEST_HPP
+#endif  // NOT defined WNS_LDK_CRC_CRCTEST_HPP
 
 

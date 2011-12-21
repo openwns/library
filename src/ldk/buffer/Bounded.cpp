@@ -32,43 +32,43 @@ using namespace wns::ldk::buffer;
 
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	Bounded,
-	Buffer,
-	"wns.buffer.Bounded",
-	FUNConfigCreator);
+    Bounded,
+    Buffer,
+    "wns.buffer.Bounded",
+    FUNConfigCreator);
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	Bounded,
-	FunctionalUnit,
-	"wns.buffer.Bounded",
-	FUNConfigCreator);
+    Bounded,
+    FunctionalUnit,
+    "wns.buffer.Bounded",
+    FUNConfigCreator);
 
 
 Bounded::Bounded(fun::FUN* fuNet, const wns::pyconfig::View& config) :
-	Buffer(fuNet, config),
-	fu::Plain<Bounded>(fuNet),
+    Buffer(fuNet, config),
+    fu::Plain<Bounded>(fuNet),
 
-	buffer(ContainerType()),
-	maxSize(config.get<int>("size")),
-	currentSize(),
-	sizeCalculator(),
-	inWakeup(false)
+    buffer(ContainerType()),
+    maxSize(config.get<int>("size")),
+    currentSize(),
+    sizeCalculator(),
+    inWakeup(false)
 {
-	{
-		std::string pluginName = config.get<std::string>("sizeUnit");
-		sizeCalculator = SizeCalculator::Factory::creator(pluginName)->create();
-	}
+    {
+        std::string pluginName = config.get<std::string>("sizeUnit");
+        sizeCalculator = SizeCalculator::Factory::creator(pluginName)->create();
+    }
 } // Bounded
 
 
 Bounded::~Bounded()
 {
-	buffer.clear();
+    buffer.clear();
 
-	if(sizeCalculator != NULL)
-	{
-		delete sizeCalculator;
-	}
+    if(sizeCalculator != NULL)
+    {
+        delete sizeCalculator;
+    }
 } // ~Bounded
 
 
@@ -78,76 +78,76 @@ Bounded::~Bounded()
 bool
 Bounded::doIsAccepting(const CompoundPtr& compound) const
 {
-	return currentSize + (*sizeCalculator)(compound) <= maxSize;
+    return currentSize + (*sizeCalculator)(compound) <= maxSize;
 } // isAccepting
 
 
 void
 Bounded::doSendData(const CompoundPtr& compound)
 {
-	assure(isAccepting(compound), "sendData called although not accepting.");
-	assure(compound->getRefCount() > 0, "Reference counting defect.");
+    assure(isAccepting(compound), "sendData called although not accepting.");
+    assure(compound->getRefCount() > 0, "Reference counting defect.");
 
-	buffer.push_back(compound);
-	currentSize += (*sizeCalculator)(compound);
+    buffer.push_back(compound);
+    currentSize += (*sizeCalculator)(compound);
 
-	increaseTotalPDUs();
-	probe();
+    increaseTotalPDUs();
+    probe();
 
-	tryToSend();
+    tryToSend();
 } // doSendData
 
 
 void
 Bounded::doOnData(const CompoundPtr& compound)
 {
-	getDeliverer()->getAcceptor(compound)->onData(compound);
+    getDeliverer()->getAcceptor(compound)->onData(compound);
 } // processIncoming
 
 
 void
 Bounded::doWakeup()
 {
-	tryToSend();
+    tryToSend();
 } // wakeup
 
 
 void
 Bounded::tryToSend()
 {
-	while(tryToSendOnce());
+    while(tryToSendOnce());
 
-	if(inWakeup == false && currentSize < maxSize)
-	{
-		inWakeup = true;
-		getReceptor()->wakeup();
-		inWakeup = false;
-	}
+    if(inWakeup == false && currentSize < maxSize)
+    {
+        inWakeup = true;
+        getReceptor()->wakeup();
+        inWakeup = false;
+    }
 } // tryToSend
 
 
 bool
 Bounded::tryToSendOnce()
 {
-	if(buffer.empty() == true)
-	{
-		return false;
-	}
+    if(buffer.empty() == true)
+    {
+        return false;
+    }
 
-	CompoundPtr compound = buffer.front();
+    CompoundPtr compound = buffer.front();
 
-	if(getConnector()->hasAcceptor(compound) == false)
-	{
-		return false;
-	}
+    if(getConnector()->hasAcceptor(compound) == false)
+    {
+        return false;
+    }
 
-	buffer.pop_front();
-	currentSize -= (*sizeCalculator)(compound);
+    buffer.pop_front();
+    currentSize -= (*sizeCalculator)(compound);
 
-	IConnectorReceptacle* target = getConnector()->getAcceptor(compound);
-	target->sendData(compound);
+    IConnectorReceptacle* target = getConnector()->getAcceptor(compound);
+    target->sendData(compound);
 
-	return true;
+    return true;
 } // tryToSendOnce
 
 //
@@ -157,15 +157,14 @@ Bounded::tryToSendOnce()
 unsigned long int
 Bounded::getSize()
 {
-	return currentSize;
+    return currentSize;
 } // size
 
 
 unsigned long int
 Bounded::getMaxSize()
 {
-	return maxSize;
+    return maxSize;
 } // getMaxSize
-
 
 

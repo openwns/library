@@ -46,130 +46,130 @@ PeriodicTimeoutTest::cleanup()
 void
 PeriodicTimeoutTest::create()
 {
-	derivedPeriodicTimeout* pTo = NULL;
-	pTo = new derivedPeriodicTimeout();
-	CPPUNIT_ASSERT(pTo != NULL);
-	delete pTo;
+    derivedPeriodicTimeout* pTo = NULL;
+    pTo = new derivedPeriodicTimeout();
+    CPPUNIT_ASSERT(pTo != NULL);
+    delete pTo;
 }
 
 void
 PeriodicTimeoutTest::configureTimeout()
 {
-	derivedPeriodicTimeout* pTo = NULL;
-	pTo = new derivedPeriodicTimeout();
+    derivedPeriodicTimeout* pTo = NULL;
+    pTo = new derivedPeriodicTimeout();
 
-	CPPUNIT_ASSERT(pTo != NULL);
-	CPPUNIT_ASSERT(!pTo->hasPeriodicTimeoutSet());
+    CPPUNIT_ASSERT(pTo != NULL);
+    CPPUNIT_ASSERT(!pTo->hasPeriodicTimeoutSet());
 
-	pTo->startPeriodicTimeout(0.01);
-	CPPUNIT_ASSERT(pTo->hasPeriodicTimeoutSet());
+    pTo->startPeriodicTimeout(0.01);
+    CPPUNIT_ASSERT(pTo->hasPeriodicTimeoutSet());
 
-	pTo->cancelPeriodicTimeout();
-	CPPUNIT_ASSERT(!pTo->hasPeriodicTimeoutSet());
+    pTo->cancelPeriodicTimeout();
+    CPPUNIT_ASSERT(!pTo->hasPeriodicTimeoutSet());
 
-	delete pTo;
+    delete pTo;
 }
 
 void
 PeriodicTimeoutTest::testPeriod()
 {
-	wns::events::scheduler::Interface *scheduler = wns::simulator::getEventScheduler();
-	CPPUNIT_ASSERT(!scheduler->processOneEvent()); // assure clean scheduler
+    wns::events::scheduler::Interface *scheduler = wns::simulator::getEventScheduler();
+    CPPUNIT_ASSERT(!scheduler->processOneEvent()); // assure clean scheduler
 
-	derivedPeriodicTimeout* pTo = new derivedPeriodicTimeout();
-	double duration = 0.01;
-	pTo->startPeriodicTimeout(duration);
+    derivedPeriodicTimeout* pTo = new derivedPeriodicTimeout();
+    double duration = 0.01;
+    pTo->startPeriodicTimeout(duration);
 
-	double now;
-	int loops = 15;
-	for (int i=0; i<loops; ++i)
-	{
-		CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
-		now = scheduler->getTime();
-		CPPUNIT_ASSERT_DOUBLES_EQUAL(now, (duration * i), 1E-6);
-		CPPUNIT_ASSERT(pTo->test_counter == i+1); // assure that function periodically() is periodically executed
-	}
+    double now;
+    int loops = 15;
+    for (int i = 0; i < loops; ++i)
+    {
+        CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
+        now = scheduler->getTime();
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(now, (duration * i), 1E-6);
+        CPPUNIT_ASSERT(pTo->test_counter == i + 1); // assure that function periodically() is periodically executed
+    }
 
-	delete pTo;
+    delete pTo;
 }
 
 void
 PeriodicTimeoutTest::testDelay()
 {
-	wns::events::scheduler::Interface *scheduler = wns::simulator::getEventScheduler();
-	CPPUNIT_ASSERT(!scheduler->processOneEvent()); // assure clean scheduler
+    wns::events::scheduler::Interface *scheduler = wns::simulator::getEventScheduler();
+    CPPUNIT_ASSERT(!scheduler->processOneEvent()); // assure clean scheduler
 
-	derivedPeriodicTimeout* pTo = new derivedPeriodicTimeout();
-	double duration = 0.01;
-	double delay = 0.01;
-	pTo->startPeriodicTimeout(duration, delay);
+    derivedPeriodicTimeout* pTo = new derivedPeriodicTimeout();
+    double duration = 0.01;
+    double delay = 0.01;
+    pTo->startPeriodicTimeout(duration, delay);
 
-	double now;
-	int loops = 15;
-	for (int i=0; i<loops; ++i)
-	{
-		CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
-		now = scheduler->getTime();
-		CPPUNIT_ASSERT_DOUBLES_EQUAL(now, (duration * i) + delay, 1E-6);
-		CPPUNIT_ASSERT(pTo->test_counter == i+1); // assure that function periodically() is periodically executed
-	}
-	delete pTo;
+    double now;
+    int loops = 15;
+    for (int i = 0; i < loops; ++i)
+    {
+        CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
+        now = scheduler->getTime();
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(now, (duration * i) + delay, 1E-6);
+        CPPUNIT_ASSERT(pTo->test_counter == i + 1); // assure that function periodically() is periodically executed
+    }
+    delete pTo;
 }
 
 
 void
 PeriodicTimeoutTest::testCopyConstructor()
 {
-	wns::events::scheduler::Interface *scheduler = wns::simulator::getEventScheduler();
-	CPPUNIT_ASSERT(!scheduler->processOneEvent()); // assure clean scheduler
+    wns::events::scheduler::Interface *scheduler = wns::simulator::getEventScheduler();
+    CPPUNIT_ASSERT(!scheduler->processOneEvent()); // assure clean scheduler
 
-	derivedPeriodicTimeout* pTo = new derivedPeriodicTimeout();
-	double duration = 0.01;
-	double delay = 0.02;
-	double now = 0.0;
-	pTo->startPeriodicTimeout(duration, delay);
+    derivedPeriodicTimeout* pTo = new derivedPeriodicTimeout();
+    double duration = 0.01;
+    double delay = 0.02;
+    double now = 0.0;
+    pTo->startPeriodicTimeout(duration, delay);
 
-	CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
-	now = scheduler->getTime();
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.02, 1E-6);
-	CPPUNIT_ASSERT(pTo->test_counter == 1); // assure that function periodically() is periodically executed
+    CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
+    now = scheduler->getTime();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.02, 1E-6);
+    CPPUNIT_ASSERT(pTo->test_counter == 1); // assure that function periodically() is periodically executed
 
-	CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
-	now = scheduler->getTime();
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.03, 1E-6);
-	CPPUNIT_ASSERT(pTo->test_counter == 2); // assure that function periodically() is periodically executed
+    CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
+    now = scheduler->getTime();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.03, 1E-6);
+    CPPUNIT_ASSERT(pTo->test_counter == 2); // assure that function periodically() is periodically executed
 
 
-	scheduler->scheduleDelay(NoOp(), 0.005);
-	CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
-	now = scheduler->getTime();
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.035, 1E-6);
-	CPPUNIT_ASSERT(pTo->test_counter == 2); // assure that function
-						// periodically() is NOT periodically executed
+    scheduler->scheduleDelay(NoOp(), 0.005);
+    CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure event is scheduled
+    now = scheduler->getTime();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.035, 1E-6);
+    CPPUNIT_ASSERT(pTo->test_counter == 2); // assure that function
+                        // periodically() is NOT periodically executed
 
-	// now copy!
-	derivedPeriodicTimeout* pTo2 = new derivedPeriodicTimeout(*pTo);
-	pTo2->test_counter = 0;
+    // now copy!
+    derivedPeriodicTimeout* pTo2 = new derivedPeriodicTimeout(*pTo);
+    pTo2->test_counter = 0;
 
-	CPPUNIT_ASSERT(scheduler->processOneEvent());
-	CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure both events are scheduled
-	now = scheduler->getTime();
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.04, 1E-6);
-	CPPUNIT_ASSERT(pTo->test_counter == 3); // assure that function periodically() is periodically executed
-	CPPUNIT_ASSERT(pTo2->test_counter == 1); // assure that function periodically() is periodically executed
+    CPPUNIT_ASSERT(scheduler->processOneEvent());
+    CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure both events are scheduled
+    now = scheduler->getTime();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.04, 1E-6);
+    CPPUNIT_ASSERT(pTo->test_counter == 3); // assure that function periodically() is periodically executed
+    CPPUNIT_ASSERT(pTo2->test_counter == 1); // assure that function periodically() is periodically executed
 
-	// and delete again
-	delete pTo2;
+    // and delete again
+    delete pTo2;
 
-	CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure old event is
-						      // still scheduled and new
-	CPPUNIT_ASSERT(scheduler->processOneEvent()); // event no longer
+    CPPUNIT_ASSERT(scheduler->processOneEvent()); // assure old event is
+                              // still scheduled and new
+    CPPUNIT_ASSERT(scheduler->processOneEvent()); // event no longer
 
-	now = scheduler->getTime();
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.06, 1E-6);
-	CPPUNIT_ASSERT(pTo->test_counter == 5); // assure that function periodically() is periodically executed
+    now = scheduler->getTime();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(now, 0.06, 1E-6);
+    CPPUNIT_ASSERT(pTo->test_counter == 5); // assure that function periodically() is periodically executed
 
-	delete pTo;
+    delete pTo;
 }
 
 

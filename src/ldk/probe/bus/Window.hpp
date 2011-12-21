@@ -41,66 +41,78 @@
 
 namespace wns { namespace ldk { namespace probe { namespace bus {
 
-	class Window;
+    class Window;
 
-	class WindowCommand :
-		public Command
-	{
-	public:
-		struct {} local;
-		struct {} peer;
+    class WindowCommand :
+    public Command
+    {
+        public:
+        struct
+        {
+        }
+        local;
 
-		struct {
-			Window* probingFU;
-		} magic;
-	};
+        struct
+        {
+        }
+        peer;
 
-	/**
-	 * @brief FunctionalUnit to probe windowing throughputs
-	 *
-	 */
-	class Window :
-		public Probe,
-		public fu::Plain<Window, WindowCommand>,
-		public Forwarding<Window>,
-		public events::PeriodicTimeout
-	{
-	public:
-		Window(fun::FUN* fuNet, const wns::pyconfig::View& config);
-		virtual ~Window();
+        struct
+        {
+            Window* probingFU;
+        }
+        magic;
+    };
 
-		// Processor interface
-		virtual void processOutgoing(const CompoundPtr& compound);
-		virtual void processIncoming(const CompoundPtr& compound);
+    /**
+    * @brief FunctionalUnit to probe windowing throughputs
+    *
+    */
+    class Window :
+        public Probe,
+        public fu::Plain<Window, WindowCommand>,
+        public Forwarding<Window>,
+        public events::PeriodicTimeout
+    {
+        public:
+            Window(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        virtual ~Window();
 
-	protected:
-		void periodically();
+        // Processor interface
+        virtual void processOutgoing(const CompoundPtr& compound);
+        virtual void processIncoming(const CompoundPtr& compound);
 
-	private:
-		simTimeType sampleInterval;
+        protected:
+            void periodically();
 
-		wns::probe::bus::ContextCollectorPtr bitsIncoming;
-		wns::probe::bus::ContextCollectorPtr compoundsIncoming;
-		wns::probe::bus::ContextCollectorPtr bitsOutgoing;
-		wns::probe::bus::ContextCollectorPtr compoundsOutgoing;
-		wns::probe::bus::ContextCollectorPtr bitsAggregated;
-		wns::probe::bus::ContextCollectorPtr compoundsAggregated;
+        private:
+            simTimeType sampleInterval;
+
+        wns::probe::bus::ContextCollectorPtr bitsIncoming;
+        wns::probe::bus::ContextCollectorPtr compoundsIncoming;
+        wns::probe::bus::ContextCollectorPtr bitsOutgoing;
+        wns::probe::bus::ContextCollectorPtr compoundsOutgoing;
+        wns::probe::bus::ContextCollectorPtr bitsAggregated;
+        wns::probe::bus::ContextCollectorPtr compoundsAggregated;
         wns::probe::bus::ContextCollectorPtr relativeBitsGoodput;
         wns::probe::bus::ContextCollectorPtr relativeCompoundsGoodput;
 
-		SlidingWindow cumulatedBitsIncoming;
-		SlidingWindow cumulatedPDUsIncoming;
+        SlidingWindow cumulatedBitsIncoming;
+        SlidingWindow cumulatedPDUsIncoming;
 
-		SlidingWindow cumulatedBitsOutgoing;
-		SlidingWindow cumulatedPDUsOutgoing;
+        SlidingWindow cumulatedBitsOutgoing;
+        SlidingWindow cumulatedPDUsOutgoing;
 
-		SlidingWindow aggregatedThroughputInBit;
-		SlidingWindow aggregatedThroughputInPDUs;
+        SlidingWindow aggregatedThroughputInBit;
+        SlidingWindow aggregatedThroughputInPDUs;
 
-		logger::Logger logger;
-	};
+        logger::Logger logger;
+    };
 
-}}}}
+}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_PROBE_BUS_WINDOW_HPP
 

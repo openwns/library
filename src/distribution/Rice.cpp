@@ -75,7 +75,7 @@ Rice::~Rice()
 double
 Rice::operator()()
 {
-	double rnd_a    = disA_();
+    double rnd_a    = disA_();
     double rnd_b    = disB_();
 
     return sqrt(rnd_a * rnd_a + rnd_b * rnd_b);
@@ -84,9 +84,9 @@ Rice::operator()()
 std::string
 Rice::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Rice(LOS Factor=" << losFactor_ << " variance=" << variance_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Rice(LOS Factor=" << losFactor_ << " variance=" << variance_ << ")";
+    return tmp.str();
 }
 
 /*

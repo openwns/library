@@ -33,63 +33,80 @@
 
 namespace wns { namespace geometry {
 
-	// Axis aligned bounding box of a 2D object
-	class AABoundingBox
-	{
-		friend class Shape2D;
-		friend class AxisParallelRectangle;
+    // Axis aligned bounding box of a 2D object
+    class AABoundingBox
+    {
+        friend class Shape2D;
+        friend class AxisParallelRectangle;
 
-	    public:
-		AABoundingBox();
-		AABoundingBox(const Point& a, const Point& b);
-// 		AABoundingBox(const std::vector<Point>& vertices);
-		~AABoundingBox();
+        public:
+        AABoundingBox();
+        AABoundingBox(const Point& a, const Point& b);
+//      AABoundingBox(const std::vector<Point>& vertices);
+        ~AABoundingBox();
 
-		bool
-		contains(const Point& other) const;
+        bool
+        contains(const Point& other) const;
 
-		bool
-		contains(const AABoundingBox other) const;
+        bool
+        contains(const AABoundingBox other) const;
 
-		bool
-		intersects(const AABoundingBox& other) const;
+        bool
+        intersects(const AABoundingBox& other) const;
 
-		Point
-		getA() const { return a; }
+        Point
+        getA() const
+        {
+            return a;
+        }
 
-		Point
-		getB() const { return b; }
+        Point
+        getB() const
+        {
+            return b;
+        }
 
-		double
-		getMinX() { return a.getX();}
+        double
+        getMinX()
+        {
+            return a.getX();
+        }
 
-		double
-		getMaxX() { return b.getX();}
+        double
+        getMaxX()
+        {
+            return b.getX();
+        }
 
-		double
-		getMinY() { return a.getY();}
+        double
+        getMinY()
+        {
+            return a.getY();
+        }
 
-		double
-		getMaxY() { return b.getY();}
+        double
+        getMaxY()
+        {
+            return b.getY();
+        }
 
-		void
-		operator=(const AABoundingBox& other);
+        void
+        operator=(const AABoundingBox& other);
 
-		bool
-		operator==(const AABoundingBox& other) const;
+        bool
+        operator==(const AABoundingBox& other) const;
 
-		bool
-		operator!=(const AABoundingBox& other) const;
+        bool
+        operator!=(const AABoundingBox& other) const;
 
-	    private:
-		Point a;
-		Point b;
+        private:
+        Point a;
+        Point b;
 
-	};
+    };
 
 }//geometry
 }//wns
 
 #endif //WNS_GEOMETRY_AABOUNDINGBOX_HPP
-
 

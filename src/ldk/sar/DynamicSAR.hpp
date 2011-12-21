@@ -38,7 +38,7 @@
 
 namespace wns { namespace search {
         class ISearch;
-    }
+        }
 
     namespace ldk { namespace sar {
 
@@ -53,7 +53,8 @@ namespace wns { namespace search {
                         : RefCountable(),
                           numberSegments(0),
                           receivedSegments()
-                    {}
+                    {
+                    }
 
                     int numberSegments;
                     std::list<int> receivedSegments;
@@ -71,8 +72,14 @@ namespace wns { namespace search {
                 struct {
                     int segmentNumber;
                 } local;
-                struct {} peer;
-                struct {
+
+                struct
+                {
+                }
+                peer;
+
+                struct
+                {
                     int segmentSize;
                     SegmentationInfoPtr segInfoPtr;
                 } magic;

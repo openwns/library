@@ -113,7 +113,8 @@ namespace wns { namespace events { namespace scheduler {
                 callable_();
             }
 
-            enum State {
+            enum State
+            {
                 NotSubmitted,
                 Queued,
                 Running,

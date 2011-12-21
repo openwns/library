@@ -62,7 +62,8 @@ namespace wns { namespace container {
          * @brief An STL-sytle iterator for the FastList
          * @author Marc Schinnenburg <marc@schinnenburg.com>
          */
-        class iterator {
+        class iterator
+        {
             /**
              * @brief FastList needs to access the fln
              */
@@ -144,7 +145,8 @@ namespace wns { namespace container {
             /**
              * @brief Prefix decrement operator.
              */
-            iterator& operator--() {
+            iterator& operator--()
+            {
                 assure(fln, "Nothing to iterate on");
                 fln = fln->getPrevious();
                 return *this;
@@ -153,7 +155,8 @@ namespace wns { namespace container {
             /**
              * @brief Postfix decrement operator.
              */
-            iterator operator--(int) {
+            iterator operator--(int)
+            {
                 assure(fln, "Nothing to iterate on");
                 iterator i = *this;
                 fln = fln->getPrevious();
@@ -173,7 +176,8 @@ namespace wns { namespace container {
         FastList()
             : b(FastListNode<T>()),
               s(0)
-        {}
+        {
+        }
 
         /**
          * @brief Destructor - removes all element from the list
@@ -252,7 +256,8 @@ namespace wns { namespace container {
             iterator itr, itrEnd;
             itr = begin();
             itrEnd = end();
-            while(itr!=itrEnd) {
+            while(itr!=itrEnd)
+            {
                 erase(itr);
                 itr = begin();
                 itrEnd = end();
@@ -377,5 +382,6 @@ namespace wns { namespace container {
          */
         int s;
     };
-}}
+}
+}
 #endif

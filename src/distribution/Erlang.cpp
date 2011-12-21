@@ -72,8 +72,8 @@ Erlang::~Erlang()
 double
 Erlang::operator()()
 {
-	double product = 1.0;
-        
+    double product = 1.0;
+
     for (unsigned long int i = 0; i < shape_; i++)
     {
         product *= dis_();
@@ -84,15 +84,15 @@ Erlang::operator()()
 double
 Erlang::getMean() const
 {
-	return (double)shape_ / rate_;
+    return (double)shape_ / rate_;
 }
 
 std::string
 Erlang::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Erlang(rate=" << this->getMean() << ",shape=" << shape_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Erlang(rate=" << this->getMean() << ",shape=" << shape_ << ")";
+    return tmp.str();
 }
 
 /*

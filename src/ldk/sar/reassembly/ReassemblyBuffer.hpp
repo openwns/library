@@ -96,7 +96,7 @@ private:
     prepareForProbing(int position,
         const wns::ldk::CompoundPtr& segment);
 
-    void 
+    void
     probe(const SegmentContainer& sc);
 
     bool
@@ -116,6 +116,6 @@ private:
 } // reassembly
 } // sar
 } // ldk
-} // wns 
+} // wns
 
 #endif // WNS_LDK_SAR_REASSEMBLY_REASSEMBLYBUFFER_HPP

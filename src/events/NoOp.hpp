@@ -30,22 +30,25 @@
 
 namespace wns { namespace events {
 
-	/**
-	 * @brief Useful for tests (advance in time, but don't do something)
-	 */
-	class NoOp
-	{
-	public:
-		virtual
-		~NoOp()
-		{}
+    /**
+     * @brief Useful for tests (advance in time, but don't do something)
+     */
+    class NoOp
+    {
+    public:
+        virtual
+        ~NoOp()
+        {
+        }
 
-		virtual void
-		operator()()
-		{}
-	};
+        virtual void
+        operator()()
+        {
+        }
+    };
 
-}}
+}
+}
 
 #endif // NOT defined WNS_EVENTS_NOOP_HPP
 

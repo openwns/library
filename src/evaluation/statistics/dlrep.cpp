@@ -103,7 +103,8 @@ DLREP::DLREP(const wns::pyconfig::View& config) :
 
 //! Destructor
 DLREP::~DLREP()
-{}
+{
+}
 
 
 //! print probes result

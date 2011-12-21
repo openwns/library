@@ -69,21 +69,21 @@ NegExp::~NegExp()
 double
 NegExp::operator()()
 {
-	return dis_();
+    return dis_();
 }
 
 double
 NegExp::getMean() const
 {
-	return mean_;
+    return mean_;
 }
 
 std::string
 NegExp::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "NegExp(mean=" << mean_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "NegExp(mean=" << mean_ << ")";
+    return tmp.str();
 }
 
 /*

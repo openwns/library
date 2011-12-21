@@ -196,7 +196,7 @@ ReorderingWindow::onTReorderingExpired()
         MESSAGE_SINGLE(VERBOSE, logger_, "onTReorderingExpired: Clearing reorderingTimer handle");
         reorderingTimer_ = wns::events::scheduler::IEventPtr();
     }
-        
+
 }
 
 void

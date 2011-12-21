@@ -93,7 +93,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
 
                         fuNetRX->addFunctionalUnit("test", "tickRX", tickRX);
                         fuNetRX->addFunctionalUnit("tackRX", tackRX);
-                        
+
                         fuNetTX->onFUNCreated();
                         fuNetRX->onFUNCreated();
 
@@ -144,7 +144,7 @@ namespace wns { namespace ldk { namespace probe { namespace tests {
                         CPPUNIT_ASSERT(nProbed == 0);
 
                         tackTX->probeOutgoing();
-                        
+
                         tickTX->sendData(compound2);
                         wns::simulator::getEventScheduler()->processOneEvent();
                         wns::simulator::getEventScheduler()->processOneEvent();

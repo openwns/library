@@ -30,27 +30,27 @@
 
 namespace wns { namespace events { namespace scheduler { namespace tests {
 
-	class MapInterfaceTest :
-		public InterfaceTest
-	{
-		CPPUNIT_TEST_SUB_SUITE( MapInterfaceTest, InterfaceTest );
-		CPPUNIT_TEST_SUITE_END();
+    class MapInterfaceTest :
+        public InterfaceTest
+    {
+        CPPUNIT_TEST_SUB_SUITE( MapInterfaceTest, InterfaceTest );
+        CPPUNIT_TEST_SUITE_END();
 
-	private:
-		virtual Interface*
-		newTestee()
-		{
-			return new Map();
-		} // newTestee
+    private:
+        virtual Interface*
+        newTestee()
+        {
+            return new Map();
+        } // newTestee
 
-		virtual void
-		deleteTestee(Interface* scheduler)
-		{
-			delete scheduler;
-		} // deleteTestee
-	};
+        virtual void
+        deleteTestee(Interface* scheduler)
+        {
+            delete scheduler;
+        } // deleteTestee
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( MapInterfaceTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( MapInterfaceTest );
 
 } // tests
 } // scheduler

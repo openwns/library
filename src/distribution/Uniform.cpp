@@ -81,21 +81,21 @@ Uniform::~Uniform()
 double
 Uniform::operator()()
 {
-	return dis_();
+    return dis_();
 }
 
 double
 Uniform::getMean() const
 {
-	return (low_+high_)/2.0;
+    return (low_+high_)/2.0;
 }
 
 std::string
 Uniform::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Uniform(" << low_ << ".." <<high_ <<")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Uniform(" << low_ << ".." <<high_ <<")";
+    return tmp.str();
 }
 
 /*

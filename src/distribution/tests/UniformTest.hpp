@@ -34,26 +34,28 @@
 
 namespace wns { namespace distribution { namespace test {
 
-	class UniformTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( UniformTest );
+    class UniformTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( UniformTest );
         CPPUNIT_TEST( testIt );
         CPPUNIT_TEST( testStandardUniform );
         CPPUNIT_TEST( testVar );
         CPPUNIT_TEST( testStandardUniformVar );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
         void testIt();
         void testStandardUniform();
         void testVar();
         void testStandardUniformVar();
-	private:
-	};
-}}}
+    private:
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_DISTRIBUTION_TEST_UNIFORM_HPP
 

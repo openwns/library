@@ -47,7 +47,7 @@ namespace wns { namespace evaluation { namespace statistics {
              * behaviour of a correlated sequence of values.
              */
             class PDF:
-        public StatEval
+                public StatEval
             {
             public:
 
@@ -116,14 +116,20 @@ namespace wns { namespace evaluation { namespace statistics {
                 double
                 getAbscissa(unsigned long int index) const;
 
-                class PercentileError : public std::exception
-                {};
+                class PercentileError :
+                    public std::exception
+                {
+                };
 
-                class PercentileUnderFlow : public PercentileError
-                {};
+                class PercentileUnderFlow :
+                    public PercentileError
+                {
+                };
 
-                class PercentileOverFlow : public PercentileError
-                {};
+                class PercentileOverFlow :
+                    public PercentileError
+                {
+                };
 
                 /**
                  * @breif Get the (approximated) p-th percentile, throws a
@@ -178,8 +184,8 @@ namespace wns { namespace evaluation { namespace statistics {
                 std::string desc;
             };
 
-        } // statistics
-    } // evaluation
+} // statistics
+} // evaluation
 } // wns
 
 #endif  // WNS_EVALUATION_STATISTICS_PDF_HPP

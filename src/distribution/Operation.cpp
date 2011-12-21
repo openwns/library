@@ -73,7 +73,7 @@ Binary::init()
 double
 ADD::operator()()
 {
-	return (*first_)() + (*second_)();
+    return (*first_)() + (*second_)();
 } // get
 
 double
@@ -81,28 +81,28 @@ ADD::getMean() const
 {
     IHasMean* disOne;
     IHasMean* disTwo;
-    
+
     disOne = dynamic_cast<IHasMean*>(first_);
     assure(disOne, "First distribution does not implement getMean()");
-    
+
     disTwo = dynamic_cast<IHasMean*>(second_);
     assure(disTwo, "First distribution does not implement getMean()");
 
-	return disOne->getMean() + disTwo->getMean();
+    return disOne->getMean() + disTwo->getMean();
 } // get
 
 std::string
 ADD::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "(" << *first_ << "+" << *second_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "(" << *first_ << "+" << *second_ << ")";
+    return tmp.str();
 }
 
 double
 MUL::operator()()
 {
-	return (*first_)() * (*second_)();
+    return (*first_)() * (*second_)();
 } // get
 
 double
@@ -110,29 +110,29 @@ MUL::getMean() const
 {
     IHasMean* disOne;
     IHasMean* disTwo;
-    
+
     disOne = dynamic_cast<IHasMean*>(first_);
     assure(disOne, "First distribution does not implement getMean()");
-    
+
     disTwo = dynamic_cast<IHasMean*>(second_);
     assure(disTwo, "First distribution does not implement getMean()");
 
-	return disOne->getMean() * disTwo->getMean();
+    return disOne->getMean() * disTwo->getMean();
 } // get
 
 std::string
 MUL::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "(" << *first_ << "*" << *second_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "(" << *first_ << "*" << *second_ << ")";
+    return tmp.str();
 }
 
 
 double
 SUB::operator()()
 {
-	return (*first_)() - (*second_)();
+    return (*first_)() - (*second_)();
 } // get
 
 double
@@ -140,28 +140,28 @@ SUB::getMean() const
 {
     IHasMean* disOne;
     IHasMean* disTwo;
-    
+
     disOne = dynamic_cast<IHasMean*>(first_);
     assure(disOne, "First distribution does not implement getMean()");
-    
+
     disTwo = dynamic_cast<IHasMean*>(second_);
     assure(disTwo, "First distribution does not implement getMean()");
 
-	return disOne->getMean() - disTwo->getMean();
+    return disOne->getMean() - disTwo->getMean();
 } // get
 
 std::string
 SUB::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "(" << *first_ << "-" << *second_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "(" << *first_ << "-" << *second_ << ")";
+    return tmp.str();
 }
 
 double
 DIV::operator()()
 {
-	return (*first_)() / (*second_)();
+    return (*first_)() / (*second_)();
 } // get
 
 double
@@ -169,23 +169,23 @@ DIV::getMean() const
 {
     IHasMean* disOne;
     IHasMean* disTwo;
-    
+
     disOne = dynamic_cast<IHasMean*>(first_);
     assure(disOne, "First distribution does not implement getMean()");
-    
+
     disTwo = dynamic_cast<IHasMean*>(second_);
     assure(disTwo, "First distribution does not implement getMean()");
 
-	assure(disTwo->getMean() != 0.0, "Distributions::DIV: divide by zero");
-	return disOne->getMean() / disTwo->getMean();
+    assure(disTwo->getMean() != 0.0, "Distributions::DIV: divide by zero");
+    return disOne->getMean() / disTwo->getMean();
 } // get
 
 std::string
 DIV::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "(" << *first_ << "/" << *second_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "(" << *first_ << "/" << *second_ << ")";
+    return tmp.str();
 }
 
 
@@ -194,14 +194,14 @@ DistributionAndFloat::DistributionAndFloat(const pyconfig::View& config) :
     config_(config)
 {
     init();
-} 
+}
 
 DistributionAndFloat::DistributionAndFloat(wns::rng::RNGen* rng, const pyconfig::View& config) :
     Distribution(rng),
     config_(config)
 {
     init();
-} 
+}
 
 void
 DistributionAndFloat::init()
@@ -216,41 +216,47 @@ DistributionAndFloat::init()
 double
 Above::operator()()
 {
-	double result;
+    double result;
 
-	do {
-		result = (*subject_)();
-	} while(result <= arg_);
+    do
+    {
+        result = (*subject_)();
+    }
 
-	return result;
+    while(result <= arg_);
+
+    return result;
 } // get
 
 std::string
 Above::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Above(" << *subject_ << "," << arg_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Above(" << *subject_ << "," << arg_ << ")";
+    return tmp.str();
 }
 
 double
 Below::operator()()
 {
-	double result;
+    double result;
 
-	do {
-		result = (*subject_)();
-	} while(result >= arg_);
+    do
+    {
+        result = (*subject_)();
+    }
 
-	return result;
+    while(result >= arg_);
+
+    return result;
 } // get
 
 std::string
 Below::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Below(" << *subject_ << "," << arg_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Below(" << *subject_ << "," << arg_ << ")";
+    return tmp.str();
 }
 
 

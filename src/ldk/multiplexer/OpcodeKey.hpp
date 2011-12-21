@@ -33,45 +33,49 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	class OpcodeProvider;
-	class OpcodeKeyBuilder;
+    class OpcodeProvider;
+    class OpcodeKeyBuilder;
 
-	class OpcodeKey :
-		public Key
-	{
-	public:
-		OpcodeKey(const OpcodeKeyBuilder* builder, const CompoundPtr& compound);
+    class OpcodeKey :
+        public Key
+    {
+    public:
+        OpcodeKey(const OpcodeKeyBuilder* builder, const CompoundPtr& compound);
 
-		virtual bool operator<(const Key& _other) const;
-		std::string str() const;
+        virtual bool operator<(const Key& _other) const;
+        std::string str() const;
 
-	private:
-		int opcode;
-	};
-
-
-	class OpcodeKeyBuilder :
-		public KeyBuilder
-	{
-		friend class OpcodeKey;
-
-	public:
-		OpcodeKeyBuilder(const fun::FUN* fuNet, const pyconfig::View& config);
-		virtual void onFUNCreated();
-
-		virtual ConstKeyPtr operator() (const CompoundPtr& compound, int /* direction */) const;
-
-	private:
-		const fun::FUN* fuNet;
-		pyconfig::View config;
-
-		struct Friends {
-			OpcodeProvider* opcodeProvider;
-		} friends;
-	};
+    private:
+        int opcode;
+    };
 
 
-}}}
+    class OpcodeKeyBuilder :
+        public KeyBuilder
+    {
+        friend class OpcodeKey;
+
+    public:
+        OpcodeKeyBuilder(const fun::FUN* fuNet, const pyconfig::View& config);
+        virtual void onFUNCreated();
+
+        virtual ConstKeyPtr operator() (const CompoundPtr& compound, int /* direction */) const;
+
+    private:
+        const fun::FUN* fuNet;
+        pyconfig::View config;
+
+        struct Friends
+        {
+            OpcodeProvider* opcodeProvider;
+        }
+        friends;
+    };
+
+
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_MULTIPLEXER_OPCODEKEY_HPP
 

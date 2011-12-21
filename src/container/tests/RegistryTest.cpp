@@ -63,7 +63,8 @@ namespace wns { namespace container { namespace tests {
         public:
             A() :
                 foo()
-            {}
+            {
+            }
 
             virtual
             ~A()
@@ -217,7 +218,7 @@ namespace wns { namespace container { namespace tests {
         void
         findUnknown()
         {
-            typedef Registry<std::string, int> IntReg;
+            typedef Registry<std::string, int > IntReg;
             IntReg r;
 
             // Not in and nothing else registered
@@ -255,7 +256,7 @@ namespace wns { namespace container { namespace tests {
         void
         updateUnknown()
         {
-            typedef Registry<std::string, A> AReg;
+            typedef Registry<std::string, A > AReg;
             AReg r;
             A foo;
 
@@ -319,7 +320,7 @@ namespace wns { namespace container { namespace tests {
         void
         eraseUnknown()
         {
-            typedef Registry<std::string, A> AReg;
+            typedef Registry<std::string, A > AReg;
             AReg r;
             A foo;
 
@@ -433,7 +434,7 @@ namespace wns { namespace container { namespace tests {
         void
         sortingPolicy()
         {
-            Registry<int, int, registry::NoneOnErase, AlwaysLess> r;
+            Registry < int, int, registry::NoneOnErase, AlwaysLess > r;
             r.insert(1, 2);
             // This should normally throw. But with the AlwaysLess-SortingPolicy it
             // should be possible to add the same key twice. If it works, this

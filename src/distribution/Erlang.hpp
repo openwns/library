@@ -32,15 +32,15 @@
 #include <WNS/distribution/Uniform.hpp>
 
 namespace wns { namespace distribution {
-	/**
-	 * @brief Erlang-k distributed random numbers
- 	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 */
-	class Erlang :
+    /**
+     * @brief Erlang-k distributed random numbers
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     */
+    class Erlang :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         Erlang(const double mean, const int k, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
@@ -51,23 +51,23 @@ namespace wns { namespace distribution {
         explicit
         Erlang(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~Erlang();
+        virtual
+        ~Erlang();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
+    private:
         double rate_;
-		unsigned long int shape_;
- 		StandardUniform dis_;
-	}; // Erlang
+        unsigned long int shape_;
+        StandardUniform dis_;
+    }; // Erlang
 } // distribution
 } // wns
 

@@ -42,35 +42,39 @@
 
 namespace wns { namespace ldk { namespace probe {
 
-	class ErrorRate :
-		public Probe,
-		public fu::Plain<ErrorRate>,
-		public Forwarding<ErrorRate>
-	{
-	public:
-		ErrorRate(fun::FUN* fuNet, const wns::pyconfig::View& config);
-		virtual ~ErrorRate();
+    class ErrorRate :
+        public Probe,
+        public fu::Plain<ErrorRate>,
+        public Forwarding<ErrorRate>
+    {
+    public:
+        ErrorRate(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        virtual ~ErrorRate();
 
-		// Processor interface
-		virtual void processOutgoing(const CompoundPtr& compound);
-		virtual void processIncoming(const CompoundPtr& compound);
+        // Processor interface
+        virtual void processOutgoing(const CompoundPtr& compound);
+        virtual void processIncoming(const CompoundPtr& compound);
 
-		// FunctionalUnit interface
-		virtual void onFUNCreated();
+        // FunctionalUnit interface
+        virtual void onFUNCreated();
 
-	private:
-		wns::probe::bus::ContextCollectorPtr probe;
+    private:
+        wns::probe::bus::ContextCollectorPtr probe;
 
-		std::string errorRateProviderName;
+        std::string errorRateProviderName;
 
-		struct Friends {
-			FunctionalUnit* errorRateProvider;
-		} friends;
+        struct Friends
+        {
+            FunctionalUnit* errorRateProvider;
+        }
+        friends;
 
-		logger::Logger logger;
-	};
+        logger::Logger logger;
+    };
 
-}}}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_PROBE_ERRORRATE_HPP
 

@@ -42,293 +42,297 @@
 #include <iostream>
 
 namespace wns { namespace fsm {
-  	/**
-  	 * @brief Finite State Machines for C++
-  	 *
- 	 * A Finite State Machine (FSM) is typically described by the signals it
- 	 * can receive, the variables it holds and possible states it might have
- 	 * at runtime. This template defines an FSM with two parameters: SIGNALS
- 	 * and VARIABLES
- 	 *
- 	 * SIGNALS should be an abstract interface defining the signals the FSM
- 	 * can take. Each signal is represented by a method of the interface.
-  	 *
- 	 * VARIABLES should be a struct/class containing the variables of the
- 	 * FSM.
-  	 *
- 	 * The different states of this FSM are represented by different classes
- 	 * (or better objects of different classes).
- 	 *
- 	 * @sa @ref HowToWriteFiniteStateMachine
-  	 */
+    /**
+     * @brief Finite State Machines for C++
+     *
+     * A Finite State Machine (FSM) is typically described by the signals it
+     * can receive, the variables it holds and possible states it might have
+     * at runtime. This template defines an FSM with two parameters: SIGNALS
+     * and VARIABLES
+     *
+     * SIGNALS should be an abstract interface defining the signals the FSM
+     * can take. Each signal is represented by a method of the interface.
+     *
+     * VARIABLES should be a struct/class containing the variables of the
+     * FSM.
+     *
+     * The different states of this FSM are represented by different classes
+     * (or better objects of different classes).
+     *
+     * @sa @ref HowToWriteFiniteStateMachine
+     */
 
-	template <typename SIGNALS, typename VARIABLES>
-	class FSM
-	{
-	public:
-		/**
-		 * @brief Type of the Variables
-		 */
-		typedef VARIABLES VariablesType;
+    template <typename SIGNALS, typename VARIABLES>
+    class FSM
+    {
+    public:
+        /**
+         * @brief Type of the Variables
+         */
+        typedef VARIABLES VariablesType;
 
-		/**
-		 * @brief Export the state interface to let others derive from this :)
-		 */
-		class StateInterface :
-			virtual public SIGNALS
-		{
-		private:
-			template <class> friend class wns::fsm::FSMConfigCreator;
+        /**
+         * @brief Export the state interface to let others derive from this :)
+         */
+        class StateInterface :
+            virtual public SIGNALS
+        {
+        private:
+            template <class> friend class wns::fsm::FSMConfigCreator;
 
-			/**
-			 * @brief The basic FSM this state will operate on
-			 */
-			typedef FSM<SIGNALS, VARIABLES> FSMType;
+            /**
+             * @brief The basic FSM this state will operate on
+             */
+            typedef FSM<SIGNALS, VARIABLES> FSMType;
 
-		public:
-			/**
-			 * @brief Each state will automatically get the FSM it belongs to
-			 */
-			explicit
-			StateInterface(FSMType* _fsm, const std::string& _stateName) :
-				fsm(_fsm),
-				stateName(_stateName)
-			{}
+        public:
+            /**
+             * @brief Each state will automatically get the FSM it belongs to
+             */
+            explicit
+                StateInterface(FSMType* _fsm, const std::string& _stateName) :
+                fsm(_fsm),
+                stateName(_stateName)
+            {
+            }
 
-			/**
-			 * @brief initState is called when entering a new state
-			 */
-			virtual void
-			initState()
-			{}
+            /**
+             * @brief initState is called when entering a new state
+             */
+            virtual void
+            initState()
+            {
+            }
 
-			/**
-			 * @brief exitState is called when exiting a state
-			 */
-			virtual void
-			exitState()
-			{}
+            /**
+             * @brief exitState is called when exiting a state
+             */
+            virtual void
+            exitState()
+            {
+            }
 
-			/**
-			 * @brief Returns the name of the current state
-			 */
-			std::string
-			getStateName() const
-			{
-				return stateName;
-			}
+            /**
+             * @brief Returns the name of the current state
+             */
+            std::string
+            getStateName() const
+            {
+                return stateName;
+            }
 
-			/**
-			 * @brief Returns a reference to the VARIABLES of the FSM
-			 *
-			 * @note: This function is provided for convenience only.
-			 */
-			VariablesType&
-			vars()
-			{
-				return getFSM()->getVariables();
-			}
+            /**
+             * @brief Returns a reference to the VARIABLES of the FSM
+             *
+             * @note: This function is provided for convenience only.
+             */
+            VariablesType&
+            vars()
+            {
+                return getFSM()->getVariables();
+            }
 
-		protected:
-			/**
-			 * @brief Returns the FSM this state is part of
-			 */
-			virtual FSMType*
-			getFSM() const
-			{
-				return fsm;
-			}
+        protected:
+            /**
+             * @brief Returns the FSM this state is part of
+             */
+            virtual FSMType*
+            getFSM() const
+            {
+                return fsm;
+            }
 
-		private:
-			/**
-			 * @brief This state is part of this FSM
-			 */
-			FSMType* fsm;
+        private:
+            /**
+             * @brief This state is part of this FSM
+             */
+            FSMType* fsm;
 
-                        /**
-			 * @brief Name of current state
-			 */
-			std::string stateName;
-		};
+            /**
+             * @brief Name of current state
+             */
+            std::string stateName;
+        };
 
-		/**
-		 * @brief Needs to be initialized with an object of VARIABLES
-		 *
-		 * @note VARIABLES v will be COPIED(!!) into the FSM.
-		 */
-		explicit
-		FSM(const VariablesType& v) :
-			currentState(NULL),
-			variables(v),
- 			logger("WNS", TypeInfo::create(*this).toString()),
-			stateCreated(false)
-		{}
+        /**
+         * @brief Needs to be initialized with an object of VARIABLES
+         *
+         * @note VARIABLES v will be COPIED(!!) into the FSM.
+         */
+        explicit
+        FSM(const VariablesType& v) :
+            currentState(NULL),
+            variables(v),
+            logger("WNS", TypeInfo::create(*this).toString()),
+            stateCreated(false)
+        {
+        }
 
-		/**
-		 * @brief Destructor
-		 *
-		 * @note If VARIABLES is a POINTER(!!) to a struct, it will not be
-		 * deleted.
-		 */
-		virtual
-		~FSM()
-		{
-		}
+        /**
+         * @brief Destructor
+         *
+         * @note If VARIABLES is a POINTER(!!) to a struct, it will not be
+         * deleted.
+         */
+        virtual
+        ~FSM()
+        {
+        }
 
-	public:
-                /**
-		 * @brief Creates the state the FSM shall change to
-		 */
-		template <typename NEWSTATE>
-		StateInterface*
-		createState()
-		{
-			assure(!stateCreated, "A new state has been created already.");
+    public:
+        /**
+         * @brief Creates the state the FSM shall change to
+         */
+        template <typename NEWSTATE>
+        StateInterface*
+        createState()
+        {
+            assure(!stateCreated, "A new state has been created already.");
 
-			stateCreated = true;
-			return new NEWSTATE(this);
-		}
+            stateCreated = true;
+            return new NEWSTATE(this);
+        }
 
-	private:
-		/**
-		 * @brief StateFactory used for creation of states
-		 */
-		typedef FSMConfigCreator<StateInterface> StateCreator;
-		typedef wns::StaticFactory<StateCreator> StateFactory;
+    private:
+        /**
+         * @brief StateFactory used for creation of states
+         */
+        typedef FSMConfigCreator<StateInterface> StateCreator;
+        typedef wns::StaticFactory<StateCreator> StateFactory;
 
-	public:
-                /**
-		 * @brief Creates the state the FSM shall change to
-		 */
-		StateInterface*
-		createState(const std::string& stateName)
-		{
-			if (currentState && currentState->getStateName() == stateName)
-				return currentState;
+    public:
+        /**
+         * @brief Creates the state the FSM shall change to
+         */
+        StateInterface*
+        createState(const std::string& stateName)
+        {
+            if (currentState && currentState->getStateName() == stateName)
+                return currentState;
 
-			assure(!stateCreated, "A new state has been created already.");
+            assure(!stateCreated, "A new state has been created already.");
 
-			stateCreated = true;
-			return StateFactory::creator(stateName)
-				->create(this);
-		}
+            stateCreated = true;
+            return StateFactory::creator(stateName)
+                ->create(this);
+        }
 
-		/**
-		 * @brief Returns a reference to the VARIABLES of the FSM
-		 *
-		 * This is to be used in the state objects in order to modify the
-		 * variables of the FSM.
-		 */
-		VariablesType&
-		getVariables()
-		{
-			return variables;
-		}
+        /**
+         * @brief Returns a reference to the VARIABLES of the FSM
+         *
+         * This is to be used in the state objects in order to modify the
+         * variables of the FSM.
+         */
+        VariablesType&
+        getVariables()
+        {
+            return variables;
+        }
 
-		/**
-		 * @brief Returns the name of the current state
-		 *
-		 * May be used for testing purposes.
-		 */
-		std::string
-		getStateName() const
-		{
-			return getState()->getStateName();
-		}
+        /**
+         * @brief Returns the name of the current state
+         *
+         * May be used for testing purposes.
+         */
+        std::string
+        getStateName() const
+        {
+            return getState()->getStateName();
+        }
 
-                /**
-		 * @brief Replaces the current state of the FSM
-		 */
-		void
-		replaceState(SIGNALS* newState)
-		{
-			assureType(newState, StateInterface*);
-			StateInterface* si = dynamic_cast<StateInterface*>(newState);
+        /**
+         * @brief Replaces the current state of the FSM
+         */
+        void
+        replaceState(SIGNALS* newState)
+        {
+            assureType(newState, StateInterface*);
+            StateInterface* si = dynamic_cast<StateInterface*>(newState);
 
-			if (si == currentState)
-				throw wns::Exception("replaceState(...) called with current state.");
+            if (si == currentState)
+                throw wns::Exception("replaceState(...) called with current state.");
 
-			if (currentState)
-			{
-				MESSAGE_BEGIN(NORMAL, logger, m, "State replacement: ");
-				m << wns::TypeInfo::create(*currentState)
-				  << " -> "
-				  << wns::TypeInfo::create(*si);
-				MESSAGE_END();
+            if (currentState)
+            {
+                MESSAGE_BEGIN(NORMAL, logger, m, "State replacement: ");
+                m << wns::TypeInfo::create(*currentState)
+                  << " -> "
+                  << wns::TypeInfo::create(*si);
+                MESSAGE_END();
 
-				delete currentState;
-			}
+                delete currentState;
+            }
 
-			stateCreated = false;
+            stateCreated = false;
 
-			currentState = si;
-			currentState->initState();
-		}
+            currentState = si;
+            currentState->initState();
+        }
 
-	protected:
-                /**
-		 * @brief Returns the current state
-		 */
-		StateInterface*
-		getState() const
-		{
-			assure(currentState, "FSM not initialized. Please set state berfore sending signals.");
-			return currentState;
-		}
+    protected:
+        /**
+         * @brief Returns the current state
+         */
+        StateInterface*
+        getState() const
+        {
+            assure(currentState, "FSM not initialized. Please set state berfore sending signals.");
+            return currentState;
+        }
 
-                /**
-		 * @brief Changes the state of the FSM (if necessary)
-		 */
-		void
-		changeState(SIGNALS* newState)
-		{
-			assureType(newState, StateInterface*);
-			StateInterface* si = dynamic_cast<StateInterface*>(newState);
+        /**
+         * @brief Changes the state of the FSM (if necessary)
+         */
+        void
+        changeState(SIGNALS* newState)
+        {
+            assureType(newState, StateInterface*);
+            StateInterface* si = dynamic_cast<StateInterface*>(newState);
 
-			if (si == currentState)
-				return;
+            if (si == currentState)
+                return;
 
-			if (currentState)
-			{
-				currentState->exitState();
+            if (currentState)
+            {
+                currentState->exitState();
 
-				MESSAGE_BEGIN(NORMAL, logger, m, "State transition: ");
-				m << wns::TypeInfo::create(*currentState)
-				  << " -> "
-				  << wns::TypeInfo::create(*si);
-				MESSAGE_END();
+                MESSAGE_BEGIN(NORMAL, logger, m, "State transition: ");
+                m << wns::TypeInfo::create(*currentState)
+                  << " -> "
+                  << wns::TypeInfo::create(*si);
+                MESSAGE_END();
 
-				delete currentState;
-			}
+                delete currentState;
+            }
 
-			stateCreated = false;
+            stateCreated = false;
 
-			currentState = si;
-			currentState->initState();
-		}
+            currentState = si;
+            currentState->initState();
+        }
 
-	private:
-		/**
-		 * @brief Current State of the FSM
-		 */
-		StateInterface* currentState;
+    private:
+        /**
+         * @brief Current State of the FSM
+         */
+        StateInterface* currentState;
 
-		/**
-		 * @brief Variables of the FSM
-		 */
-		VariablesType variables;
+        /**
+         * @brief Variables of the FSM
+         */
+        VariablesType variables;
 
-		/**
-		 * @brief Logger
-		 */
-		logger::Logger logger;
+        /**
+         * @brief Logger
+         */
+        logger::Logger logger;
 
-		/**
-		 * @brief Helper variable
-		 */
-		bool stateCreated;
+        /**
+         * @brief Helper variable
+         */
+        bool stateCreated;
 
-	}; // FSM
+    }; // FSM
 
 } // fsm
 } // wns
@@ -507,5 +511,4 @@ namespace wns { namespace fsm {
  * This name has to be used also in the constructor of the state.
  *
  */
-
 

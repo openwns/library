@@ -34,36 +34,38 @@ namespace wns { namespace scheduler { namespace grouper { namespace tests {
 
 
 class GrouperStub
-	: public GroupingProviderInterface 
+    : public GroupingProviderInterface 
 {
 public:
-	~GrouperStub() {};
-	Grouping getTxGrouping(UserSet activeUsers, int maxBeams);
-	Grouping getRxGrouping(UserSet activeUsers, int maxBeams);
+    ~GrouperStub()
+    {
+    };
+    Grouping getTxGrouping(UserSet activeUsers, int maxBeams);
+    Grouping getRxGrouping(UserSet activeUsers, int maxBeams);
 
-	void setColleagues(RegistryProxyInterface*  /* registry */) {};
-	void setFriends(wns::service::phy::ofdma::BFInterface*  /* ofdmaProvider */
-					/*, InteferenceManager* ifmanager */) {};
+    void setColleagues(RegistryProxyInterface*  /* registry */) {};
+    void setFriends(wns::service::phy::ofdma::BFInterface*  /* ofdmaProvider */
+                    /*, InteferenceManager* ifmanager */) {};
 
-	// Stub control functions
+    // Stub control functions
 
-	/**
-	 * @brief addGroup allows to specify the groups the grouper should return to
-	 * the strategy. Of course, only the activeUsers as provided to the
-	 * getTxGrouping / getRxGrouping are returned as group members. Further
-	 * pre-defined group members are omitted and further members of active Users
-	 * are returned in individual groups.
-	 */
-	void addGroup(Group group);
+    /**
+     * @brief addGroup allows to specify the groups the grouper should return to
+     * the strategy. Of course, only the activeUsers as provided to the
+     * getTxGrouping / getRxGrouping are returned as group members. Further
+     * pre-defined group members are omitted and further members of active Users
+     * are returned in individual groups.
+     */
+    void addGroup(Group group);
 
-	/**
-	 * @brief clearGroups resets all pre-defined groups. 
-	 */
-	void clearGroups();
+    /**
+     * @brief clearGroups resets all pre-defined groups. 
+     */
+    void clearGroups();
 
 private:
-	UserSet userLog;
-	std::list<Group> groupList;
+    UserSet userLog;
+    std::list<Group> groupList;
 };
  
 } // tests

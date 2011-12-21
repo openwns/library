@@ -37,18 +37,18 @@ namespace wns { namespace distribution { namespace test {
       class WeibullTest :
     public CppUnit::TestFixture
       {
-	CPPUNIT_TEST_SUITE( WeibullTest );
-	CPPUNIT_TEST( testIt );
-	CPPUNIT_TEST( testVar );
-	CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE( WeibullTest );
+    CPPUNIT_TEST( testIt );
+    CPPUNIT_TEST( testVar );
+    CPPUNIT_TEST_SUITE_END();
       public:
-	void setUp();
-	void tearDown();
+    void setUp();
+    void tearDown();
 
-	void testIt();
-	void testVar();
+    void testIt();
+    void testVar();
 
-	};
+    };
 
     } // test
   } // distribution

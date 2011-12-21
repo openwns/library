@@ -87,7 +87,8 @@ DLREG::DLREG(const wns::pyconfig::View& config) :
 
 //! Destructor
 DLREG::~DLREG()
-{}
+{
+}
 
 
 //! print results

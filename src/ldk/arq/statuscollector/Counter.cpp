@@ -33,36 +33,36 @@ using namespace wns::ldk::arq::statuscollector;
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Counter, Interface, "StatusCollectorCounter", wns::ldk::PyConfigCreator);
 
 Counter::Counter(const wns::pyconfig::View& config) :
-		logger(config.get("logger"))
+        logger(config.get("logger"))
 {
-	this->reset();
+    this->reset();
 }
 void Counter::reset()
 {
-	numSucc = 0;
-	numFailed = 0;
+    numSucc = 0;
+    numFailed = 0;
 }
-			
+
 double Counter::getSuccessRate(const CompoundPtr& /*compound*/)
 {
-	if(numSucc + numFailed > 0)
-	{
-		return(numSucc/(numSucc + numFailed));
-	}
-	else
-	{
-		return(0.0);
-	}
+    if(numSucc + numFailed > 0)
+    {
+        return(numSucc/(numSucc + numFailed));
+    }
+    else
+    {
+        return(0.0);
+    }
 }
 
 void Counter::onSuccessfullTransmission(const CompoundPtr& /*compound*/)
 {
-	++numSucc;
-	MESSAGE_SINGLE(NORMAL, this->logger, "successfull tx, " << numSucc << " of " << (numSucc+numFailed));
+    ++numSucc;
+    MESSAGE_SINGLE(NORMAL, this->logger, "successfull tx, " << numSucc << " of " << (numSucc+numFailed));
 }
 
 void Counter::onFailedTransmission(const CompoundPtr& /*compound*/)
 {
-	++numFailed;
-	MESSAGE_SINGLE(NORMAL, this->logger, "failed tx, " << numFailed << " of " << (numSucc+numFailed));
+    ++numFailed;
+    MESSAGE_SINGLE(NORMAL, this->logger, "failed tx, " << numFailed << " of " << (numSucc+numFailed));
 }

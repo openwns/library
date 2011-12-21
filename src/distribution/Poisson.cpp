@@ -75,7 +75,7 @@ Poisson::operator()()
     double product;
     double bound = exp(-1.0 * mean_);
     int16_t i = 0;
-    
+
     for (product = 1.0; product >= bound; product *= dis_())
     {
         i++;
@@ -94,9 +94,9 @@ Poisson::getMean() const
 std::string
 Poisson::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Poisson(mean=" << this->getMean() <<")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Poisson(mean=" << this->getMean() <<")";
+    return tmp.str();
 }
 
 /*

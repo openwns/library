@@ -39,38 +39,41 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	class FrameDispatcherTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( FrameDispatcherTest );
-		CPPUNIT_TEST( testOutgoing );
-		CPPUNIT_TEST( testIncoming );
-		CPPUNIT_TEST( testDispatching );
-		CPPUNIT_TEST( testSizes );
-		/**
-		 * @todo pyconfig::Parser of FrameDispatcher not working
-		 */
-//		CPPUNIT_TEST( testpyconfig::Parser );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+    class FrameDispatcherTest : public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( FrameDispatcherTest );
+        CPPUNIT_TEST( testOutgoing );
+        CPPUNIT_TEST( testIncoming );
+        CPPUNIT_TEST( testDispatching );
+        CPPUNIT_TEST( testSizes );
+        /**
+         * @todo pyconfig::Parser of FrameDispatcher not working
+         */
+//      CPPUNIT_TEST( testpyconfig::Parser );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testOutgoing();
-		void testIncoming();
-		void testDispatching();
-		void testSizes();
-		void testPyConfig();
-	private:
-		ILayer* layer;
-		fun::Main* fuNet;
+        void testOutgoing();
+        void testIncoming();
+        void testDispatching();
+        void testSizes();
+        void testPyConfig();
+    private:
+        ILayer* layer;
+        fun::Main* fuNet;
 
-		tools::Stub* upper1;
-		tools::Stub* upper2;
-		FrameDispatcher* dispatcher;
-		tools::Stub* lower1;
-		tools::Stub* lower2;
-	};
+        tools::Stub* upper1;
+        tools::Stub* upper2;
+        FrameDispatcher* dispatcher;
+        tools::Stub* lower1;
+        tools::Stub* lower2;
+    };
 
-}}}
+}
+}
+}
 
 
 #endif // NOT defined WNS_LDK_MULTIPLEXER_FRAMEDISPATCHER_TEST_HPP

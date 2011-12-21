@@ -61,21 +61,21 @@ Fixed::Fixed(double value) :
 double
 Fixed::operator()()
 {
-	return value;
+    return value;
 }
 
 double
 Fixed::getMean() const
 {
-	return value;
+    return value;
 }
 
 std::string
 Fixed::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Fixed(fix=" << value << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Fixed(fix=" << value << ")";
+    return tmp.str();
 }
 
 /*

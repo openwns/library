@@ -39,20 +39,20 @@ using namespace wns::ldk;
 using namespace wns::ldk::tests;
 
 class OpcodeDelivererTest :
-	public wns::TestFixture
+    public wns::TestFixture
 {
-	CPPUNIT_TEST_SUITE( OpcodeDelivererTest);
-	CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE( OpcodeDelivererTest);
+    CPPUNIT_TEST_SUITE_END();
 
-	void prepare()
-	{
+    void prepare()
+    {
 
-	}
+    }
 
-	void cleanup()
-	{
+    void cleanup()
+    {
 
-	}
+    }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( OpcodeDelivererTest );

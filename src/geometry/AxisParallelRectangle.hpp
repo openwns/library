@@ -36,8 +36,8 @@
 
 #include <WNS/pyconfig/View.hpp>
 
-namespace wns{	namespace geometry{
-    
+namespace wns {  namespace geometry {
+
     class AxisParallelRectangle : public Shape2D
     {
     public:
@@ -45,34 +45,38 @@ namespace wns{	namespace geometry{
         AxisParallelRectangle(const Point& a, const Point& b);
         AxisParallelRectangle(const Point& a, const Vector& db);
         AxisParallelRectangle(const wns::pyconfig::View& config);
-	
-	Point 
-	getA() const { return Point(std::min(a.getX(), b.getX()), 
-				    std::min(a.getY(), b.getY()), 0);
-	}
-	
-	Point 
-	getB() const { return Point(std::max(a.getX(), b.getX()),
-				    std::max(a.getY(), b.getY()), 0);
-	}
-	
-	bool 
-	contains(const wns::geometry::Point& point) const;
 
-	bool 
-	contains(const AxisParallelRectangle& other) const;
+    Point
+    getA() const
+    {
+        return Point(std::min(a.getX(), b.getX()), 
+                     std::min(a.getY(), b.getY()), 0);
+    }
 
-	bool 
-	intersects(const AxisParallelRectangle& other) const;
+    Point
+    getB() const
+    {
+        return Point(std::max(a.getX(), b.getX()),
+                     std::max(a.getY(), b.getY()), 0);
+    }
 
-	bool 
-	intersects(const wns::geometry::LineSegment& line) const;
-	
-	virtual unsigned int 
-	countBorderIntersections(const LineSegment& line) const;
+    bool
+    contains(const wns::geometry::Point& point) const;
 
-	bool 
-	bordersIntersect(const LineSegment& line) const;
+    bool
+    contains(const AxisParallelRectangle& other) const;
+
+    bool
+    intersects(const AxisParallelRectangle& other) const;
+
+    bool
+    intersects(const wns::geometry::LineSegment& line) const;
+
+    virtual unsigned int
+    countBorderIntersections(const LineSegment& line) const;
+
+    bool
+    bordersIntersect(const LineSegment& line) const;
     };
 }//geometry
 }//wns

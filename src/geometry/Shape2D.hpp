@@ -32,47 +32,49 @@
 #include "AABoundingBox.hpp"
 
 namespace wns { namespace geometry {
-    
+
     class Shape2D
     {
-	
+
     public:
-	virtual ~Shape2D(){};
+    virtual ~Shape2D()
+    {
+    };
 
-	AABoundingBox getBoundingBox() const
-	{
-	    return boundingBox;
-	}
-	
-	virtual bool 
-	contains(const Point& point)const = 0;
-  
-	bool intersectsBoundingBoxOf(const Shape2D& other) const;
-	
-	void 
-	operator=(const Shape2D& other);
-	
-	bool 
-	operator==(const Shape2D& other) const;
-	
-	bool 
-	operator!=(const Shape2D& other) const;
-	
+    AABoundingBox getBoundingBox() const
+    {
+        return boundingBox;
+    }
 
-//	virtual unsigned int countBorderIntersections(const LineSegments& line)
+    virtual bool
+    contains(const Point& point)const = 0;
+
+    bool intersectsBoundingBoxOf(const Shape2D& other) const;
+
+    void
+    operator = (const Shape2D& other);
+
+    bool
+    operator==(const Shape2D& other) const;
+
+    bool
+    operator!=(const Shape2D& other) const;
+
+
+//  virtual unsigned int countBorderIntersections(const LineSegments& line)
 
     protected:
-	Shape2D();
-	
-	Shape2D(const Point& a, const Point& b);
-	
-	Shape2D(const Point& a, const Vector& v);
-	
-	static Point zeroZ(const Point& p);
+    Shape2D();
 
-	Point a;
-	Point b;
-	AABoundingBox boundingBox;
+    Shape2D(const Point& a, const Point& b);
+
+    Shape2D(const Point& a, const Vector& v);
+
+    static Point zeroZ(const Point& p);
+
+    Point a;
+    Point b;
+    AABoundingBox boundingBox;
 
     };
 

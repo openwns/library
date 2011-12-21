@@ -37,13 +37,13 @@ namespace wns { namespace distribution { namespace test {
         public:
             VarEstimator();
             ~VarEstimator();
-        
+
             double
             get();
-        
+
             void
             put(double value);
-        
+
             void
             reset();
 
@@ -51,8 +51,10 @@ namespace wns { namespace distribution { namespace test {
             Average<double> mean_;
             int sampleCount_;
             double squareSum_;
-	};
-}}}
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_DISTRIBUTION_TEST_VARESTIMATOR_HPP
 

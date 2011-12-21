@@ -35,81 +35,84 @@
 
 namespace wns { namespace distribution {
 
-	/**
-	 * @brief Configurable Distrubitions over time
-	 * @author Marc Schinnenburg <msg@comnets.rwth-aachen.de>
-	 *
-	 * This class can be configured to change it's distribution over the
-	 * time.
-	 *
-	 * @intern The class works as follows: It reads a list of Events from the
-	 * pyconfig::View. The Events will be queued into the EventContainer
-	 * "events". Each event holds a configuration for a distribution. At the time
-	 * the event will be executed, it will set a new distribution in this class.
-	 *
-	 * Here are two examples. One for configuration:
-	 * @include "TimeDependent::config.example"
-	 *
-	 * This will create values like this:
-	 * @code
-	 *
-	 *    |
-	 *    |
-	 * 47-|----|
-	 *    |    |
-	 *    |    |
-	 * 15-|    |                                 |---------------------
-	 *    |    |                                 |
-	 * 11-|    |---------|                       |
-	 *    |    |         |                       |
-	 * 8 -|    |         |-----------------------|
-	 * ___|____|_________|_______________________|_____________________
-	 *    |    |         |                       |                   (t)
-	 *         2         5                       11
-	 *
-	 * @endcode
-	 *
-	 * Usage in C++:
-	 * @include TimeDependent::usage.example
-	 */
-	class TimeDependent :
-		virtual public wns::distribution::Distribution
-	{
-		/**
-		 * @brief Carries the View to create new Distribution from
-		 */
-		class DistributionEvent
-		{
-		public:
-			DistributionEvent(TimeDependent* td, const wns::pyconfig::View& view);
+    /**
+     * @brief Configurable Distrubitions over time
+     * @author Marc Schinnenburg <msg@comnets.rwth-aachen.de>
+     *
+     * This class can be configured to change it's distribution over the
+     * time.
+     *
+     * @intern The class works as follows: It reads a list of Events from the
+     * pyconfig::View. The Events will be queued into the EventContainer
+     * "events". Each event holds a configuration for a distribution. At the time
+     * the event will be executed, it will set a new distribution in this class.
+     *
+     * Here are two examples. One for configuration:
+     * @include "TimeDependent::config.example"
+     *
+     * This will create values like this:
+     * @code
+     *
+     *    |
+     *    |
+     * 47-|----|
+     *    |    |
+     *    |    |
+     * 15-|    |                                 |---------------------
+     *    |    |                                 |
+     * 11-|    |---------|                       |
+     *    |    |         |                       |
+     * 8 -|    |         |-----------------------|
+     * ___|____|_________|_______________________|_____________________
+     *    |    |         |                       |                   (t)
+     *         2         5                       11
+     *
+     * @endcode
+     *
+     * Usage in C++:
+     * @include TimeDependent::usage.example
+     */
+    class TimeDependent :
+        virtual public wns::distribution::Distribution
+    {
+        /**
+         * @brief Carries the View to create new Distribution from
+         */
+        class DistributionEvent
+        {
+        public:
+            DistributionEvent(TimeDependent* td, const wns::pyconfig::View& view);
 
-			/**
-			 * @brief Queue new event and set new distribution function
-			 */
-			virtual void
-			operator()();
+            /**
+             * @brief Queue new event and set new distribution function
+             */
+            virtual void
+            operator()();
 
-			const wns::pyconfig::View&
-			getConfig() { return config_; }
+            const wns::pyconfig::View&
+            getConfig()
+            {
+                return config_;
+            }
 
-			virtual
-			~DistributionEvent();
+            virtual
+            ~DistributionEvent();
 
-		private:
-			/**
-			 * @brief New distribution will be set here
-			 */
-			TimeDependent* target_;
+        private:
+            /**
+             * @brief New distribution will be set here
+             */
+            TimeDependent* target_;
 
-			/**
-			 * @brief The configuration for the new distribution
-			 */
-			wns::pyconfig::View config_;
-		};
+            /**
+             * @brief The configuration for the new distribution
+             */
+            wns::pyconfig::View config_;
+        };
 
-		typedef std::map<simTimeType, DistributionEvent> EventContainer;
+        typedef std::map<simTimeType, DistributionEvent> EventContainer;
 
-	public:
+    public:
         /**
          * @brief pyconfig::View Constructor
          */
@@ -122,33 +125,33 @@ namespace wns { namespace distribution {
         explicit
         TimeDependent(wns::rng::RNGen* rng, const wns::pyconfig::View& view);
 
-		/**
-		 * @brief Destructor
-		 */
-		virtual
-		~TimeDependent();
+        /**
+         * @brief Destructor
+         */
+        virtual
+        ~TimeDependent();
 
-		/**
-		 * @brief Draw value from current Distribution
-		 */
-		virtual double
-		operator()();
+        /**
+         * @brief Draw value from current Distribution
+         */
+        virtual double
+        operator()();
 
- 		virtual std::string
- 		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
-		/**
-		 * @brief Queue Event to create next Distribution (if events left)
-		 */
-		void
-		queueNextDistribution();
+    private:
+        /**
+         * @brief Queue Event to create next Distribution (if events left)
+         */
+        void
+        queueNextDistribution();
 
-		/**
-		 * @brief Set new distribution according to pyconfig::View
-		 */
-		void
-		setDistribution(const wns::pyconfig::View& distConfig);
+        /**
+         * @brief Set new distribution according to pyconfig::View
+         */
+        void
+        setDistribution(const wns::pyconfig::View& distConfig);
 
         /**
          * @brief Deletes a Distribution and sets pointer to NULL
@@ -156,22 +159,22 @@ namespace wns { namespace distribution {
         void
         removeDistribution();
 
-		/**
-		 * @brief Current distribution
-		 */
-		Distribution* distribution_;
+        /**
+         * @brief Current distribution
+         */
+        Distribution* distribution_;
 
         void
         init();
 
-		/**
-		 * @brief Stores events with new distributions
-		 */
-		EventContainer events_;
+        /**
+         * @brief Stores events with new distributions
+         */
+        EventContainer events_;
 
         wns::pyconfig::View config_;
 
-	}; // TimeDependent
+    }; // TimeDependent
 
 } // distribution
 } // wns

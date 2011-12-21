@@ -48,16 +48,16 @@ FixedTest::tearDown()
 void
 FixedTest::testIt()
 {
-	pyconfig::Parser config;
-	config.loadString(
+    pyconfig::Parser config;
+    config.loadString(
         "value = 42.0\n");
 
-	wns::distribution::Distribution* dis =
-		wns::distribution::DistributionFactory::creator("Fixed")
-		->create(config);
+    wns::distribution::Distribution* dis =
+        wns::distribution::DistributionFactory::creator("Fixed")
+        ->create(config);
 
-	CPPUNIT_ASSERT_DOUBLES_EQUAL(42.0, (*dis)(), 0.0001);
-	delete dis;
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(42.0, (*dis)(), 0.0001);
+    delete dis;
 } // testIt
 
 

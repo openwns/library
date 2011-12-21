@@ -42,23 +42,27 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(Moments,
 Moments::Moments():
     StatEval(StatEval::fixed, "", ""),
     wSum_(0.0)
-{}
+{
+}
 
 Moments::Moments(std::string name,
                  std::string description,
                  formatType format)
     : StatEval(format, name, description),
       wSum_(0.0)
-{}
+{
+}
 
 Moments::Moments(const wns::pyconfig::View& config) :
     StatEval(config),
     wSum_(0.0)
-{}
+{
+}
 
 
 Moments::~Moments()
-{}
+{
+}
 
 
 void

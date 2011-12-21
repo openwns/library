@@ -40,30 +40,33 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	class OpcodeTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( OpcodeTest );
-		CPPUNIT_TEST( testOutgoing );
-		CPPUNIT_TEST( testIncoming );
-		CPPUNIT_TEST( testSizes );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+    class OpcodeTest : public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( OpcodeTest );
+        CPPUNIT_TEST( testOutgoing );
+        CPPUNIT_TEST( testIncoming );
+        CPPUNIT_TEST( testSizes );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testOutgoing();
-		void testIncoming();
-		void testSizes();
-	private:
-		ILayer* layer;
-		fun::Main* fuNet;
+        void testOutgoing();
+        void testIncoming();
+        void testSizes();
+    private:
+        ILayer* layer;
+        fun::Main* fuNet;
 
-		OpcodeProvider* provider;
-		tools::Stub* upper;
-		OpcodeSetter* setter;
-		tools::Stub* lower;
-	};
+        OpcodeProvider* provider;
+        tools::Stub* upper;
+        OpcodeSetter* setter;
+        tools::Stub* lower;
+    };
 
-}}}
+}
+}
+}
 
 
 #endif // NOT defined WNS_LDK_MULTIPLEXER_OPCODE_TEST_HPP

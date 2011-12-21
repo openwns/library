@@ -37,7 +37,8 @@ namespace wns { namespace container {
      * @brief Node of a FastList
      * @author Marc Schinnenburg <marc@schinnenburg.com>
      */
-    template<typename T> class FastListNode {
+    template<typename T> class FastListNode
+    {
         /**
          * @brief FastList needs to modify FastListNode
          */
@@ -52,12 +53,15 @@ namespace wns { namespace container {
             data(x),
             previousNode(this),
             nextNode(this)
-        {};
+        {
+        };
 
         /**
          * @brief Destructor
          */
-        ~FastListNode() {};
+        ~FastListNode()
+        {
+        };
 
         /**
          * @brief Remove this FastListNode from its FastList
@@ -117,7 +121,8 @@ namespace wns { namespace container {
         FastListNode() :
             previousNode(this),
             nextNode(this)
-        {}
+        {
+        }
 
     private:
         /**
@@ -135,5 +140,6 @@ namespace wns { namespace container {
          */
         FastListNode* nextNode;
     };
-}}
+}
+}
 #endif

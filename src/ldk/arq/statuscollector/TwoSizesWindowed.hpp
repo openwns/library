@@ -38,32 +38,32 @@
 
 namespace wns { namespace ldk { namespace arq { namespace statuscollector {
 
-	/**
-	 * @brief ARQStatusCollector which uses a sliding window for the
-	 *        statistics calculation. Additionally, packets are sorted
-	 *        into two bins according to their size (big and small).
-	 *
-	 */
-	class TwoSizesWindowed:
-		public Interface
-	{
-	public:
-		TwoSizesWindowed(const wns::pyconfig::View& config);
-		~TwoSizesWindowed();
-		void reset();
-		void onSuccessfullTransmission(const CompoundPtr& compound);
-		void onFailedTransmission(const CompoundPtr& compound);
-		double getSuccessRate(const CompoundPtr& compound);
-	private:	
-		wns::SlidingWindow* smallFrames;
-		wns::SlidingWindow* bigFrames;
-		wns::logger::Logger logger;
-		
-		wns::simulator::Time windowSize;
-		int minSamples;
-		double insufficientSamplesReturn;
-		Bit frameSizeThreshold;
-	};
+    /**
+     * @brief ARQStatusCollector which uses a sliding window for the
+     *        statistics calculation. Additionally, packets are sorted
+     *        into two bins according to their size (big and small).
+     *
+     */
+    class TwoSizesWindowed:
+        public Interface
+    {
+    public:
+        TwoSizesWindowed(const wns::pyconfig::View& config);
+        ~TwoSizesWindowed();
+        void reset();
+        void onSuccessfullTransmission(const CompoundPtr& compound);
+        void onFailedTransmission(const CompoundPtr& compound);
+        double getSuccessRate(const CompoundPtr& compound);
+    private:	
+        wns::SlidingWindow* smallFrames;
+        wns::SlidingWindow* bigFrames;
+        wns::logger::Logger logger;
+
+        wns::simulator::Time windowSize;
+        int minSamples;
+        double insufficientSamplesReturn;
+        Bit frameSizeThreshold;
+    };
 }
 }
 }

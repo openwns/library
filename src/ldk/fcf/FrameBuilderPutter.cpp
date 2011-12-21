@@ -27,37 +27,37 @@
 #include <WNS/ldk/fcf/FrameBuilderPutter.hpp>
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	 wns::ldk::fcf::FrameBuilderPutter,
-	 wns::ldk::FunctionalUnit,
-	 "wns.ldk.fcf.FrameBuilderPutter",
-	 wns::ldk::FUNConfigCreator );
+     wns::ldk::fcf::FrameBuilderPutter,
+     wns::ldk::FunctionalUnit,
+     "wns.ldk.fcf.FrameBuilderPutter",
+     wns::ldk::FUNConfigCreator );
 
 using namespace wns::ldk::fcf;
 
 FrameBuilderPutter::FrameBuilderPutter(wns::ldk::fun::FUN* _fun, const wns::pyconfig::View& _config)
-	: CommandTypeSpecifier<>(_fun)
+    : CommandTypeSpecifier<>(_fun)
 {
-	frameBuilderName = _config.get<std::string>("frameBuilderName");
+    frameBuilderName = _config.get<std::string>("frameBuilderName");
 }
 
 bool FrameBuilderPutter::doIsAccepting(const wns::ldk::CompoundPtr&) const
 {
-	assure(0, "FrameBuilderPutter does not accept outgoing compouds");
-	return false;
+    assure(0, "FrameBuilderPutter does not accept outgoing compouds");
+    return false;
 }
 
 void FrameBuilderPutter::doSendData(const wns::ldk::CompoundPtr&)
 {
-	assure(0, "FrameBuilderPutter does not accept outgoing compounds");
+    assure(0, "FrameBuilderPutter does not accept outgoing compounds");
 }
 
 void FrameBuilderPutter::doOnData(const wns::ldk::CompoundPtr& _compound)
 {
-	friends.destination->onData(_compound);
+    friends.destination->onData(_compound);
 }
 
 void FrameBuilderPutter::onFUNCreated()
 {
-	friends.destination = getFUN()->getFunctionalUnit(frameBuilderName);
+    friends.destination = getFUN()->getFunctionalUnit(frameBuilderName);
 }
 

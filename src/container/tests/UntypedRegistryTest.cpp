@@ -51,7 +51,7 @@ namespace wns { namespace container { namespace tests {
         CPPUNIT_TEST( findInSingleton );
         CPPUNIT_TEST( erase );
         CPPUNIT_TEST( eraseUnknown );
-	    CPPUNIT_TEST( findWrongType );
+        CPPUNIT_TEST( findWrongType );
         CPPUNIT_TEST( doubleInsert );
         CPPUNIT_TEST( keys );
         CPPUNIT_TEST( sortingPolicy );
@@ -62,7 +62,8 @@ namespace wns { namespace container { namespace tests {
         public:
             A() :
                 foo()
-            {}
+            {
+            }
 
             virtual
             ~A()
@@ -80,7 +81,7 @@ namespace wns { namespace container { namespace tests {
             }
 
             bool
-            operator <(const A& a) const
+            operator < (const A& a) const
             {
                 return foo < a.foo;
             }
@@ -364,7 +365,7 @@ namespace wns { namespace container { namespace tests {
         void
         sortingPolicy()
         {
-            UntypedRegistry<int, AlwaysLess> r;
+            UntypedRegistry < int, AlwaysLess> r;
             r.insert(1, 2);
             // This should normally throw. But with the AlwaysLess-SortingPolicy it
             // should be possible to add the same key twice. If it works, this

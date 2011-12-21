@@ -37,33 +37,33 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(OpcodeKeyBuilder, KeyBuilder, "multiplex.Op
 
 OpcodeKey::OpcodeKey(const OpcodeKeyBuilder* builder, const CompoundPtr& compound)
 {
-	OpcodeCommand* command = builder->friends.opcodeProvider->getCommand(compound->getCommandPool());
-	opcode = command->peer.opcode;
+    OpcodeCommand* command = builder->friends.opcodeProvider->getCommand(compound->getCommandPool());
+    opcode = command->peer.opcode;
 }
 
 
 bool
-OpcodeKey::operator<(const Key& _other) const
+OpcodeKey::operator < (const Key& _other) const
 {
-	assure(dynamic_cast<const OpcodeKey*>(&_other), "Comparing Keys of different types.");
+    assure(dynamic_cast<const OpcodeKey*>(&_other), "Comparing Keys of different types.");
 
-	const OpcodeKey* other = static_cast<const OpcodeKey*>(&_other);
-	return opcode < other->opcode;
+    const OpcodeKey* other = static_cast<const OpcodeKey*>(&_other);
+    return opcode < other->opcode;
 } // <
 
 
 std::string
 OpcodeKey::str() const
 {
-	std::stringstream ss;
-	ss << "opcode:" << opcode;
-	return ss.str();
+    std::stringstream ss;
+    ss << "opcode:" << opcode;
+    return ss.str();
 } // str
 
 
 OpcodeKeyBuilder::OpcodeKeyBuilder(const fun::FUN* _fuNet, const pyconfig::View& _config) :
-		fuNet(_fuNet),
-		config(_config)
+        fuNet(_fuNet),
+        config(_config)
 {
 }
 
@@ -71,14 +71,14 @@ OpcodeKeyBuilder::OpcodeKeyBuilder(const fun::FUN* _fuNet, const pyconfig::View&
 void
 OpcodeKeyBuilder::onFUNCreated()
 {
-	friends.opcodeProvider = fuNet->findFriend<OpcodeProvider*>(config.get<std::string>("opcode"));
+    friends.opcodeProvider = fuNet->findFriend<OpcodeProvider*>(config.get<std::string>("opcode"));
 } // onFUNCreated
 
 
 wns::ldk::ConstKeyPtr
 OpcodeKeyBuilder::operator() (const CompoundPtr& compound, int /* direction */) const
 {
-	return ConstKeyPtr(new OpcodeKey(this, compound));
+    return ConstKeyPtr(new OpcodeKey(this, compound));
 }
 
 

@@ -35,41 +35,43 @@
 
 namespace wns { namespace ldk { namespace helper {
 
-	class FakePDU :
-		public wns::osi::PDU
-	{
-	public:
-		FakePDU(Bit _length = 0) :
-				wns::osi::PDU(new wns::osi::PCI),
-				length(_length)
-		{
-		}
+    class FakePDU :
+        public wns::osi::PDU
+    {
+    public:
+        FakePDU(Bit _length = 0) :
+                wns::osi::PDU(new wns::osi::PCI),
+                length(_length)
+        {
+        }
 
-		void
-		setLengthInBits(Bit _length)
-		{
-			length = _length;
-		} // setLengthInBits
+        void
+        setLengthInBits(Bit _length)
+        {
+            length = _length;
+        } // setLengthInBits
 
-		FakePDU*
-		clone()
-		{
-			return new FakePDU(*this);
-		}
+        FakePDU*
+        clone()
+        {
+            return new FakePDU(*this);
+        }
 
-	private:
-		virtual Bit
-		doGetLengthInBits() const
-		{
-			return length;
-		} // getLengthInBits
+    private:
+        virtual Bit
+        doGetLengthInBits() const
+        {
+            return length;
+        } // getLengthInBits
 
-		Bit length;
-	};
+        Bit length;
+    };
 
-	typedef SmartPtr<FakePDU> FakePDUPtr;
+    typedef SmartPtr<FakePDU> FakePDUPtr;
 
-}}}
+}
+}
+}
 #endif // NOT defined WNS_OSI_HELPER_FAKEPDU_HPP
 
 

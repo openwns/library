@@ -31,76 +31,79 @@
 
 namespace wns { namespace ldk { namespace arq { namespace tests {
 
-	class NoneTest :
-		public wns::ldk::tests::DelayedInterfaceTest
-	{
-		CPPUNIT_TEST_SUB_SUITE( NoneTest, wns::ldk::tests::DelayedInterfaceTest );
-		CPPUNIT_TEST( factory );
-		CPPUNIT_TEST( forwarding );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void
-		forwarding();
-		
-		void
-		factory();
+    class NoneTest :
+        public wns::ldk::tests::DelayedInterfaceTest
+    {
+        CPPUNIT_TEST_SUB_SUITE( NoneTest, wns::ldk::tests::DelayedInterfaceTest );
+        CPPUNIT_TEST( factory );
+        CPPUNIT_TEST( forwarding );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void
+        forwarding();
 
-	private:
-		virtual None*
-		newTestee();
+        void
+        factory();
 
-		virtual void
-		tearDownTestee(DelayedInterface*)
-		{
-		}
+    private:
+        virtual None*
+        newTestee();
 
-	};
+        virtual void
+        tearDownTestee(DelayedInterface*)
+        {
+        }
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( NoneTest );
+    };
 
-	None*
-	NoneTest::newTestee()
-	{
-		wns::pyconfig::Parser all;
-		all.loadString(
-					   "from openwns.ARQ import NoARQ\n"
-					   "arq = NoARQ()\n"
-					   );
-		wns::pyconfig::View arqConfig(all, "arq");
-		return new None(getFUN(), arqConfig);
-	} // newTestee
+    CPPUNIT_TEST_SUITE_REGISTRATION( NoneTest );
 
-
-	void
-	NoneTest::forwarding()
-	{
-		CompoundPtr compound(getFUN()->createCompound());
-
-		CPPUNIT_ASSERT(compoundsSent() == 0);
-
-		getUpperStub()->sendData(compound);
-		CPPUNIT_ASSERT(compoundsSent() == 1);
-		CPPUNIT_ASSERT(getLowerStub()->sent[0] == compound);
-	} // forwarding
+    None*
+    NoneTest::newTestee()
+    {
+        wns::pyconfig::Parser all;
+        all.loadString(
+                       "from openwns.ARQ import NoARQ\n"
+                       "arq = NoARQ()\n"
+                           );
+        wns::pyconfig::View arqConfig(all, "arq");
+        return new None(getFUN(), arqConfig);
+    } // newTestee
 
 
-	void
-	NoneTest::factory()
-	{
-		wns::pyconfig::Parser all;
-		all.loadString(
-					   "from openwns.ARQ import NoARQ\n"
-					   "arq = NoARQ()\n"
-					   );
-		wns::pyconfig::View arqConfig(all, "arq");
+    void
+    NoneTest::forwarding()
+    {
+        CompoundPtr compound(getFUN()->createCompound());
 
-		ARQ* arq = ARQFactory::creator("wns.arq.None")->create(getFUN(), arqConfig);
+        CPPUNIT_ASSERT(compoundsSent() == 0);
 
-		CPPUNIT_ASSERT( NULL != dynamic_cast<None*>(arq) );
+        getUpperStub()->sendData(compound);
+        CPPUNIT_ASSERT(compoundsSent() == 1);
+        CPPUNIT_ASSERT(getLowerStub()->sent[0] == compound);
+    } // forwarding
 
-		delete arq;
-	} // factory
 
-}}}}
+    void
+    NoneTest::factory()
+    {
+        wns::pyconfig::Parser all;
+        all.loadString(
+                       "from openwns.ARQ import NoARQ\n"
+                       "arq = NoARQ()\n"
+                           );
+        wns::pyconfig::View arqConfig(all, "arq");
+
+        ARQ* arq = ARQFactory::creator("wns.arq.None")->create(getFUN(), arqConfig);
+
+        CPPUNIT_ASSERT( NULL != dynamic_cast<None*>(arq) );
+
+        delete arq;
+    } // factory
+
+}
+}
+}
+}
 
 

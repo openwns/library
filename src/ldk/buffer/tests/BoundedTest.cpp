@@ -42,74 +42,74 @@ CPPUNIT_TEST_SUITE_REGISTRATION( BoundedTest );
 void
 BoundedTest::setUp()
 {
-	layer = new tests::LayerStub();
-	fuNet = new fun::Main(layer);
+    layer = new tests::LayerStub();
+    fuNet = new fun::Main(layer);
 
-	wns::pyconfig::Parser emptyConfig;
-	upper = new tools::Stub(fuNet, emptyConfig);
+    wns::pyconfig::Parser emptyConfig;
+    upper = new tools::Stub(fuNet, emptyConfig);
 
-	{
-		wns::pyconfig::Parser pyco;
-		pyco.loadString("from openwns.Buffer import Bounded\n"
-				"buffer = Bounded(size = 2)\n"
-			);
-		wns::pyconfig::View view(pyco, "buffer");
-		buffer = new buffer::Bounded(fuNet, view);
-	}
+    {
+        wns::pyconfig::Parser pyco;
+        pyco.loadString("from openwns.Buffer import Bounded\n"
+                "buffer = Bounded(size = 2)\n"
+            );
+        wns::pyconfig::View view(pyco, "buffer");
+        buffer = new buffer::Bounded(fuNet, view);
+    }
 
-	lower = new tools::Stub(fuNet, emptyConfig);
+    lower = new tools::Stub(fuNet, emptyConfig);
 
-	upper
-		->connect(buffer)
-		->connect(lower);
+    upper
+        ->connect(buffer)
+        ->connect(lower);
 } // setUp
 
 void
 BoundedTest::tearDown()
 {
-	delete upper;
-	delete buffer;
-	delete lower;
+    delete upper;
+    delete buffer;
+    delete lower;
 
-	delete fuNet;
-	delete layer;
+    delete fuNet;
+    delete layer;
 } // tearDown
 
 
 void
 BoundedTest::testFill()
 {
-	CompoundPtr compound(fuNet->createCompound());
-	lower->close();
+    CompoundPtr compound(fuNet->createCompound());
+    lower->close();
 
-	CPPUNIT_ASSERT(buffer->isAccepting(compound));
+    CPPUNIT_ASSERT(buffer->isAccepting(compound));
 
-	upper->sendData((compound));
-	CPPUNIT_ASSERT(buffer->isAccepting(compound));
+    upper->sendData((compound));
+    CPPUNIT_ASSERT(buffer->isAccepting(compound));
 
-	upper->sendData((compound));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound));
+    upper->sendData((compound));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound));
 } // testProxy
 
 
 void
 BoundedTest::testWakeup()
 {
-	CompoundPtr compound(fuNet->createCompound());
-	lower->close();
-	upper->sendData((compound));
-	upper->sendData((compound));
-	lower->open();
+    CompoundPtr compound(fuNet->createCompound());
+    lower->close();
+    upper->sendData((compound));
+    upper->sendData((compound));
+    lower->open();
 
-	CPPUNIT_ASSERT(buffer->isAccepting(compound));
-	CPPUNIT_ASSERT(lower->sent.size() == 2);
+    CPPUNIT_ASSERT(buffer->isAccepting(compound));
+    CPPUNIT_ASSERT(lower->sent.size() == 2);
 
-	lower->close();
-	upper->sendData((compound));
-	CPPUNIT_ASSERT(buffer->isAccepting(compound));
+    lower->close();
+    upper->sendData((compound));
+    CPPUNIT_ASSERT(buffer->isAccepting(compound));
 
-	upper->sendData((compound));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound));
+    upper->sendData((compound));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound));
 } // testProxy
 
 
@@ -119,79 +119,79 @@ CPPUNIT_TEST_SUITE_REGISTRATION( BoundedBitTest );
 void
 BoundedBitTest::setUp()
 {
-	wns::pyconfig::Parser pyco;
-	pyco.loadString("from openwns.Buffer import Bounded\n"
-			"buffer = Bounded(size = 20)\n"
-			"buffer.sizeUnit = 'Bit'\n"
-		);
+    wns::pyconfig::Parser pyco;
+    pyco.loadString("from openwns.Buffer import Bounded\n"
+            "buffer = Bounded(size = 20)\n"
+            "buffer.sizeUnit = 'Bit'\n"
+        );
 
-	layer = new tests::LayerStub();
-	fuNet = new fun::Main(layer);
+    layer = new tests::LayerStub();
+    fuNet = new fun::Main(layer);
 
-	wns::pyconfig::Parser emptyConfig;
-	upper = new tools::Stub(fuNet, emptyConfig);
-	buffer = new Bounded(fuNet, pyco.getView("buffer"));
-	lower = new tools::Stub(fuNet, emptyConfig);
+    wns::pyconfig::Parser emptyConfig;
+    upper = new tools::Stub(fuNet, emptyConfig);
+    buffer = new Bounded(fuNet, pyco.getView("buffer"));
+    lower = new tools::Stub(fuNet, emptyConfig);
 
-	upper
-		->connect(buffer)
-		->connect(lower);
+    upper
+        ->connect(buffer)
+        ->connect(lower);
 } // setUp
 
 void
 BoundedBitTest::tearDown()
 {
-	delete upper;
-	delete buffer;
-	delete lower;
+    delete upper;
+    delete buffer;
+    delete lower;
 
-	delete fuNet;
-	delete layer;
+    delete fuNet;
+    delete layer;
 } // tearDown
 
 
 void
 BoundedBitTest::testFill()
 {
-	CompoundPtr compound1(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(1))));
-	CompoundPtr compound2(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-	CompoundPtr compound19(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(19))));
-	lower->close();
+    CompoundPtr compound1(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(1))));
+    CompoundPtr compound2(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+    CompoundPtr compound19(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(19))));
+    lower->close();
 
-	CPPUNIT_ASSERT(buffer->isAccepting(compound19));
+    CPPUNIT_ASSERT(buffer->isAccepting(compound19));
 
-	upper->sendData((compound19));
-	CPPUNIT_ASSERT(buffer->isAccepting(compound1));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
+    upper->sendData((compound19));
+    CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
 
-	upper->sendData((compound1));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound1));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
+    upper->sendData((compound1));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound1));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
 } // testFill
 
 
 void
 BoundedBitTest::testEmpty()
 {
-	CompoundPtr compound1(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(1))));
-	CompoundPtr compound2(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-	CompoundPtr compound18(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(18))));
+    CompoundPtr compound1(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(1))));
+    CompoundPtr compound2(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+    CompoundPtr compound18(fuNet->createCompound(helper::FakePDUPtr(new helper::FakePDU(18))));
 
-	lower->close();
+    lower->close();
 
-	upper->sendData((compound1));
-	upper->sendData((compound1));
-	upper->sendData((compound18));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound1));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
+    upper->sendData((compound1));
+    upper->sendData((compound1));
+    upper->sendData((compound18));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound1));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
 
-	lower->step();
-	CPPUNIT_ASSERT(buffer->isAccepting(compound1));
-	CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
+    lower->step();
+    CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+    CPPUNIT_ASSERT(!buffer->isAccepting(compound2));
 
-	lower->step();
-	CPPUNIT_ASSERT(buffer->isAccepting(compound1));
-	CPPUNIT_ASSERT(buffer->isAccepting(compound2));
+    lower->step();
+    CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+    CPPUNIT_ASSERT(buffer->isAccepting(compound2));
 } // testEmpty
 
 

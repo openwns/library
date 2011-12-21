@@ -222,11 +222,11 @@ namespace wns { namespace events { namespace scheduler {
         virtual wns::simulator::Time
         doGetTime() const = 0;
 
-	    virtual IEventPtr
-	    doSchedule(const Callable& callable, wns::simulator::Time at) = 0;
+        virtual IEventPtr
+        doSchedule(const Callable& callable, wns::simulator::Time at) = 0;
 
-	    virtual IEventPtr
-	    doScheduleNow(const Callable& callable) = 0;
+        virtual IEventPtr
+        doScheduleNow(const Callable& callable) = 0;
 
         virtual ICommandPtr
         doQueueCommand(const Callable& callable) = 0;
@@ -234,8 +234,8 @@ namespace wns { namespace events { namespace scheduler {
         virtual void
         doDequeueCommand(const ICommandPtr& command) = 0;
 
-	    virtual void
-	    doCancelEvent(const IEventPtr& event) = 0;
+        virtual void
+        doCancelEvent(const IEventPtr& event) = 0;
 
         virtual void
         doReset() = 0;

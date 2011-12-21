@@ -33,19 +33,19 @@
 #include <WNS/distribution/Uniform.hpp>
 
 namespace wns { namespace distribution {
-	/**
-	 * @brief Geometric distributed random numbers.
-	 *
- 	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 *
-	 * Returns number of trials until the first successful trial appears.
-	 * The success rate for a single experiment is p = 1 / (mean + 1)
-	 */
-	class Geometric :
+    /**
+     * @brief Geometric distributed random numbers.
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     *
+     * Returns number of trials until the first successful trial appears.
+     * The success rate for a single experiment is p = 1 / (mean + 1)
+     */
+    class Geometric :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         Geometric(double mean, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
@@ -56,22 +56,22 @@ namespace wns { namespace distribution {
         explicit
         Geometric(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~Geometric();
+        virtual
+        ~Geometric();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
+    private:
         double mean_;
-		StandardUniform dis_;
-	}; // Geometric
+        StandardUniform dis_;
+    }; // Geometric
 } // distribution
 } // wns
 

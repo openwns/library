@@ -33,16 +33,16 @@ using namespace wns::ldk::buffer::dropping;
 
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	Dropping,
-	Buffer,
-	"wns.buffer.Dropping",
-	FUNConfigCreator);
+    Dropping,
+    Buffer,
+    "wns.buffer.Dropping",
+    FUNConfigCreator);
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
-	Dropping,
-	FunctionalUnit,
-	"wns.buffer.Dropping",
-	FUNConfigCreator);
+    Dropping,
+    FunctionalUnit,
+    "wns.buffer.Dropping",
+    FUNConfigCreator);
 
 //
 // strategies
@@ -54,9 +54,9 @@ using namespace wns::ldk::buffer::dropping::drop;
 CompoundPtr
 Tail::operator()(ContainerType& container) const
 {
-	CompoundPtr it = container.back();
-	container.pop_back();
-	return it;
+    CompoundPtr it = container.back();
+    container.pop_back();
+    return it;
 } // Tail()
 STATIC_FACTORY_REGISTER(Tail, Drop, "Tail");
 
@@ -64,9 +64,9 @@ STATIC_FACTORY_REGISTER(Tail, Drop, "Tail");
 CompoundPtr
 Front::operator()(ContainerType& container) const
 {
-	CompoundPtr it = container.front();
-	container.pop_front();
-	return it;
+    CompoundPtr it = container.front();
+    container.pop_front();
+    return it;
 } // Front()
 STATIC_FACTORY_REGISTER(Front, Drop, "Front");
 
@@ -76,53 +76,53 @@ STATIC_FACTORY_REGISTER(Front, Drop, "Front");
 //
 
 Dropping::Dropping(fun::FUN* fuNet, const wns::pyconfig::View& config) :
-		Buffer(fuNet, config),
+        Buffer(fuNet, config),
 
-		fu::Plain<Dropping>(fuNet),
-		Delayed<Dropping>(),
+        fu::Plain<Dropping>(fuNet),
+        Delayed<Dropping>(),
 
-		buffer(ContainerType()),
-		maxSize(config.get<int>("size")),
-		currentSize(0),
-		sizeCalculator(),
-		dropper(),
-		totalPDUs(),
-		droppedPDUs(),
-		logger("WNS", config.get<std::string>("name"))
+        buffer(ContainerType()),
+        maxSize(config.get<int>("size")),
+        currentSize(0),
+        sizeCalculator(),
+        dropper(),
+        totalPDUs(),
+        droppedPDUs(),
+        logger("WNS", config.get<std::string>("name"))
 {
-	{
-		std::string pluginName = config.get<std::string>("sizeUnit");
-		sizeCalculator = std::auto_ptr<SizeCalculator>(SizeCalculator::Factory::creator(pluginName)->create());
-	}
+    {
+        std::string pluginName = config.get<std::string>("sizeUnit");
+        sizeCalculator = std::auto_ptr<SizeCalculator>(SizeCalculator::Factory::creator(pluginName)->create());
+    }
 
-	{
-		std::string pluginName = config.get<std::string>("drop");
-		dropper = std::auto_ptr<Drop>(Drop::Factory::creator(pluginName)->create());
-	}
+    {
+        std::string pluginName = config.get<std::string>("drop");
+        dropper = std::auto_ptr<Drop>(Drop::Factory::creator(pluginName)->create());
+    }
 } // Dropping
 
 Dropping::Dropping(const Dropping& other) :
     CompoundHandlerInterface<FunctionalUnit>(other),
-	CommandTypeSpecifierInterface(other),
-	HasReceptorInterface(other),
-	HasConnectorInterface(other),
-	HasDelivererInterface(other),
-	CloneableInterface(other),
-	IOutputStreamable(other),
-	PythonicOutput(other),
-	FunctionalUnit(other),
-	DelayedInterface(other),
-	Buffer(other),
-	fu::Plain<Dropping>(other),
-	Delayed<Dropping>(other),
-	buffer(other.buffer),
-	maxSize(other.maxSize),
-	currentSize(other.currentSize),
-	sizeCalculator(wns::clone(other.sizeCalculator)),
-	dropper(wns::clone(other.dropper)),
-	totalPDUs(other.totalPDUs),
-	droppedPDUs(other.droppedPDUs),
-	logger(other.logger)
+    CommandTypeSpecifierInterface(other),
+    HasReceptorInterface(other),
+    HasConnectorInterface(other),
+    HasDelivererInterface(other),
+    CloneableInterface(other),
+    IOutputStreamable(other),
+    PythonicOutput(other),
+    FunctionalUnit(other),
+    DelayedInterface(other),
+    Buffer(other),
+    fu::Plain<Dropping>(other),
+    Delayed<Dropping>(other),
+    buffer(other.buffer),
+    maxSize(other.maxSize),
+    currentSize(other.currentSize),
+    sizeCalculator(wns::clone(other.sizeCalculator)),
+    dropper(wns::clone(other.dropper)),
+    totalPDUs(other.totalPDUs),
+    droppedPDUs(other.droppedPDUs),
+    logger(other.logger)
 {
 }
 
@@ -137,61 +137,62 @@ Dropping::~Dropping()
 void
 Dropping::processIncoming(const CompoundPtr& compound)
 {
-	getDeliverer()->getAcceptor(compound)->onData(compound);
+    getDeliverer()->getAcceptor(compound)->onData(compound);
 } // processIncoming
 
 
 bool
 Dropping::hasCapacity() const
 {
-	return true;
+    return true;
 } // hasCapacity
 
 
 void
 Dropping::processOutgoing(const CompoundPtr& compound)
 {
-	buffer.push_back(compound);
-	currentSize += (*sizeCalculator)(compound);
+    buffer.push_back(compound);
+    currentSize += (*sizeCalculator)(compound);
 
-	while(currentSize > maxSize) {
+    while(currentSize > maxSize)
+    {
 
-		MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-		m << " dropping a PDU! maxSize reached : " << maxSize;
-		m << " current size is " << currentSize;
-		MESSAGE_END();
+        MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+        m << " dropping a PDU! maxSize reached : " << maxSize;
+        m << " current size is " << currentSize;
+        MESSAGE_END();
 
-		CompoundPtr toDrop = (*dropper)(buffer);
-		int pduSize = (*sizeCalculator)(toDrop);
-		currentSize -= pduSize;
-		increaseDroppedPDUs(pduSize);
-	}
+        CompoundPtr toDrop = (*dropper)(buffer);
+        int pduSize = (*sizeCalculator)(toDrop);
+        currentSize -= pduSize;
+        increaseDroppedPDUs(pduSize);
+    }
 
-	increaseTotalPDUs();
-	probe();
+    increaseTotalPDUs();
+    probe();
 } // processOutgoing
 
 
 const CompoundPtr
 Dropping::hasSomethingToSend() const
 {
-	if(buffer.empty())
-		return CompoundPtr();
+    if(buffer.empty())
+        return CompoundPtr();
 
-	return buffer.front();
+    return buffer.front();
 } // somethingToSend
 
 
 CompoundPtr
 Dropping::getSomethingToSend()
 {
-	CompoundPtr compound = buffer.front();
-	buffer.pop_front();
+    CompoundPtr compound = buffer.front();
+    buffer.pop_front();
 
-	currentSize -= (*sizeCalculator)(compound);
-	probe();
+    currentSize -= (*sizeCalculator)(compound);
+    probe();
 
-	return compound;
+    return compound;
 } // getSomethingToSend
 
 
@@ -202,14 +203,14 @@ Dropping::getSomethingToSend()
 unsigned long int
 Dropping::getSize()
 {
-	return currentSize;
+    return currentSize;
 } // getSize
 
 
 unsigned long int
 Dropping::getMaxSize()
 {
-	return maxSize;
+    return maxSize;
 } // getMaxSize
 
 

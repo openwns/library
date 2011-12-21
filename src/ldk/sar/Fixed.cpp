@@ -36,55 +36,54 @@ using namespace wns::ldk::sar;
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Fixed, FunctionalUnit, "wns.sar.Fixed", FUNConfigCreator);
 
 Fixed::Fixed(fun::FUN* fuNet, const wns::pyconfig::View& config) :
-	    SAR<SARCommand>(fuNet, config),
-		HasReceptor<>(),
-		HasConnector<>(),
-		HasDeliverer<>(),
-		Delayed<Fixed>(),
-		Cloneable<Fixed>(),
- 		incoming(),
-		fragmentNumber(0)
-{} // SimpleSAR
+        SAR<SARCommand>(fuNet, config),
+        HasReceptor<>(),
+        HasConnector<>(),
+        HasDeliverer<>(),
+        Delayed<Fixed>(),
+        Cloneable<Fixed>(),
+        incoming(),
+        fragmentNumber(0)
+{
+} // SimpleSAR
 
 void
 Fixed::processIncoming(const CompoundPtr& compound)
 {
-	incoming.push_back(compound);
+    incoming.push_back(compound);
 
-	SARCommand* command = getCommand(compound->getCommandPool());
+    SARCommand* command = getCommand(compound->getCommandPool());
 
-	MESSAGE_BEGIN(NORMAL, logger, m, "");
-	m << "received fragment number " << command->magic.fragmentNumber
-	  << " pos: "
-	  << command->magic.pos
-	  << " lastFragment: "
-	  << ( command->peer.lastFragment ? "yes" : "no" )
-		;
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, "");
+    m << "received fragment number " << command->magic.fragmentNumber
+      << " pos: "
+      << command->magic.pos
+      << " lastFragment: "
+      << ( command->peer.lastFragment ? "yes" : "no" )
+        ;
+    MESSAGE_END();
 
-	assure(command->magic.fragmentNumber == fragmentNumber,
-		   "Missing fragment number: " + wns::Ttos(fragmentNumber) +
-		   ", received fragment number: " + wns::Ttos(command->magic.fragmentNumber));
+    assure(command->magic.fragmentNumber == fragmentNumber,
+           "Missing fragment number: " + wns::Ttos(fragmentNumber) +
+           ", received fragment number: " + wns::Ttos(command->magic.fragmentNumber));
 
-	if(!command->peer.lastFragment)
-	{
-		++fragmentNumber;
-		return;
-	}
+    if(!command->peer.lastFragment)
+    {
+        ++fragmentNumber;
+        return;
+    }
 
-	MESSAGE_BEGIN(NORMAL, logger, m, "");
-	m << "-> compound complete, starting reassembly";
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, "");
+    m << "-> compound complete, starting reassembly";
+    MESSAGE_END();
 
-	CommandPool* reassembledPCI = getFUN()->createCommandPool();
-	getFUN()->getProxy()->partialCopy(this, reassembledPCI, compound->getCommandPool());
-	CompoundPtr reassembled(new Compound(reassembledPCI, compound->getData()));
+    CommandPool* reassembledPCI = getFUN()->createCommandPool();
+    getFUN()->getProxy()->partialCopy(this, reassembledPCI, compound->getCommandPool());
+    CompoundPtr reassembled(new Compound(reassembledPCI, compound->getData()));
 
-	incoming.clear();
-	fragmentNumber = 0;
+    incoming.clear();
+    fragmentNumber = 0;
 
-	getDeliverer()->getAcceptor(reassembled)->onData(reassembled);
+    getDeliverer()->getAcceptor(reassembled)->onData(reassembled);
 } // processIncoming
-
-
 

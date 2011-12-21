@@ -44,24 +44,25 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 using namespace wns::ldk::fcf;
 
 PhaseDescriptor::PhaseDescriptor( FrameBuilder* frameBuilder,
-				  const pyconfig::View& config ) :
-	frameBuilder_( frameBuilder ), config_(config)
-{}
+                  const pyconfig::View& config ) :
+    frameBuilder_( frameBuilder ), config_(config)
+{
+}
 
 void PhaseDescriptor::onFUNCreated()
 {
-	// find the friends
-	std::string compoundCollectorName =
-		config_.get<std::string>("compoundCollector");
+    // find the friends
+    std::string compoundCollectorName =
+        config_.get<std::string>("compoundCollector");
 
-	wns::ldk::FunctionalUnit* compoundCollector =
-		getFrameBuilder()->getFUN()->getFunctionalUnit( compoundCollectorName );
+    wns::ldk::FunctionalUnit* compoundCollector =
+        getFrameBuilder()->getFUN()->getFunctionalUnit( compoundCollectorName );
 
-	compoundCollector_ =
-		dynamic_cast<CompoundCollectorInterface*>( compoundCollector );
-	assure( compoundCollector_, "cast to CompoundCollector failed" );
+    compoundCollector_ =
+        dynamic_cast<CompoundCollectorInterface*>( compoundCollector );
+    assure( compoundCollector_, "cast to CompoundCollector failed" );
 
-	compoundCollector_->setFrameBuilder( getFrameBuilder() );
+    compoundCollector_->setFrameBuilder( getFrameBuilder() );
 }
 
 

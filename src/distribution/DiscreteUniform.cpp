@@ -58,9 +58,9 @@ DiscreteUniform::DiscreteUniform(wns::rng::RNGen* rng, const pyconfig::View& con
 
 DiscreteUniform::DiscreteUniform(int _low, int _high, wns::rng::RNGen* rng) :
     Distribution(rng),
-	low_(_low),
-	high_(_high),
-	dis_(getRNG(), DiscreteUniformDist::distribution_type(low_, high_))
+    low_(_low),
+    high_(_high),
+    dis_(getRNG(), DiscreteUniformDist::distribution_type(low_, high_))
 {
 }
 
@@ -71,21 +71,21 @@ DiscreteUniform::~DiscreteUniform()
 double
 DiscreteUniform::operator()()
 {
-	return (double)dis_();
+    return (double)dis_();
 }
 
 double
 DiscreteUniform::getMean() const
 {
-	return ((double)low_ + (double)high_) / 2.0;
+    return ((double)low_ + (double)high_) / 2.0;
 }
 
 std::string
 DiscreteUniform::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "DiscreteUniform(" << low_ << ".." <<high_ <<")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "DiscreteUniform(" << low_ << ".." <<high_ <<")";
+    return tmp.str();
 }
 
 /*

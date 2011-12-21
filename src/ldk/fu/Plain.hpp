@@ -37,29 +37,29 @@
 
 namespace wns { namespace ldk { namespace fu {
 
-	/**
-	 * @brief Very simple FU. Single Input Single Output, no Decorators,
-	 * only configurable Command
-	 *
-	 * This Functional Unit may be used (derived from) if you don't need any
-	 * fancy things like special decorators or special
-	 * Receptor/Acceptor/Deliverer strategies.
-	 *
-	 * The FU looks like this:
-	 * @verbatim
-	 *
-	 * Receptor Deliverer
-	 *    |         |
-	 * -----------------
-	 * |               |
-	 * |     Plain     |
-	 * |               |
-	 * -----------------
-	 *        |
-	 *     Connector
-	 *
-	 * @verbatim
-	 */
+    /**
+     * @brief Very simple FU. Single Input Single Output, no Decorators,
+     * only configurable Command
+     *
+     * This Functional Unit may be used (derived from) if you don't need any
+     * fancy things like special decorators or special
+     * Receptor/Acceptor/Deliverer strategies.
+     *
+     * The FU looks like this:
+     * @verbatim
+     *
+     * Receptor Deliverer
+     *    |         |
+     * -----------------
+     * |               |
+     * |     Plain     |
+     * |               |
+     * -----------------
+     *        |
+     *     Connector
+     *
+     * @verbatim
+     */
         template <typename DERIVER, typename COMMAND = wns::ldk::EmptyCommand>
         class Plain :
                 public virtual FunctionalUnit,
@@ -67,17 +67,17 @@ namespace wns { namespace ldk { namespace fu {
                 public HasReceptor<>,
                 public HasConnector<>,
                 public HasDeliverer<>,
-		public Cloneable<DERIVER>
+        public Cloneable<DERIVER>
         {
-	public:
-		/**
-		 * @brief Constructor
-		 */
-		explicit
-		Plain(fun::FUN* fuNet) :
-			CommandTypeSpecifier<COMMAND>(fuNet)
-		{
-		}
+    public:
+        /**
+         * @brief Constructor
+         */
+        explicit
+        Plain(fun::FUN* fuNet) :
+            CommandTypeSpecifier<COMMAND>(fuNet)
+            {
+            }
         };
 
 } // fu

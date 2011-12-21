@@ -37,37 +37,37 @@ namespace wns { namespace distribution {
 
     typedef wns::rng::VariateGenerator< boost::uniform_real<> > UniformDist;
 
-	class Uniform :
+    class Uniform :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         Uniform(const pyconfig::View& config);
 
         explicit
         Uniform(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		Uniform(double _low, double _high, 
+        Uniform(double _low, double _high, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
 
-		virtual
-		~Uniform();
+        virtual
+        ~Uniform();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
-		double low_;
-		double high_;
-		UniformDist dis_;
-	}; // Uniform
+    private:
+        double low_;
+        double high_;
+        UniformDist dis_;
+    }; // Uniform
 
     class StandardUniform :
         public Uniform
@@ -75,14 +75,19 @@ namespace wns { namespace distribution {
         public:
             StandardUniform(wns::rng::RNGen* rng = wns::simulator::getRNG()) :
                 Uniform(0.0, 1.0, rng)
-                {};
+                {
+                };
             StandardUniform(const pyconfig::View& config) :
                 Uniform(config)
-                {};
+                {
+                };
             StandardUniform(wns::rng::RNGen* rng, const pyconfig::View& config) :
                 Uniform(rng, config)
-                {};
-            virtual ~StandardUniform(){};
+                {
+                };
+            virtual ~StandardUniform()
+            {
+            };
     };
 } // distribution
 } // wns

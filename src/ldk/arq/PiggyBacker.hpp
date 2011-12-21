@@ -36,62 +36,74 @@
 
 
 namespace wns { namespace ldk { namespace arq {
-	class PiggyBackerCommand :
-		public Command
-	{
-	public:
-		PiggyBackerCommand()
-		{
-			peer.piggyBacked = CompoundPtr();
-		}
-		~PiggyBackerCommand()
-		{
-		}
+    class PiggyBackerCommand :
+        public Command
+    {
+    public:
+        PiggyBackerCommand()
+        {
+            peer.piggyBacked = CompoundPtr();
+        }
+        ~PiggyBackerCommand()
+        {
+        }
 
-		struct {} local;
-		struct {
-			CompoundPtr piggyBacked;
-		} peer;
-		struct {} magic;
-	};
+        struct
+        {
+        }
+        local;
+
+        struct
+        {
+            CompoundPtr piggyBacked;
+        } peer;
+        struct
+        {
+        }
+        magic;
+    };
 
 
-	class PiggyBacker :
-		public wns::ldk::fu::Plain<PiggyBacker, PiggyBackerCommand>
-	{
-	public:
-		PiggyBacker(fun::FUN* fuNet, const pyconfig::View& config);
-		virtual void onFUNCreated();
+    class PiggyBacker :
+        public wns::ldk::fu::Plain<PiggyBacker, PiggyBackerCommand>
+    {
+    public:
+        PiggyBacker(fun::FUN* fuNet, const pyconfig::View& config);
+        virtual void onFUNCreated();
 
-		virtual void doSendData(const CompoundPtr& compound);
-		virtual void doOnData(const CompoundPtr& compound);
-		virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
+        virtual void doSendData(const CompoundPtr& compound);
+        virtual void doOnData(const CompoundPtr& compound);
+        virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
-	private:
-		virtual bool doIsAccepting(const CompoundPtr& compound) const;
-		virtual void doWakeup();
+    private:
+        virtual bool doIsAccepting(const CompoundPtr& compound) const;
+        virtual void doWakeup();
 
-		std::string arqName;
-		Bit bitsIfPiggyBacked;
-		Bit bitsIfNotPiggyBacked;
-		bool addACKPDUSize;
+        std::string arqName;
+        Bit bitsIfPiggyBacked;
+        Bit bitsIfNotPiggyBacked;
+        bool addACKPDUSize;
 
-		struct Friends {
-			ARQ* arq;
-		} friends;
+        struct Friends
+        {
+            ARQ* arq;
+        }
+        friends;
 
-		CompoundPtr i;
-		CompoundPtr rr;
+        CompoundPtr i;
+        CompoundPtr rr;
 
-		bool inControl;
+        bool inControl;
 
-		logger::Logger logger;
+        logger::Logger logger;
 
-		void tryToSend();
-		ARQCommand* getARQPCI(const CompoundPtr& compound) const;
-	};
+        void tryToSend();
+        ARQCommand* getARQPCI(const CompoundPtr& compound) const;
+    };
 
-}}}
+}
+}
+}
 
 
 #endif // NOT defined WNS_LDK_ARQ_PIGGYBACKER_HPP

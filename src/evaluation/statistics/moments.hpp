@@ -67,21 +67,21 @@ namespace wns { namespace evaluation { namespace statistics {
 
                 /**
                  * @brief Return mean value
-				 *
-				 *	      __ n              1   __ n
-				 * E{x} = \        x * p  = _ * \        x
-				 *        /_ i = 1      i   n   /_ i = 1
-				 *
+                 *
+                 *        __ n              1   __ n
+                 * E{x} = \        x * p  = _ * \        x
+                 *        /_ i = 1      i   n   /_ i = 1
+                 *
                  */
                 virtual double
                 mean() const;
 
                 /**
                  * @brief Return variance
-				 *
-				 *  2      2     2      1   __ n      2    2
-				 * c  = E{x } - E {x} = - * \        x  - E {x}
-				 *                      n   /_ i = 1
+                 *
+                 *  2      2     2      1   __ n      2    2
+                 * c  = E{x } - E {x} = - * \        x  - E {x}
+                 *                      n   /_ i = 1
                  */
                 virtual double
                 variance() const;
@@ -135,7 +135,5 @@ namespace wns { namespace evaluation { namespace statistics {
 } // wns
 
 #endif  // WNS_EVALUATION_STATISTICS_MOMENTS_HPP
-
-
 
 

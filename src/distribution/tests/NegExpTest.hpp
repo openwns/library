@@ -34,22 +34,24 @@
 
 namespace wns { namespace distribution { namespace test {
 
-	class NegExpTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( NegExpTest );
+    class NegExpTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( NegExpTest );
         CPPUNIT_TEST( testIt );
         CPPUNIT_TEST( testVar );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
         void testIt();
         void testVar();
-	private:
-	};
-}}}
+    private:
+    };
+}
+}
+}
 
 #endif // NOT defined WNS_DISTRIBUTION_TEST_NEGEXP_HPP
 

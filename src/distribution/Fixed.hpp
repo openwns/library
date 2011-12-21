@@ -31,11 +31,11 @@
 #include <WNS/distribution/Distribution.hpp>
 
 namespace wns { namespace distribution {
-	class Fixed :
+    class Fixed :
         public Distribution,
         public IHasMean
-  	{
-  	public:
+    {
+    public:
         explicit
         Fixed(const pyconfig::View& config);
 
@@ -45,18 +45,18 @@ namespace wns { namespace distribution {
         explicit
         Fixed(double value);
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
-		double value;
-	}; // Fixed
+    private:
+        double value;
+    }; // Fixed
 
 } // distribution
 } // wns

@@ -38,12 +38,12 @@ using namespace ::wns::ldk::fun;
 
 
 Sub::Sub(fun::FUN* fuNet) :
-		parent(fuNet),
-		layer(parent->getLayer()),
-		proxy(parent->getProxy()),
-		fuMap(),
-		linkHandler(parent->getLinkHandler()),
-		nameParentFU("None")
+        parent(fuNet),
+        layer(parent->getLayer()),
+        proxy(parent->getProxy()),
+        fuMap(),
+        linkHandler(parent->getLinkHandler()),
+        nameParentFU("None")
 {
 } // Sub
 
@@ -51,20 +51,19 @@ Sub::Sub(fun::FUN* fuNet) :
 void
 Sub::onFUNCreated()
 {
-	for(FunctionalUnitMap::iterator it = fuMap.begin();
-		it != fuMap.end();
-		++it) {
-		it->second->onFUNCreated();
-	}
+    for(FunctionalUnitMap::iterator it = fuMap.begin();
+        it != fuMap.end(); ++it)
+    {
+        it->second->onFUNCreated();
+    }
 }
 
 
 Sub::~Sub()
 {
         for(FunctionalUnitMap::iterator it = fuMap.begin();
-            it != fuMap.end();
-            ++it)
-			delete it->second;
+            it != fuMap.end(); ++it)
+            delete it->second;
 } // ~Sub
 
 
@@ -77,15 +76,15 @@ Sub::getProxy() const
 
 void
 Sub::addFunctionalUnit(const std::string& commandName,
-		       const std::string& functionalUnitName,
-		       FunctionalUnit* functionalUnit)
+               const std::string& functionalUnitName,
+               FunctionalUnit* functionalUnit)
 {
-	assure(functionalUnit, "tried to add invalid functionalUnit.");
+    assure(functionalUnit, "tried to add invalid functionalUnit.");
 
         if(this->_knowsFunctionalUnit(functionalUnitName))
                 throw Exception("FunctionalUnit " + functionalUnitName + " already added.");
 
-		functionalUnit->setName(functionalUnitName);
+        functionalUnit->setName(functionalUnitName);
 
         this->fuMap[functionalUnitName] = functionalUnit;
         this->getProxy()->addFunctionalUnit(commandName, functionalUnit);
@@ -95,12 +94,12 @@ Sub::addFunctionalUnit(const std::string& commandName,
 void
 Sub::addFunctionalUnit(const std::string& name, FunctionalUnit* functionalUnit)
 {
-		assure(functionalUnit, "tried to add invalid functionalUnit.");
+        assure(functionalUnit, "tried to add invalid functionalUnit.");
 
         if(this->_knowsFunctionalUnit(name))
                 throw Exception("FunctionalUnit " + name + " already added.");
 
-		functionalUnit->setName(name);
+        functionalUnit->setName(name);
 
         this->fuMap[name] = functionalUnit;
         this->getProxy()->addFunctionalUnit(name, functionalUnit);
@@ -110,44 +109,44 @@ Sub::addFunctionalUnit(const std::string& name, FunctionalUnit* functionalUnit)
 void
 Sub::removeFunctionalUnit(const std::string& name)
 {
-	if(!this->knowsFunctionalUnit(name))
-		throw Exception("FunctionalUnit " + name + " is not registered.");
+    if(!this->knowsFunctionalUnit(name))
+        throw Exception("FunctionalUnit " + name + " is not registered.");
 
-	// remove command of FU from command pool
-	this->getProxy()->removeFunctionalUnit(name);
+    // remove command of FU from command pool
+    this->getProxy()->removeFunctionalUnit(name);
 
-	this->fuMap.erase(name);
+    this->fuMap.erase(name);
 } // removeFunctionalUnit
 
 
 FunctionalUnit*
 Sub::getFunctionalUnit(const std::string& name) const
 {
-	FunctionalUnitMap::const_iterator it = this->fuMap.find(name);
+    FunctionalUnitMap::const_iterator it = this->fuMap.find(name);
 
-	if(it != this->fuMap.end())
-		return it->second;
+    if(it != this->fuMap.end())
+        return it->second;
 
-	return parent->getFunctionalUnit(name);
+    return parent->getFunctionalUnit(name);
 } // getFunctionalUnit
 
 
 bool
 Sub::_knowsFunctionalUnit(const std::string& name) const
 {
-	FunctionalUnitMap::const_iterator it = this->fuMap.find(name);
+    FunctionalUnitMap::const_iterator it = this->fuMap.find(name);
 
-	return it != this->fuMap.end();
+    return it != this->fuMap.end();
 } // _knowsFunctionalUnit
 
 
 bool
 Sub::knowsFunctionalUnit(const std::string& name) const
 {
-	if(_knowsFunctionalUnit(name))
-		return true;
+    if(_knowsFunctionalUnit(name))
+        return true;
 
-	return parent->knowsFunctionalUnit(name);
+    return parent->knowsFunctionalUnit(name);
 } // knowsFunctionalUnit
 
 
@@ -194,12 +193,11 @@ Sub::reconfigureFUN(const wns::pyconfig::View&)
 void
 Sub::removeFUsFromCommandPool()
 {
-	for(FunctionalUnitMap::iterator it = fuMap.begin();
-		it != fuMap.end();
-		++it)
-	{
-		getProxy()->removeFunctionalUnit(it->first);
-	}
+    for(FunctionalUnitMap::iterator it = fuMap.begin();
+        it != fuMap.end(); ++it)
+    {
+        getProxy()->removeFunctionalUnit(it->first);
+    }
 } // removeFUsFromCommandPool
 
 /*
@@ -208,47 +206,48 @@ void
 translateLink(Link<RECEPTACLETYPE>* link,
                           const std::map<RECEPTACLETYPE*,RECEPTACLETYPE*>& translate)
 {
-	Link::ExchangeContainer src = link->get();
-	Link::ExchangeContainer dst;
+    Link::ExchangeContainer src = link->get();
+    Link::ExchangeContainer dst;
 
-	for(Link::ExchangeContainer::iterator linkDestination = src.begin();
-		linkDestination != src.end();
-		++linkDestination) {
+    for(Link::ExchangeContainer::iterator linkDestination = src.begin();
+        linkDestination != src.end();
+        ++linkDestination) {
 
-		TranslationMap::const_iterator newLinkDestination = translate.find(*linkDestination);
-		if(newLinkDestination != translate.end()) {
-			dst.push_back(newLinkDestination->second);
-		}
-	}
+        TranslationMap::const_iterator newLinkDestination = translate.find(*linkDestination);
+        if(newLinkDestination != translate.end()) {
+            dst.push_back(newLinkDestination->second);
+        }
+    }
 
-	link->set(dst);
+    link->set(dst);
 } // translateLink
 
 
 Sub*
 Sub::clone() const
 {
-	fun::Sub* sub = new Sub(parent);
+    fun::Sub* sub = new Sub(parent);
 
-	for(FunctionalUnitMap::const_iterator it = fuMap.begin();
-		it != fuMap.end();
-		++it) {
+    for(FunctionalUnitMap::const_iterator it = fuMap.begin();
+        it != fuMap.end();
+        ++it)
+    {
 
-		FunctionalUnit* other = dynamic_cast<FunctionalUnit*>(it->second->clone());
-		sub->fuMap[it->first] = other;
-		translate[it->second] = other;
-	}
+        FunctionalUnit* other = dynamic_cast<FunctionalUnit*>(it->second->clone());
+        sub->fuMap[it->first] = other;
+        translate[it->second] = other;
+    }
 
-	for(FunctionalUnitMap::const_iterator it = sub->fuMap.begin();
-		it != sub->fuMap.end();
-		++it) {
+    for(FunctionalUnitMap::const_iterator it = sub->fuMap.begin();
+        it != sub->fuMap.end();
+        ++it)
+    {
+        translateLink(it->second->getReceptor(), translate);
+        translateLink(it->second->getConnector(), translate);
+        translateLink(it->second->getDeliverer(), translate);
+    }
 
-		translateLink(it->second->getReceptor(), translate);
-		translateLink(it->second->getConnector(), translate);
-		translateLink(it->second->getDeliverer(), translate);
-	}
-
-	return sub;
+    return sub;
 } // clone
 */
 
@@ -260,40 +259,40 @@ Sub::clone() const
 ILayer*
 Sub::getLayer() const
 {
-	return this->layer;
+    return this->layer;
 } // getLayer
 
 
 std::string
 Sub::getName() const
 {
-	return this->getLayer()->getName();
+    return this->getLayer()->getName();
 } // getName
 
 void
 Sub::setNameParentFU(std::string _name)
 {
-	nameParentFU = _name;
+    nameParentFU = _name;
 }
 
 
 std::string
 Sub::getNameParentFU() const
 {
-	return nameParentFU;
+    return nameParentFU;
 }
 
 
 LinkHandlerInterface*
 Sub::getLinkHandler() const
 {
-	return linkHandler;
+    return linkHandler;
 }
 
 CommandReaderInterface*
 Sub::getCommandReader(const std::string& commandName) const
 {
-	return proxy->getCommandReader(commandName);
+    return proxy->getCommandReader(commandName);
 }
 
 void

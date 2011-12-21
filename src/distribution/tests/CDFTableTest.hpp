@@ -35,22 +35,22 @@
 
 namespace wns { namespace distribution { namespace test {
 
-	class CDFTableTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( CDFTableTest );
+    class CDFTableTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( CDFTableTest );
         CPPUNIT_TEST( testIt );
         CPPUNIT_TEST( testVar );
         CPPUNIT_TEST( testPyConfig );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
         void testIt();
         void testVar();
         void testPyConfig();
-	private:
-	};
+    private:
+    };
 
 } // tests
 } // distribution

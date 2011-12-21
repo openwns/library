@@ -37,63 +37,64 @@ namespace wns { namespace container {
 
     template<typename ValueType, typename CleanupStrategy = tree::NoneOnErase>
     class BinaryTree :
-	public Tree<ValueType, CleanupStrategy>
+    public Tree<ValueType, CleanupStrategy>
     {
-	typedef Tree<ValueType, CleanupStrategy> Super;
+    typedef Tree<ValueType, CleanupStrategy> Super;
     public:
-	typedef ValueType Value;
-	typedef typename Super::Size Size;
+    typedef ValueType Value;
+    typedef typename Super::Size Size;
 
-	BinaryTree(const Value& value = Value())
-	    : Super(value), tree(2)
-	{}
+    BinaryTree(const Value& value = Value())
+           : Super(value), tree(2)
+    {
+    }
 
-	virtual ~BinaryTree()
-	{
-	    for (typename std::vector<BinaryTree*>::size_type i = 0; i < 2; ++i)
-		if (tree[i] != NULL) delete tree[i];
-	}
+    virtual ~BinaryTree()
+    {
+        for (typename std::vector<BinaryTree*>::size_type i = 0; i < 2; ++i)
+        if (tree[i] != NULL) delete tree[i];
+    }
 
-	virtual Size getNoOfSubtrees() const
-	{ 
-	    return 2;
-	}
-	
-	virtual void createSubTree(const Size& no, const Value& value)
-	{
-	    setSubTree(tree[no], new BinaryTree(value));
-	}
+    virtual Size getNoOfSubtrees() const
+    {
+        return 2;
+    }
 
-	virtual void linkSubTree(const Size& no, Super* subTree)
-	{
-	    setSubTree(tree[no], dynamic_cast<BinaryTree*>(subTree));
-	}
+    virtual void createSubTree(const Size& no, const Value& value)
+    {
+        setSubTree(tree[no], new BinaryTree(value));
+    }
 
-	virtual bool hasSubTree(const Size& no)
-	{
-	    return getSubTree(no) != NULL;
-	}
+    virtual void linkSubTree(const Size& no, Super* subTree)
+    {
+        setSubTree(tree[no], dynamic_cast<BinaryTree*>(subTree));
+    }
 
-	virtual BinaryTree* getSubTree(const Size& no)
-	{
-	    return tree[no];
-	}
+    virtual bool hasSubTree(const Size& no)
+    {
+        return getSubTree(no) != NULL;
+    }
 
-  	virtual const BinaryTree *const getSubTree(const Size& no) const
-  	{
-  	    return tree[no];
-  	}
+    virtual BinaryTree* getSubTree(const Size& no)
+    {
+        return tree[no];
+    }
+
+    virtual const BinaryTree *const getSubTree(const Size& no) const
+    {
+        return tree[no];
+    }
 
     private:
 
-	void setSubTree(BinaryTree*& tree, BinaryTree* newTree)
-	{
-	    if (tree != NULL) delete tree;
-	    tree = newTree;
-	    tree->father = this;
-	}
+    void setSubTree(BinaryTree*& tree, BinaryTree* newTree)
+    {
+        if (tree != NULL) delete tree;
+        tree = newTree;
+        tree->father = this;
+    }
 
-	std::vector<BinaryTree*> tree;
+    std::vector<BinaryTree*> tree;
     };
 
 } // container

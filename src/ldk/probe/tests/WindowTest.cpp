@@ -39,296 +39,296 @@
 
 namespace wns { namespace ldk { namespace probe { namespace tests {
 
-	using namespace wns::ldk;
+    using namespace wns::ldk;
 
-	class WindowTest :
-		public wns::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( WindowTest );
-		CPPUNIT_TEST( testThroughput );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void prepare();
-		void cleanup();
+    class WindowTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( WindowTest );
+        CPPUNIT_TEST( testThroughput );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void prepare();
+        void cleanup();
 
-		void testThroughput();
-		void testSize();
+        void testThroughput();
+        void testSize();
 
-	private:
-		ILayer* layer;
-		fun::FUN* fuNet;
+    private:
+        ILayer* layer;
+        fun::FUN* fuNet;
 
-		wns::ldk::tools::Stub* upper;
-		Window* probe;
-		wns::ldk::tools::Stub* lower;
-		wns::ldk::helper::FakePDUPtr innerPDU;
-	};
+        wns::ldk::tools::Stub* upper;
+        Window* probe;
+        wns::ldk::tools::Stub* lower;
+        wns::ldk::helper::FakePDUPtr innerPDU;
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( WindowTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( WindowTest );
 
-	void
-	WindowTest::prepare()
-	{
-		wns::simulator::getEventScheduler()->reset();
+    void
+    WindowTest::prepare()
+    {
+        wns::simulator::getEventScheduler()->reset();
 
-		std::stringstream ss;
-		ss
-			<< "[test.window.incoming.bitThroughput]\n"
-			<< "name = test.window.incoming.bitThroughput\n"
-			<< "description = windowed bit throughput\n"
-			<< "ignore = false\n"
-			<< "suffix = .foo\n"
-			<< "outputPF = true\n"
-			<< "suffixPF = .pf\n"
-			<< "type = Log\n"
-			<< "suffixLog = _log\n"
-			<< "appendFlag = false\n"
-			<< "format =  fixed\n"
-			<< "skipInterval = 0\n"
-			<< "groupOutputFormat = n\n"
-
-
-			<< "[test.window.incoming.compoundThroughput]\n"
-			<< "name = test.window.incoming.compoundThroughput\n"
-			<< "description = windowed compound throughput\n"
-			<< "ignore = false\n"
-			<< "suffix = .foo\n"
-			<< "outputPF = true\n"
-			<< "suffixPF = .pf\n"
-			<< "type = Log\n"
-			<< "suffixLog = _log\n"
-			<< "appendFlag = false\n"
-			<< "format =  fixed\n"
-			<< "skipInterval =  0\n"
-			<< "groupOutputFormat = n\n"
-
-			<< "[test.window.outgoing.bitThroughput]\n"
-			<< "name = test.window.outgoing.bitThroughput\n"
-			<< "description = windowed bit throughput\n"
-			<< "ignore = false\n"
-			<< "suffix = .foo\n"
-			<< "outputPF = true\n"
-			<< "suffixPF = .pf\n"
-			<< "type = Log\n"
-			<< "suffixLog = _log\n"
-			<< "appendFlag = false\n"
-			<< "format =  fixed\n"
-			<< "skipInterval = 0\n"
-			<< "groupOutputFormat = n\n"
+        std::stringstream ss;
+        ss
+            << "[test.window.incoming.bitThroughput]\n"
+            << "name = test.window.incoming.bitThroughput\n"
+            << "description = windowed bit throughput\n"
+            << "ignore = false\n"
+            << "suffix = .foo\n"
+            << "outputPF = true\n"
+            << "suffixPF = .pf\n"
+            << "type = Log\n"
+            << "suffixLog = _log\n"
+            << "appendFlag = false\n"
+            << "format =  fixed\n"
+            << "skipInterval = 0\n"
+            << "groupOutputFormat = n\n"
 
 
-			<< "[test.window.outgoing.compoundThroughput]\n"
-			<< "name = test.window.outgoing.compoundThroughput\n"
-			<< "description = windowed compound throughput\n"
-			<< "ignore = false\n"
-			<< "suffix = .foo\n"
-			<< "outputPF = true\n"
-			<< "suffixPF = .pf\n"
-			<< "type = Log\n"
-			<< "suffixLog = _log\n"
-			<< "appendFlag = false\n"
-			<< "format =  fixed\n"
-			<< "skipInterval =  0\n"
-			<< "groupOutputFormat = n\n"
+            << "[test.window.incoming.compoundThroughput]\n"
+            << "name = test.window.incoming.compoundThroughput\n"
+            << "description = windowed compound throughput\n"
+            << "ignore = false\n"
+            << "suffix = .foo\n"
+            << "outputPF = true\n"
+            << "suffixPF = .pf\n"
+            << "type = Log\n"
+            << "suffixLog = _log\n"
+            << "appendFlag = false\n"
+            << "format =  fixed\n"
+            << "skipInterval =  0\n"
+            << "groupOutputFormat = n\n"
 
-			<< "[test.window.aggregated.bitThroughput]\n"
-			<< "name = test.window.aggregated.bitThroughput\n"
-			<< "description = windowed bit throughput\n"
-			<< "ignore = false\n"
-			<< "suffix = .foo\n"
-			<< "outputPF = true\n"
-			<< "suffixPF = .pf\n"
-			<< "type = Log\n"
-			<< "suffixLog = _log\n"
-			<< "appendFlag = false\n"
-			<< "format =  fixed\n"
-			<< "skipInterval =  0\n"
-			<< "groupOutputFormat = n\n"
-
-			<< "[test.window.aggregated.compoundThroughput]\n"
-			<< "name = test.window.aggregated.compoundThroughput\n"
-			<< "description = windowed bit throughput\n"
-			<< "ignore = false\n"
-			<< "suffix = .foo\n"
-			<< "outputPF = true\n"
-			<< "suffixPF = .pf\n"
-			<< "type = Log\n"
-			<< "suffixLog = _log\n"
-			<< "appendFlag = false\n"
-			<< "format =  fixed\n"
-			<< "skipInterval =  0\n"
-			<< "groupOutputFormat = n\n"
-
-			;
-
-		layer = new wns::ldk::tests::LayerStub();
-		fuNet = new wns::ldk::fun::Main(layer);
-
-		pyconfig::Parser emptyConfig;
-		upper = new wns::ldk::tools::Stub(fuNet, emptyConfig);
-		lower = new wns::ldk::tools::Stub(fuNet, emptyConfig);
-
-		pyconfig::Parser all;
-		all.loadString(
-			"from openwns.Probe import Window\n"
-			"probe = Window('test', 'test', windowSize = 1.0, sampleInterval = 1.0)\n"
-			);
-		pyconfig::View config(all, "probe");
-		probe = new Window(fuNet, config);
-
-		upper
-			->connect(probe)
-			->connect(lower);
-
-		fuNet->addFunctionalUnit("upperStub", upper);
-		fuNet->addFunctionalUnit("ernie", probe);
-		fuNet->addFunctionalUnit("lowerStub", lower);
-
-		innerPDU = wns::ldk::helper::FakePDUPtr((new wns::ldk::helper::FakePDU(1)));
-
-		std::string configstring =
-			"import openwns\n"
-			"from openwns.evaluation import *\n"
-			"sim = openwns.Simulator()\n"
-			"node = openwns.evaluation.createSourceNode(sim, 'test.window.incoming.bitThroughput')\n"
-			"node.appendChildren(TimeSeries())\n"
-			"node = openwns.evaluation.createSourceNode(sim, 'test.window.incoming.compoundThroughput')\n"
-			"node.appendChildren(TimeSeries())\n"
-			"node = openwns.evaluation.createSourceNode(sim, 'test.window.outgoing.bitThroughput')\n"
-			"node.appendChildren(TimeSeries())\n"
-			"node = openwns.evaluation.createSourceNode(sim, 'test.window.outgoing.compoundThroughput')\n"
-			"node.appendChildren(TimeSeries())\n"
-			"node = openwns.evaluation.createSourceNode(sim, 'test.window.aggregated.bitThroughput')\n"
-			"node.appendChildren(TimeSeries())\n"
-			"node = openwns.evaluation.createSourceNode(sim, 'test.window.aggregated.compoundThroughput')\n"
-			"node.appendChildren(TimeSeries())\n";
-
-		wns::pyconfig::Parser p;
-		p.loadString(configstring);
-
-		wns::probe::bus::ProbeBusRegistry* pbr = wns::simulator::getInstance()->getProbeBusRegistry();
-		pbr->spawnProbeBusses(p.get<wns::pyconfig::View>("sim.environment.probeBusRegistry"));
-	} // setUp
+            << "[test.window.outgoing.bitThroughput]\n"
+            << "name = test.window.outgoing.bitThroughput\n"
+            << "description = windowed bit throughput\n"
+            << "ignore = false\n"
+            << "suffix = .foo\n"
+            << "outputPF = true\n"
+            << "suffixPF = .pf\n"
+            << "type = Log\n"
+            << "suffixLog = _log\n"
+            << "appendFlag = false\n"
+            << "format =  fixed\n"
+            << "skipInterval = 0\n"
+            << "groupOutputFormat = n\n"
 
 
-	void
-	WindowTest::cleanup()
-	{
-		delete fuNet;
-		delete layer;
-		// Make sure that after deletion of the probes, they have
-		// cancelled their timeouts
-		CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), wns::simulator::getEventScheduler()->size());
-	} // tearDown
+            << "[test.window.outgoing.compoundThroughput]\n"
+            << "name = test.window.outgoing.compoundThroughput\n"
+            << "description = windowed compound throughput\n"
+            << "ignore = false\n"
+            << "suffix = .foo\n"
+            << "outputPF = true\n"
+            << "suffixPF = .pf\n"
+            << "type = Log\n"
+            << "suffixLog = _log\n"
+            << "appendFlag = false\n"
+            << "format =  fixed\n"
+            << "skipInterval =  0\n"
+            << "groupOutputFormat = n\n"
+
+            << "[test.window.aggregated.bitThroughput]\n"
+            << "name = test.window.aggregated.bitThroughput\n"
+            << "description = windowed bit throughput\n"
+            << "ignore = false\n"
+            << "suffix = .foo\n"
+            << "outputPF = true\n"
+            << "suffixPF = .pf\n"
+            << "type = Log\n"
+            << "suffixLog = _log\n"
+            << "appendFlag = false\n"
+            << "format =  fixed\n"
+            << "skipInterval =  0\n"
+            << "groupOutputFormat = n\n"
+
+            << "[test.window.aggregated.compoundThroughput]\n"
+            << "name = test.window.aggregated.compoundThroughput\n"
+            << "description = windowed bit throughput\n"
+            << "ignore = false\n"
+            << "suffix = .foo\n"
+            << "outputPF = true\n"
+            << "suffixPF = .pf\n"
+            << "type = Log\n"
+            << "suffixLog = _log\n"
+            << "appendFlag = false\n"
+            << "format =  fixed\n"
+            << "skipInterval =  0\n"
+            << "groupOutputFormat = n\n"
+
+            ;
+
+        layer = new wns::ldk::tests::LayerStub();
+        fuNet = new wns::ldk::fun::Main(layer);
+
+        pyconfig::Parser emptyConfig;
+        upper = new wns::ldk::tools::Stub(fuNet, emptyConfig);
+        lower = new wns::ldk::tools::Stub(fuNet, emptyConfig);
+
+        pyconfig::Parser all;
+        all.loadString(
+            "from openwns.Probe import Window\n"
+            "probe = Window('test', 'test', windowSize = 1.0, sampleInterval = 1.0)\n"
+            );
+        pyconfig::View config(all, "probe");
+        probe = new Window(fuNet, config);
+
+        upper
+            ->connect(probe)
+            ->connect(lower);
+
+        fuNet->addFunctionalUnit("upperStub", upper);
+        fuNet->addFunctionalUnit("ernie", probe);
+        fuNet->addFunctionalUnit("lowerStub", lower);
+
+        innerPDU = wns::ldk::helper::FakePDUPtr((new wns::ldk::helper::FakePDU(1)));
+
+        std::string configstring =
+            "import openwns\n"
+            "from openwns.evaluation import *\n"
+            "sim = openwns.Simulator()\n"
+            "node = openwns.evaluation.createSourceNode(sim, 'test.window.incoming.bitThroughput')\n"
+            "node.appendChildren(TimeSeries())\n"
+            "node = openwns.evaluation.createSourceNode(sim, 'test.window.incoming.compoundThroughput')\n"
+            "node.appendChildren(TimeSeries())\n"
+            "node = openwns.evaluation.createSourceNode(sim, 'test.window.outgoing.bitThroughput')\n"
+            "node.appendChildren(TimeSeries())\n"
+            "node = openwns.evaluation.createSourceNode(sim, 'test.window.outgoing.compoundThroughput')\n"
+            "node.appendChildren(TimeSeries())\n"
+            "node = openwns.evaluation.createSourceNode(sim, 'test.window.aggregated.bitThroughput')\n"
+            "node.appendChildren(TimeSeries())\n"
+            "node = openwns.evaluation.createSourceNode(sim, 'test.window.aggregated.compoundThroughput')\n"
+            "node.appendChildren(TimeSeries())\n";
+
+        wns::pyconfig::Parser p;
+        p.loadString(configstring);
+
+        wns::probe::bus::ProbeBusRegistry* pbr = wns::simulator::getInstance()->getProbeBusRegistry();
+        pbr->spawnProbeBusses(p.get<wns::pyconfig::View>("sim.environment.probeBusRegistry"));
+    } // setUp
 
 
-	void
-	WindowTest::testThroughput()
-	{
-		// Make sure there are is 1 periodic event in the queue
-		CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), wns::simulator::getEventScheduler()->size());
+    void
+    WindowTest::cleanup()
+    {
+        delete fuNet;
+        delete layer;
+        // Make sure that after deletion of the probes, they have
+        // cancelled their timeouts
+        CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), wns::simulator::getEventScheduler()->size());
+    } // tearDown
 
-		CompoundPtr compound1(fuNet->createCompound(innerPDU));
-		CompoundPtr compound2(fuNet->createCompound(innerPDU));
-		CompoundPtr compound3(fuNet->createCompound(innerPDU));
 
-		// send first compound at 0.0
-		upper->sendData((compound1));
+    void
+    WindowTest::testThroughput()
+    {
+        // Make sure there are is 1 periodic event in the queue
+        CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), wns::simulator::getEventScheduler()->size());
 
-		// send second compound at 0.5
-		wns::simulator::getEventScheduler()->schedule(events::NoOp(), 0.5);
-		wns::simulator::getEventScheduler()->processOneEvent();
-		upper->sendData((compound2));
+        CompoundPtr compound1(fuNet->createCompound(innerPDU));
+        CompoundPtr compound2(fuNet->createCompound(innerPDU));
+        CompoundPtr compound3(fuNet->createCompound(innerPDU));
 
-		// send third compound at 0.6
-		wns::simulator::getEventScheduler()->schedule(events::NoOp(), 0.6);
-		wns::simulator::getEventScheduler()->processOneEvent();
-		upper->sendData((compound3));
+        // send first compound at 0.0
+        upper->sendData((compound1));
 
-		// we should have sent 3 compounds by now
-		CPPUNIT_ASSERT(lower->sent.size() == 3);
-		CPPUNIT_ASSERT(lower->sent[0] == compound1);
-		CPPUNIT_ASSERT(lower->sent[1] == compound2);
-		CPPUNIT_ASSERT(lower->sent[2] == compound3);
+        // send second compound at 0.5
+        wns::simulator::getEventScheduler()->schedule(events::NoOp(), 0.5);
+        wns::simulator::getEventScheduler()->processOneEvent();
+        upper->sendData((compound2));
 
-		// process the periodic event of the probe (i.e. make it
-		// actually put)
-		wns::simulator::getEventScheduler()->processOneEvent();
+        // send third compound at 0.6
+        wns::simulator::getEventScheduler()->schedule(events::NoOp(), 0.6);
+        wns::simulator::getEventScheduler()->processOneEvent();
+        upper->sendData((compound3));
 
-		// receiving phase. the incoming and aggregated throughput should now be logged
-		wns::simulator::getEventScheduler()->schedule(events::NoOp(), 1.1);
-		wns::simulator::getEventScheduler()->processOneEvent(); // 2 [bit/s]
-		lower->onData((compound1));
+        // we should have sent 3 compounds by now
+        CPPUNIT_ASSERT(lower->sent.size() == 3);
+        CPPUNIT_ASSERT(lower->sent[0] == compound1);
+        CPPUNIT_ASSERT(lower->sent[1] == compound2);
+        CPPUNIT_ASSERT(lower->sent[2] == compound3);
 
-		wns::simulator::getEventScheduler()->schedule(events::NoOp(), 1.5);
-		wns::simulator::getEventScheduler()->processOneEvent(); // 2 [bit/s]
-		lower->onData((compound2));
+        // process the periodic event of the probe (i.e. make it
+        // actually put)
+        wns::simulator::getEventScheduler()->processOneEvent();
 
-		// we should have received 2 compounds by now
-		CPPUNIT_ASSERT(upper->received.size() == 2);
-		CPPUNIT_ASSERT(upper->received[0] == compound1);
-		CPPUNIT_ASSERT(upper->received[1] == compound2);
+        // receiving phase. the incoming and aggregated throughput should now be logged
+        wns::simulator::getEventScheduler()->schedule(events::NoOp(), 1.1);
+        wns::simulator::getEventScheduler()->processOneEvent(); // 2 [bit/s]
+        lower->onData((compound1));
 
-		// process the next periodi events of the probe (i.e. make it
-		// put again)
-		wns::simulator::getEventScheduler()->processOneEvent();
+        wns::simulator::getEventScheduler()->schedule(events::NoOp(), 1.5);
+        wns::simulator::getEventScheduler()->processOneEvent(); // 2 [bit/s]
+        lower->onData((compound2));
 
-		// we should have reached 2.0s by now and have the next
-		// periodic event (of the probe) pending
-		CPPUNIT_ASSERT(wns::simulator::getEventScheduler()->getTime() == 2.0);
-		CPPUNIT_ASSERT(wns::simulator::getEventScheduler()->size() == 1);
+        // we should have received 2 compounds by now
+        CPPUNIT_ASSERT(upper->received.size() == 2);
+        CPPUNIT_ASSERT(upper->received[0] == compound1);
+        CPPUNIT_ASSERT(upper->received[1] == compound2);
 
-		wns::simulator::getInstance()->getProbeBusRegistry()->forwardOutput();
+        // process the next periodi events of the probe (i.e. make it
+        // put again)
+        wns::simulator::getEventScheduler()->processOneEvent();
 
-		CPPUNIT_ASSERT(wns::testing::compareFile(
-				       "output/test.window.outgoing.bitThroughput_TimeSeries.dat",
+        // we should have reached 2.0s by now and have the next
+        // periodic event (of the probe) pending
+        CPPUNIT_ASSERT(wns::simulator::getEventScheduler()->getTime() == 2.0);
+        CPPUNIT_ASSERT(wns::simulator::getEventScheduler()->size() == 1);
+
+        wns::simulator::getInstance()->getProbeBusRegistry()->forwardOutput();
+
+        CPPUNIT_ASSERT(wns::testing::compareFile(
+                       "output/test.window.outgoing.bitThroughput_TimeSeries.dat",
                        "(#.*\n)*"
-				       "1.0000.*3.0000.*\n"
-				       "2.0000.*0.0000.*\n"
-				       "(.*\n)*"
-				       ));
+                       "1.0000.*3.0000.*\n"
+                       "2.0000.*0.0000.*\n"
+                       "(.*\n)*"
+                       ));
 
-		CPPUNIT_ASSERT(wns::testing::compareFile(
-				       "output/test.window.outgoing.compoundThroughput_TimeSeries.dat",
+        CPPUNIT_ASSERT(wns::testing::compareFile(
+                       "output/test.window.outgoing.compoundThroughput_TimeSeries.dat",
                        "(#.*\n)*"
-				       "1.0000.*3.0000.*\n"
-				       "2.0000.*0.0000.*\n"
-				       "(.*\n)*"
-				       ));
+                       "1.0000.*3.0000.*\n"
+                       "2.0000.*0.0000.*\n"
+                       "(.*\n)*"
+                       ));
 
-		CPPUNIT_ASSERT(wns::testing::compareFile(
-				       "output/test.window.aggregated.bitThroughput_TimeSeries.dat",
+        CPPUNIT_ASSERT(wns::testing::compareFile(
+                       "output/test.window.aggregated.bitThroughput_TimeSeries.dat",
                        "(#.*\n)*"
-				       "1.0000.*0.0000.*\n"
-				       "2.0000.*2.0000.*\n"
-				       "(.*\n)*"
-				       ));
+                       "1.0000.*0.0000.*\n"
+                       "2.0000.*2.0000.*\n"
+                       "(.*\n)*"
+                       ));
 
-		CPPUNIT_ASSERT(wns::testing::compareFile(
-				       "output/test.window.aggregated.compoundThroughput_TimeSeries.dat",
+        CPPUNIT_ASSERT(wns::testing::compareFile(
+                       "output/test.window.aggregated.compoundThroughput_TimeSeries.dat",
                        "(#.*\n)*"
-				       "1.0000.*0.0000.*\n"
-				       "2.0000.*2.0000.*\n"
-				       "(.*\n)*"
-				       ));
+                       "1.0000.*0.0000.*\n"
+                       "2.0000.*2.0000.*\n"
+                       "(.*\n)*"
+                       ));
 
-		CPPUNIT_ASSERT(wns::testing::compareFile(
-				       "output/test.window.incoming.bitThroughput_TimeSeries.dat",
+        CPPUNIT_ASSERT(wns::testing::compareFile(
+                       "output/test.window.incoming.bitThroughput_TimeSeries.dat",
                        "(#.*\n)*"
-				       "1.0000.*0.0000.*\n"
-				       "2.0000.*2.0000.*\n"
-				       "(.*\n)*"
-				       ));
+                       "1.0000.*0.0000.*\n"
+                       "2.0000.*2.0000.*\n"
+                       "(.*\n)*"
+                       ));
 
-		CPPUNIT_ASSERT(wns::testing::compareFile(
-				       "output/test.window.incoming.compoundThroughput_TimeSeries.dat",
+        CPPUNIT_ASSERT(wns::testing::compareFile(
+                       "output/test.window.incoming.compoundThroughput_TimeSeries.dat",
                        "(#.*\n)*"
-				       "1.0000.*0.0000.*\n"
-				       "2.0000.*2.0000.*\n"
-				       "(.*\n)*"
-				       ));
+                       "1.0000.*0.0000.*\n"
+                       "2.0000.*2.0000.*\n"
+                       "(.*\n)*"
+                       ));
 
-	} // testThroughput
+    } // testThroughput
 
 
 } // tests

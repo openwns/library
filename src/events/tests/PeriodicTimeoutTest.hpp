@@ -35,44 +35,45 @@
 
 namespace wns { namespace events { namespace tests {
 
-	class PeriodicTimeoutTest :
-		public wns::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( PeriodicTimeoutTest );
-		CPPUNIT_TEST( create );
-		CPPUNIT_TEST( configureTimeout );
-		CPPUNIT_TEST( testPeriod );
-		CPPUNIT_TEST( testDelay );
-		CPPUNIT_TEST( testCopyConstructor );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void prepare();
-		void cleanup();
+    class PeriodicTimeoutTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( PeriodicTimeoutTest );
+        CPPUNIT_TEST( create );
+        CPPUNIT_TEST( configureTimeout );
+        CPPUNIT_TEST( testPeriod );
+        CPPUNIT_TEST( testDelay );
+        CPPUNIT_TEST( testCopyConstructor );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void prepare();
+        void cleanup();
 
- 		void create();
-		void configureTimeout();
- 		void testPeriod();
- 		void testDelay();
-		void testCopyConstructor();
-	private:
+        void create();
+        void configureTimeout();
+        void testPeriod();
+        void testDelay();
+        void testCopyConstructor();
+    private:
 
-		class derivedPeriodicTimeout :
-			public PeriodicTimeout
-		{
-		      public:
-			derivedPeriodicTimeout()
-				:PeriodicTimeout(),
-				 test_counter(0)
-				{};
+        class derivedPeriodicTimeout :
+            public PeriodicTimeout
+        {
+        public:
+            derivedPeriodicTimeout()
+                :PeriodicTimeout(),
+                 test_counter(0)
+                {
+                };
 
-			void periodically()
-				{
-					test_counter++;
-				};
-			int test_counter;
-		};
+            void periodically()
+                {
+                    test_counter++;
+                };
+            int test_counter;
+        };
 
-	};
+    };
 } // tests
 } // events
 } // wns

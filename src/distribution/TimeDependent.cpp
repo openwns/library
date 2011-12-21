@@ -46,25 +46,25 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 
 
 TimeDependent::DistributionEvent::DistributionEvent(
-	TimeDependent* td,
-	const wns::pyconfig::View& view) :
-	target_(td),
-	config_(view)
+    TimeDependent* td,
+    const wns::pyconfig::View& view) :
+    target_(td),
+    config_(view)
 {
-	assure(this->target_, "No valid target set (NULL)");
+    assure(this->target_, "No valid target set (NULL)");
 }
 
 TimeDependent::DistributionEvent::~DistributionEvent()
 {
-	this->target_ = NULL;
+    this->target_ = NULL;
 }
 
 void
 TimeDependent::DistributionEvent::operator()()
 {
-	assure(this->target_, "No target set");
-	this->target_->setDistribution(config_);
-	this->target_->queueNextDistribution();
+    assure(this->target_, "No target set");
+    this->target_->setDistribution(config_);
+    this->target_->queueNextDistribution();
 }
 
 TimeDependent::TimeDependent(const wns::pyconfig::View& view) :
@@ -106,59 +106,62 @@ TimeDependent::init()
         DistributionEvent ev = this->events_.begin()->second;
         this->events_.erase(this->events_.begin());
         (ev)();
-    } else {
+    }
+
+    else
+    {
         this->queueNextDistribution();
     }
 }
 
 TimeDependent::~TimeDependent()
 {
-	this->removeDistribution();
+    this->removeDistribution();
 }
 
 double
 TimeDependent::operator()()
 {
-	assure(this->distribution_, "No distribution set!");
-	return (*distribution_)();
+    assure(this->distribution_, "No distribution set!");
+    return (*distribution_)();
 }
 
 std::string
 TimeDependent::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "TimeDependent()";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "TimeDependent()";
+    return tmp.str();
 }
 
 void
 TimeDependent::queueNextDistribution()
 {
-	if(!this->events_.empty())
-	{
-		EventContainer::iterator itr = this->events_.begin();
-		wns::simulator::getEventScheduler()->schedule(itr->second, itr->first);
-		this->events_.erase(itr);
-	}
+    if(!this->events_.empty())
+    {
+        EventContainer::iterator itr = this->events_.begin();
+        wns::simulator::getEventScheduler()->schedule(itr->second, itr->first);
+        this->events_.erase(itr);
+    }
 }
 
 void
 TimeDependent::setDistribution(const wns::pyconfig::View& distConfig)
 {
-	this->removeDistribution();
-	wns::distribution::RNGDistributionCreator* dc =
-		wns::distribution::RNGDistributionFactory::creator(distConfig.get<std::string>("__plugin__"));
-	this->distribution_ = dc->create(getRNG(), distConfig);
+    this->removeDistribution();
+    wns::distribution::RNGDistributionCreator* dc =
+    wns::distribution::RNGDistributionFactory::creator(distConfig.get<std::string>("__plugin__"));
+    this->distribution_ = dc->create(getRNG(), distConfig);
 }
 
 void
 TimeDependent::removeDistribution()
 {
-	if(this->distribution_)
-	{
-		delete this->distribution_;
-		this->distribution_ = NULL;
-	}
+    if(this->distribution_)
+    {
+        delete this->distribution_;
+        this->distribution_ = NULL;
+    }
 }
 
 /*

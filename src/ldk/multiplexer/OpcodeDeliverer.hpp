@@ -41,31 +41,33 @@
 
 namespace wns { namespace ldk { namespace multiplexer {
 
-	/**
-	 * @brief Deliverer implementation using an Opcode to select a FU for delivery.
-	 *
-	 * OpcodeDeliverer retrieves the opcode from an OpcodeCommand and delivers
-	 * the Compound to the FU above that has been connected at the position that
-	 * matches the opcode. <p>
-	 *
-	 * Dispatcher and Framedispatcher make use of OpcodeProvider.
-	 */
-	class OpcodeDeliverer :
-		public Deliverer,
+    /**
+     * @brief Deliverer implementation using an Opcode to select a FU for delivery.
+     *
+     * OpcodeDeliverer retrieves the opcode from an OpcodeCommand and delivers
+     * the Compound to the FU above that has been connected at the position that
+     * matches the opcode. <p>
+     *
+     * Dispatcher and Framedispatcher make use of OpcodeProvider.
+     */
+    class OpcodeDeliverer :
+        public Deliverer,
                 public RandomAccessLink<IDelivererReceptacle>
-	{
-	public:
-		void
-		setOpcodeProvider(FunctionalUnit* opcodeProvider);
+    {
+    public:
+        void
+        setOpcodeProvider(FunctionalUnit* opcodeProvider);
 
-		virtual IDelivererReceptacle*
-		getAcceptor(const CompoundPtr& compound);
+        virtual IDelivererReceptacle*
+        getAcceptor(const CompoundPtr& compound);
 
-	private:
-		struct _friends {
-			FunctionalUnit* opcodeProvider;
-		} friends;
-	};
+    private:
+        struct _friends
+        {
+            FunctionalUnit* opcodeProvider;
+        }
+        friends;
+    };
 
 } // multiplexer
 } // ldk

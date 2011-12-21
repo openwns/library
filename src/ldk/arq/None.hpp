@@ -38,100 +38,114 @@
 
 namespace wns { namespace ldk { namespace arq {
 
-	class NoneCommand :
-		public ARQCommand
-	{
-	public:
-		virtual bool
-		isACK() const
-		{
-			return false;
-		}
+    class NoneCommand :
+        public ARQCommand
+    {
+    public:
+        virtual bool
+        isACK() const
+        {
+            return false;
+        }
 
-		struct {} local;
-		struct {} peer;
-		struct {} magic;
-	};
+        struct
+        {
+        }
+        local;
 
-	/*
-	 * @brief Forwarding only FunctionalUnit conforming to the ARQ interface
-	 */
-	class None :
-		public ARQ,
-		public wns::ldk::fu::Plain<None, NoneCommand>,
-		public Delayed<None>,
-		virtual public SuspendableInterface,
-		public SuspendSupport
-	{
-	public:
-		None(fun::FUN* fuNet, const wns::pyconfig::View& config) :
-				ARQ(config),
-				wns::ldk::fu::Plain<None, NoneCommand>(fuNet),
-				Delayed<None>(),
-				SuspendSupport(fuNet, config),
+        struct
+        {
+        }
+        peer;
 
-				compound()
-		{}
+        struct
+        {
+        }
+        magic;
+    };
 
+    /*
+     * @brief Forwarding only FunctionalUnit conforming to the ARQ interface
+     */
+    class None :
+        public ARQ,
+        public wns::ldk::fu::Plain<None, NoneCommand>,
+        public Delayed<None>,
+        virtual public SuspendableInterface,
+        public SuspendSupport
+    {
+    public:
+        None(fun::FUN* fuNet, const wns::pyconfig::View& config) :
+                ARQ(config),
+                wns::ldk::fu::Plain<None, NoneCommand>(fuNet),
+                Delayed<None>(),
+                SuspendSupport(fuNet, config),
 
-		// Delayed interface realisation
-		virtual bool hasCapacity() const
-		{
-			return !compound;
-		} // hasCapacity
-
-		virtual void
-		processOutgoing(const CompoundPtr& _compound)
-		{
-			assure(hasCapacity(), "yeye, something went wrong.");
-
-			compound = _compound;
-			activateCommand(compound->getCommandPool());
-		} // processOutgoing
-
-		// virtual const CompoundPtr hasSomethingToSend() const; // implemented by ARQ
-		// virtual CompoundPtr getSomethingToSend(); // implemented by ARQ
-
-		virtual void
-		processIncoming(const CompoundPtr& compound)
-		{
-			getDeliverer()->getAcceptor(compound)->onData(compound);
-		} // processIncoming
+                compound()
+        {
+        }
 
 
-		// ARQ interface realization
-		virtual const wns::ldk::CompoundPtr hasACK() const
-		{
-			return CompoundPtr();
-		} // hasACK
+        // Delayed interface realisation
+        virtual bool hasCapacity() const
+        {
+            return !compound;
+        } // hasCapacity
 
-		virtual const wns::ldk::CompoundPtr hasData() const
-		{
-			return compound;
-		} // hasData
+        virtual void
+        processOutgoing(const CompoundPtr& _compound)
+        {
+            assure(hasCapacity(), "yeye, something went wrong.");
 
-		virtual wns::ldk::CompoundPtr getACK()
-		{
-			return CompoundPtr();
-		} // getACK;
+            compound = _compound;
+            activateCommand(compound->getCommandPool());
+        } // processOutgoing
 
-		virtual wns::ldk::CompoundPtr getData()
-		{
-			CompoundPtr it = compound;
-			compound = CompoundPtr();
-			return it;
-		} // getData
+        // virtual const CompoundPtr hasSomethingToSend() const; // implemented by ARQ
+        // virtual CompoundPtr getSomethingToSend(); // implemented by ARQ
 
-	private:
-		virtual bool onSuspend() const
-		{
-			return !compound;
-		} // onSuspend
+        virtual void
+        processIncoming(const CompoundPtr& compound)
+        {
+            getDeliverer()->getAcceptor(compound)->onData(compound);
+        } // processIncoming
 
-		CompoundPtr compound;
-	};
 
-}}}
+        // ARQ interface realization
+        virtual const wns::ldk::CompoundPtr hasACK() const
+        {
+            return CompoundPtr();
+        } // hasACK
+
+        virtual const wns::ldk::CompoundPtr hasData() const
+        {
+            return compound;
+        } // hasData
+
+        virtual wns::ldk::CompoundPtr getACK()
+        {
+            return CompoundPtr();
+        } // getACK;
+
+        virtual wns::ldk::CompoundPtr getData()
+        {
+            CompoundPtr it = compound;
+            compound = CompoundPtr();
+            return it;
+        } // getData
+
+    private:
+        virtual bool onSuspend() const
+        {
+            return !compound;
+        } // onSuspend
+
+        CompoundPtr compound;
+    };
+
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_ARQ_NONE_HPP
 

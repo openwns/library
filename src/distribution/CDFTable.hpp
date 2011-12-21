@@ -35,49 +35,49 @@
 
 namespace wns { namespace distribution {
 
-	/**
-	 * @brief Draw a random number from a given tabulated distribution (CDF)
-	 *
-	 * The values from the table will not be interpolated. This means, if you
-	 * provide a table with 10 enrtries you will get randomly one of these 10
-	 * values according to its probability in the table.
-	 *
-	 * E.g.: Providing a random number according to the statistics of typical IP
-	 * packet sizes in the internet
-	 *
- 	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 */
+    /**
+     * @brief Draw a random number from a given tabulated distribution (CDF)
+     *
+     * The values from the table will not be interpolated. This means, if you
+     * provide a table with 10 enrtries you will get randomly one of these 10
+     * values according to its probability in the table.
+     *
+     * E.g.: Providing a random number according to the statistics of typical IP
+     * packet sizes in the internet
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     */
 
-	class CDFTable :
+    class CDFTable :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         CDFTable(const pyconfig::View& config);
 
         explicit
         CDFTable(wns::rng::RNGen* rng, const pyconfig::View& config);
- 
-		virtual
-		~CDFTable();
 
-		virtual double
-		operator()();
+        virtual
+        ~CDFTable();
 
-		virtual double
-		getMean() const;
+        virtual double
+        operator()();
 
-	private:
-		virtual std::string
-		paramString() const;
+        virtual double
+        getMean() const;
 
-		StandardUniform dis_;
+    private:
+        virtual std::string
+        paramString() const;
 
-		wns::container::RangeMap<double, double> rangeMap_;
+        StandardUniform dis_;
 
-		double mean_;
-	}; // CDFTable
+        wns::container::RangeMap<double, double> rangeMap_;
+
+        double mean_;
+    }; // CDFTable
 
 } // distribution
 } // wns
@@ -95,4 +95,3 @@ namespace wns { namespace distribution {
   tab-width: 8
   End:
 */
-

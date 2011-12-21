@@ -70,9 +70,9 @@ Binomial::~Binomial()
 double
 Binomial::operator()()
 {
-	long int num_of_events = 0;
+    long int num_of_events = 0;
     long int current_trial;
-    
+
     for (current_trial = 0; current_trial < numberOfTrials_; current_trial++)
     {
         if (dis_() < probability_)
@@ -92,9 +92,9 @@ Binomial::getMean() const
 std::string
 Binomial::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Binomial(N=" << numberOfTrials_ << ",p=" << probability_ << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Binomial(N=" << numberOfTrials_ << ",p=" << probability_ << ")";
+    return tmp.str();
 }
 
 /*

@@ -36,77 +36,79 @@ namespace wns { namespace ldk { namespace fcf {
 class NewFrameProvider;
 
 class NewFrameObserver
-	{
-	public:
-		NewFrameObserver(std::string observerName);
+    {
+    public:
+        NewFrameObserver(std::string observerName);
 
-		virtual
+        virtual
         ~NewFrameObserver();
 
-		void
-		setNewFrameProvider(NewFrameProvider* newFrameProvider);
+        void
+        setNewFrameProvider(NewFrameProvider* newFrameProvider);
 
-		virtual void
-	    newFrameProviderDeleted();
+        virtual void
+        newFrameProviderDeleted();
 
-		virtual void
+        virtual void
         messageNewFrame() = 0;
 
-		std::string
-		getObserverName() const {return observerName_;}
+        std::string
+        getObserverName() const {return observerName_;}
 
-		NewFrameProvider*
-		testGetNewFrameProvider_()
-			{
-				return newFrameProvider_;
-			}
+        NewFrameProvider*
+        testGetNewFrameProvider_()
+            {
+                return newFrameProvider_;
+            }
 
-	private:
-		const std::string observerName_;
+    private:
+        const std::string observerName_;
 
-		NewFrameProvider* newFrameProvider_;
-	};
-
-
-
-	class NewFrameProvider
-	{
-	public:
-		typedef std::list<NewFrameObserver*> NewFrameObservers;
-
-		NewFrameProvider(std::string stationName);
-
-		~NewFrameProvider();
-
-		void
-		attachObserver(NewFrameObserver* newFrameObserver);
-
-		void
-		detachObserver(NewFrameObserver* newFrameObserver);
-
-		void
-		notifyNewFrameObservers();
-
-		NewFrameObservers
-		testGetNewFrameObservers_()
-		{
-			return newFrameObservers_;
-		}
+        NewFrameProvider* newFrameProvider_;
+    };
 
 
-	private:
 
-		void
-		pl();
+    class NewFrameProvider
+    {
+    public:
+        typedef std::list<NewFrameObserver*> NewFrameObservers;
 
-		NewFrameObservers observersToNotify_;
-		NewFrameObservers newFrameObservers_;
+        NewFrameProvider(std::string stationName);
 
-		const std::string stationName_;
-		wns::logger::Logger logger_;
-	};
+        ~NewFrameProvider();
 
-}}} // wns ldk fcf
+        void
+        attachObserver(NewFrameObserver* newFrameObserver);
+
+        void
+        detachObserver(NewFrameObserver* newFrameObserver);
+
+        void
+        notifyNewFrameObservers();
+
+        NewFrameObservers
+        testGetNewFrameObservers_()
+        {
+            return newFrameObservers_;
+        }
+
+
+    private:
+
+        void
+        pl();
+
+        NewFrameObservers observersToNotify_;
+        NewFrameObservers newFrameObservers_;
+
+        const std::string stationName_;
+        wns::logger::Logger logger_;
+    };
+
+}
+}
+} // wns ldk fcf
 
 #endif //WNS_LDK_FCF_NEWFRAMEOBSERVERINTERFACE_H
 

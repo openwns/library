@@ -30,64 +30,66 @@
 
 namespace wns { namespace container {
 
-	namespace tree {
-		/**
-		 * @brief This cleanup policy does nothing
-		 */
-		class NoneOnErase
-		{
-		public:
-			template <typename ANY>
-			void
-			cleanup(ANY&) const
-			{
-			}
-		};
-	}
+    namespace tree 
+    {
+        /**
+         * @brief This cleanup policy does nothing
+         */
+        class NoneOnErase
+        {
+        public:
+            template <typename ANY>
+            void
+            cleanup(ANY&) const
+            {
+            }
+        };
+    }
 
     template<typename ValueType, typename CleanupStrategy = tree::NoneOnErase>
     class Tree
     {
     public:
-	typedef ValueType Value;
-	typedef std::size_t Size;
+        typedef ValueType Value;
+        typedef std::size_t Size;
 
-	virtual ~Tree()
-	{
-		CleanupStrategy cleaner;
-		cleaner.cleanup( value );
-	}
+    virtual ~Tree()
+    {
+        CleanupStrategy cleaner;
+        cleaner.cleanup( value );
+    }
 
-	virtual void setValue(const Value& value)
-	{
-	    this->value = value;
-	}
+    virtual void setValue(const Value& value)
+    {
+        this->value = value;
+    }
 
-	virtual const Value& getValue() const
-	{
-	    return value;
-	}
+    virtual const Value& getValue() const
+    {
+        return value;
+    }
 
-	virtual Size getNoOfSubtrees() const = 0;
+    virtual Size getNoOfSubtrees() const = 0;
 
-	virtual void createSubTree(const Size& no, const Value& value) = 0;
-	virtual void linkSubTree(const Size& no, Tree* subTree) = 0;
+    virtual void createSubTree(const Size& no, const Value& value) = 0;
+    virtual void linkSubTree(const Size& no, Tree* subTree) = 0;
 
-	virtual bool hasSubTree(const Size& no) = 0;
-	virtual Tree* getSubTree(const Size& no) = 0;
- 	virtual const Tree *const getSubTree(const Size& no) const = 0;
+    virtual bool hasSubTree(const Size& no) = 0;
+    virtual Tree* getSubTree(const Size& no) = 0;
+    virtual const Tree *const getSubTree(const Size& no) const = 0;
 
     protected:
 
-	Tree(const Value& value)
-	    : father(NULL), value(value)
-	{}
+    Tree(const Value& value)
+        : father(NULL), value(value)
+    {
+    }
 
 
-	Tree* father;
+    Tree* father;
 
     private:
-	Value value;
+    Value value;
     };
 
 } // container

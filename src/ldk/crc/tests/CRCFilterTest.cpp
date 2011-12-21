@@ -41,218 +41,218 @@
 
 namespace wns { namespace ldk {	namespace crc {
 
-	class CRCFilterTest :
-		public wns::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( CRCFilterTest );
-		CPPUNIT_TEST( testNotMarking );
-		CPPUNIT_TEST( testNoErrorsCommandNotInList );
-		CPPUNIT_TEST( testNoErrorsCommandInList );
-		CPPUNIT_TEST( testErrorsCommandNotInList );
-		CPPUNIT_TEST( testErrorsCommandInList );
-		CPPUNIT_TEST_SUITE_END();
+    class CRCFilterTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( CRCFilterTest );
+        CPPUNIT_TEST( testNotMarking );
+        CPPUNIT_TEST( testNoErrorsCommandNotInList );
+        CPPUNIT_TEST( testNoErrorsCommandInList );
+        CPPUNIT_TEST( testErrorsCommandNotInList );
+        CPPUNIT_TEST( testErrorsCommandInList );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void prepare();
-		void cleanup();
+    public:
+        void prepare();
+        void cleanup();
 
-		void testNotMarking();
-		void testNoErrorsCommandNotInList();
-		void testNoErrorsCommandInList();
-		void testErrorsCommandNotInList();
-		void testErrorsCommandInList();
+        void testNotMarking();
+        void testNoErrorsCommandNotInList();
+        void testNoErrorsCommandInList();
+        void testErrorsCommandNotInList();
+        void testErrorsCommandInList();
 
-	private:
-		ILayer* layer;
-		fun::Main* fuNet;
+    private:
+        ILayer* layer;
+        fun::Main* fuNet;
 
-		tools::Stub* upperNotInList;
-		tools::Stub* upperInList;
-		multiplexer::Dispatcher* dispatcher;
-		CRCFilter* crcFilter;
-		CRC* crc;
-		tools::PERProviderStub* lower;
+        tools::Stub* upperNotInList;
+        tools::Stub* upperInList;
+        multiplexer::Dispatcher* dispatcher;
+        CRCFilter* crcFilter;
+        CRC* crc;
+        tools::PERProviderStub* lower;
 
-		void setUpCRC(const bool dropping);
-		void setUpPERProvider(const double _PER);
-	};
+        void setUpCRC(const bool dropping);
+        void setUpPERProvider(const double _PER);
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( CRCFilterTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( CRCFilterTest );
 
-	void
-	CRCFilterTest::prepare()
-	{
-		layer = new wns::ldk::tests::LayerStub();
-		fuNet = new fun::Main(layer);
+    void
+    CRCFilterTest::prepare()
+    {
+        layer = new wns::ldk::tests::LayerStub();
+        fuNet = new fun::Main(layer);
 
-		wns::pyconfig::Parser emptyConfig;
-		upperNotInList = new tools::Stub(fuNet, emptyConfig);
-		upperInList = new tools::Stub(fuNet, emptyConfig);
+        wns::pyconfig::Parser emptyConfig;
+        upperNotInList = new tools::Stub(fuNet, emptyConfig);
+        upperInList = new tools::Stub(fuNet, emptyConfig);
 
-		wns::pyconfig::Parser dispatcherPyCo;
-		dispatcherPyCo.loadString("import openwns.Multiplexer\n"
-					  "dispatcher = openwns.Multiplexer.Dispatcher(1)\n");
-		wns::pyconfig::View dispatcherView(dispatcherPyCo, "dispatcher");
-		dispatcher = new multiplexer::Dispatcher(fuNet, dispatcherView);
+        wns::pyconfig::Parser dispatcherPyCo;
+        dispatcherPyCo.loadString("import openwns.Multiplexer\n"
+                          "dispatcher = openwns.Multiplexer.Dispatcher(1)\n");
+        wns::pyconfig::View dispatcherView(dispatcherPyCo, "dispatcher");
+        dispatcher = new multiplexer::Dispatcher(fuNet, dispatcherView);
 
-		wns::pyconfig::Parser crcFilterPyCo;
-		crcFilterPyCo.loadString("import openwns.CRC\n"
-					 "crcFilter = openwns.CRC.CRCFilter(\"crc\", [ \"upperInList\" ])\n");
-		wns::pyconfig::View crcFilterView(crcFilterPyCo, "crcFilter");
-		crcFilter = new CRCFilter(fuNet, crcFilterView);
+        wns::pyconfig::Parser crcFilterPyCo;
+        crcFilterPyCo.loadString("import openwns.CRC\n"
+                        "crcFilter = openwns.CRC.CRCFilter(\"crc\", [ \"upperInList\" ])\n");
+        wns::pyconfig::View crcFilterView(crcFilterPyCo, "crcFilter");
+        crcFilter = new CRCFilter(fuNet, crcFilterView);
 
-		fuNet->addFunctionalUnit("upperNotInList", upperNotInList);
-		fuNet->addFunctionalUnit("upperInList", upperInList);
-		fuNet->addFunctionalUnit("dispatcher", dispatcher);
-		fuNet->addFunctionalUnit("crcFilter", crcFilter);
+        fuNet->addFunctionalUnit("upperNotInList", upperNotInList);
+        fuNet->addFunctionalUnit("upperInList", upperInList);
+        fuNet->addFunctionalUnit("dispatcher", dispatcher);
+        fuNet->addFunctionalUnit("crcFilter", crcFilter);
 
-		upperNotInList->connect(dispatcher);
-		upperInList->connect(dispatcher);
+        upperNotInList->connect(dispatcher);
+        upperInList->connect(dispatcher);
 
-		dispatcher->connect(crcFilter);
+        dispatcher->connect(crcFilter);
 
-	} // prepare
-
-
-	void
-	CRCFilterTest::setUpCRC(const bool dropping)
-	{
-		// Construct CRC FU
-		wns::pyconfig::Parser crcPyCo;
-		std::stringstream ss;
-		ss << "import openwns.CRC\n"
-		   << "crc = openwns.CRC.CRC(\"PERstub\",\n"
-		   << "  isDropping = "<< (dropping ? "True" : "False") << ")\n";
-		crcPyCo.loadString(ss.str());
-		wns::pyconfig::View crcView(crcPyCo, "crc");
-		crc = new CRC(fuNet, crcView);
-
-		fuNet->addFunctionalUnit("crc", crc);
-	} // setUpCRC
+    } // prepare
 
 
-	void
-	CRCFilterTest::setUpPERProvider(const double _PER)
-	{
-		// Construct fixed PER stub
-		std::stringstream ss;
-		ss << "fixedPER = "<< _PER <<"\n";
-		wns::pyconfig::Parser perProviderPyCo;
-		perProviderPyCo.loadString(ss.str());
-		lower = new tools::PERProviderStub(fuNet, perProviderPyCo);
+    void
+    CRCFilterTest::setUpCRC(const bool dropping)
+    {
+        // Construct CRC FU
+        wns::pyconfig::Parser crcPyCo;
+        std::stringstream ss;
+        ss << "import openwns.CRC\n"
+           << "crc = openwns.CRC.CRC(\"PERstub\",\n"
+           << "  isDropping = "<< (dropping ? "True" : "False") << ")\n";
+        crcPyCo.loadString(ss.str());
+        wns::pyconfig::View crcView(crcPyCo, "crc");
+        crc = new CRC(fuNet, crcView);
 
-		fuNet->addFunctionalUnit("PERstub", lower);
-	} // setUpPERProvider
-
-
-	void
-	CRCFilterTest::cleanup()
-	{
-		delete fuNet;
-		delete layer;
-	} // cleanup
+        fuNet->addFunctionalUnit("crc", crc);
+    } // setUpCRC
 
 
-	void
-	CRCFilterTest::testNotMarking()
-	{
-		setUpCRC(true);
-		setUpPERProvider(0.0);
+    void
+    CRCFilterTest::setUpPERProvider(const double _PER)
+    {
+        // Construct fixed PER stub
+        std::stringstream ss;
+        ss << "fixedPER = "<< _PER <<"\n";
+        wns::pyconfig::Parser perProviderPyCo;
+        perProviderPyCo.loadString(ss.str());
+        lower = new tools::PERProviderStub(fuNet, perProviderPyCo);
 
-		crcFilter
-			->connect(crc)
-			->connect(lower);
-
-		CPPUNIT_ASSERT_THROW(fuNet->onFUNCreated(), wns::Exception);
-	} // testNotMarking
-
-
-	void
-	CRCFilterTest::testNoErrorsCommandNotInList()
-	{
-		setUpCRC(false);
-		setUpPERProvider(0.0);
-
-		crcFilter
-			->connect(crc)
-			->connect(lower);
-
-		fuNet->onFUNCreated();
-
-		upperNotInList->sendData(fuNet->createCompound());
-
-		CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
-
-		lower->onData(lower->sent[0]);
-
-		CPPUNIT_ASSERT_EQUAL( size_t(1), upperNotInList->received.size() );
-	} // testNoErrorsCommandNotInList
+        fuNet->addFunctionalUnit("PERstub", lower);
+    } // setUpPERProvider
 
 
-	void
-	CRCFilterTest::testNoErrorsCommandInList()
-	{
-		setUpCRC(false);
-		setUpPERProvider(0.0);
-
-		crcFilter
-			->connect(crc)
-			->connect(lower);
-
-		fuNet->onFUNCreated();
-
-		upperInList->sendData(fuNet->createCompound());
-
-		CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
-
-		lower->onData(lower->sent[0]);
-
-		CPPUNIT_ASSERT_EQUAL( size_t(1), upperInList->received.size() );
-	} // testNoErrorsCommandInList
+    void
+    CRCFilterTest::cleanup()
+    {
+        delete fuNet;
+        delete layer;
+    } // cleanup
 
 
-	void
-	CRCFilterTest::testErrorsCommandNotInList()
-	{
-		setUpCRC(false);
-		setUpPERProvider(1.0);
+    void
+    CRCFilterTest::testNotMarking()
+    {
+        setUpCRC(true);
+        setUpPERProvider(0.0);
 
-		crcFilter
-			->connect(crc)
-			->connect(lower);
+        crcFilter
+            ->connect(crc)
+            ->connect(lower);
 
-		fuNet->onFUNCreated();
-
-		upperNotInList->sendData(fuNet->createCompound());
-
-		CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
-
-		lower->onData(lower->sent[0]);
-
-		CPPUNIT_ASSERT_EQUAL( size_t(0), upperNotInList->received.size() );
-	} // testErrorsCommandNotInList
+        CPPUNIT_ASSERT_THROW(fuNet->onFUNCreated(), wns::Exception);
+    } // testNotMarking
 
 
-	void
-	CRCFilterTest::testErrorsCommandInList()
-	{
-		setUpCRC(false);
-		setUpPERProvider(1.0);
+    void
+    CRCFilterTest::testNoErrorsCommandNotInList()
+    {
+        setUpCRC(false);
+        setUpPERProvider(0.0);
 
-		crcFilter
-			->connect(crc)
-			->connect(lower);
+        crcFilter
+            ->connect(crc)
+            ->connect(lower);
 
-		fuNet->onFUNCreated();
+        fuNet->onFUNCreated();
 
-		upperInList->sendData(fuNet->createCompound());
+        upperNotInList->sendData(fuNet->createCompound());
 
-		CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+        CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
 
-		lower->onData(lower->sent[0]);
+        lower->onData(lower->sent[0]);
 
-		CPPUNIT_ASSERT_EQUAL( size_t(1), upperInList->received.size() );
-	} // testErrorsCommandInList
+        CPPUNIT_ASSERT_EQUAL( size_t(1), upperNotInList->received.size() );
+    } // testNoErrorsCommandNotInList
+
+
+    void
+    CRCFilterTest::testNoErrorsCommandInList()
+    {
+        setUpCRC(false);
+        setUpPERProvider(0.0);
+
+        crcFilter
+            ->connect(crc)
+            ->connect(lower);
+
+        fuNet->onFUNCreated();
+
+        upperInList->sendData(fuNet->createCompound());
+
+        CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+
+        lower->onData(lower->sent[0]);
+
+        CPPUNIT_ASSERT_EQUAL( size_t(1), upperInList->received.size() );
+    } // testNoErrorsCommandInList
+
+
+    void
+    CRCFilterTest::testErrorsCommandNotInList()
+    {
+        setUpCRC(false);
+        setUpPERProvider(1.0);
+
+        crcFilter
+            ->connect(crc)
+            ->connect(lower);
+
+        fuNet->onFUNCreated();
+
+        upperNotInList->sendData(fuNet->createCompound());
+
+        CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+
+        lower->onData(lower->sent[0]);
+
+        CPPUNIT_ASSERT_EQUAL( size_t(0), upperNotInList->received.size() );
+    } // testErrorsCommandNotInList
+
+
+    void
+    CRCFilterTest::testErrorsCommandInList()
+    {
+        setUpCRC(false);
+        setUpPERProvider(1.0);
+
+        crcFilter
+            ->connect(crc)
+            ->connect(lower);
+
+        fuNet->onFUNCreated();
+
+        upperInList->sendData(fuNet->createCompound());
+
+        CPPUNIT_ASSERT_EQUAL( size_t(1), lower->sent.size() );
+
+        lower->onData(lower->sent[0]);
+
+        CPPUNIT_ASSERT_EQUAL( size_t(1), upperInList->received.size() );
+    } // testErrorsCommandInList
 
 } // crc
 } // ldk

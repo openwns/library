@@ -37,138 +37,139 @@ using namespace wns::ldk::command;
 STATIC_FACTORY_REGISTER_WITH_CREATOR(FlowControl, FunctionalUnit, "wns.command.FlowControl", FUNConfigCreator);
 
 FlowControl::FlowControl(fun::FUN* fuNet, const wns::pyconfig::View& _config) :
-		CommandTypeSpecifier<FlowControlCommand>(fuNet),
-		HasReceptor<>(),
-		HasConnector<>(),
-		HasDeliverer<>(),
-		Delayed<FlowControl>(),
-		Cloneable<FlowControl>(),
+        CommandTypeSpecifier<FlowControlCommand>(fuNet),
+        HasReceptor<>(),
+        HasConnector<>(),
+        HasDeliverer<>(),
+        Delayed<FlowControl>(),
+        Cloneable<FlowControl>(),
 
-		config(_config),
-		toSend(CompoundPtr()),
-		logger("WNS", config.get<std::string>("name"))
+        config(_config),
+        toSend(CompoundPtr()),
+        logger("WNS", config.get<std::string>("name"))
 {
-	friends.gate = 0;
+    friends.gate = 0;
 } // FlowControl
 
 
 void
 FlowControl::open()
 {
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " open";
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " open";
+    MESSAGE_END();
 
-	friends.gate->setOutgoingState(tools::GateInterface::OPEN);
-	send(FlowControlCommand::START);
+    friends.gate->setOutgoingState(tools::GateInterface::OPEN);
+    send(FlowControlCommand::START);
 } // open
 
 
 void
 FlowControl::close()
 {
-	MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-	m << " close";
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+    m << " close";
+    MESSAGE_END();
 
-	friends.gate->setOutgoingState(tools::GateInterface::CLOSED);
-	send(FlowControlCommand::STOP);
+    friends.gate->setOutgoingState(tools::GateInterface::CLOSED);
+    send(FlowControlCommand::STOP);
 } // close
 
 
 bool
 FlowControl::hasCapacity() const
 {
-	return false;
+    return false;
 } // hasCapacity
 
 
 void
 FlowControl::processOutgoing(const CompoundPtr& /* compound */)
 {
-	assure(false, "command::FlowControl never accepts compounds.");
+    assure(false, "command::FlowControl never accepts compounds.");
 } // processOutgoing
 
 
 void
 FlowControl::processIncoming(const CompoundPtr& compound)
 {
-	FlowControlCommand* command = getCommand(compound->getCommandPool());
+    FlowControlCommand* command = getCommand(compound->getCommandPool());
 
-	switch(command->peer.type) {
-	case FlowControlCommand::START:
-		MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-		m << " received START";
-		MESSAGE_END();
+    switch(command->peer.type)
+    {
+    case FlowControlCommand::START:
+        MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+        m << " received START";
+        MESSAGE_END();
 
-		friends.gate->setOutgoingState(tools::GateInterface::OPEN);
-		break;
+        friends.gate->setOutgoingState(tools::GateInterface::OPEN);
+        break;
 
-	case FlowControlCommand::STOP:
-		MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
-		m << " received STOP";
-		MESSAGE_END();
+    case FlowControlCommand::STOP:
+        MESSAGE_BEGIN(NORMAL, logger, m, getFUN()->getName());
+        m << " received STOP";
+        MESSAGE_END();
 
-		friends.gate->setOutgoingState(tools::GateInterface::CLOSED);
-		break;
-	}
+        friends.gate->setOutgoingState(tools::GateInterface::CLOSED);
+        break;
+    }
 } // doOnData
 
 
 const CompoundPtr
 FlowControl::hasSomethingToSend() const
 {
-	return toSend;
+    return toSend;
 } // hasSomethingToSend
 
 
 CompoundPtr
 FlowControl::getSomethingToSend()
 {
-	CompoundPtr it = toSend;
-	toSend = CompoundPtr();
-	return it;
+    CompoundPtr it = toSend;
+    toSend = CompoundPtr();
+    return it;
 } // getSomethingToSend
 
 
 void
 FlowControl::send(FlowControlCommand::FrameType type)
 {
-	toSend = CompoundPtr(getFUN()->createCompound());
+    toSend = CompoundPtr(getFUN()->createCompound());
 
-	FlowControlCommand* command = activateCommand(toSend->getCommandPool());
-	command->peer.type = type;
+    FlowControlCommand* command = activateCommand(toSend->getCommandPool());
+    command->peer.type = type;
 
-	tryToSend();
+    tryToSend();
 } // send
 
 
 void
 FlowControl::onFUNCreated()
 {
-	std::string gateName = config.get<std::string>("gateName");
-	friends.gate = getFUN()->findFriend<tools::GateInterface*>(gateName);
+    std::string gateName = config.get<std::string>("gateName");
+    friends.gate = getFUN()->findFriend<tools::GateInterface*>(gateName);
 } // onFUNCreated
 
 
 void
 FlowControl::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const
 {
-	getFUN()->calculateSizes(commandPool, commandPoolSize, dataSize, this);
+    getFUN()->calculateSizes(commandPool, commandPoolSize, dataSize, this);
 
-	commandPoolSize += 1;				// START / STOP bit
+    commandPoolSize += 1;				// START / STOP bit
 } // calculateSizes
 
 
 CommandPool*
 FlowControl::createReply(const CommandPool* /* original */) const
 {
-	MESSAGE_BEGIN(NORMAL, logger, m, "createReply");
-	MESSAGE_END();
+    MESSAGE_BEGIN(NORMAL, logger, m, "createReply");
+    MESSAGE_END();
 
-	CommandPool* commandPool = getFUN()->createCommandPool();
+    CommandPool* commandPool = getFUN()->createCommandPool();
 
-	return commandPool;
+    return commandPool;
 } // createReply
 
 

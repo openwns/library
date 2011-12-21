@@ -41,25 +41,28 @@
 
 namespace wns { namespace distribution {
 
-	/**
-	 * @brief Interface for random number distributions (generic)
-	 *
-	 * @author Fabian Debus <fds@comnets.rwth-aachen.de>
-	 */
-	class Distribution
-	{
-	public:
+    /**
+     * @brief Interface for random number distributions (generic)
+     *
+     * @author Fabian Debus <fds@comnets.rwth-aachen.de>
+     */
+    class Distribution
+    {
+    public:
         Distribution() :
             rng_(wns::simulator::getRNG())
-        {};
+        {
+        };
 
         Distribution(wns::rng::RNGen* rng) :
             rng_(rng)
-        {};
+        {
+        };
 
-		virtual
-		~Distribution()
-		{};
+        virtual
+        ~Distribution()
+        {
+        };
 
         /**
          * @brief returns the random value according to the
@@ -68,14 +71,14 @@ namespace wns { namespace distribution {
         virtual double
         operator()() = 0;
 
-		friend std::ostream&
-		operator <<(std::ostream& os, const Distribution& d)
-		{
-			os << d.paramString();
-			return os;
-		};
+        friend std::ostream&
+        operator <<(std::ostream& os, const Distribution& d)
+        {
+            os << d.paramString();
+            return os;
+        };
 
-	protected:
+    protected:
 
         wns::rng::RNGen*
         getRNG()
@@ -83,40 +86,40 @@ namespace wns { namespace distribution {
             return rng_;
         };
 
-	private:
+    private:
         /**
          * @brief returns a string describing distribution and
          * parameters
          */
-		virtual std::string
-		paramString() const = 0;
+        virtual std::string
+        paramString() const = 0;
 
         wns::rng::RNGen* rng_;
 
-	}; // Distribution
+    }; // Distribution
 
-	typedef PyConfigViewCreator<Distribution> DistributionCreator;
-	typedef StaticFactory<DistributionCreator> DistributionFactory;
+    typedef PyConfigViewCreator<Distribution> DistributionCreator;
+    typedef StaticFactory<DistributionCreator> DistributionFactory;
 
     typedef RNGConfigCreator<Distribution> RNGDistributionCreator;
     typedef StaticFactory<RNGDistributionCreator> RNGDistributionFactory;
 
-	/**
-	 * @brief Interface for random number distributions which have nice
-	 * statistical properties like known mean (variance etc) values
-	 *
-	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 */
-	class IHasMean
-	{
-	public:
+    /**
+     * @brief Interface for random number distributions which have nice
+     * statistical properties like known mean (variance etc) values
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     */
+    class IHasMean
+    {
+    public:
 
- 		/**
- 		 * @brief Mean value of the distribution
- 		 */
- 		virtual double
- 		getMean() const = 0;
-	};
+        /**
+         * @brief Mean value of the distribution
+         */
+        virtual double
+        getMean() const = 0;
+    };
 } // distribution
 } // wns
 

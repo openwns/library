@@ -47,57 +47,60 @@
 
 namespace wns { namespace ldk { namespace fun {
 
-	class FUNTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( FUNTest );
-		CPPUNIT_TEST( testLayerDelegation );
-		CPPUNIT_TEST( testAdd );
-		CPPUNIT_TEST_EXCEPTION( testAddAlready1, wns::Exception );
+    class FUNTest : public CppUnit::TestFixture 
+    {
+        CPPUNIT_TEST_SUITE( FUNTest );
+        CPPUNIT_TEST( testLayerDelegation );
+        CPPUNIT_TEST( testAdd );
+        CPPUNIT_TEST_EXCEPTION( testAddAlready1, wns::Exception );
 #ifdef WNS_ASSURE_THROWS_EXCEPTION
-		CPPUNIT_TEST_EXCEPTION( testAddAlready2, wns::Assure::Exception );
+        CPPUNIT_TEST_EXCEPTION( testAddAlready2, wns::Assure::Exception );
 #endif // WNS_ASSURE_THROWS_EXCEPTION
-		CPPUNIT_TEST( testConnect );
-		CPPUNIT_TEST_EXCEPTION( testUnknownConnect1, wns::Exception );
-		CPPUNIT_TEST_EXCEPTION( testUnknownConnect2, wns::Exception );
-		CPPUNIT_TEST( testUpConnect );
-		CPPUNIT_TEST( testDownConnect );
-		CPPUNIT_TEST( testFindFriend );
-		CPPUNIT_TEST_EXCEPTION( testFindFriendUnknown, wns::Exception );
-		CPPUNIT_TEST( testFindFriendBad );
-		CPPUNIT_TEST_SUITE_END_ABSTRACT();
+        CPPUNIT_TEST( testConnect );
+        CPPUNIT_TEST_EXCEPTION( testUnknownConnect1, wns::Exception );
+        CPPUNIT_TEST_EXCEPTION( testUnknownConnect2, wns::Exception );
+        CPPUNIT_TEST( testUpConnect );
+        CPPUNIT_TEST( testDownConnect );
+        CPPUNIT_TEST( testFindFriend );
+        CPPUNIT_TEST_EXCEPTION( testFindFriendUnknown, wns::Exception );
+        CPPUNIT_TEST( testFindFriendBad );
+        CPPUNIT_TEST_SUITE_END_ABSTRACT();
 
-	public:
-		void setUp();
-		void tearDown();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testLayerDelegation();
-		void testAdd();
-		void testAddAlready1();
-		void testAddAlready2();
-		void testConnect();
-		void testUnknownConnect1();
-		void testUnknownConnect2();
-		void testUpConnect();
-		void testDownConnect();
-		void testFindFriend();
-		void testFindFriendUnknown();
-		void testFindFriendBad();
+        void testLayerDelegation();
+        void testAdd();
+        void testAddAlready1();
+        void testAddAlready2();
+        void testConnect();
+        void testUnknownConnect1();
+        void testUnknownConnect2();
+        void testUpConnect();
+        void testDownConnect();
+        void testFindFriend();
+        void testFindFriendUnknown();
+        void testFindFriendBad();
 
-		wns::ldk::fun::FUN*
-		getFUN();
+        wns::ldk::fun::FUN*
+        getFUN();
 
-	protected:
-		virtual wns::ldk::fun::FUN* newCandidate(wns::ldk::ILayer* layer) = 0;
-		virtual void deleteCandidate(wns::ldk::fun::FUN* fun) = 0;
+    protected:
+        virtual wns::ldk::fun::FUN* newCandidate(wns::ldk::ILayer* layer) = 0;
+        virtual void deleteCandidate(wns::ldk::fun::FUN* fun) = 0;
 
-		FunctionalUnit* fu1;
-		FunctionalUnit* fu2;
+        FunctionalUnit* fu1;
+        FunctionalUnit* fu2;
 
-	private:
-		ILayer* layer;
-		wns::ldk::fun::FUN* fuNet;
-	};
+    private:
+        ILayer* layer;
+        wns::ldk::fun::FUN* fuNet;
+    };
 
-}}}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_FUN_TEST_FUN_HPP
 

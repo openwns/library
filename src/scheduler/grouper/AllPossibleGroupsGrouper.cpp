@@ -37,93 +37,103 @@ using namespace wns::scheduler::grouper;
 void // I have to overload this to initialize the probe when I have the registry
 AllPossibleGroupsGrouper::setColleagues(RegistryProxyInterface* _registry)
 {
-	//GroupingProviderInterface::setColleagues(_traffic, _registry);
-	SpatialGrouper::setColleagues(_registry);
+    //GroupingProviderInterface::setColleagues(_traffic, _registry);
+    SpatialGrouper::setColleagues(_registry);
 }
 
 std::map<UserID, wns::CandI>
 AllPossibleGroupsGrouper::getCandIs(std::vector<UserID> allUsers,
-						 std::bitset<MAX_STATIONS> bitset, ModeType mode) {
-	std::map<UserID, wns::CandI> candis;
-	candis.clear();
+                                    std::bitset<MAX_STATIONS> bitset, ModeType mode)
+{
+    std::map<UserID, wns::CandI> candis;
+    candis.clear();
 
-	unsigned int noOfStations = allUsers.size();
+    unsigned int noOfStations = allUsers.size();
 
-	switch(mode) {
-	case tx:
-	{
-		if (beamforming){
+    switch(mode)
+    {
+        case tx:
+        {
+            if (beamforming)
+            {
 
-            std::map<wns::node::Interface*, wns::Power> userNoiseIInterMap;
-			userNoiseIInterMap.clear();
+                std::map<wns::node::Interface*, wns::Power> userNoiseIInterMap;
+                userNoiseIInterMap.clear();
 
-			for (unsigned int k = 0; k < noOfStations; ++k)
-				if (bitset.test(k)) {
-					userNoiseIInterMap[allUsers[k].getNode()] = 
-                        colleagues.registry->estimateTxSINRAt(allUsers[k]).interference;
-				}
-			candis = convertMap(friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower));
-		}
-		else{ // no beamforming
-			assure(noOfStations == 1, "We don't do beamforming, so only one-user groups are supported");
-			UserID user = allUsers[0];
-            wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
+                for (unsigned int k = 0; k < noOfStations; ++k)
+                if (bitset.test(k))
+                {
+                    userNoiseIInterMap[allUsers[k].getNode()] = 
+                    colleagues.registry->estimateTxSINRAt(allUsers[k]).interference;
+                }
+            candis = convertMap(friends.ofdmaProvider->calculateCandIsTx(userNoiseIInterMap, x_friendliness, txPower));
+            }   
+            else
+            { 
+                // no beamforming
+                assure(noOfStations == 1, "We don't do beamforming, so only one-user groups are supported");
+                UserID user = allUsers[0];
+                wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
                 colleagues.registry->estimateTxSINRAt(user);
-			candis[user] = wns::CandI(cqi.carrier, cqi.interference);
-		}
+                candis[user] = wns::CandI(cqi.carrier, cqi.interference);
+            }
 
-		break;
-	}
-	case rx:
-	{
-		if (beamforming){
-            std::vector<wns::node::Interface*> combination;
-			combination.clear();
+            break;
+        }
+        case rx:
+        {
+            if (beamforming)
+            {
+                std::vector<wns::node::Interface*> combination;
+                combination.clear();
 
-			for (unsigned int k = 0; k < noOfStations; ++k)
-				if (bitset.test(k)) {
+                for (unsigned int k = 0; k < noOfStations; ++k)
+                if (bitset.test(k))
+                {
                     combination.push_back(allUsers[k].getNode());
-				}
-			candis = convertMap(friends.ofdmaProvider->calculateCandIsRx(combination,
-			    colleagues.registry->estimateRxSINROf(allUsers[0]).interference));
-			//use estimated interference of user 0 for all other
-			//terminals as well, maybe average over all entries?
-			//see TreeBasedGrouper
-		}
-		else{ // no beamforming
-
-			assure(noOfStations == 1, "We don't do beamforming, so only one-user groups are supported");
-			UserID user = allUsers[0];
+                }
+                candis = convertMap(friends.ofdmaProvider->calculateCandIsRx(combination,
+                colleagues.registry->estimateRxSINROf(allUsers[0]).interference));
+                //use estimated interference of user 0 for all other
+                //terminals as well, maybe average over all entries?
+                //see TreeBasedGrouper
+            }
+            else
+            {
+            // no beamforming
+            assure(noOfStations == 1, "We don't do beamforming, so only one-user groups are supported");
+            UserID user = allUsers[0];
             wns::scheduler::ChannelQualityOnOneSubChannel cqi = 
-                colleagues.registry->estimateRxSINROf(user);
-			candis[user] = wns::CandI(cqi.carrier, cqi.interference);
-		}
+            colleagues.registry->estimateRxSINROf(user);
+            candis[user] = wns::CandI(cqi.carrier, cqi.interference);
+            }
 
-		break;
-	}
-	default:
-		assure(0, "Wrong mode, can  either be RX or TX");
-	}
-	return candis;
+            break;
+        }
+        default:
+            assure(0, "Wrong mode, can  either be RX or TX");
+    }
+    return candis;
 }
 
 float
 AllPossibleGroupsGrouper::getTPperGroupTrivialGrouping(int noOfStations)
-{ // what would be the throughput / #users when every user is served on its own,
-  // i.e. not grouped
+{
+    // what would be the throughput / #users when every user is served on its own,
+    // i.e. not grouped
 
-	// we simply iterate over allPossibleGroups and extract all servedStations
-	// bitsets that have exactly one bit - the ith - set. The matching bitsets
-	// cannot be accessed directly because they are not necessarily at position
-	// 2^i because invalid groups (too many beams, no service etc) got deleted
+    // we simply iterate over allPossibleGroups and extract all servedStations
+    // bitsets that have exactly one bit - the ith - set. The matching bitsets
+    // cannot be accessed directly because they are not necessarily at position
+    // 2^i because invalid groups (too many beams, no service etc) got deleted
 
-	unsigned int j = 0;
-	float totalTP = 0.0;
+    unsigned int j = 0;
+    float totalTP = 0.0;
 
-	for (int i = 0; i < noOfStations; ++i)
-	{
-		while (!(allPossibleGroups[j].servedStations.test(i) &&
-				 (allPossibleGroups[j].servedStations.count() == 1)))
+    for (int i = 0; i < noOfStations; ++i)
+    {
+        while (!(allPossibleGroups[j].servedStations.test(i) &&
+                (allPossibleGroups[j].servedStations.count() == 1)))
 		{
 			++j;
 			if (j == allPossibleGroups.size())

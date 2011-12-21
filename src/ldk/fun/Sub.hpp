@@ -39,92 +39,94 @@
 
 namespace wns { namespace ldk { namespace fun {
 
-	/**
-	 * @brief Sub - A Functional Unit Network in a Functional Unit Network in a ...
-	 *
-	 * @sa @ref LayerDevelopmentPage
-	 *
-	 */
-	class Sub :
-		public virtual FUN
-	{
-	public:
-		typedef std::map<std::string, FunctionalUnit*> FunctionalUnitMap;
+    /**
+     * @brief Sub - A Functional Unit Network in a Functional Unit Network in a ...
+     *
+     * @sa @ref LayerDevelopmentPage
+     *
+     */
+    class Sub :
+        public virtual FUN
+    {
+    public:
+        typedef std::map<std::string, FunctionalUnit*> FunctionalUnitMap;
 
-		Sub(fun::FUN* fuNet);
-		virtual ~Sub();
+        Sub(fun::FUN* fuNet);
+        virtual ~Sub();
 
-		//
-		// FUN interface realization
-		//
+        //
+        // FUN interface realization
+        //
 
-		// FUN construction
-		virtual void addFunctionalUnit(const std::string& commandName, const std::string& functionalUnitName, FunctionalUnit* functionalUnit);
-		virtual void addFunctionalUnit(const std::string& name, FunctionalUnit* functionalUnit);
-		virtual void removeFunctionalUnit(const std::string& name);
-		virtual void connectFunctionalUnit(
+        // FUN construction
+        virtual void addFunctionalUnit(const std::string& commandName, const std::string& functionalUnitName, FunctionalUnit* functionalUnit);
+        virtual void addFunctionalUnit(const std::string& name, FunctionalUnit* functionalUnit);
+        virtual void removeFunctionalUnit(const std::string& name);
+        virtual void connectFunctionalUnit(
                     const std::string& upperName, const std::string& lowerName,
                     const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort");
 
-		virtual void upConnectFunctionalUnit(
+        virtual void upConnectFunctionalUnit(
                     const std::string& upperName, const std::string& lowerName,
                     const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort");
 
-		virtual void downConnectFunctionalUnit(
+        virtual void downConnectFunctionalUnit(
                     const std::string& upperName, const std::string& lowerName,
                     const std::string& srcPort = "SinglePort", const std::string& dstPort = "SinglePort");
 
-            //		virtual void reconfigureFUN(const wns::pyconfig::View& reconfig);
-		virtual void removeFUsFromCommandPool();
+        //      virtual void reconfigureFUN(const wns::pyconfig::View& reconfig);
+        virtual void removeFUsFromCommandPool();
 
-		// FU access
-		virtual FunctionalUnit* getFunctionalUnit(const std::string& name) const;
-		virtual bool knowsFunctionalUnit(const std::string& name) const;
+        // FU access
+        virtual FunctionalUnit* getFunctionalUnit(const std::string& name) const;
+        virtual bool knowsFunctionalUnit(const std::string& name) const;
 
-		// setter
-		virtual void setNameParentFU(std::string _name);
+        // setter
+        virtual void setNameParentFU(std::string _name);
 
-		// getter
-		virtual CommandProxy* getProxy() const;
-		virtual ILayer* getLayer() const;
-		virtual std::string getName() const;
-		virtual LinkHandlerInterface* getLinkHandler() const;
-		virtual CommandReaderInterface* getCommandReader(const std::string& commandName) const;
-		virtual std::string getNameParentFU() const;
+        // getter
+        virtual CommandProxy* getProxy() const;
+        virtual ILayer* getLayer() const;
+        virtual std::string getName() const;
+        virtual LinkHandlerInterface* getLinkHandler() const;
+        virtual CommandReaderInterface* getCommandReader(const std::string& commandName) const;
+        virtual std::string getNameParentFU() const;
 
-		// delayed configuration
-		void onFUNCreated();
+        // delayed configuration
+        void onFUNCreated();
 
 		virtual void onShutdown();
 
-		//
-		// new stuff
-		//
-		fun::FUN*
-		getParent()
-		{
-			return parent;
-		} // getParent
+        //
+        // new stuff
+        //
+        fun::FUN*
+        getParent()
+        {
+            return parent;
+        } // getParent
 
             //		fun::Sub* clone() const;
 
-	private:
-		virtual bool _knowsFunctionalUnit(const std::string& name) const;
+    private:
+        virtual bool _knowsFunctionalUnit(const std::string& name) const;
             /*
             template<RECEPTACLETYPE>
             void
             translateLink(Link<RECEPTACLETYPE>* link,
                           const std::map<RECEPTACLETYPE*,RECEPTACLETYPE*>& translate);
             */
-		fun::FUN* parent;
-		ILayer* layer;
-		CommandProxy* proxy;
-		FunctionalUnitMap fuMap;
-		LinkHandlerInterface* linkHandler;
-		std::string nameParentFU;
-	};
+        fun::FUN* parent;
+        ILayer* layer;
+        CommandProxy* proxy;
+        FunctionalUnitMap fuMap;
+        LinkHandlerInterface* linkHandler;
+        std::string nameParentFU;
+    };
 
-}}}
+}
+}
+}
 
 
 

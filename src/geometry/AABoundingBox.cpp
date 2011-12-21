@@ -30,25 +30,28 @@
 using namespace wns::geometry;
 
 AABoundingBox::AABoundingBox() :
-	a(),
-	b()
-{}
+    a(),
+    b()
+{
+}
 
 AABoundingBox::AABoundingBox(const Point& a, const Point& b) :
-	a(std::min(a.getX(), b.getX()), std::min(a.getY(), b.getY()), 0),
-	b(std::max(a.getX(), b.getX()), std::max(a.getY(), b.getY()), 0)
-{}
+    a(std::min(a.getX(), b.getX()), std::min(a.getY(), b.getY()), 0),
+    b(std::max(a.getX(), b.getX()), std::max(a.getY(), b.getY()), 0)
+{
+}
 
 
 // AABoundingBox::AABoundingBox(const std::vector<Point>& vertices) :
-// 	a(),
-// 	b()
+//  a(),
+//  b()
 // {
-// 	/** @todo: minX, minY, minY, maxY aus allen Points */
+//  /** @todo: minX, minY, minY, maxY aus allen Points */
 // }
 
 AABoundingBox::~AABoundingBox()
-{}
+{
+}
 
 
 bool
@@ -63,12 +66,12 @@ AABoundingBox::intersects(const AABoundingBox& other) const
     const double& theirY1 = other.a.getY();
     const double& theirY2 = other.b.getY();
     return (ourX2 >= theirX1)
-	&& (ourX1 <= theirX2)
-	&& (ourY2 >= theirY1)
-	&& (ourY1 <= theirY2);
+    && (ourX1 <= theirX2)
+    && (ourY2 >= theirY1)
+    && (ourY1 <= theirY2);
 }
 
-bool 
+bool
 AABoundingBox::contains(const Point& other) const
 {
     const double& ourX1 = a.getX();
@@ -78,12 +81,12 @@ AABoundingBox::contains(const Point& other) const
     const double& theirX = other.getX();
     const double& theirY = other.getY();
     return (ourX1 <= theirX)
-	&& (ourX2 >= theirX)
-	&& (ourY1 <= theirY)
-	&& (ourY2 >= theirY);
+    && (ourX2 >= theirX)
+    && (ourY1 <= theirY)
+    && (ourY2 >= theirY);
 }
 
-bool 
+bool
 AABoundingBox::contains(const AABoundingBox other) const
 {
     const double& ourX1 = a.getX();
@@ -95,9 +98,9 @@ AABoundingBox::contains(const AABoundingBox other) const
     const double& theirY1 = other.a.getY();
     const double& theirY2 = other.b.getY();
     return (ourX1 <= theirX1)
-	&& (ourX2 >= theirX2)
-	&& (ourY1 <= theirY1)
-	&& (ourY2 >= theirY2);
+    && (ourX2 >= theirX2)
+    && (ourY1 <= theirY1)
+    && (ourY2 >= theirY2);
 }
 
 
@@ -107,25 +110,22 @@ AABoundingBox::contains(const AABoundingBox other) const
 void 
 AABoundingBox::operator=(const AABoundingBox& other)
 {
-	a = other.a;
-	b = other.b;
+    a = other.a;
+    b = other.b;
 }
 
 bool 
 AABoundingBox::operator==(const AABoundingBox& other) const
 {
-	return
-	        a == other.a &&
-	        b == other.b;
-	
+    return
+            a == other.a &&
+            b == other.b;
+
 }
 
 bool 
 AABoundingBox::operator!=(const AABoundingBox& other) const
 {
-	return !(*this == other);
+    return !(*this == other);
 }
-
-
-
 

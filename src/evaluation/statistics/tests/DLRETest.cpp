@@ -68,7 +68,10 @@ namespace wns { namespace evaluation { namespace statistics { namespace tests {
                     void generateSamples(StatEvalInterface* ifc) const;
                 };
 
-            }}}}
+}
+}
+}
+}
 
 using namespace wns::evaluation::statistics::tests;
 

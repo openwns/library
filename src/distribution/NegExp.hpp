@@ -35,15 +35,15 @@ namespace wns { namespace distribution {
 
     typedef wns::rng::VariateGenerator< boost::exponential_distribution<> > NegExpDist;
 
-	/**
-	 * @brief Generate random numbers accoriding to negative exponential
-	 * distribution.
-	 */
-	class NegExp :
+    /**
+     * @brief Generate random numbers accoriding to negative exponential
+     * distribution.
+     */
+    class NegExp :
         public Distribution,
         public IHasMean
-	{
-	public:
+    {
+    public:
         explicit
         NegExp(const double mean, 
             wns::rng::RNGen* rng = wns::simulator::getRNG());
@@ -54,22 +54,22 @@ namespace wns { namespace distribution {
         explicit
         NegExp(wns::rng::RNGen* rng, const pyconfig::View& config);
 
-		virtual
-		~NegExp();
+        virtual
+        ~NegExp();
 
-		virtual double
-		operator()();
+        virtual double
+        operator()();
 
-		virtual double
-		getMean() const;
+        virtual double
+        getMean() const;
 
-		virtual std::string
-		paramString() const;
+        virtual std::string
+        paramString() const;
 
-	private:
-		double mean_;
-		NegExpDist dis_;
-	};
+    private:
+        double mean_;
+        NegExpDist dis_;
+    };
 } // distribution
 } // wns
 

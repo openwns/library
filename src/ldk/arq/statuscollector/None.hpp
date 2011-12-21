@@ -34,20 +34,20 @@
 #include <WNS/ldk/PyConfigCreator.hpp>
 
 namespace wns { namespace ldk { namespace arq { namespace statuscollector {
-	/**
-	 * @brief Dummy ARQStatusCollector which does nothing, default collector for the ARQs
-	 */
+    /**
+     * @brief Dummy ARQStatusCollector which does nothing, default collector for the ARQs
+     */
 
-	class None:
-		public Interface
-	{
-	public:
-		None(const wns::pyconfig::View& config);
-		void reset();
-		void onSuccessfullTransmission(const CompoundPtr& compound);
-		void onFailedTransmission(const CompoundPtr& compound);
-		double getSuccessRate(const CompoundPtr& compound);
-	};
+    class None:
+        public Interface
+    {
+    public:
+        None(const wns::pyconfig::View& config);
+        void reset();
+        void onSuccessfullTransmission(const CompoundPtr& compound);
+        void onFailedTransmission(const CompoundPtr& compound);
+        double getSuccessRate(const CompoundPtr& compound);
+    };
 }
 }
 }

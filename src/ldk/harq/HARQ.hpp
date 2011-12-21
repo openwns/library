@@ -42,7 +42,8 @@ namespace wns { namespace ldk { namespace harq {
     {
     public:
 
-        typedef enum{
+        typedef enum
+        {
             I,
             ACK,
             NACK,
@@ -57,17 +58,24 @@ namespace wns { namespace ldk { namespace harq {
             peer.rv = 0;
         }
 
-        struct {
-        } local;
+        struct
+        {
+        }
+        local;
 
-        struct {
+        struct
+        {
             FrameType type;
             bool NDI;
             int processId;
             int rv;
-        } peer;
+        }
+        peer;
 
-        struct {} magic;
+        struct
+        {
+        }
+        magic;
 
     };
 

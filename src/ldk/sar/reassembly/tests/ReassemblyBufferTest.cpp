@@ -49,7 +49,8 @@ public:
         wns::ldk::tools::StubBase(),
         wns::ldk::CommandTypeSpecifier<SegAndConcatCommand>(fun),
         wns::Cloneable<SegAndConcatStubFU>()
-    {}
+    {
+    }
 
     virtual void
     calculateSizes(const wns::ldk::CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const

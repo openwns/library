@@ -33,48 +33,55 @@
 
 #include <WNS/pyconfig/View.hpp>
 
-namespace wns{	namespace geometry{
+namespace wns {  namespace geometry {
 
-    class LineSegment : public Shape2D    {
+    class LineSegment : public Shape2D
+    {
     public:
         LineSegment();
         LineSegment(const Point& a, const Point& b);
         LineSegment(const Point& a, const Vector& db);
         LineSegment(const wns::pyconfig::View& config);
-	
-	virtual
-	~LineSegment();
 
-	const Point& 
-	getA() const { return a; }
-	
-	const Point& 
-	getB() const { return b; }
-	
-	bool 
-	contains(const Point& point) const;
-	
-	bool 
-	leftOf(const Point& point) const;
-	
-	bool 
-	rightOf(const Point& point) const;
-	
-	bool
-	touches(const LineSegment& other) const;
-	
-	bool 
-	intersects(const LineSegment& that) const;
-	
-	virtual unsigned int 
-	countBorderIntersections(const LineSegment& line) const;
+    virtual
+    ~LineSegment();
 
-	double 
-	crossProduct(const Point& x) const;
-	
-	bool 
-	straddles(const LineSegment& other) const;
-	
+    const Point& 
+    getA() const
+    {
+        return a;
+    }
+
+    const Point& 
+    getB() const
+    {
+        return b;
+    }
+
+    bool
+    contains(const Point& point) const;
+
+    bool
+    leftOf(const Point& point) const;
+
+    bool
+    rightOf(const Point& point) const;
+
+    bool
+    touches(const LineSegment& other) const;
+
+    bool
+    intersects(const LineSegment& that) const;
+
+    virtual unsigned int
+    countBorderIntersections(const LineSegment& line) const;
+
+    double
+    crossProduct(const Point& x) const;
+
+    bool
+    straddles(const LineSegment& other) const;
+
     };
 }//geometry
 }//wns

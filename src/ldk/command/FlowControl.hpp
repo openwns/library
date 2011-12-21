@@ -43,76 +43,89 @@
 
 namespace wns { namespace ldk { namespace command {
 
-	class FlowControlInterface
-	{
-	public:
-		virtual void open() = 0;
-		virtual void close() = 0;
+    class FlowControlInterface
+    {
+    public:
+        virtual void open() = 0;
+        virtual void close() = 0;
 
-	protected:
-		virtual ~FlowControlInterface() {}
-	};
+    protected:
+        virtual ~FlowControlInterface()
+        {
+        }
+    };
 
 
-	class FlowControlCommand :
-		public Command
-	{
-	public:
-		typedef enum {START, STOP} FrameType;
+    class FlowControlCommand :
+        public Command
+    {
+    public:
+        typedef enum {START, STOP} FrameType;
 
-		struct {} local;
-		struct {
-			FrameType type;
-		} peer;
-		struct {} magic;
-	};
+        struct
+        {
+        }
+        local;
+        struct
+        {
+            FrameType type;
+        } peer;
+        struct
+        {
+        }
+        magic;
+    };
 
-	/**
-	 * @brief Start/stop accepting incoming/outgoing compounds.
-	 *
-	 * Control a Gate via the GateInterface.
-	 */
-	class FlowControl :
-		public CommandTypeSpecifier<FlowControlCommand>,
-		public HasReceptor<>,
-		public HasConnector<>,
-		public HasDeliverer<>,
-		public Delayed<FlowControl>,
-		public Cloneable<FlowControl>
-	{
-	public:
-		FlowControl(fun::FUN* fuNet, const wns::pyconfig::View& config);
+    /**
+     * @brief Start/stop accepting incoming/outgoing compounds.
+     *
+     * Control a Gate via the GateInterface.
+     */
+    class FlowControl :
+        public CommandTypeSpecifier<FlowControlCommand>,
+        public HasReceptor<>,
+        public HasConnector<>,
+        public HasDeliverer<>,
+        public Delayed<FlowControl>,
+        public Cloneable<FlowControl>
+    {
+    public:
+        FlowControl(fun::FUN* fuNet, const wns::pyconfig::View& config);
 
-		// FlowControl interface
-		virtual void open();
-		virtual void close();
+        // FlowControl interface
+        virtual void open();
+        virtual void close();
 
-		// PDUHandler interface
-		virtual void processIncoming(const CompoundPtr& compound);
-		virtual void processOutgoing(const CompoundPtr& compound);
-		virtual bool hasCapacity() const;
-		virtual const CompoundPtr hasSomethingToSend() const;
-		virtual CompoundPtr getSomethingToSend();
+        // PDUHandler interface
+        virtual void processIncoming(const CompoundPtr& compound);
+        virtual void processOutgoing(const CompoundPtr& compound);
+        virtual bool hasCapacity() const;
+        virtual const CompoundPtr hasSomethingToSend() const;
+        virtual CompoundPtr getSomethingToSend();
 
-		virtual void onFUNCreated();
-		virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
-		virtual CommandPool* createReply(const CommandPool* original) const;
+        virtual void onFUNCreated();
+        virtual void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
+        virtual CommandPool* createReply(const CommandPool* original) const;
 
-	private:
-		pyconfig::View config;
+    private:
+        pyconfig::View config;
 
-		CompoundPtr toSend;
+        CompoundPtr toSend;
 
-		struct _friends {
-			tools::GateInterface* gate;
-		} friends;
+        struct _friends
+        {
+            tools::GateInterface* gate;
+        }
+        friends;
 
-		logger::Logger logger;
+        logger::Logger logger;
 
-		void send(FlowControlCommand::FrameType type);
-	};
+        void send(FlowControlCommand::FrameType type);
+    };
 
-}}}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_COMMAND_FLOWCONTROL_HPP
 

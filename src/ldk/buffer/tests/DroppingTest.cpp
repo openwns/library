@@ -37,293 +37,296 @@
 
 namespace wns { namespace ldk { namespace buffer { namespace tests {
 
-	class DroppingTest :
-		public wns::ldk::tests::DelayedInterfaceTest
-	{
-		CPPUNIT_TEST_SUB_SUITE( DroppingTest, wns::ldk::tests::DelayedInterfaceTest );
-		CPPUNIT_TEST( PDUDropTail );
-		CPPUNIT_TEST( PDUDropFront );
-		CPPUNIT_TEST( bitDropTail );
-		CPPUNIT_TEST( bitDropFront );
-		CPPUNIT_TEST_SUITE_END();
+    class DroppingTest :
+        public wns::ldk::tests::DelayedInterfaceTest
+    {
+        CPPUNIT_TEST_SUB_SUITE( DroppingTest, wns::ldk::tests::DelayedInterfaceTest );
+        CPPUNIT_TEST( PDUDropTail );
+        CPPUNIT_TEST( PDUDropFront );
+        CPPUNIT_TEST( bitDropTail );
+        CPPUNIT_TEST( bitDropFront );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void
-		PDUDropTail();
+    public:
+        void
+        PDUDropTail();
 
-		void
-		PDUDropFront();
+        void
+        PDUDropFront();
 
-		void
-		bitDropTail();
+        void
+        bitDropTail();
 
-		void
-		bitDropFront();
+        void
+        bitDropFront();
 
-	private:
-		virtual Dropping*
-		newTestee();
+    private:
+        virtual Dropping*
+        newTestee();
 
-		virtual void
-		tearDownTestee(DelayedInterface*)
-		{
-		}
-	};
+        virtual void
+        tearDownTestee(DelayedInterface*)
+        {
+        }
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( DroppingTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( DroppingTest );
 
-	Dropping*
-	DroppingTest::newTestee()
-	{
-		pyconfig::Parser all;
-		all.loadString(
-					   "from openwns.Buffer import *\n"
-					   "foo = Dropping(\n"
-					   "  size = 2,\n"
-					   "  sizeUnit = 'PDU',\n"
-					   "  drop = 'Tail'\n"
-					   ")\n"
-					   );
-		wns::pyconfig::View config(all, "foo");
+    Dropping*
+    DroppingTest::newTestee()
+    {
+        pyconfig::Parser all;
+        all.loadString(
+                       "from openwns.Buffer import *\n"
+                       "foo = Dropping(\n"
+                       "  size = 2,\n"
+                       "  sizeUnit = 'PDU',\n"
+                       "  drop = 'Tail'\n"
+                       ")\n"
+                       );
+        wns::pyconfig::View config(all, "foo");
 
-		return new Dropping(getFUN(), config);
-	} // newTestee
+        return new Dropping(getFUN(), config);
+    } // newTestee
 
-	void
-	DroppingTest::PDUDropTail()
-	{
-		pyconfig::Parser emptyConfig;
-		tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
-		tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
+    void
+    DroppingTest::PDUDropTail()
+    {
+        pyconfig::Parser emptyConfig;
+        tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
+        tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
 
-		pyconfig::Parser all;
-		all.loadString(
-					   "from openwns.Buffer import *\n"
-					   "foo = Dropping(\n"
-					   "  size = 2,\n"
-					   "  sizeUnit = 'PDU',\n"
-					   "  drop = 'Tail'\n"
-					   ")\n"
-					   );
-		wns::pyconfig::View config(all, "foo");
+        pyconfig::Parser all;
+        all.loadString(
+                       "from openwns.Buffer import *\n"
+                       "foo = Dropping(\n"
+                       "  size = 2,\n"
+                       "  sizeUnit = 'PDU',\n"
+                       "  drop = 'Tail'\n"
+                       ")\n"
+                       );
+        wns::pyconfig::View config(all, "foo");
 
-		Dropping* buffer = new Dropping(getFUN(), config);
-		upper
-			->connect(buffer)
-			->connect(lower);
+        Dropping* buffer = new Dropping(getFUN(), config);
+        upper
+            ->connect(buffer)
+            ->connect(lower);
 
-		CompoundPtr compound1(getFUN()->createCompound());
-		CompoundPtr compound2(getFUN()->createCompound());
-		CompoundPtr compound3(getFUN()->createCompound());
+        CompoundPtr compound1(getFUN()->createCompound());
+        CompoundPtr compound2(getFUN()->createCompound());
+        CompoundPtr compound3(getFUN()->createCompound());
 
-		lower->close();
-		// now the buffer is lossy and it can't deliver compounds to its lower
-		// layer -> the 3. PDU will be lost.
+        lower->close();
+        // now the buffer is lossy and it can't deliver compounds to its lower
+        // layer -> the 3. PDU will be lost.
 
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound1));	// 1. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        upper->sendData((compound1));	// 1. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound2));	// 2. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        upper->sendData((compound2));	// 2. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound3));	// 3. compound (should get lost)
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        upper->sendData((compound3));	// 3. compound (should get lost)
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		// finally open the lower layer again to see what has been captured
-		// in the lossy buffer.
-		lower->open();
- 		CPPUNIT_ASSERT(lower->sent.size() == 2);
-		CPPUNIT_ASSERT(lower->sent[0] == compound1);
-		CPPUNIT_ASSERT(lower->sent[1] == compound2);
+        // finally open the lower layer again to see what has been captured
+        // in the lossy buffer.
+        lower->open();
+        CPPUNIT_ASSERT(lower->sent.size() == 2);
+        CPPUNIT_ASSERT(lower->sent[0] == compound1);
+        CPPUNIT_ASSERT(lower->sent[1] == compound2);
 
-		delete upper;
-		delete buffer;
-		delete lower;
-	} // PDUDropTail
-
-
-	void
-	DroppingTest::PDUDropFront()
-	{
-		pyconfig::Parser emptyConfig;
-		tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
-		tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
-
-		pyconfig::Parser all;
-		all.loadString(
-					   "from openwns.Buffer import *\n"
-					   "foo = Dropping(\n"
-					   "  size = 2,\n"
-					   "  sizeUnit = 'PDU',\n"
-					   "  drop = 'Front'\n"
-					   ")\n"
-					   );
-		wns::pyconfig::View config(all, "foo");
-
-		Dropping* buffer = new Dropping(getFUN(), config);
-		upper
-			->connect(buffer)
-			->connect(lower);
-
-		CompoundPtr compound1(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-		CompoundPtr compound2(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-		CompoundPtr compound3(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-
-		lower->close();
-		// now the buffer is lossy and it can't deliver compounds to its lower
-		// layer -> the 3. PDU will introduce loss.
-
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
-
-		upper->sendData((compound1));	// 1. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
-
-		upper->sendData((compound2));	// 2. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound2));
-
-		upper->sendData((compound3));	// 3. compound (-> 1. should get lsot)
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound3));
-
-		// finally open the lower layer again to see what has been captured
-		// in the lossy buffer.
-		lower->open();
-		CPPUNIT_ASSERT(lower->sent.size() == 2);
-		CPPUNIT_ASSERT(lower->sent[0] == compound2);
-		CPPUNIT_ASSERT(lower->sent[1] == compound3);
-
-		delete upper;
-		delete buffer;
-		delete lower;
-	} // testPDUDropFront
+        delete upper;
+        delete buffer;
+        delete lower;
+    } // PDUDropTail
 
 
-	void
-	DroppingTest::bitDropTail()
-	{
-		pyconfig::Parser emptyConfig;
-		tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
-		tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
+    void
+    DroppingTest::PDUDropFront()
+    {
+        pyconfig::Parser emptyConfig;
+        tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
+        tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
 
-		pyconfig::Parser all;
-		all.loadString(
-					   "from openwns.Buffer import *\n"
-					   "foo = Dropping(\n"
-					   "  size = 5,\n"
-					   "  sizeUnit = 'Bit',\n"
-					   "  drop = 'Tail'\n"
-					   ")\n"
-					   );
-		wns::pyconfig::View config(all, "foo");
+        pyconfig::Parser all;
+        all.loadString(
+                       "from openwns.Buffer import *\n"
+                       "foo = Dropping(\n"
+                       "  size = 2,\n"
+                       "  sizeUnit = 'PDU',\n"
+                       "  drop = 'Front'\n"
+                       ")\n"
+                       );
+        wns::pyconfig::View config(all, "foo");
 
-		Dropping* buffer = new Dropping(getFUN(), config);
-		upper
-			->connect(buffer)
-			->connect(lower);
+        Dropping* buffer = new Dropping(getFUN(), config);
+        upper
+            ->connect(buffer)
+            ->connect(lower);
 
-		CompoundPtr compound1(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-		CompoundPtr compound2(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-		CompoundPtr compound3(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound1(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound2(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound3(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
 
-		lower->close();
-		// now the buffer is lossy and it can't deliver compounds to its lower
-		// layer -> the 3. PDU will be lost.
+        lower->close();
+        // now the buffer is lossy and it can't deliver compounds to its lower
+        // layer -> the 3. PDU will introduce loss.
 
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound1));	// 1. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        upper->sendData((compound1));	// 1. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound2));	// 2. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        upper->sendData((compound2));	// 2. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound2));
 
-		upper->sendData((compound3));	// 3. compound (should get lost)
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        upper->sendData((compound3));	// 3. compound (-> 1. should get lsot)
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound3));
 
-		// finally open the lower layer again to see what has been captured
-		// in the lossy buffer.
-		lower->open();
-		CPPUNIT_ASSERT(lower->sent.size() == 2);
-		CPPUNIT_ASSERT(lower->sent[0] == compound1);
-		CPPUNIT_ASSERT(lower->sent[1] == compound2);
+        // finally open the lower layer again to see what has been captured
+        // in the lossy buffer.
+        lower->open();
+        CPPUNIT_ASSERT(lower->sent.size() == 2);
+        CPPUNIT_ASSERT(lower->sent[0] == compound2);
+        CPPUNIT_ASSERT(lower->sent[1] == compound3);
 
-		delete upper;
-		delete buffer;
-		delete lower;
-	} // bitDropTail
+        delete upper;
+        delete buffer;
+        delete lower;
+    } // testPDUDropFront
 
 
-	void
-	DroppingTest::bitDropFront()
-	{
-		pyconfig::Parser emptyConfig;
-		tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
-		tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
+    void
+    DroppingTest::bitDropTail()
+    {
+        pyconfig::Parser emptyConfig;
+        tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
+        tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
 
-		pyconfig::Parser all;
-		all.loadString(
-					   "from openwns.Buffer import *\n"
-					   "foo = Dropping(\n"
-					   "  size = 5,\n"
-					   "  sizeUnit = 'Bit',\n"
-					   "  drop = 'Front'\n"
-					   ")\n"
-					   );
-		wns::pyconfig::View config(all, "foo");
+        pyconfig::Parser all;
+        all.loadString(
+                       "from openwns.Buffer import *\n"
+                       "foo = Dropping(\n"
+                       "  size = 5,\n"
+                       "  sizeUnit = 'Bit',\n"
+                       "  drop = 'Tail'\n"
+                       ")\n"
+                       );
+        wns::pyconfig::View config(all, "foo");
 
-		Dropping* buffer = new Dropping(getFUN(), config);
-		upper
-			->connect(buffer)
-			->connect(lower);
+        Dropping* buffer = new Dropping(getFUN(), config);
+        upper
+            ->connect(buffer)
+            ->connect(lower);
 
-		CompoundPtr compound1(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-		CompoundPtr compound2(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
-		CompoundPtr compound3(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound1(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound2(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound3(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
 
-		lower->close();
-		// now the buffer is lossy and it can't deliver compounds to its lower
-		// layer -> the 3. PDU will introduce loss.
+        lower->close();
+        // now the buffer is lossy and it can't deliver compounds to its lower
+        // layer -> the 3. PDU will be lost.
 
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound1));	// 1. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+        upper->sendData((compound1));	// 1. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound2));	// 2. compound
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound2));
+        upper->sendData((compound2));	// 2. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		upper->sendData((compound3));	// 3. compound (-> 1. should get lsot)
-		CPPUNIT_ASSERT(buffer->hasCapacity());
-		CPPUNIT_ASSERT(buffer->isAccepting(compound3));
+        upper->sendData((compound3));	// 3. compound (should get lost)
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
 
-		// finally open the lower layer again to see what has been captured
-		// in the lossy buffer.
-		lower->open();
-		CPPUNIT_ASSERT(lower->sent.size() == 2);
-		CPPUNIT_ASSERT(lower->sent[0] == compound2);
-		CPPUNIT_ASSERT(lower->sent[1] == compound3);
+        // finally open the lower layer again to see what has been captured
+        // in the lossy buffer.
+        lower->open();
+        CPPUNIT_ASSERT(lower->sent.size() == 2);
+        CPPUNIT_ASSERT(lower->sent[0] == compound1);
+        CPPUNIT_ASSERT(lower->sent[1] == compound2);
 
-		delete upper;
-		delete buffer;
-		delete lower;
-	} // bitDropFront
+        delete upper;
+        delete buffer;
+        delete lower;
+    } // bitDropTail
 
-}}}}
+
+    void
+    DroppingTest::bitDropFront()
+    {
+        pyconfig::Parser emptyConfig;
+        tools::Stub* lower = new tools::Stub(getFUN(), emptyConfig);
+        tools::Stub* upper = new tools::Stub(getFUN(), emptyConfig);
+
+        pyconfig::Parser all;
+        all.loadString(
+                       "from openwns.Buffer import *\n"
+                       "foo = Dropping(\n"
+                       "  size = 5,\n"
+                       "  sizeUnit = 'Bit',\n"
+                       "  drop = 'Front'\n"
+                       ")\n"
+                       );
+        wns::pyconfig::View config(all, "foo");
+
+        Dropping* buffer = new Dropping(getFUN(), config);
+        upper
+            ->connect(buffer)
+            ->connect(lower);
+
+        CompoundPtr compound1(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound2(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+        CompoundPtr compound3(getFUN()->createCompound(helper::FakePDUPtr(new helper::FakePDU(2))));
+
+        lower->close();
+        // now the buffer is lossy and it can't deliver compounds to its lower
+        // layer -> the 3. PDU will introduce loss.
+
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+
+        upper->sendData((compound1));	// 1. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound1));
+
+        upper->sendData((compound2));	// 2. compound
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound2));
+
+        upper->sendData((compound3));	// 3. compound (-> 1. should get lsot)
+        CPPUNIT_ASSERT(buffer->hasCapacity());
+        CPPUNIT_ASSERT(buffer->isAccepting(compound3));
+
+        // finally open the lower layer again to see what has been captured
+        // in the lossy buffer.
+        lower->open();
+        CPPUNIT_ASSERT(lower->sent.size() == 2);
+        CPPUNIT_ASSERT(lower->sent[0] == compound2);
+        CPPUNIT_ASSERT(lower->sent[1] == compound3);
+
+        delete upper;
+        delete buffer;
+        delete lower;
+    } // bitDropFront
+
+}
+}
+}
+}
 
 

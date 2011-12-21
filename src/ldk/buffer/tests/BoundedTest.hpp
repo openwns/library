@@ -38,49 +38,53 @@
 
 namespace wns { namespace ldk { namespace buffer {
 
-	class BoundedTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( BoundedTest );
-		CPPUNIT_TEST( testFill );
-		CPPUNIT_TEST( testWakeup );
-		CPPUNIT_TEST_SUITE_END();
+    class BoundedTest : public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( BoundedTest );
+        CPPUNIT_TEST( testFill );
+        CPPUNIT_TEST( testWakeup );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void setUp();
-		void tearDown();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testFill();
-		void testWakeup();
-	private:
-		ILayer* layer;
-		fun::FUN* fuNet;
+        void testFill();
+        void testWakeup();
+    private:
+        ILayer* layer;
+        fun::FUN* fuNet;
 
-		tools::Stub* upper;
-		Bounded* buffer;
-		tools::Stub* lower;
-	};
+        tools::Stub* upper;
+        Bounded* buffer;
+        tools::Stub* lower;
+    };
 
-	class BoundedBitTest : public CppUnit::TestFixture  {
-		CPPUNIT_TEST_SUITE( BoundedBitTest );
-		CPPUNIT_TEST( testFill );
-		CPPUNIT_TEST( testEmpty );
-		CPPUNIT_TEST_SUITE_END();
+    class BoundedBitTest : public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( BoundedBitTest );
+        CPPUNIT_TEST( testFill );
+        CPPUNIT_TEST( testEmpty );
+        CPPUNIT_TEST_SUITE_END();
 
-	public:
-		void setUp();
-		void tearDown();
+    public:
+        void setUp();
+        void tearDown();
 
-		void testFill();
-		void testEmpty();
-	private:
-		ILayer* layer;
-		fun::FUN* fuNet;
+        void testFill();
+        void testEmpty();
+    private:
+        ILayer* layer;
+        fun::FUN* fuNet;
 
-		tools::Stub* upper;
-		Bounded* buffer;
-		tools::Stub* lower;
-	};
+        tools::Stub* upper;
+        Bounded* buffer;
+        tools::Stub* lower;
+    };
 
-}}}
+}
+}
+}
 
 
 #endif // NOT defined WNS_LDK_BUFFER_BOUNDED_TEST_HPP

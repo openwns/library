@@ -40,86 +40,86 @@ CPPUNIT_TEST_SUITE_REGISTRATION( OpcodeTest );
 void
 OpcodeTest::setUp()
 {
-	layer = new tests::LayerStub();
-	fuNet = new fun::Main(layer);
+    layer = new tests::LayerStub();
+    fuNet = new fun::Main(layer);
 
-	pyconfig::Parser emptyConfig;
-	upper = new Stub(fuNet, emptyConfig);
+    pyconfig::Parser emptyConfig;
+    upper = new Stub(fuNet, emptyConfig);
 
-	{
-		pyconfig::Parser config;
-		config.loadString(
-			"import openwns.ldk\n"
-			"setter = openwns.ldk.Multiplexer.OpcodeSetter(42, 'provider')\n"
-			);
-		pyconfig::View view(config, "setter");
-		setter = new OpcodeSetter(fuNet, view);
-	}
+    {
+        pyconfig::Parser config;
+        config.loadString(
+            "import openwns.ldk\n"
+            "setter = openwns.ldk.Multiplexer.OpcodeSetter(42, 'provider')\n"
+            );
+        pyconfig::View view(config, "setter");
+        setter = new OpcodeSetter(fuNet, view);
+    }
 
-	{
-		pyconfig::Parser config;
-		config.loadString(
-			"import openwns.ldk\n"
-			"provider = openwns.ldk.Multiplexer.OpcodeProvider(23)\n"
-			);
-		pyconfig::View view(config, "provider");
-		provider = new OpcodeProvider(fuNet, view);
-	}
+    {
+        pyconfig::Parser config;
+        config.loadString(
+            "import openwns.ldk\n"
+            "provider = openwns.ldk.Multiplexer.OpcodeProvider(23)\n"
+            );
+        pyconfig::View view(config, "provider");
+        provider = new OpcodeProvider(fuNet, view);
+    }
 
-	lower = new Stub(fuNet, emptyConfig);
+    lower = new Stub(fuNet, emptyConfig);
 
-	fuNet->addFunctionalUnit("provider", provider);
-	fuNet->addFunctionalUnit("setter", setter);
-	fuNet->onFUNCreated();
+    fuNet->addFunctionalUnit("provider", provider);
+    fuNet->addFunctionalUnit("setter", setter);
+    fuNet->onFUNCreated();
 
-	upper->connect(setter)
-		->connect(lower);
+    upper->connect(setter)
+         ->connect(lower);
 } // setUp
 
 
 void
 OpcodeTest::tearDown()
 {
-	delete upper;
-	delete lower;
+    delete upper;
+    delete lower;
 
-	delete layer;
+    delete layer;
 } // tearDown
 
 
 void
 OpcodeTest::testOutgoing()
 {
-	CompoundPtr compound(new Compound(fuNet->getProxy()->createCommandPool()));
-	upper->sendData(compound);
+    CompoundPtr compound(new Compound(fuNet->getProxy()->createCommandPool()));
+    upper->sendData(compound);
 
-	CPPUNIT_ASSERT(lower->sent.size() == 1);
+    CPPUNIT_ASSERT(lower->sent.size() == 1);
 
-	OpcodeCommand* command = provider->getCommand(lower->sent[0]->getCommandPool());
-	CPPUNIT_ASSERT(command->peer.opcode == 42);
+    OpcodeCommand* command = provider->getCommand(lower->sent[0]->getCommandPool());
+    CPPUNIT_ASSERT(command->peer.opcode == 42);
 } // testOutgoing
 
 
 void
 OpcodeTest::testIncoming()
 {
-	CompoundPtr compound(fuNet->createCompound());
-	upper->sendData(compound);
+    CompoundPtr compound(fuNet->createCompound());
+    upper->sendData(compound);
 
-	CPPUNIT_ASSERT(upper->received.size() == 0);
-	lower->onData(lower->sent.at(0));
-	CPPUNIT_ASSERT(upper->received.size() == 1);
+    CPPUNIT_ASSERT(upper->received.size() == 0);
+    lower->onData(lower->sent.at(0));
+    CPPUNIT_ASSERT(upper->received.size() == 1);
 } // testIncoming
 
 
 void
 OpcodeTest::testSizes()
 {
-	CompoundPtr compound(fuNet->createCompound());
+    CompoundPtr compound(fuNet->createCompound());
 
-	CPPUNIT_ASSERT_EQUAL(Bit(0), compound->getLengthInBits());
-	upper->sendData(compound);
-	CPPUNIT_ASSERT_EQUAL(Bit(23), compound->getLengthInBits());
+    CPPUNIT_ASSERT_EQUAL(Bit(0), compound->getLengthInBits());
+    upper->sendData(compound);
+    CPPUNIT_ASSERT_EQUAL(Bit(23), compound->getLengthInBits());
 } // testIncoming
 
 

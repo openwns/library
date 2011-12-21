@@ -35,18 +35,20 @@
 
 namespace wns { namespace ldk { namespace arq { namespace statuscollector {
 
-	class Interface
-	{
-		public:
-			virtual ~Interface() {};
-			virtual void reset() = 0;
-			virtual void onSuccessfullTransmission(const CompoundPtr& compound) = 0;
-			virtual void onFailedTransmission(const CompoundPtr& compound) = 0;
-			virtual double getSuccessRate(const CompoundPtr& compound) = 0;
-	};
-	
-	typedef PyConfigCreator<Interface> StatusCollectorCreator;
-	typedef wns::StaticFactory<StatusCollectorCreator> StatusCollectorFactory;
+    class Interface
+    {
+        public:
+            virtual ~Interface()
+            {
+            };
+            virtual void reset() = 0;
+            virtual void onSuccessfullTransmission(const CompoundPtr& compound) = 0;
+            virtual void onFailedTransmission(const CompoundPtr& compound) = 0;
+            virtual double getSuccessRate(const CompoundPtr& compound) = 0;
+    };
+
+    typedef PyConfigCreator<Interface> StatusCollectorCreator;
+    typedef wns::StaticFactory<StatusCollectorCreator> StatusCollectorFactory;
 }
 }
 }

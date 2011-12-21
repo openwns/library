@@ -47,7 +47,7 @@
 namespace wns { namespace geometry { namespace tests {
 
 	class PointTest :
-		public CppUnit::TestFixture
+	public CppUnit::TestFixture
 	{
 		CPPUNIT_TEST_SUITE( PointTest );
 		CPPUNIT_TEST( testEqual );

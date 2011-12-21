@@ -35,33 +35,36 @@
 
 namespace wns { namespace ldk { namespace fun {
 
-	class MainGenericTest : public wns::TestFixture  {
-		CPPUNIT_TEST_SUITE( MainGenericTest );
-		CPPUNIT_TEST( testFunctionalUnit );
-		CPPUNIT_TEST( testConnect );
-		CPPUNIT_TEST( testUpConnect );
-		CPPUNIT_TEST( testDownConnect );
-		CPPUNIT_TEST( testFindFriends );
-		CPPUNIT_TEST( testFlowSeparator );
-		CPPUNIT_TEST_SUITE_END();
+    class MainGenericTest : public wns::TestFixture 
+    {
+        CPPUNIT_TEST_SUITE( MainGenericTest );
+        CPPUNIT_TEST( testFunctionalUnit );
+        CPPUNIT_TEST( testConnect );
+        CPPUNIT_TEST( testUpConnect );
+        CPPUNIT_TEST( testDownConnect );
+        CPPUNIT_TEST( testFindFriends );
+        CPPUNIT_TEST( testFlowSeparator );
+        CPPUNIT_TEST_SUITE_END();
 
-		void prepare();
-		void cleanup();
-	public:
+        void prepare();
+        void cleanup();
+    public:
 
-		void testFunctionalUnit();
-		void testConnect();
-		void testUpConnect();
-		void testDownConnect();
-		void testFindFriends();
-		void testFlowSeparator();
-	private:
+        void testFunctionalUnit();
+        void testConnect();
+        void testUpConnect();
+        void testDownConnect();
+        void testFindFriends();
+        void testFlowSeparator();
+    private:
 
-		ILayer* layer;
-		fun::Main* fuNet;
-	};
+        ILayer* layer;
+        fun::Main* fuNet;
+    };
 
-}}}
+}
+}
+}
 
 
 #endif // NOT defined WNS_LDK_FUN_MAINGENERIC_TEST_HPP

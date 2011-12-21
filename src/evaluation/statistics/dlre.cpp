@@ -386,7 +386,8 @@ DLRE::ResultLine::ResultLine()
       rho_(0.0),
       sigRho_(0.0),
       nx_(0)
-{}
+{
+}
 
 
 /*! Unequal '!=' comparison operator. This operator only works if
@@ -839,7 +840,8 @@ DLRE::Result::Result()
       h_(0),
       sumh_(0),
       c_(0)
-{}
+{
+}
 
 
 /*! Unequal '!=' comparison operator. This operator only works if

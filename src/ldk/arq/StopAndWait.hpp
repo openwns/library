@@ -41,146 +41,155 @@
 
 namespace wns { namespace ldk { namespace arq {
 
-	/**
-	 * @brief Command used by the StopAndWait ARQ implementation.
-	 */
-	class StopAndWaitCommand :
-		public ARQCommand
-	{
-	public:
-		/**
-		 * I - Information Frame (Data)
-		 * RR - Receive Ready Frame (ACK)
-		 */
-		typedef enum {I, RR} FrameType;
+    /**
+     * @brief Command used by the StopAndWait ARQ implementation.
+     */
+    class StopAndWaitCommand :
+        public ARQCommand
+    {
+    public:
+        /**
+         * I - Information Frame (Data)
+         * RR - Receive Ready Frame (ACK)
+         */
+        typedef enum {I, RR} FrameType;
 
-		StopAndWaitCommand()
-		{
-			peer.type = I;
-			peer.NS = 0;
-		}
+        StopAndWaitCommand()
+        {
+            peer.type = I;
+            peer.NS = 0;
+        }
 
-		struct {
-		} local;
+        struct
+        {
+        }
+        local;
 
-		struct {
-			// Typically 1 Bit in reality
-			FrameType type;
-			// Typically 1 Bit in reality
-			SequenceNumber NS;
-		} peer;
+        struct
+        {
+            // Typically 1 Bit in reality
+            FrameType type;
+            // Typically 1 Bit in reality
+            SequenceNumber NS;
+        }
+        peer;
 
-		struct {} magic;
+        struct
+        {
+        }
+        magic;
 
-		// ARQCommand interface realization
-		virtual bool
-		isACK() const
-		{
-			return peer.type == RR;
-		}
-	};
+        // ARQCommand interface realization
+        virtual bool
+        isACK() const
+        {
+            return peer.type == RR;
+        }
+    };
 
 
-	/**
-	 * @brief StopAndWait implementation of the ARQ interface.
-	 */
-	class StopAndWait :
-		public ARQ,
-		public wns::ldk::fu::Plain<StopAndWait, StopAndWaitCommand>,
-		public Delayed<StopAndWait>,
-		virtual public SuspendableInterface,
-		public SuspendSupport,
-		public events::CanTimeout
-	{
-	public:
-		// FUNConfigCreator interface realisation
-		StopAndWait(fun::FUN* fuNet, const wns::pyconfig::View& config);
+    /**
+     * @brief StopAndWait implementation of the ARQ interface.
+     */
+    class StopAndWait :
+        public ARQ,
+        public wns::ldk::fu::Plain<StopAndWait, StopAndWaitCommand>,
+        public Delayed<StopAndWait>,
+        virtual public SuspendableInterface,
+        public SuspendSupport,
+        public events::CanTimeout
+    {
+    public:
+        // FUNConfigCreator interface realisation
+        StopAndWait(fun::FUN* fuNet, const wns::pyconfig::View& config);
 
-		virtual
-		~StopAndWait();
+        virtual
+        ~StopAndWait();
 
-		// CanTimeout interface realisation
-		virtual void
-		onTimeout();
+        // CanTimeout interface realisation
+        virtual void
+        onTimeout();
 
-		// Delayed interface realisation
-		virtual bool
-		hasCapacity() const;
+        // Delayed interface realisation
+        virtual bool
+        hasCapacity() const;
 
-		virtual void
-		processOutgoing(const CompoundPtr& sdu);
+        virtual void
+        processOutgoing(const CompoundPtr& sdu);
 
-		virtual void
-		processIncoming(const CompoundPtr& compound);
+        virtual void
+        processIncoming(const CompoundPtr& compound);
 
-		// ARQ interface realization
-		virtual const wns::ldk::CompoundPtr
-		hasACK() const;
+        // ARQ interface realization
+        virtual const wns::ldk::CompoundPtr
+        hasACK() const;
 
-		virtual const wns::ldk::CompoundPtr
-		hasData() const;
+        virtual const wns::ldk::CompoundPtr
+        hasData() const;
 
-		virtual wns::ldk::CompoundPtr
-		getACK();
+        virtual wns::ldk::CompoundPtr
+        getACK();
 
-		virtual wns::ldk::CompoundPtr
-		getData();
+        virtual wns::ldk::CompoundPtr
+        getData();
 
-		// SDU and PCI size calculation
-		void
-		calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
+        // SDU and PCI size calculation
+        void
+        calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
 
-	protected:
-		virtual bool
-		onSuspend() const;
+    protected:
+        virtual bool
+        onSuspend() const;
 
-		/**
-		 * @brief Time between two transmissions of the same PDU.
-		 */
-		double resendTimeout;
+        /**
+         * @brief Time between two transmissions of the same PDU.
+         */
+        double resendTimeout;
 
-		/**
-		 * @brief Number of bits added to the header for each I-Frame
-		 */
-		int bitsPerIFrame;
+        /**
+         * @brief Number of bits added to the header for each I-Frame
+         */
+        int bitsPerIFrame;
 
-		/**
-		 * @brief Number of bits added to the header for each RR-Frame
-		 */
-		int bitsPerRRFrame;
+        /**
+         * @brief Number of bits added to the header for each RR-Frame
+         */
+        int bitsPerRRFrame;
 
-		/**
-		 * @brief Sequence number of the last packet sent.
-		 */
-		ARQCommand::SequenceNumber NS;
+        /**
+         * @brief Sequence number of the last packet sent.
+         */
+        ARQCommand::SequenceNumber NS;
 
-		/**
-		 * @brief Sequence number of the last packet received.
-		 */
-		ARQCommand::SequenceNumber NR;
+        /**
+         * @brief Sequence number of the last packet received.
+         */
+        ARQCommand::SequenceNumber NR;
 
-		/**
-		 * @brief The last packet sent but not acknowledged yet.
-		 *
-		 * If the activeCompound is set to CompoundPtr(), this means no
-		 * Compound is currently waiting for acknowledgment
-		 */
-		CompoundPtr activeCompound;
+        /**
+         * @brief The last packet sent but not acknowledged yet.
+         *
+         * If the activeCompound is set to CompoundPtr(), this means no
+         * Compound is currently waiting for acknowledgment
+         */
+        CompoundPtr activeCompound;
 
-		/**
-		 * @brief An ACK to be sent.
-		 */
-		CompoundPtr ackCompound;
+        /**
+         * @brief An ACK to be sent.
+         */
+        CompoundPtr ackCompound;
 
-		/**
-		 * @brief Remember to send the activeCompound.
-		 */
-		bool sendNow;
+        /**
+         * @brief Remember to send the activeCompound.
+         */
+        bool sendNow;
 
-		logger::Logger logger;
-	};
+        logger::Logger logger;
+    };
 
-}}}
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_ARQ_STOPANDWAIT_HPP
 

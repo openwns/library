@@ -35,34 +35,34 @@
 
 namespace wns { namespace distribution { namespace test {
 
-	class BinomialTest :
-		public CppUnit::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( BinomialTest );
+    class BinomialTest :
+        public CppUnit::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( BinomialTest );
         CPPUNIT_TEST( testMean );
         CPPUNIT_TEST( testVar );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void setUp();
-		void tearDown();
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void setUp();
+        void tearDown();
 
         void testMean();
         void testVar();
-	};
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( BinomialTest );
-
-
-	void
-	BinomialTest::setUp()
-	{
-	}
+    CPPUNIT_TEST_SUITE_REGISTRATION( BinomialTest );
 
 
-	void
-	BinomialTest::tearDown()
-	{
-	}
+    void
+    BinomialTest::setUp()
+    {
+    }
+
+
+    void
+    BinomialTest::tearDown()
+    {
+    }
 
 
     void
@@ -82,7 +82,7 @@ namespace wns { namespace distribution { namespace test {
         }
 
         WNS_ASSERT_MAX_REL_ERROR(average.get(), dis.getMean(), 0.01);
-    } 
+    }
 
     void
     BinomialTest::testVar()
@@ -96,7 +96,7 @@ namespace wns { namespace distribution { namespace test {
         }
 
         WNS_ASSERT_MAX_REL_ERROR(20.0 * 0.4 * 0.6, var.get(), 0.01);
-    } 
+    }
 
 } // tests
 } // distribution

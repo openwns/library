@@ -31,33 +31,40 @@
 
 namespace wns { namespace container { namespace tests {
 
-	class V
-	{
-		int member;
-	public:
-		V() : member(42) {}
-		explicit
-		V(int m) : member(m) {}
-		int get() const { return member; }
-	};
+    class V
+    {
+        int member;
+    public:
+        V() : member(42)
+        {
+        }
+        explicit
+        V(int m) : member(m)
+        {
+        }
+        int get() const
+        {
+            return member;
+        }
+    };
 
-	class DynamicMatrixTest :
-		public wns::TestFixture
-	{
+    class DynamicMatrixTest :
+        public wns::TestFixture
+    {
 
-		CPPUNIT_TEST_SUITE( DynamicMatrixTest );
-		CPPUNIT_TEST( construct );
-		CPPUNIT_TEST( setget );
-		CPPUNIT_TEST( outofrange );
-		CPPUNIT_TEST_SUITE_END();
-	public:
-		void prepare();
-		void cleanup();
+        CPPUNIT_TEST_SUITE( DynamicMatrixTest );
+        CPPUNIT_TEST( construct );
+        CPPUNIT_TEST( setget );
+        CPPUNIT_TEST( outofrange );
+        CPPUNIT_TEST_SUITE_END();
+    public:
+        void prepare();
+        void cleanup();
 
-		void construct();
-		void setget();
-		void outofrange();
-	};
+        void construct();
+        void setget();
+        void outofrange();
+    };
 
 } // tests
 } // container
@@ -80,66 +87,66 @@ DynamicMatrixTest::cleanup()
 
 void DynamicMatrixTest::construct()
 {
-	std::list<int> dimensions;
-	dimensions.push_back(2);
-	dimensions.push_back(3);
-	dimensions.push_back(4);
+    std::list<int> dimensions;
+    dimensions.push_back(2);
+    dimensions.push_back(3);
+    dimensions.push_back(4);
 
-	DynamicMatrix<int> i(dimensions);
-	DynamicMatrix<double> d(dimensions);
-	DynamicMatrix<V> v(dimensions);
+    DynamicMatrix<int> i(dimensions);
+    DynamicMatrix<double> d(dimensions);
+    DynamicMatrix<V> v(dimensions);
 
-	for (int x = 0; x<2; ++x)
-	{
-		for (int y = 0; y<3; ++y)
-		{
-			for (int z = 0; z<4; ++z)
-			{
-				std::list<int> indices;
-				indices.push_back(x);
-				indices.push_back(y);
-				indices.push_back(z);
-				CPPUNIT_ASSERT_EQUAL( 0, i.getValue(indices) );
-				CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, d.getValue(indices), 1e-8 );
-				CPPUNIT_ASSERT_EQUAL( 42, v.getValue(indices).get() );
-			}
-		}
-	}
+    for (int x = 0; x < 2; ++x)
+    {
+        for (int y = 0; y < 3; ++y)
+        {
+            for (int z = 0; z < 4; ++z)
+            {
+                std::list<int> indices;
+                indices.push_back(x);
+                indices.push_back(y);
+                indices.push_back(z);
+                CPPUNIT_ASSERT_EQUAL( 0, i.getValue(indices) );
+                CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, d.getValue(indices), 1e-8 );
+                CPPUNIT_ASSERT_EQUAL( 42, v.getValue(indices).get() );
+            }
+        }
+    }
 }
 
 void DynamicMatrixTest::setget()
 {
-	std::list<int> dimensions;
-	dimensions.push_back(2);
-	dimensions.push_back(3);
-	dimensions.push_back(4);
+    std::list<int> dimensions;
+    dimensions.push_back(2);
+    dimensions.push_back(3);
+    dimensions.push_back(4);
 
-	DynamicMatrix<V> v(dimensions);
+    DynamicMatrix<V> v(dimensions);
 
-	V something(13);
+    V something(13);
 
-	std::list<int> indices;
-	indices.push_back(1);
-	indices.push_back(2);
-	indices.push_back(3);
+    std::list<int> indices;
+    indices.push_back(1);
+    indices.push_back(2);
+    indices.push_back(3);
 
-	v.setValue(indices, something);
-	CPPUNIT_ASSERT_EQUAL( 13, v.getValue(indices).get() );
+    v.setValue(indices, something);
+    CPPUNIT_ASSERT_EQUAL( 13, v.getValue(indices).get() );
 }
 
 void  DynamicMatrixTest::outofrange()
 {
-	std::list<int> dimensions;
-	dimensions.push_back(2);
-	dimensions.push_back(3);
-	dimensions.push_back(4);
+    std::list<int> dimensions;
+    dimensions.push_back(2);
+    dimensions.push_back(3);
+    dimensions.push_back(4);
 
-	DynamicMatrix<V> v(dimensions);
+    DynamicMatrix<V> v(dimensions);
 
-	std::list<int> indices;
-	indices.push_back(1);
-	indices.push_back(2);
-	indices.push_back(4); // index out of range
+    std::list<int> indices;
+    indices.push_back(1);
+    indices.push_back(2);
+    indices.push_back(4); // index out of range
 
-	CPPUNIT_ASSERT_THROW( v.getValue(indices), std::out_of_range );
+    CPPUNIT_ASSERT_THROW( v.getValue(indices), std::out_of_range );
 }

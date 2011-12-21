@@ -71,12 +71,12 @@ Geometric::~Geometric()
 double
 Geometric::operator()()
 {
-	long int restarts;
+    long int restarts;
 
     double prob = 1.0 / (mean_ + 1.0);
 
     for (restarts = 0; dis_() > prob ; restarts++);
-    
+
     return double(restarts);
 }
 
@@ -89,9 +89,9 @@ Geometric::getMean() const
 std::string
 Geometric::paramString() const
 {
-	std::ostringstream tmp;
-	tmp << "Geometric(mean=" << this->getMean() << ")";
-	return tmp.str();
+    std::ostringstream tmp;
+    tmp << "Geometric(mean=" << this->getMean() << ")";
+    return tmp.str();
 }
 
 /*

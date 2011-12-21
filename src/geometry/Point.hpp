@@ -39,8 +39,9 @@ namespace wns { namespace geometry {
 	/**
 	 * @brief A 3D position (x,y,z)
 	 */
-	class Point {
-	public:
+	class Point
+    {
+    	public:
 		// con-/destructors
 		Point();
 

@@ -51,273 +51,284 @@
 
 namespace wns { namespace ldk { namespace arq {
 
-	namespace tests {
-		class GoBackNTest;
-	}
+    namespace tests
+    {
+        class GoBackNTest;
+    }
 
-	/**
-	 * @brief Command used by the GoBackN ARQ implementation.
-	 *
-	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 */
-	class GoBackNCommand :
-		public ARQCommand
-	{
-	public:
-		/**
-		 * I - Information Frame
-		 * ACK - received packet acknowledged (ACK)
-		 * NAK - certain packet missing (NAK)
-		 */
-		typedef enum {I, ACK, NAK} FrameType;
+    /**
+     * @brief Command used by the GoBackN ARQ implementation.
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     */
+    class GoBackNCommand :
+        public ARQCommand
+    {
+    public:
+        /**
+         * I - Information Frame
+         * ACK - received packet acknowledged (ACK)
+         * NAK - certain packet missing (NAK)
+         */
+        typedef enum {I, ACK, NAK} FrameType;
 
-		GoBackNCommand()
-		{
-			peer.type = I;
-			peer.NS = 0;
-		}
+        GoBackNCommand()
+        {
+            peer.type = I;
+            peer.NS = 0;
+        }
 
-		void
-		setNS(const SequenceNumber& SN)
-		{
-			peer.NS = SN;
-		}
+        void
+        setNS(const SequenceNumber& SN)
+        {
+           peer.NS = SN;
+        }
 
-		SequenceNumber
-		getNS() const
-		{
-			return peer.NS;
-		}
+        SequenceNumber
+        getNS() const
+        {
+            return peer.NS;
+        }
 
-		FrameType
-		getFrameType() const
-		{
-			return peer.type;
-		}
+        FrameType
+        getFrameType() const
+        {
+            return peer.type;
+        }
 
-		bool
-		isACK() const
-		{
-			return (peer.type == ACK) || (peer.type == NAK);
-		}
+        bool
+        isACK() const
+        {
+            return (peer.type == ACK) || (peer.type == NAK);
+        }
 
-		struct {} local;
-		struct {
-			FrameType type;
-			int NS;
-		} peer;
-		struct {
-		} magic;
-	};
+        struct
+        {
+        }
+        local;
 
+        struct
+        {
+            FrameType type;
+            int NS;
+        }
+        peer;
 
-	/**
-	 * @brief GoBackN implementation of the ARQ interface.
-	 *
-	 * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
-	 */
-	class GoBackN :
-		public ARQ,
-		public wns::ldk::fu::Plain<GoBackN, GoBackNCommand>,
-		public Delayed<GoBackN>,
-		virtual public SuspendableInterface,
-		public SuspendSupport,
-		virtual public DelayedDeliveryInterface,
-		public events::CanTimeout
-	{
-		friend class ::wns::ldk::arq::tests::GoBackNTest;
-		typedef std::list<CompoundPtr> CompoundContainer;
+        struct
+        {
+        }
+        magic;
+    };
 
-	public:
-		// FUNConfigCreator interface realisation
-		//GoBackN(FUN* fun, wns::pyconfig::View& config);
-		GoBackN(fun::FUN* fuNet, const wns::pyconfig::View& config);
+    /**
+     * @brief GoBackN implementation of the ARQ interface.
+     *
+     * @author Rainer Schoenen <rs@comnets.rwth-aachen.de>
+     */
+    class GoBackN :
+        public ARQ,
+        public wns::ldk::fu::Plain<GoBackN, GoBackNCommand>,
+        public Delayed<GoBackN>,
+        virtual public SuspendableInterface,
+        public SuspendSupport,
+        virtual public DelayedDeliveryInterface,
+        public events::CanTimeout
+    {
+        friend class ::wns::ldk::arq::tests::GoBackNTest;
+        typedef std::list<CompoundPtr> CompoundContainer;
 
-		virtual
-		~GoBackN();
+    public:
+        // FUNConfigCreator interface realisation
+        //GoBackN(FUN* fun, wns::pyconfig::View& config);
+        GoBackN(fun::FUN* fuNet, const wns::pyconfig::View& config);
 
-		// CanTimeout interface realisation
-		virtual void
-		onTimeout();
+        virtual
+        ~GoBackN();
 
-		// Delayed interface realisation
-		/**
-		 * @brief hasCapacity() is true if we
-		 * 1. don't have an active PDU we are processing
-		 * 2. aren't occupied with retransmissions
-		 * 3. don't exceed the sending window
-		 * So the gate is only open if we are free for something new
-		 * All other queueing must happen in a unit above us
-		 */
-		virtual bool
-		hasCapacity() const;
+        // CanTimeout interface realisation
+        virtual void
+        onTimeout();
 
-		/**
-		 * @brief Downstack on transmitter side
-		 */
-		virtual void
-		processOutgoing(const CompoundPtr& sdu);
+        // Delayed interface realisation
+        /**
+         * @brief hasCapacity() is true if we
+         * 1. don't have an active PDU we are processing
+         * 2. aren't occupied with retransmissions
+         * 3. don't exceed the sending window
+         * So the gate is only open if we are free for something new
+         * All other queueing must happen in a unit above us
+         */
+        virtual bool
+        hasCapacity() const;
 
-		/**
-		 * @brief Upstack on receiver side
-		 */
-		virtual void
-		processIncoming(const CompoundPtr& compound);
+        /**
+         * @brief Downstack on transmitter side
+         */
+        virtual void
+        processOutgoing(const CompoundPtr& sdu);
 
-		// ARQ interface realization
-		/**
-		 * @brief hasACK() is asked by lower layer FU's
-		 */
-		virtual const wns::ldk::CompoundPtr
-		hasACK() const;
+        /**
+         * @brief Upstack on receiver side
+         */
+        virtual void
+        processIncoming(const CompoundPtr& compound);
 
-		/**
-		 * @brief hasData() is asked by lower layer FU's
-		 */
-		virtual const wns::ldk::CompoundPtr
-		hasData() const;
+        // ARQ interface realization
+        /**
+         * @brief hasACK() is asked by lower layer FU's
+         */
+        virtual const wns::ldk::CompoundPtr
+        hasACK() const;
 
-		virtual wns::ldk::CompoundPtr
-		getACK();
+        /**
+         * @brief hasData() is asked by lower layer FU's
+         */
+        virtual const wns::ldk::CompoundPtr
+        hasData() const;
 
-		/**
-		 * @brief in retransmissionState: returns the HOL packet of	toRetransmit queue
-		 * in normal state: returns the (HOL) packet stored in activeCompound
-		 */
-		virtual wns::ldk::CompoundPtr
-		getData();
+        virtual wns::ldk::CompoundPtr
+        getACK();
 
-		// Overload of CommandTypeSpecifier Interface
-		void
-		calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
+        /**
+         * @brief in retransmissionState: returns the HOL packet of	toRetransmit queue
+         * in normal state: returns the (HOL) packet stored in activeCompound
+         */
+        virtual wns::ldk::CompoundPtr
+        getData();
 
-	protected:
-		// Internal handlers for I- and ACK-Frames
-		void
-		onIFrame(const CompoundPtr& compound);
+        // Overload of CommandTypeSpecifier Interface
+        void
+        calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
-		void
-		onACKFrame(const CompoundPtr& compound);
+    protected:
+        // Internal handlers for I- and ACK-Frames
+        void
+        onIFrame(const CompoundPtr& compound);
 
-		void
-		onNAKFrame(const CompoundPtr& compound);
+        void
+        onACKFrame(const CompoundPtr& compound);
 
-		// remove ACKed PDU from list
-		void
-		removeACKed(const ARQCommand::SequenceNumber ackedNS, CompoundContainer& container);
+        void
+        onNAKFrame(const CompoundPtr& compound);
 
-		// prepare list of frames to retransmit
-		void
-		prepareRetransmission();
+        // remove ACKed PDU from list
+        void
+        removeACKed(const ARQCommand::SequenceNumber ackedNS, CompoundContainer& container);
 
-		// retransmissionState
-		/**
-		 * @brief return whether we are in retransmission mode (Retransmit queue nonempty)
-		 */
-		bool
-		retransmissionState() const;
+        // prepare list of frames to retransmit
+        void
+        prepareRetransmission();
 
-		/**
-		 * @brief logger output of sequence numbers
-		 */
-		void
-		show_seqnr_list(const char* name, CompoundContainer& compoundList) const;
+        // retransmissionState
+        /**
+         * @brief return whether we are in retransmission mode (Retransmit queue nonempty)
+         */
+        bool
+        retransmissionState() const;
 
-		virtual bool
-		onSuspend() const;
+        /**
+         * @brief logger output of sequence numbers
+         */
+        void
+        show_seqnr_list(const char* name, CompoundContainer& compoundList) const;
 
-		virtual void
-		doDelayDelivery();
+        virtual bool
+        onSuspend() const;
 
-		virtual void
-		doDeliver();
+        virtual void
+        doDelayDelivery();
 
-		/**
-		 * @brief Window size (so many packets may be sent without ACKs).
-		 */
-		int windowSize;
+        virtual void
+        doDeliver();
 
-		/**
-		 * @brief Divisor/Modulo for Sequence Numbers (>=2*windowSize). Power of 2.
-		 */
-		int sequenceNumberSize;
+        /**
+         * @brief Window size (so many packets may be sent without ACKs).
+         */
+        int windowSize;
 
-		/**
-		 * @brief Number of bits added to the header for each I-Frame
-		 */
-		int bitsPerIFrame; // = (int) ceil(log(sequenceNumberSize) / log(2));
+        /**
+         * @brief Divisor/Modulo for Sequence Numbers (>=2*windowSize). Power of 2.
+         */
+        int sequenceNumberSize;
 
-		/**
-		 * @brief Number of bits added to the header for each ACK-Frame
-		 */
-		int bitsPerACKFrame; // = (int) ceil(log(sequenceNumberSize) / log(2));
+        /**
+         * @brief Number of bits added to the header for each I-Frame
+         */
+        int bitsPerIFrame; // = (int) ceil(log(sequenceNumberSize) / log(2));
 
-		/**
-		 * @brief Sequence number of the last packet sent (Transmitter side).
-		 */
-		ARQCommand::SequenceNumber NS;
+        /**
+         * @brief Number of bits added to the header for each ACK-Frame
+         */
+        int bitsPerACKFrame; // = (int) ceil(log(sequenceNumberSize) / log(2));
 
-		/**
-		 * @brief Sequence number of the last packet received in order (Rx side).
-		 */
-		ARQCommand::SequenceNumber NR;
+        /**
+         * @brief Sequence number of the last packet sent (Transmitter side).
+         */
+        ARQCommand::SequenceNumber NS;
 
-		/**
-		 * @brief Sequence number of the last ACK received in order (Tx side).
-		 */
-		ARQCommand::SequenceNumber LA; // LA=1 means seqnr=0 was acked before
+        /**
+         * @brief Sequence number of the last packet received in order (Rx side).
+         */
+        ARQCommand::SequenceNumber NR;
 
-		/**
-		 * @brief PDU to be sent (Tx side).
-		 */
-		CompoundPtr activeCompound;
+        /**
+         * @brief Sequence number of the last ACK received in order (Tx side).
+         */
+        ARQCommand::SequenceNumber LA; // LA=1 means seqnr=0 was acked before
 
-		/**
-		 * @brief The packets sent but not acknowledged yet (Tx side).
-		 */
-		CompoundContainer sentPDUs;
+        /**
+         * @brief PDU to be sent (Tx side).
+         */
+        CompoundPtr activeCompound;
 
-		/**
-		 * @brief List of packets to be retransmit (Tx side)
-		 */
-		CompoundContainer toRetransmit;
+        /**
+         * @brief The packets sent but not acknowledged yet (Tx side).
+         */
+        CompoundContainer sentPDUs;
 
-		/**
-		 * @brief list of ACK PDU to be sent (Rx side).
-		 */
-		CompoundContainer ackPDUs;
+        /**
+         * @brief List of packets to be retransmit (Tx side)
+         */
+        CompoundContainer toRetransmit;
 
-		/**
-		 * @brief received compounds (Rx side).
-		 */
-		CompoundContainer receivedPDUs;
+        /**
+         * @brief list of ACK PDU to be sent (Rx side).
+         */
+        CompoundContainer ackPDUs;
 
-		/**
-		 * @brief Remember to send the activeCompound (transmit buffer nonidle).
-		 */
-		bool sendNow;
+        /**
+         * @brief received compounds (Rx side).
+         */
+        CompoundContainer receivedPDUs;
 
-		/**
-		 * @brief Time between two transmissions of the same PDU.
-		 */
-		double resendTimeout;
+        /**
+         * @brief Remember to send the activeCompound (transmit buffer nonidle).
+         */
+        bool sendNow;
 
-		/**
-		 * @brief probe to count the number of retransmissions needed.
-		 * @todo unknownPerson: this should go into the base class when the probe
-		 * configuration works better.
-		 */
-		wns::probe::bus::ContextCollectorPtr transmissionAttempts;
+        /**
+         * @brief Time between two transmissions of the same PDU.
+         */
+        double resendTimeout;
 
-		bool delayingDelivery;
+        /**
+         * @brief probe to count the number of retransmissions needed.
+         * @todo unknownPerson: this should go into the base class when the probe
+         * configuration works better.
+         */
+        wns::probe::bus::ContextCollectorPtr transmissionAttempts;
 
-		ARQCommand::SequenceNumber delayedDeliveryNR;
+        bool delayingDelivery;
 
-		logger::Logger logger;
+        ARQCommand::SequenceNumber delayedDeliveryNR;
 
-	};
+        logger::Logger logger;
 
-}}}
+    };
+
+}
+}
+}
 
 #endif // NOT defined WNS_LDK_ARQ_GOBACKN_HPP
 

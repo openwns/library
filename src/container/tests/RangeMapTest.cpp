@@ -35,41 +35,47 @@ namespace wns { namespace container { namespace tests {
 
     class RangeMapTest : public CppUnit::TestFixture
     {
-	CPPUNIT_TEST_SUITE( RangeMapTest );
-	CPPUNIT_TEST( testIntInt );
- 	CPPUNIT_TEST( testFloatFloat );
- 	CPPUNIT_TEST( testFloatFunctor );
-	CPPUNIT_TEST_SUITE_END();
-    public:
-	void setUp();
-	void tearDown();
-	void testIntInt();
- 	void testFloatFloat();
- 	void testFloatFunctor();
-    private:
-	struct TestFunctor
-	{
-	    virtual std::string operator()(const std::string&) const = 0;
-	    virtual ~TestFunctor() {}
-	};
+        CPPUNIT_TEST_SUITE( RangeMapTest );
+        CPPUNIT_TEST( testIntInt );
+        CPPUNIT_TEST( testFloatFloat );
+        CPPUNIT_TEST( testFloatFunctor );
+        CPPUNIT_TEST_SUITE_END();
+        public:
+        void setUp();
+        void tearDown();
+        void testIntInt();
+        void testFloatFloat();
+        void testFloatFunctor();
+        private:
+        struct TestFunctor
+        {
+            virtual std::string operator()(const std::string&) const = 0;
+            virtual ~TestFunctor()
+            {
+            }
+        };
 
-	struct Group1 : public TestFunctor
-	{
-	    virtual std::string operator()(const std::string& s) const
-	    {
-		return "4 8 15 " + s;
-	    }
-	    virtual ~Group1() {}
-	};
+        struct Group1 : public TestFunctor
+        {
+            virtual std::string operator()(const std::string& s) const
+            {
+            return "4 8 15 " + s;
+            }
+            virtual ~Group1()
+            {
+            }
+        };
 
-	struct Group2 : public TestFunctor
-	{
-	    virtual std::string operator()(const std::string& s) const
-	    {
-		return "16 23 42 " + s;
-	    }
-	    virtual ~Group2() {}
-	};
+        struct Group2 : public TestFunctor
+        {
+            virtual std::string operator()(const std::string& s) const
+            {
+            return "16 23 42 " + s;
+            }
+            virtual ~Group2()
+            {
+            }
+        };
     };
 
     CPPUNIT_TEST_SUITE_REGISTRATION( RangeMapTest );
@@ -84,50 +90,50 @@ namespace wns { namespace container { namespace tests {
 
     void RangeMapTest::testIntInt()
     {
-	typedef wns::container::RangeMap<int, int> MyMap;
-	MyMap m;
- 	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::From(0).To(2), 23) );
- 	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(3).And(5), 42) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::Between(0).And(0), 0) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::From(1).To(1), 0) );
-	CPPUNIT_ASSERT( m.has(0) );
-	CPPUNIT_ASSERT( !m.has(3) );
-	CPPUNIT_ASSERT( m.get(0) == 23 );
-	CPPUNIT_ASSERT( m.get(1) == 23 );
-	CPPUNIT_ASSERT( m.get(2) == 23 );
-	CPPUNIT_ASSERT( m.get(4) == 42 );
-	CPPUNIT_ASSERT_THROW( m.get(3), MyMap::Exception );
+        typedef wns::container::RangeMap<int, int> MyMap;
+        MyMap m;
+        CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::From(0).To(2), 23) );
+        CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(3).And(5), 42) );
+        WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::Between(0).And(0), 0) );
+        WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::From(1).To(1), 0) );
+        CPPUNIT_ASSERT( m.has(0) );
+        CPPUNIT_ASSERT( !m.has(3) );
+        CPPUNIT_ASSERT( m.get(0) == 23 );
+        CPPUNIT_ASSERT( m.get(1) == 23 );
+        CPPUNIT_ASSERT( m.get(2) == 23 );
+        CPPUNIT_ASSERT( m.get(4) == 42 );
+        CPPUNIT_ASSERT_THROW( m.get(3), MyMap::Exception );
     }
 
     void RangeMapTest::testFloatFloat()
     {
-	typedef wns::container::RangeMap<float, float> MyMap;
-	MyMap m;
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::From(0.0).To(0.1), 15) );
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(0.1).And(0.2), 16) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::Between(0.0).And(0.0), 0) );
-	WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::From(0.0).To(0.2), 0) );
-	CPPUNIT_ASSERT( m.get(0.0) == 15 );
-	CPPUNIT_ASSERT( m.get(0.05) == 15 );
-	CPPUNIT_ASSERT( m.get(0.1) == 15 );
-	CPPUNIT_ASSERT( m.get(0.10001) == 16 );
-	CPPUNIT_ASSERT( m.get(0.19999) == 16 );
-	CPPUNIT_ASSERT_THROW( m.get(0.2), MyMap::Exception );
+        typedef wns::container::RangeMap<float, float> MyMap;
+        MyMap m;
+        CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::From(0.0).To(0.1), 15) );
+        CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(0.1).And(0.2), 16) );
+        WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::Between(0.0).And(0.0), 0) );
+        WNS_ASSERT_ASSURE_EXCEPTION( m.insert(MyMap::IntervalType::From(0.0).To(0.2), 0) );
+        CPPUNIT_ASSERT( m.get(0.0) == 15 );
+        CPPUNIT_ASSERT( m.get(0.05) == 15 );
+        CPPUNIT_ASSERT( m.get(0.1) == 15 );
+        CPPUNIT_ASSERT( m.get(0.10001) == 16 );
+        CPPUNIT_ASSERT( m.get(0.19999) == 16 );
+        CPPUNIT_ASSERT_THROW( m.get(0.2), MyMap::Exception );
     }
 
     void RangeMapTest::testFloatFunctor()
     {
-	typedef wns::container::RangeMap<float, TestFunctor*> MyMap;
-	MyMap m;
-	Group1* g1 = new Group1();
-	Group2* g2 = new Group2();
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(0.0).And(16.0), g1) );
-	CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(16.0).And(43.0), g2) );
-	CPPUNIT_ASSERT( (*m.get(6.0))("foo") == "4 8 15 foo" );
-	CPPUNIT_ASSERT( (*m.get(23.0))("bar") == "16 23 42 bar" );
-	CPPUNIT_ASSERT( (*m.get(42.0))("baz") == "16 23 42 baz" );
-	delete g1;
-	delete g2;
+        typedef wns::container::RangeMap<float, TestFunctor*> MyMap;
+        MyMap m;
+        Group1* g1 = new Group1();
+        Group2* g2 = new Group2();
+        CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(0.0).And(16.0), g1) );
+        CPPUNIT_ASSERT_NO_THROW( m.insert(MyMap::IntervalType::Between(16.0).And(43.0), g2) );
+        CPPUNIT_ASSERT( (*m.get(6.0))("foo") == "4 8 15 foo" );
+        CPPUNIT_ASSERT( (*m.get(23.0))("bar") == "16 23 42 bar" );
+        CPPUNIT_ASSERT( (*m.get(42.0))("baz") == "16 23 42 baz" );
+        delete g1;
+        delete g2;
     }
 
 } // tests

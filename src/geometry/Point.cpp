@@ -32,14 +32,15 @@ using namespace std;
 using namespace wns::geometry;
 
 Point::Point() :
-	point(valarray<double>(0.0,3))
+point(valarray<double>(0.0,3))
 {
 }
 
 Point::Point(double x, double y, double z) :
-	point(valarray<double>(0.0,3))
+point(valarray<double>(0.0,3))
 {
- 	if (x < 0.0 || y < 0.0 || z < 0.0) {
+ 	if (x < 0.0 || y < 0.0 || z < 0.0)
+    {
  		throw out_of_range("x, y, z must be > 0.0!");
  	}
 	point[0] = x;
@@ -48,17 +49,18 @@ Point::Point(double x, double y, double z) :
 }
 
 Point::Point(const valarray<double>& other) :
-	point(other)
+point(other)
 {
 }
 
 Point::Point(const wns::pyconfig::View& view) :
-	point(valarray<double>(0.0,3))
+point(valarray<double>(0.0,3))
 {
 	point[0] = view.get<double>("x");
 	point[1] = view.get<double>("y");
 	point[2] = view.get<double>("z");
- 	if (point[0] < 0.0 || point[1] < 0.0 || point[2] < 0.0) {
+ 	if (point[0] < 0.0 || point[1] < 0.0 || point[2] < 0.0)
+    {
  		throw out_of_range("x, y, z must be > 0.0!");
  	}
 }
@@ -119,7 +121,8 @@ Point::setX(double x)
 {
 	// in Antenna::drawAntennaPattern() it is ok to have negative coordinates
 	point[0] = x;
- 	if (x < 0.0) {
+ 	if (x < 0.0)
+    {
  		throw out_of_range("x must be > 0.0!");
  	}
 }
@@ -129,7 +132,8 @@ Point::setY(double y)
 {
 	// in Antenna::drawAntennaPattern() it is ok to have negative coordinates
 	point[1] = y;
- 	if (y < 0.0) {
+ 	if (y < 0.0)
+    {
  		throw out_of_range("y must be > 0.0!");
  	}
 }
@@ -139,7 +143,8 @@ Point::setZ(double z)
 {
 	// in Antenna::drawAntennaPattern() it is ok to have negative coordinates
 	point[2] = z;
- 	if (z < 0.0) {
+ 	if (z < 0.0)
+    {
  		throw out_of_range("z must be > 0.0!");
  	}
 }
@@ -187,9 +192,9 @@ std::ostream&
 operator<<(std::ostream &str, const Point& p)
 {
 	str
-		<< "[ x=" << p.getX()
-		<< ", y=" << p.getY()
-		<< ", z=" << p.getZ() << "]";
+	<< "[ x=" << p.getX()
+	<< ", y=" << p.getY()
+	<< ", z=" << p.getZ() << "]";
 	return str;
 }
 
@@ -200,7 +205,7 @@ Point::operator<(const Point& other) const
 	// "strict weak ordering" as needed by the STL:
 
     return (get()[0] < other.get()[0]) ||
-		   ((get()[0] == other.get()[0]) && (get()[1] < other.get()[1]) ||
+    	   ((get()[0] == other.get()[0]) && (get()[1] < other.get()[1]) ||
 		    ((get()[1] == other.get()[1]) && get()[2] < other.get()[2]));
 
 

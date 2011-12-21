@@ -48,146 +48,162 @@
 namespace wns { namespace ldk { namespace arq {
 
 /// Command used by the CumulativeACK arq implementation.
-	class CumulativeACKCommand :
-		public ARQCommand
-	{
-	public:
-		CumulativeACKCommand()
-		{
-			peer.type = I;
-			peer.NS = 0;
-			peer.NR = 0;
-		}
-		/// Control frame types.
-		typedef enum {I, RR, SREJ} FrameType;
+    class CumulativeACKCommand :
+        public ARQCommand
+    {
+        public:
+            CumulativeACKCommand()
+        {
+            peer.type = I;
+            peer.NS = 0;
+            peer.NR = 0;
+        }
+        /// Control frame types.
+        typedef enum {I, RR, SREJ} FrameType;
 
-		bool isACK() const
-		{
-			return (peer.type == RR) || (peer.type == SREJ);
-		}
+        bool isACK() const
+        {
+            return (peer.type == RR) || (peer.type == SREJ);
+        }
 
-		struct {} local;
-		struct {
-			FrameType type;
-			unsigned long int NS;
-			unsigned long int NR; /// in case of AckPDU the number of the received PDU
-		} peer;
-		struct {} magic;
+        struct
+        {
+        }
+        local;
+        
+        struct
+        {
+            FrameType type;
+            unsigned long int NS;
+            unsigned long int NR; /// in case of AckPDU the number of the received PDU
+        }
+        peer;
+        
+        struct
+        {
+        }
+        magic;
 
-	};
+    };
 
-	/// CumulativeACK implementation of the ARQ interface.
-	/**
-	 * @todo Piggyback feasibility
-	 * @todo Implementation of SREJ Function if a SelectiveRejectFct is needed
-	 * @todo check if default copy c'tor is ok here
-	 */
-	class CumulativeACK :
-		public ARQ,
-		public wns::ldk::fu::Plain<CumulativeACK, CumulativeACKCommand>,
-		public Delayed<CumulativeACK>,
-		virtual public SuspendableInterface,
-		public SuspendSupport,
-		virtual public DelayedDeliveryInterface,
-		public events::CanTimeout
-	{
-	private:
-		/// An element for a PDU and its ARQ-Attributes .
-		class CAElement:
-			public events::CanTimeout
-		{
-		public:
-		    CAElement();
-		    CAElement(CumulativeACK* _parent, unsigned int Time=1 ):
-				parent(_parent),
-				resendTimeout(Time),
-				compound(CompoundPtr()),
-				sendNow(false),
-				logger("WNS", "CumulativeACK") {};
+    /// CumulativeACK implementation of the ARQ interface.
+    /**
+     * @todo Piggyback feasibility
+     * @todo Implementation of SREJ Function if a SelectiveRejectFct is needed
+     * @todo check if default copy c'tor is ok here
+     */
+    class CumulativeACK :
+        public ARQ,
+        public wns::ldk::fu::Plain<CumulativeACK, CumulativeACKCommand>,
+        public Delayed<CumulativeACK>,
+        virtual public SuspendableInterface,
+        public SuspendSupport,
+        virtual public DelayedDeliveryInterface,
+        public events::CanTimeout
+    {
+    private:
+        /// An element for a PDU and its ARQ-Attributes .
+        class CAElement:
+            public events::CanTimeout
+        {
+            public:
+                CAElement();
+                CAElement(CumulativeACK* _parent, unsigned int Time=1 ):
+                    parent(_parent),
+                    resendTimeout(Time),
+                    compound(CompoundPtr()),
+                    sendNow(false),
+                    logger("WNS", "CumulativeACK")
+                    {
+                    };
 
-			~CAElement()
-				{
-					//std::cout<<" Jawoi CAEl destructor has been called ! "<<std::endl;
-					parent = NULL;
-				}
+                ~CAElement()
+                {
+                    //std::cout<<" Jawoi CAEl destructor has been called ! "<<std::endl;
+                    parent = NULL;
+                }
 
-		    void onTimeout(){
-				assure(compound, "no PDU during onTimeout.");
-				parent->statusCollector->onFailedTransmission(this->compound);
-				sendNow = true;
-				MESSAGE_BEGIN(NORMAL, logger, m, parent->getFUN()->getName());
-				m << " Timeout of CAElement NS -> " << parent->getCommand(compound->getCommandPool())->peer.NS;
-				MESSAGE_END();
-				parent->tryToSend();
-			}
+                void onTimeout()
+                {
+                    assure(compound, "no PDU during onTimeout.");
+                    parent->statusCollector->onFailedTransmission(this->compound);
+                    sendNow = true;
+                    MESSAGE_BEGIN(NORMAL, logger, m, parent->getFUN()->getName());
+                    m << " Timeout of CAElement NS -> " << parent->getCommand(compound->getCommandPool())->peer.NS;
+                    MESSAGE_END();
+                    parent->tryToSend();
+                }
 
-		    wns::ldk::CompoundPtr getCompound(){return compound;};
+            wns::ldk::CompoundPtr getCompound(){return compound;};
 
-		    CumulativeACK* parent;
-		    unsigned int resendTimeout;
-		    wns::ldk::CompoundPtr compound;
-		    //true if PDU is supposed to be sent. Not being used in case of receiving
-		    bool sendNow;
-			logger::Logger logger;
+            CumulativeACK* parent;
+            unsigned int resendTimeout;
+            wns::ldk::CompoundPtr compound;
+            //true if PDU is supposed to be sent. Not being used in case of receiving
+            bool sendNow;
+            logger::Logger logger;
 
-		};
-		///@brief Container for the compounds and their Attributes
-		typedef std::vector<CAElement> CAElements;
-	public:
-		/// FUNConfigCreator interface realisation
-		CumulativeACK(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        };
+        ///@brief Container for the compounds and their Attributes
+        typedef std::vector<CAElement> CAElements;
+        
+        public:
+            /// FUNConfigCreator interface realisation
+            CumulativeACK(fun::FUN* fuNet, const wns::pyconfig::View& config);
 
-		~CumulativeACK();
+            ~CumulativeACK();
 
-		/// CanTimeout interface realisation
-		virtual void onTimeout(){}
+            /// CanTimeout interface realisation
+            virtual void onTimeout()
+            {
+            }
 
-		// Delayed interface realisation
-		virtual bool hasCapacity() const;
-		virtual void processOutgoing(const CompoundPtr& sdu);
-		// virtual const CompoundPtr hasSomethingToSend() const; // implemented by ARQ
-		// virtual CompoundPtr getSomethingToSend(); // implemented by ARQ
-		virtual void processIncoming(const CompoundPtr& compound);
+            // Delayed interface realisation
+            virtual bool hasCapacity() const;
+            virtual void processOutgoing(const CompoundPtr& sdu);
+            // virtual const CompoundPtr hasSomethingToSend() const; // implemented by ARQ
+            // virtual CompoundPtr getSomethingToSend(); // implemented by ARQ
+            virtual void processIncoming(const CompoundPtr& compound);
 
-		/// ARQ interface realization
-		virtual const wns::ldk::CompoundPtr hasACK() const;
-		virtual const wns::ldk::CompoundPtr hasData() const;
-		virtual wns::ldk::CompoundPtr getACK();
-		virtual wns::ldk::CompoundPtr getData();
+            /// ARQ interface realization
+            virtual const wns::ldk::CompoundPtr hasACK() const;
+            virtual const wns::ldk::CompoundPtr hasData() const;
+            virtual wns::ldk::CompoundPtr getACK();
+            virtual wns::ldk::CompoundPtr getData();
 
-		// Overload of CommandTypeSpecifier Interface
-		void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
+            // Overload of CommandTypeSpecifier Interface
+            void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
-		virtual bool onSuspend() const;
+            virtual bool onSuspend() const;
 
-	protected:
-		virtual void doDelayDelivery();
-		virtual void doDeliver();
+        protected:
+            virtual void doDelayDelivery();
+            virtual void doDeliver();
 
-		///ACK PDU
-		wns::ldk::CompoundPtr ackCompound;
-		/// Window size.
-		unsigned long int wS;
-		/// Sequence number of the next packet to be sent.
-		unsigned long int NS;
-		/// Sequence number of the first packet expected to  be acknowledged.
-		unsigned long int NSack;
-		/// Sequence number of the next packet expected to be received.
-		unsigned long int NR;
-		/// Divisor for Sequence Numbers.
-		int sequenceNumberSize;
-		/// Container for compounds with their Atributes.
-		CAElements receivingCompounds;
-		CAElements sendingCompounds;
-		/// Time between two transmissions of the same PDU.
-		double resendTimeout;
+            ///ACK PDU
+            wns::ldk::CompoundPtr ackCompound;
+            /// Window size.
+            unsigned long int wS;
+            /// Sequence number of the next packet to be sent.
+            unsigned long int NS;
+            /// Sequence number of the first packet expected to  be acknowledged.
+            unsigned long int NSack;
+            /// Sequence number of the next packet expected to be received.
+            unsigned long int NR;
+            /// Divisor for Sequence Numbers.
+            int sequenceNumberSize;
+            /// Container for compounds with their Atributes.
+            CAElements receivingCompounds;
+            CAElements sendingCompounds;
+            /// Time between two transmissions of the same PDU.
+            double resendTimeout;
 
-		bool delayingDelivery;
-		int delayedDeliveryNR;
+            bool delayingDelivery;
+            int delayedDeliveryNR;
 
-		logger::Logger logger;
-	};
-}}}
+            logger::Logger logger;
+        };
+    }
+}
+}
 #endif
-
-

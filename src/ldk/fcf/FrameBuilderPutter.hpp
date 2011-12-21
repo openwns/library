@@ -35,47 +35,54 @@
 
 namespace wns { namespace ldk {
 
-	class ILayer;
+    class ILayer;
 
-	namespace fun {
-		class FUN;
-	}
+    namespace fun
+    {
+        class FUN;
+    }
 
-	namespace fcf {
+    namespace fcf
+    {
 
-		/// The FrameBuilderPutter forwards incoming packets to the FrameBuilder.
-		/**
-		 * The FrameBuilderPutter is a helper class for the FrameBuilder. The
-		 * FrameBuilder does only accept pairs of functional unit
-		 * connections. The FrameBuilderPutter indicates compounds directly to
-		 * the FrameBuilder.
-		 * @todo This class has not a real function. It is a workaround.
-	     * @ingroup frameConfigurationFramework
-	     */
-		class FrameBuilderPutter
-			: public virtual wns::ldk::FunctionalUnit,
-			  public CommandTypeSpecifier<>,
-			  public HasReceptor<>,
-			  public HasConnector<>,
-			  public HasDeliverer<>,
-			  public Cloneable<FrameBuilderPutter>
-		{
-		public:
-			FrameBuilderPutter( wns::ldk::fun::FUN*, const wns::pyconfig::View& );
+        /// The FrameBuilderPutter forwards incoming packets to the FrameBuilder.
+        /**
+         * The FrameBuilderPutter is a helper class for the FrameBuilder. The
+         * FrameBuilder does only accept pairs of functional unit
+         * connections. The FrameBuilderPutter indicates compounds directly to
+         * the FrameBuilder.
+         * @todo This class has not a real function. It is a workaround.
+         * @ingroup frameConfigurationFramework
+         */
+        class FrameBuilderPutter
+            : public virtual wns::ldk::FunctionalUnit,
+              public CommandTypeSpecifier<>,
+              public HasReceptor<>,
+              public HasConnector<>,
+              public HasDeliverer<>,
+              public Cloneable<FrameBuilderPutter>
+        {
+        public:
+            FrameBuilderPutter( wns::ldk::fun::FUN*, const wns::pyconfig::View& );
 
-			void doOnData(const wns::ldk::CompoundPtr&);
-			void doSendData(const wns::ldk::CompoundPtr&);
-			void onFUNCreated();
+            void doOnData(const wns::ldk::CompoundPtr&);
+            void doSendData(const wns::ldk::CompoundPtr&);
+            void onFUNCreated();
 
-		private:
-			void doWakeup(){}
-			bool doIsAccepting(const wns::ldk::CompoundPtr&) const;
+        private:
+            void doWakeup()
+            {
+            }
+            bool doIsAccepting(const wns::ldk::CompoundPtr&) const;
 
-			std::string frameBuilderName;
-			struct {
-				wns::ldk::FunctionalUnit* destination;
-			} friends;
-		};
-}}}
+            std::string frameBuilderName;
+            struct
+            {
+                wns::ldk::FunctionalUnit* destination;
+            } friends;
+        };
+}
+}
+}
 #endif
 

@@ -145,7 +145,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
         public:
             virtual void
             operator()()
-            {}
+            {
+            }
             virtual ~NoOp(){}
         };
 
@@ -206,7 +207,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
 
             virtual
             ~CheckIsRunning()
-            {}
+            {
+            }
 
         private:
             // Not reference counted to avoid cyclic references.
@@ -229,7 +231,8 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
 
             virtual
             ~Stop()
-            {}
+            {
+            }
 
         private:
             wns::events::scheduler::Interface* scheduler;

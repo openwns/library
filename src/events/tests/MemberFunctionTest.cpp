@@ -30,77 +30,78 @@
 
 namespace wns { namespace events { namespace tests {
 
-	class MemberFunctionTest :
-		public wns::TestFixture
-	{
-		CPPUNIT_TEST_SUITE( MemberFunctionTest );
-		CPPUNIT_TEST( sendNow );
-		CPPUNIT_TEST_SUITE_END();
+    class MemberFunctionTest :
+        public wns::TestFixture
+    {
+        CPPUNIT_TEST_SUITE( MemberFunctionTest );
+        CPPUNIT_TEST( sendNow );
+        CPPUNIT_TEST_SUITE_END();
 
-		class TestObject
-		{
-		public:
-			TestObject() :
-				foo(0)
-			{}
+        class TestObject
+        {
+        public:
+            TestObject() :
+                foo(0)
+            {
+            }
 
-			void increaseFoo()
-			{
-				++foo;
-			}
+            void increaseFoo()
+            {
+                ++foo;
+            }
 
-			int foo;
-		};
+            int foo;
+        };
 
-	public:
- 		void prepare();
-		void cleanup();
+    public:
+        void prepare();
+        void cleanup();
 
-		void sendNow();
+        void sendNow();
 
-	};
+    };
 
-	CPPUNIT_TEST_SUITE_REGISTRATION( MemberFunctionTest );
+    CPPUNIT_TEST_SUITE_REGISTRATION( MemberFunctionTest );
 
-	void
-	MemberFunctionTest::prepare()
-	{
-	}
+    void
+    MemberFunctionTest::prepare()
+    {
+    }
 
-	void
-	MemberFunctionTest::cleanup()
-	{
-	}
+    void
+    MemberFunctionTest::cleanup()
+    {
+    }
 
-	void
-	MemberFunctionTest::sendNow()
-	{
-		// begin example "wns.events.MemberFunction.sendNow.example"
-		TestObject t;
+    void
+    MemberFunctionTest::sendNow()
+    {
+        // begin example "wns.events.MemberFunction.sendNow.example"
+        TestObject t;
 
-		CPPUNIT_ASSERT_EQUAL(0, t.foo);
+        CPPUNIT_ASSERT_EQUAL(0, t.foo);
 
-		wns::simulator::getEventScheduler()->
-			scheduleNow(wns::events::MemberFunction<TestObject>(&t, &TestObject::increaseFoo));
+        wns::simulator::getEventScheduler()->
+            scheduleNow(wns::events::MemberFunction<TestObject>(&t, &TestObject::increaseFoo));
 
-		wns::simulator::getEventScheduler()->processOneEvent();
-		CPPUNIT_ASSERT_EQUAL(1, t.foo);
-		// end example
+        wns::simulator::getEventScheduler()->processOneEvent();
+        CPPUNIT_ASSERT_EQUAL(1, t.foo);
+        // end example
 
-		wns::simulator::getEventScheduler()->
-			scheduleNow(wns::events::MemberFunction<TestObject>(&t, &TestObject::increaseFoo));
+        wns::simulator::getEventScheduler()->
+            scheduleNow(wns::events::MemberFunction<TestObject>(&t, &TestObject::increaseFoo));
 
-		wns::simulator::getEventScheduler()->
-			scheduleNow(wns::events::MemberFunction<TestObject>(&t, &TestObject::increaseFoo));
+        wns::simulator::getEventScheduler()->
+            scheduleNow(wns::events::MemberFunction<TestObject>(&t, &TestObject::increaseFoo));
 
-		wns::simulator::getEventScheduler()->processOneEvent();
-		CPPUNIT_ASSERT_EQUAL(2, t.foo);
+        wns::simulator::getEventScheduler()->processOneEvent();
+        CPPUNIT_ASSERT_EQUAL(2, t.foo);
 
-		wns::simulator::getEventScheduler()->processOneEvent();
-		CPPUNIT_ASSERT_EQUAL(3, t.foo);
+        wns::simulator::getEventScheduler()->processOneEvent();
+        CPPUNIT_ASSERT_EQUAL(3, t.foo);
 
-		CPPUNIT_ASSERT(!wns::simulator::getEventScheduler()->processOneEvent());
-	}
+        CPPUNIT_ASSERT(!wns::simulator::getEventScheduler()->processOneEvent());
+    }
 
 } // tests
 } // events

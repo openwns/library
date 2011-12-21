@@ -38,105 +38,113 @@
 
 namespace wns { namespace ldk { namespace crc {
 
-	class CRCCommand :
-		public Command
-	{
-	public:
-		CRCCommand()
-		{
-			local.checkOK = false;
-		}
+    class CRCCommand :
+        public Command
+    {
+    public:
+        CRCCommand()
+        {
+            local.checkOK = false;
+        }
 
-		/*
-		 * I - Information Frame
-		 * RR - Receiver Ready (ACK)
-		 */
-		struct {
-			bool checkOK;
-		} local;
-		struct {} peer;
-		struct {} magic;
+        /*
+         * I - Information Frame
+         * RR - Receiver Ready (ACK)
+         */
+        struct
+        {
+            bool checkOK;
+        } local;
+        struct
+        {
+        }
+        peer;
+        struct
+        {
+        }
+        magic;
 
-	};
+    };
 
 
-	/**
-	 * @brief CRC implementation of the FU interface.
-	 *
-	 */
-	class CRC :
-		public fu::Plain<CRC, CRCCommand>,
-		virtual public SuspendableInterface,
-		public SuspendSupport
-	{
-	public:
-		// FUNConfigCreator interface realisation
-		CRC(fun::FUN* fuNet, const wns::pyconfig::View& config);
-		~CRC();
+    /**
+     * @brief CRC implementation of the FU interface.
+     *
+     */
+    class CRC :
+        public fu::Plain<CRC, CRCCommand>,
+        virtual public SuspendableInterface,
+        public SuspendSupport
+    {
+    public:
+        // FUNConfigCreator interface realisation
+        CRC(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        ~CRC();
 
-		virtual void onFUNCreated();
+        virtual void onFUNCreated();
 
-		// SDU and PCI size calculation
-		void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
+        // SDU and PCI size calculation
+        void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& dataSize) const;
 
-		bool
-		isMarking() const;
+        bool
+        isMarking() const;
 
-	private:
-		virtual void
-		doSendData(const CompoundPtr& compound);
+    private:
+        virtual void
+        doSendData(const CompoundPtr& compound);
 
-		virtual void
-		doOnData(const CompoundPtr& compound);
+        virtual void
+        doOnData(const CompoundPtr& compound);
 
-		virtual bool
-		doIsAccepting(const CompoundPtr& compound) const;
+        virtual bool
+        doIsAccepting(const CompoundPtr& compound) const;
 
-		virtual void
-		doWakeup()
-		{
-			getReceptor()->wakeup();
-		} // wakeup
+        virtual void
+        doWakeup()
+        {
+            getReceptor()->wakeup();
+        } // wakeup
 
-		virtual bool
-		onSuspend() const
-		{
-			return true;
-		} // onSuspend
+        virtual bool
+        onSuspend() const
+        {
+            return true;
+        } // onSuspend
 
-		/**
-		 * @brief Pointer to the used Uniform Distribution.
-		 *
-		 */
-		wns::distribution::StandardUniform dis;
+        /**
+         * @brief Pointer to the used Uniform Distribution.
+         *
+         */
+        wns::distribution::StandardUniform dis;
 
-		/**
-		 * @brief Length of the CRC checksum.
-		 *
-		 */
-		int checkSumLength;
+        /**
+         * @brief Length of the CRC checksum.
+         *
+         */
+        int checkSumLength;
 
-		std::string  PERProviderName;
+        std::string  PERProviderName;
 
-		/**
-		 * @brief behaviour of the CRC, defaults to DROPPING, which means that it
-		 * does not deliver bad Compounds to the next FUs in the 'incoming' chain. If
-		 * the behaviour is set to MARKING, the compounds are marked bad in the
-		 * local part of the CRCCommand and delivered.
-		 *
-		 */
-		typedef enum { DROPPING, MARKING } Behaviour;
-		Behaviour behaviour;
+        /**
+         * @brief behaviour of the CRC, defaults to DROPPING, which means that it
+         * does not deliver bad Compounds to the next FUs in the 'incoming' chain. If
+         * the behaviour is set to MARKING, the compounds are marked bad in the
+         * local part of the CRCCommand and delivered.
+         *
+         */
+        typedef enum { DROPPING, MARKING } Behaviour;
+        Behaviour behaviour;
 
-		struct Friends {
-			FunctionalUnit* PERProvider;
-		} friends;
+        struct Friends
+        {
+            FunctionalUnit* PERProvider;
+        } friends;
 
-		logger::Logger logger;
+        logger::Logger logger;
 
-		// Probe variables
-		wns::probe::bus::ContextCollectorPtr lossRatio;
-	};
+        // Probe variables
+        wns::probe::bus::ContextCollectorPtr lossRatio;
+    };
 
 } // crc
 } // ldk

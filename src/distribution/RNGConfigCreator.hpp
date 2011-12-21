@@ -34,33 +34,35 @@
 
 namespace wns { namespace distribution {
     /**
-	 * @brief Creator implementation to be used with StaticFactory.
-	 *
-	 * Useful for constructors with a specific RNG and pyconfig::View parameter.
-	 *
-	 */
-	template <typename T, typename KIND = T>
-	struct RNGConfigCreator :
-		public RNGConfigCreator<KIND, KIND>
-	{
-		virtual KIND* create(wns::rng::RNGen* rng, const wns::pyconfig::View& config)
-		{
-			return new T(rng, config);
-		}
-	};
+     * @brief Creator implementation to be used with StaticFactory.
+     *
+     * Useful for constructors with a specific RNG and pyconfig::View parameter.
+     *
+     */
+    template <typename T, typename KIND = T>
+    struct RNGConfigCreator :
+        public RNGConfigCreator<KIND, KIND>
+    {
+        virtual KIND* create(wns::rng::RNGen* rng, const wns::pyconfig::View& config)
+        {
+            return new T(rng, config);
+        }
+    };
 
-	template <typename KIND>
-	struct RNGConfigCreator<KIND, KIND> //:
-	// public wns::Creator<KIND, KIND>
-	{
-	public:
-		virtual KIND* create(wns::rng::RNGen*, const wns::pyconfig::View&) = 0;
+    template <typename KIND>
+    struct RNGConfigCreator<KIND, KIND> //:
+    // public wns::Creator<KIND, KIND>
+    {
+    public:
+        virtual KIND* create(wns::rng::RNGen*, const wns::pyconfig::View&) = 0;
 
-		virtual ~RNGConfigCreator()
-		{}
-	};
+        virtual ~RNGConfigCreator()
+        {
+        }
+    };
 
-}}
+}
+}
 
 
 #endif // NOT defined WNS_DISTRIBUTION_RNGCONFIGCREATOR_HPP

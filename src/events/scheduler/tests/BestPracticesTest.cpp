@@ -30,7 +30,7 @@
 
 #include <boost/bind.hpp>
 
-namespace wns { namespace events { namespace scheduler { namespace tests { 
+namespace wns { namespace events { namespace scheduler { namespace tests {
 
      // begin example "wns.events.scheduler.bestpractices.freeFunction.example"
      int globalVariable = 0;
@@ -108,7 +108,7 @@ namespace wns { namespace events { namespace scheduler { namespace tests {
          void boostBindMemberFunctionWithParameter();
          void eventCancellation();
          void writingUnitTestsControlOfTime();
-         
+
      };
 
      CPPUNIT_TEST_SUITE_REGISTRATION( BestPracticesTest );
@@ -304,7 +304,7 @@ BestPracticesTest::eventCancellation()
     scheduler = wns::simulator::getEventScheduler();
 
     wns::events::scheduler::Callable c = &freeFunction;
-    
+
     scheduler->scheduleDelay(c, 10.0);
 
     // begin example "wns.events.scheduler.bestpractices.unittest.cancel.example"
@@ -313,7 +313,7 @@ BestPracticesTest::eventCancellation()
 
     // Remember a handle of your event
     IEventPtr timeoutHandle = scheduler->scheduleDelay(timeout, 15.0);
-    
+
     // Use the handle to cancel an event that was already scheduled
     scheduler->cancelEvent(timeoutHandle);
     // end example

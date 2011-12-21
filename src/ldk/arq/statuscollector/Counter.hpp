@@ -35,25 +35,25 @@
 
 namespace wns { namespace ldk { namespace arq { namespace statuscollector {
 
-	/**
-	 * @brief ARQStatusCollector which simply counts the success/failed transmissions
-	 *
-	 */
-	class Counter:
-		public Interface
-	{
-	public:
-		Counter(const wns::pyconfig::View& config);
-		void reset();
-		double getSuccessRate(const CompoundPtr& compound);
-		void onSuccessfullTransmission(const CompoundPtr& compound);
-		void onFailedTransmission(const CompoundPtr& compound);
-	private:	
-		int numSucc;
-		int numFailed;
-	
-		wns::logger::Logger logger;
-	};
+    /**
+     * @brief ARQStatusCollector which simply counts the success/failed transmissions
+     *
+     */
+    class Counter:
+        public Interface
+    {
+    public:
+        Counter(const wns::pyconfig::View& config);
+        void reset();
+        double getSuccessRate(const CompoundPtr& compound);
+        void onSuccessfullTransmission(const CompoundPtr& compound);
+        void onFailedTransmission(const CompoundPtr& compound);
+    private:
+        int numSucc;
+        int numFailed;
+
+        wns::logger::Logger logger;
+    };
 }
 }
 }

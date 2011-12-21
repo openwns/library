@@ -33,65 +33,65 @@ using namespace wns::ldk::crc;
 using namespace wns::ldk;
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(CRCFilter,
-				     FunctionalUnit,
-				     "wns.crc.CRCFilter",
-				     FUNConfigCreator);
+                     FunctionalUnit,
+                     "wns.crc.CRCFilter",
+                     FUNConfigCreator);
 
 
 CRCFilter::CRCFilter(fun::FUN* fuNet, const wns::pyconfig::View& _config) :
-	fu::Plain<CRCFilter>(fuNet),
-	SuspendSupport(fuNet, _config),
-	friends(),
-	fus(),
-	config(_config),
-	logger(_config.get("logger"))
+    fu::Plain<CRCFilter>(fuNet),
+    SuspendSupport(fuNet, _config),
+    friends(),
+    fus(),
+    config(_config),
+    logger(_config.get("logger"))
 {
-	friends.crc = NULL;
+    friends.crc = NULL;
 } // CRCFilter
 
 
 void
 CRCFilter::onFUNCreated()
 {
-	friends.crc = getFUN()->findFriend<CRC*>(config.get<std::string>("crc"));
-	if (!friends.crc->isMarking())
-		throw wns::Exception("CRC FU (friend) has to be set to mode MARKING");
-	for (int i = 0; i < config.len("fus"); ++i)
-		fus.push_back(getFUN()->findFriend<FunctionalUnit*>(config.get<std::string>("fus", i)));
+    friends.crc = getFUN()->findFriend<CRC*>(config.get<std::string>("crc"));
+    if (!friends.crc->isMarking())
+        throw wns::Exception("CRC FU (friend) has to be set to mode MARKING");
+    for (int i = 0; i < config.len("fus"); ++i)
+        fus.push_back(getFUN()->findFriend<FunctionalUnit*>(config.get<std::string>("fus", i)));
 }  // onFUNCreated
 
 
 void
 CRCFilter::doOnData(const CompoundPtr& compound)
 {
-	Command* command = getFUN()->getProxy()->getCommand(compound->getCommandPool(), friends.crc);
-	assureType(command, CRCCommand*);
-	CRCCommand* crcCommand = dynamic_cast<CRCCommand*>(command);
+    Command* command = getFUN()->getProxy()->getCommand(compound->getCommandPool(), friends.crc);
+    assureType(command, CRCCommand*);
+    CRCCommand* crcCommand = dynamic_cast<CRCCommand*>(command);
 
-	if (crcCommand->local.checkOK)
-	{
-		MESSAGE_SINGLE(NORMAL, logger, "CRCheck - success");
-		getDeliverer()->getAcceptor(compound)->onData(compound);
-		return;
-	}
-	else
-	{
-		CommandPool* commandPool = compound->getCommandPool();
+    if (crcCommand->local.checkOK)
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "CRCheck - success");
+        getDeliverer()->getAcceptor(compound)->onData(compound);
+        return;
+    }
+    else
+    {
+        CommandPool* commandPool = compound->getCommandPool();
 
-		for (unsigned int i = 0; i < fus.size(); ++i)
-		{
-			if (getFUN()->getProxy()->commandIsActivated(commandPool, fus.at(i)))
-			{
-				MESSAGE_SINGLE(NORMAL, logger, "CRCheck - failed, but compound contains at least one activated command of listed FUs\n"
-					       "Hence, forwarding compound to upper FU anyway");
-				crcCommand->local.checkOK = true;
-				getDeliverer()->getAcceptor(compound)->onData(compound);
-				return;
-			}
-		}
-	}
+        for (unsigned int i = 0; i < fus.size(); ++i)
+        {
+            if (getFUN()->getProxy()->commandIsActivated(commandPool, fus.at(i)))
+            {
+                MESSAGE_SINGLE(NORMAL, logger, "CRCheck - failed, but compound contains at least one activated command of listed FUs\n"
+                           "Hence, forwarding compound to upper FU anyway");
+                crcCommand->local.checkOK = true;
+                getDeliverer()->getAcceptor(compound)->onData(compound);
+                return;
+            }
+        }
+    }
 
-	MESSAGE_SINGLE(NORMAL, logger, "CRCheck - failed - dropping compound");
+    MESSAGE_SINGLE(NORMAL, logger, "CRCheck - failed - dropping compound");
 } // doOnData
 
 
