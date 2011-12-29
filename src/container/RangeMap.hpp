@@ -63,6 +63,7 @@ namespace wns { namespace container {
 	    Exception(const std::string& s)
 		: wns::Exception(s)
 	    {}
+        ~Exception() throw() {}
 	};
 
 

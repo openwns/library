@@ -58,6 +58,7 @@ namespace wns { namespace ldk { namespace fun {
 		FindFriendException(const std::string& e) :
 			wns::Exception(e)
 		{}
+        ~FindFriendException() throw() {}
 	};
 
 	/**

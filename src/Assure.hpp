@@ -193,6 +193,7 @@ namespace wns {
          */
         explicit
         NullException(const std::string& s);
+        ~NullException() throw() {}
     };
 
 
@@ -228,6 +229,8 @@ namespace wns {
              */
             explicit
             Exception(const std::string& s);
+
+	  ~Exception() throw() {};
         };
 
         /**
