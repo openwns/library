@@ -88,12 +88,16 @@ LinkAdaptation::getTBSize(Bit pduSize,
 wns::Power
 LinkAdaptation::getTxPower(UserID user)
 {
-    wns::Ratio pathloss = lproxy_->estimateRxSINROf(user).pathloss;
-    wns::Ratio scalePL;
-    scalePL.set_dB(pathloss.get_dB() * alpha_);
-    wns::Power txPower = pNull_ * scalePL;
-
-    return txPower;
+    if(spot_ == wns::scheduler::SchedulerSpot::DLMaster())
+        return lproxy_->getPowerCapabilities(user).nominalPerSubband;
+    else
+    {            
+        wns::Ratio pathloss = lproxy_->estimateRxSINROf(user).pathloss;
+        wns::Ratio scalePL;
+        scalePL.set_dB(pathloss.get_dB() * alpha_);
+        wns::Power txPower = pNull_ * scalePL;
+        return txPower;
+    }
 }
 
 wns::service::phy::phymode::PhyModeInterfacePtr
