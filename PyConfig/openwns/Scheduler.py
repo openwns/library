@@ -141,6 +141,8 @@ class PersistentVoIP(SubStrategy):
             def __init__(self, plugin, reduceMCS = True):
                 self.__plugin__ = plugin
                 self.reduceMCS = reduceMCS
+                self.alpha = 0
+                self.pNull = "4 dBm"
 
         class TBChoser(object):
             def __init__(self, plugin):

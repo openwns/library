@@ -116,6 +116,8 @@ class LinkAdaptation :
         wns::simulator::Time slotDuration_;
         wns::scheduler::SchedulerSpotType spot_;
         bool reduceMCS_;
+        wns::Power pNull_;
+        double alpha_;
 
     private:
         virtual Frame::SearchResultSet

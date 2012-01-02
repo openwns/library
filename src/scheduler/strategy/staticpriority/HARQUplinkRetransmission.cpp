@@ -157,6 +157,14 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                     schedulingMap->subChannels[sc].temporalResources[ts]->harq.reservedForRetransmission = true;
                     schedulingMap->subChannels[sc].temporalResources[ts]->harq.processID = processToSchedule;
                     colleagues.harq->schedulePeerRetransmission(*user, processToSchedule);
+                    MapInfoEntryPtr mapInfoEntry; 
+                    mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
+                    mapInfoEntry->user = *user;
+                    mapInfoEntry->subBand = sc;
+                    mapInfoEntry->timeSlot = ts;
+                    mapInfoEntry->spatialLayer = spatialIndex;
+                    mapInfoCollection->push_back(mapInfoEntry);
+
                     numRetransmissionsForUser--;
                 }
             }

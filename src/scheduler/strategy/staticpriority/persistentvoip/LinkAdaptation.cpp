@@ -39,7 +39,9 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(All, ILinkAdaptation,
 LinkAdaptation::LinkAdaptation(const wns::pyconfig::View& config) :
     lproxy_(NULL),
     slotDuration_(0.0),
-    reduceMCS_(config.get<bool>("reduceMCS"))
+    reduceMCS_(config.get<bool>("reduceMCS")),
+    pNull_(config.get<wns::Power>("pNull")),
+    alpha_(config.get<double>("alpha"))
 {
 }
 
@@ -86,7 +88,12 @@ LinkAdaptation::getTBSize(Bit pduSize,
 wns::Power
 LinkAdaptation::getTxPower(UserID user)
 {
-    return lproxy_->getPowerCapabilities(user).nominalPerSubband;
+    wns::Ratio pathloss = lproxy_->estimateRxSINROf(user).pathloss;
+    wns::Ratio scalePL;
+    scalePL.set_dB(pathloss.get_dB() * alpha_);
+    wns::Power txPower = pNull_ * scalePL;
+
+    return txPower;
 }
 
 wns::service::phy::phymode::PhyModeInterfacePtr

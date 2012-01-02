@@ -172,7 +172,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         it != futurePersSetup_[currentFrame_].end(); 
         it++)
     {
-        if(needMore.find(*it) != needMore.end())
+        if(needMore.find(*it) == needMore.end())
             status.timeRelocateFreqRelocate.first.insert(*it);
         else
             status.timeRelocateFreqRelocate.second.insert(*it);
@@ -222,14 +222,16 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     }
 
     assure(harq_ != NULL, "Need valid HARQ scheduler");
-    status.harq.first = colleagues.harq->getPeersWithPendingRetransmissions();
+    status.harq.second = colleagues.harq->getPeersWithPendingRetransmissions();
     result = harq_->doStartSubScheduling(schedulerState, schedulingMap);
     mapInfoCollection->join(*result);
-    status.harq.second = colleagues.harq->getPeersWithPendingRetransmissions();
-    UserSet::iterator iter;
-    /* Remove failed HARQ users from first */
-    for(iter = status.harq.second.begin(); iter != status.harq.second.end(); iter++)
-        status.harq.first.erase(*iter);
+    MapInfoCollectionList::iterator mIt;
+    /* Save succesfull HARQ users in first */
+    for(mIt = result->begin(); mIt != result->end(); mIt++)
+    {
+        status.harq.second.erase((*mIt)->user);
+        status.harq.first.insert((*mIt)->user);
+    }
 
     MESSAGE_SINGLE(NORMAL, logger, "Dynamically scheduling " << cc.unpersistentCIDs.size()
         << " CIDs in frame " << currentFrame_ << ".");
