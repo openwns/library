@@ -214,6 +214,9 @@ class Frame :
         unsigned int
         getNumReserved();
 
+        bool
+        isFree(unsigned int rbIndex);
+
     private:
         virtual std::string
         doToString() const;
@@ -261,7 +264,7 @@ class ResourceGrid
         unscheduleCID(unsigned int frame, const ConnectionSet& cids);
 
         bool
-        hasPersistentReservation(unsigned int frame, ConnectionID cid);
+        hasReservation(unsigned int frame, ConnectionID cid, bool persistent);
     
         bool
         fitsPersistentReservation(unsigned int frame, ConnectionID cid, Bit pduSize);
@@ -281,6 +284,10 @@ class ResourceGrid
 
         void
         onNewFrame(unsigned int index);
+
+        void
+        checkBlocked(unsigned int index, 
+                    const wns::scheduler::SchedulingMapPtr& schedulingMap);
 
         wns::logger::Logger*
         getLogger();

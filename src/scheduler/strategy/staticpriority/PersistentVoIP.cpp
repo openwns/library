@@ -233,6 +233,9 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         status.harq.first.insert((*mIt)->user);
     }
 
+    /* Check which resources are occupied by HARQ and mark as blocked */
+    resources_->checkBlocked(currentFrame_, schedulingMap);
+
     MESSAGE_SINGLE(NORMAL, logger, "Dynamically scheduling " << cc.unpersistentCIDs.size()
         << " CIDs in frame " << currentFrame_ << ".");
 
@@ -268,6 +271,10 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
         if(timeRelocationFrames_.find(*it) == timeRelocationFrames_.end() ||
             timeRelocationFrames_[*it].find(currentFrame_) == timeRelocationFrames_[*it].end())
         { 
+            /* Do not try again for CIDs that were already scheduled unpersistently in this frame */
+            if(resources_->hasReservation(currentFrame_, *it, false))
+                continue;
+
             MESSAGE_SINGLE(NORMAL, logger, "Trying to schedule data for CID " << *it 
                 << " from other frame");
 
@@ -427,7 +434,7 @@ PersistentVoIP::checkTBSizes(ConnectionSet& cids)
         it != cids.end();
         it++)
     {
-        assure(resources_->hasPersistentReservation(currentFrame_, *it), 
+        assure(resources_->hasReservation(currentFrame_, *it, true), 
             "No persistent reservation for CID " << *it);
 
         Bit pduSize = colleagues.queue->getHeadOfLinePDUbits(*it);
@@ -470,17 +477,8 @@ PersistentVoIP::schedulePersistently(const ConnectionSet& cids, unsigned int fra
         it != cids.end();
         it++)
     {
-        Bit pduSize = colleagues.queue->getHeadOfLinePDUbits(*it);
-
-        /* 
-        There could be multiple PDUs queued. getHoLPDUBits cannot
-        know the HoL PDU Size in the UL, only the total queue length.
-        Limit the request size to voicePDUSize.
-        */
-        pduSize = std::min(pduSize, voicePDUSize_);
-
         bool success;
-        success = resources_->scheduleCID(frame, *it, pduSize, true);
+        success = resources_->scheduleCID(frame, *it, voicePDUSize_, true);
         if(success)
         {
             MESSAGE_SINGLE(NORMAL, logger, "Succesfully scheduled new CID " << *it);

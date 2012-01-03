@@ -269,6 +269,13 @@ Frame::findTransmissionBlock(unsigned int start)
     return sr;    
 }
 
+bool
+Frame::isFree(unsigned int rbIndex)
+{
+    assure(rbIndex < numberOfSubChannels_, "SubChannel out of range!");
+    return rbs_[rbIndex]->isFree();
+}
+
 void
 Frame::block(unsigned int RBIndex)
 {
@@ -359,7 +366,7 @@ Frame::hasReservation(ConnectionID cid, bool persistent)
     }
     else
     {
-        return(unpersistentSchedule_.find(cid) != persistentSchedule_.end());
+        return(unpersistentSchedule_.find(cid) != unpersistentSchedule_.end());
     }
 }
 
@@ -554,17 +561,17 @@ ResourceGrid::getReservation(unsigned int frame, ConnectionID cid, bool persiste
 }
 
 bool
-ResourceGrid::hasPersistentReservation(unsigned int frame, ConnectionID cid)
+ResourceGrid::hasReservation(unsigned int frame, ConnectionID cid, bool persistent)
 {
     assure(frame < numberOfFrames_, "Invalid frame index.");
-    return frames_[frame]->hasReservation(cid, true);
+    return frames_[frame]->hasReservation(cid, persistent);
 }
     
 bool
 ResourceGrid::fitsPersistentReservation(unsigned int frame, ConnectionID cid, Bit pduSize)
 {
     assure(frame < numberOfFrames_, "Invalid frame index.");
-    assure(hasPersistentReservation(frame, cid), 
+    assure(hasReservation(frame, cid, true), 
         "No persistent reservation for CID " << cid);
 
     TransmissionBlockPtr tb = frames_[frame]->getReservation(cid, true);
@@ -624,9 +631,20 @@ ResourceGrid::onNewFrame(unsigned int index,
     This will fail and throw an assure exception if the RBs 
     if the RBs are reserved persistently 
     */
+    checkBlocked(index, schedulingMap);
 
+}
+
+void
+ResourceGrid::checkBlocked(unsigned int index, 
+    const wns::scheduler::SchedulingMapPtr& schedulingMap)
+{
     for(int i = 1; i < subChannelsPerFrame_; i++)
     {
+        /* Do not care for frames already occupied by PersistentVoIP scheduler */
+        if(!frames_[index]->isFree(i))
+            continue;
+
         bool free;
         free = schedulingMap->subChannels[i].temporalResources[0]
                     ->physicalResources[0].isEmpty();
