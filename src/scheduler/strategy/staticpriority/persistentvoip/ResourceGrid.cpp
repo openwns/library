@@ -639,7 +639,7 @@ void
 ResourceGrid::checkBlocked(unsigned int index, 
     const wns::scheduler::SchedulingMapPtr& schedulingMap)
 {
-    for(int i = 1; i < subChannelsPerFrame_; i++)
+    for(int i = 0; i < subChannelsPerFrame_; i++)
     {
         /* Do not care for frames already occupied by PersistentVoIP scheduler */
         if(!frames_[index]->isFree(i))
