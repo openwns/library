@@ -78,7 +78,7 @@ LinkAdaptationTest::~LinkAdaptationTest()
 void LinkAdaptationTest::prepare()
 {
 	wns::pyconfig::Parser parser;
-	parser.loadString("class LA(object):\n\treduceMCS = True\nla = LA()");
+	parser.loadString("class LA(object):\n\treduceMCS = True\n\tpNull = \"4 dBm\"\n\talpha = 0.0\nla = LA()");
 
     slotDuration_ = 1E-3;
 
