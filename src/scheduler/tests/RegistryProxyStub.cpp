@@ -367,7 +367,8 @@ wns::Ratio
 RegistryProxyStub::getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
     const std::set<unsigned int>& scs,
     const int, 
-    const wns::Power& txPower)
+    const wns::Power& txPower,
+    const bool worstCase)
 {
     return wns::Ratio::from_factor(1);
 }

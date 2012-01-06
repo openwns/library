@@ -146,7 +146,8 @@ wns::Ratio
 LinkAdaptationProxyStub::getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
     const std::set<unsigned int>& scs, 
     const int,
-    const wns::Power& txPower)
+    const wns::Power& txPower,
+    const bool worstCase)
 {
     wns::Ratio eSINR = getEffectiveUplinkSINR(receiver, scs, 0, txPower);
     wns::Ratio offset = wns::Ratio::from_dB(1.0);
