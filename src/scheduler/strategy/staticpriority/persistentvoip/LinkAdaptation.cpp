@@ -89,7 +89,7 @@ wns::Power
 LinkAdaptation::getTxPower(UserID user)
 {
     if(spot_ == wns::scheduler::SchedulerSpot::DLMaster())
-        return lproxy_->getPowerCapabilities(user).nominalPerSubband;
+        return lproxy_->getPowerCapabilities().nominalPerSubband;
     else
     {            
         wns::Ratio pathloss = lproxy_->estimateRxSINROf(user).pathloss;
@@ -140,7 +140,7 @@ LinkAdaptation::canFit(unsigned int start, unsigned int length,
     wns::Power txp = getTxPower(user);
     wns::Ratio effSINR;
     if(spot_ == wns::scheduler::SchedulerSpot::DLMaster())
-        effSINR = lproxy_->getEffectiveDownlinkSINR(user, rbs, frame, txp);
+        effSINR = lproxy_->getEffectiveDownlinkSINR(user, rbs, frame, txp, true);
     else
         effSINR = lproxy_->getEffectiveUplinkSINR(user, rbs, frame, txp);
     
