@@ -145,16 +145,17 @@ class PersistentVoIP(SubStrategy):
                 self.pNull = "4 dBm"
 
         class TBChoser(object):
-            def __init__(self, plugin):
+            def __init__(self, plugin, returnRandom = False):
                 self.__plugin__ = plugin
+                self.returnRandom = returnRandom
 
         class PreviousTBC(TBChoser):
-            def __init__(self, fallbackChoser):
-                PersistentVoIP.ResourceGrid.TBChoser.__init__(self, "Previous")
+            def __init__(self, fallbackChoser, returnRandom = False):
+                PersistentVoIP.ResourceGrid.TBChoser.__init__(self, "Previous", returnRandom)
                 self.fallbackChoser = PersistentVoIP.ResourceGrid.TBChoser(fallbackChoser)
 
-        def __init__(self, tbChoser, linkAdaptation, reduceMCS = True, parentLogger = None):
-            self.tbChoser = PersistentVoIP.ResourceGrid.TBChoser(tbChoser)
+        def __init__(self, tbChoser, linkAdaptation, reduceMCS = True, returnRandom = False, parentLogger = None):
+            self.tbChoser = PersistentVoIP.ResourceGrid.TBChoser(tbChoser, returnRandom)
             self.linkAdaptation = PersistentVoIP.ResourceGrid.LinkAdaptation(
                 linkAdaptation, reduceMCS)
 
