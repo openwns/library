@@ -66,6 +66,7 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     timeRelocatedCIDs_("scheduler.persistentvoip.TimeRelocatedConnections"),
     freqRelocatedCIDs_("scheduler.persistentvoip.FreqRelocatedConnections"),
     timeFreqRelocatedCIDs_("scheduler.persistentvoip.TimeFreqRelocatedConnections"),
+    persCIDs_("scheduler.persistentvoip.PersistentConnections"),
     numPDCCH_("scheduler.persistentvoip.NumberOfPDCCHs"),
     numPersRelocPDCCH_("scheduler.persistentvoip.NumberOfPersRelocationPDCCHs"),
     numPersSetupPDCCH_("scheduler.persistentvoip.NumberOfPersSetupPDCCHs"),
@@ -82,7 +83,9 @@ PersistentVoIP::PersistentVoIP(const wns::pyconfig::View& config)
     percFailedDynamic_("scheduler.persistentvoip.failedDynamic"),
     percFailedSID_("scheduler.persistentvoip.failedSID"),
     percFailedHARQ_("scheduler.persistentvoip.failedHARQ"),
-    dynPDUSize_("scheduler.persistentvoip.dynPDUSize")
+    dynPDUSize_("scheduler.persistentvoip.dynPDUSize"),
+    TBSize_("scheduler.persistentvoip.TBSize"),
+    numReserved_("scheduler.persistentvoip.ReservedRBs")
 {
 }
 
@@ -142,9 +145,12 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     }
     unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
 
-    activeCIDs_.put(cc.totalAppActive, boost::make_tuple("nodeID",nodeID));
-    allActiveCIDs_.put(cc.totalActive, boost::make_tuple("nodeID",nodeID));
-    queuedCIDs_.put(cc.totalQueued, boost::make_tuple("nodeID",nodeID));
+    activeCIDs_.put(cc.totalAppActive, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    allActiveCIDs_.put(cc.totalActive, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    queuedCIDs_.put(cc.totalQueued, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
 
     resources_->onNewFrame(currentFrame_, schedulingMap);
 
@@ -222,7 +228,11 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     }
 
     assure(harq_ != NULL, "Need valid HARQ scheduler");
-    status.harq.second = colleagues.harq->getPeersWithPendingRetransmissions();
+    if(colleagues.strategy->getSchedulerSpotType() == wns::scheduler::SchedulerSpot::ULMaster())
+        status.harq.second = colleagues.harq->getPeersWithPendingRetransmissions();
+    else
+        status.harq.second = colleagues.harq->getUsersWithRetransmissions();
+    
     result = harq_->doStartSubScheduling(schedulerState, schedulingMap);
     mapInfoCollection->join(*result);
     MapInfoCollectionList::iterator mIt;
@@ -293,6 +303,7 @@ PersistentVoIP::doStartSubScheduling(SchedulerStatePtr schedulerState,
     }
 
     probe(status);
+
     futurePersSetup_[currentFrame_].clear();
 
     return mapInfoCollection;
@@ -306,10 +317,16 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
     MapInfoCollectionPtr mapInfoCollection = 
         MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);;
 
+    unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
+
     persistentvoip::TransmissionBlockPtr tb;
     if(persistent)
     {
         tb = resources_->getReservation(currentFrame_, cid, true);
+        TBSize_.put(tb->getLength(), boost::make_tuple("nodeID",nodeID, 
+                "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID(),
+                "Spot",colleagues.strategy->getSchedulerSpotType(),
+                "Kind",0)); 
     }
     else
     {    
@@ -331,21 +348,29 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
         }
         while(!success && i <= pduSize);
         
-        unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
         if(!success)
         {
             MESSAGE_SINGLE(NORMAL, logger, "No free resources for CID " << cid
                 << " (" << colleagues.registry->getUserForCID(cid) << ")"
                 << " in frame " << currentFrame_ << ".");
             dynPDUSize_.put(0.0, boost::make_tuple("nodeID",nodeID, 
-                "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID())); 
+                "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID(),
+                "Spot",colleagues.strategy->getSchedulerSpotType())); 
             return mapInfoCollection;
         }
         else
         {
             dynPDUSize_.put(int(pduSize / (i / 2)), boost::make_tuple("nodeID",nodeID, 
-                "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID())); 
+                "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID(),
+                "Spot",colleagues.strategy->getSchedulerSpotType()));
+
             tb = resources_->getReservation(currentFrame_, cid, false);
+
+            TBSize_.put(tb->getLength(), boost::make_tuple("nodeID",nodeID, 
+                    "schedUserID", colleagues.registry->getUserForCID(cid).getNodeID(),
+                    "Spot",colleagues.strategy->getSchedulerSpotType(),
+                    "Kind",1)); 
+
         }
     }
 
@@ -384,7 +409,7 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
             wns::scheduler::SchedulerSpot::DLMaster())
         {
             ChannelQualityOnOneSubChannel est;
-            est = colleagues.registry->estimateTxSINRAt(user, mapInfoEntry->subBand);
+            est = colleagues.registry->estimateTxSINRAt(user, mapInfoEntry->subBand, currentFrame_);
             mapInfoEntry->estimatedCQI.pathloss = est.pathloss;
             mapInfoEntry->estimatedCQI.interference = est.interference;
             mapInfoEntry->estimatedCQI.carrier = mapInfoEntry->txPower / est.pathloss;
@@ -392,7 +417,7 @@ PersistentVoIP::scheduleData(ConnectionID cid, bool persistent,
         else
         {
             ChannelQualityOnOneSubChannel est;
-            est = colleagues.registry->estimateRxSINROf(user, mapInfoEntry->subBand);
+            est = colleagues.registry->estimateRxSINROf(user, mapInfoEntry->subBand, currentFrame_);
             mapInfoEntry->estimatedCQI.pathloss = est.pathloss;
             mapInfoEntry->estimatedCQI.interference = 
                 colleagues.registry->estimateTxSINRAt(schedulerState->myUserID, 
@@ -605,17 +630,25 @@ PersistentVoIP::probe(SchedStatus& status)
     unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
 
     /* PDCCH */
-    numHARQ_PDCCH_.put(status.numHARQ_PDCCH, boost::make_tuple("nodeID",nodeID));
-    numSID_PDCCH_.put(status.numSID_PDCCH, boost::make_tuple("nodeID",nodeID));
-    numOtherFrame_PDCCH_.put(status.numOtherFramePDCCH, boost::make_tuple("nodeID",nodeID));
-    numDynamicPDCCH_.put(status.numDynamicPDCCH, boost::make_tuple("nodeID",nodeID));
+    numHARQ_PDCCH_.put(status.numHARQ_PDCCH, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    numSID_PDCCH_.put(status.numSID_PDCCH, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    numOtherFrame_PDCCH_.put(status.numOtherFramePDCCH, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    numDynamicPDCCH_.put(status.numDynamicPDCCH, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
 
-    numPersSetupPDCCH_.put(status.numPersSetupPDCCH, boost::make_tuple("nodeID",nodeID));
+    numPersSetupPDCCH_.put(status.numPersSetupPDCCH, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
     numPersSetupTimeRelocatedPDCCH_.put(status.numPersSetupTimeRelocatedPDCCH, 
-        boost::make_tuple("nodeID",nodeID));
-    numPersRelocPDCCH_.put(status.numPersRelocPDCCH, boost::make_tuple("nodeID",nodeID));
+        boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    numPersRelocPDCCH_.put(status.numPersRelocPDCCH, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
     
-    numPDCCH_.put(status.numPDCCH, boost::make_tuple("nodeID",nodeID));
+    numPDCCH_.put(status.numPDCCH, boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
 
     /* Failure rates */
     probeN(status.reactivate, percFailedReactivations_);
@@ -627,17 +660,28 @@ PersistentVoIP::probe(SchedStatus& status)
     probeN(status.unpersistent, percFailedSID_);
     UserSet::iterator it;
     for(it = status.harq.first.begin(); it != status.harq.first.end(); it++)
-        percFailedHARQ_.put(0, boost::make_tuple("nodeID",nodeID, "schedUserID", it->getNodeID()));
+        percFailedHARQ_.put(0, boost::make_tuple("nodeID",nodeID, "schedUserID", it->getNodeID(),
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
     for(it = status.harq.second.begin(); it != status.harq.second.end(); it++)
-        percFailedHARQ_.put(1, boost::make_tuple("nodeID",nodeID, "schedUserID", it->getNodeID()));
+        percFailedHARQ_.put(1, boost::make_tuple("nodeID",nodeID, "schedUserID", it->getNodeID(),
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
     
     /* Count */
     timeRelocatedCIDs_.put(status.timeRelocate.first.size(), 
-        boost::make_tuple("nodeID",nodeID));
+        boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
     freqRelocatedCIDs_.put(status.freqRelocate.first.size(), 
-        boost::make_tuple("nodeID",nodeID));
+        boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
     timeFreqRelocatedCIDs_.put(status.timeRelocateFreqRelocate.first.size(), 
-        boost::make_tuple("nodeID",nodeID));
+        boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    persCIDs_.put(status.persistent.size(),
+        boost::make_tuple("nodeID",nodeID,
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
+    numReserved_.put(resources_->getFrame(currentFrame_)->getNumReserved(), 
+        boost::make_tuple("nodeID",nodeID, 
+        "Spot",colleagues.strategy->getSchedulerSpotType()));
 }
 
 void
@@ -651,13 +695,15 @@ PersistentVoIP::probeN(const ConnectionSetPair& csp,
     {
         probe.put(0, 
             boost::make_tuple("nodeID",nodeID, 
-                "schedUserID", colleagues.registry->getUserForCID(*it).getNodeID()));
+                "schedUserID", colleagues.registry->getUserForCID(*it).getNodeID(),
+                "Spot",colleagues.strategy->getSchedulerSpotType()));
     }
     for(it = csp.second.begin(); it != csp.second.end(); it++)
     {
         probe.put(1, 
             boost::make_tuple("nodeID",nodeID, 
-                "schedUserID", colleagues.registry->getUserForCID(*it).getNodeID()));
+                "schedUserID", colleagues.registry->getUserForCID(*it).getNodeID(),
+                "Spot",colleagues.strategy->getSchedulerSpotType()));
     }
 }
 
@@ -695,7 +741,8 @@ PersistentVoIP::onNewPeriod()
 
             unsigned int nodeID = colleagues.registry->getMyUserID().getNodeID();
 
-            frameOccupationFairness_.put(fairness, boost::make_tuple("nodeID",nodeID));
+            frameOccupationFairness_.put(fairness, boost::make_tuple("nodeID",nodeID,
+                "Spot",colleagues.strategy->getSchedulerSpotType()));
 
             MESSAGE_SINGLE(NORMAL, logger, "Fairness index: " << fairness);
             assure(fairness >= 0 && fairness <= 1, "Fairness index out of range");

@@ -172,6 +172,7 @@ class PersistentVoIP
         wns::probe::bus::ContextCollector timeRelocatedCIDs_;
         wns::probe::bus::ContextCollector freqRelocatedCIDs_;
         wns::probe::bus::ContextCollector timeFreqRelocatedCIDs_;
+        wns::probe::bus::ContextCollector persCIDs_;
 
         wns::probe::bus::ContextCollector numPDCCH_;
         wns::probe::bus::ContextCollector numDynamicPDCCH_;        
@@ -192,6 +193,9 @@ class PersistentVoIP
         wns::probe::bus::ContextCollector percFailedHARQ_;
 
         wns::probe::bus::ContextCollector dynPDUSize_;
+        wns::probe::bus::ContextCollector TBSize_;
+        wns::probe::bus::ContextCollector numReserved_;
+
 
         wns::pyconfig::View resourceGridConfig_;
         wns::pyconfig::View harqConfig_;
