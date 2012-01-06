@@ -139,7 +139,6 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
                                          wns::scheduler::SchedulingMapPtr schedulingMap)
 {
     ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
-    assure(currentConnections.empty(), "HARQ retransmission cannot have active connections. This should not have happened.");
 
     MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
 
