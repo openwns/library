@@ -27,6 +27,7 @@
 
 #include <WNS/scheduler/strategy/staticpriority/HARQRetransmission.hpp>
 #include <WNS/scheduler/SchedulerTypes.hpp>
+#include <WNS/scheduler/strategy/dsastrategy/DSAStrategyInterface.hpp>
 
 #include <vector>
 #include <map>
@@ -140,10 +141,11 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
     ConnectionSet &currentConnections = schedulerState->currentState->activeConnections;
     assure(currentConnections.empty(), "HARQ retransmission cannot have active connections. This should not have happened.");
 
+    MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
+
     // harq colleague may be NULL, e.g. Uplink Master Scheduler does not have HARQ
     if(colleagues.harq == NULL)
     {
-        MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
         MESSAGE_SINGLE(NORMAL, logger, "colleagues.harq==NULL is illegal. Please choose another strategy than HARQRetransmission");
         return mapInfoCollection;
     }
@@ -159,6 +161,9 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
 	 it != usersWithRetransmissions.end();
 	 ++it)
       {
+    RequestForResource request(0,*it, 0, 0, true);
+    dsastrategy::DSAResult resource;
+
 	int processID = colleagues.harq->getProcessesWithRetransmissions(*it).front();
 
 	int numberOfRetransmissions = colleagues.harq->getNumberOfRetransmissions(*it, processID);
@@ -189,8 +194,8 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
 
 	    if (numAvailable > 0)
 	      {
-		double random = randomDist();
-		int sc = subchannels[int(random*numAvailable)];
+            resource = colleagues.strategy->getDSAStrategy()->getSubChannelWithDSA(request, schedulerState, schedulingMap);
+            int sc = resource.subChannel;
 
 		for ( SchedulingTimeSlotPtrVector::iterator iterTimeSlot = schedulingMap->subChannels[sc].temporalResources.begin();
 		      iterTimeSlot != schedulingMap->subChannels[sc].temporalResources.end(); ++iterTimeSlot)
@@ -243,7 +248,16 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
 			    MESSAGE_SINGLE(NORMAL, logger, sc<<"."<<timeSlotIndex<<".PRB["<<spatialIndex<<"]: Adjusting subChannelIndex from "<<iterPRB->getSubChannelIndex()<<" to "<<sc);
 			    iterPRB->setSubChannelIndex(sc);
 			    iterPRB->setTimeSlotIndex(timeSlotIndex);
+
+                MapInfoEntryPtr mapInfoEntry; 
+                mapInfoEntry = MapInfoEntryPtr(new MapInfoEntry());
+                mapInfoEntry->user = *it;
+                mapInfoEntry->subBand = sc;
+                mapInfoEntry->timeSlot = timeSlotIndex;
+                mapInfoEntry->spatialLayer = spatialIndex;
+                mapInfoCollection->push_back(mapInfoEntry);
 			  }
+
 			resourceBlock = colleagues.harq->peekNextRetransmission(*it, processID);
 			break;
 		      }
@@ -259,8 +273,6 @@ HARQRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
 	      }
 	  } // while resource block to send
       } // for
-
-    MapInfoCollectionPtr mapInfoCollection = MapInfoCollectionPtr(new wns::scheduler::MapInfoCollection);
 
     return mapInfoCollection;
 } // doStartSubScheduling
