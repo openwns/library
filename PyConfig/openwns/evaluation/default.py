@@ -18,6 +18,8 @@ def installEvaluation(sim):
 
 def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stationCount):
 
+    maxId = stationCount + len(loggingStations) + 2
+
     sourceName = 'scheduler.persistentvoip.FrameOccupationFairness'
     node = openwns.evaluation.createSourceNode(sim, sourceName)
     node.getLeafs().appendChildren(SettlingTimeGuard(settlingTime = settlingTime))
@@ -44,8 +46,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.failedSetup'
@@ -61,8 +63,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.failedFreqRelocation'
@@ -78,8 +80,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.failedTimeRelocation'
@@ -95,8 +97,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.failedTimeFreqRelocation'
@@ -112,8 +114,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.failedDynamic'
@@ -129,8 +131,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.failedSID'
@@ -146,8 +148,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.failedHARQ'
@@ -163,8 +165,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','trials']))
 
     sourceName = 'scheduler.persistentvoip.ActiveConnections'
@@ -378,8 +380,8 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 1000))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','deviation','max']))
 
     sourceName = 'scheduler.persistentvoip.TBSize'
@@ -395,15 +397,15 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node = node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','deviation','max']))
     node.appendChildren(Accept(by = 'Kind', ifIn = [0], suffix='Pers'))
     node.appendChildren(Accept(by = 'Kind', ifIn = [1], suffix='Dyn'))
     node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','deviation','max']))
     node.getLeafs().appendChildren(PDF(name = sourceName,
                                      description = 'TB Size',
@@ -412,7 +414,7 @@ def installPersVoIPSchedulerEvaluation(sim, settlingTime, loggingStations, stati
                                      resolution = 100))
     node = node.getLeafs().appendChildren(Plot2D(xDataKey = 'schedUserID',
                                             minX = 0,
-                                            maxX = max(loggingStations) + 1,
-                                            resolution = max(loggingStations) + 1,
+                                            maxX = maxId,
+                                            resolution = maxId,
                                             statEvals = ['mean','deviation','max']))
 
