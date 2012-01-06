@@ -86,7 +86,8 @@ namespace wns { namespace scheduler {
             getEffectiveDownlinkSINR(const wns::scheduler::UserID receiver, 
                 const std::set<unsigned int>& scs, 
                 const int,
-                const wns::Power& txPower) = 0;
+                const wns::Power& txPower,
+                const bool worstCase = false) = 0;
                 
             virtual void 
             updateUserSubchannels (const wns::scheduler::UserID user, std::set<int>& channels)=0;
