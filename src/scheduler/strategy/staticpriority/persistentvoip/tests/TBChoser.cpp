@@ -104,6 +104,7 @@ void TBChoserTest::prepare()
 
 	parser_.loadString("class TBC(object):\n"
                             "\t__plugin__ = \"Smallest\"\n"
+                            "\treturnRandom = False\n"
                         "tbc = TBC()\n"
                         "tbc.fallbackChoser = TBC()\n");
 }

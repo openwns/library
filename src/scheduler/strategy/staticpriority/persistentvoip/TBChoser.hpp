@@ -45,7 +45,7 @@ class ITBChoser
         choseTB(const Frame::SearchResultSet& tbs) = 0;
 
     private:
-        virtual Frame::SearchResult
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs) = 0;
 };
 
@@ -56,12 +56,24 @@ class TBChoser :
         typedef wns::Creator<ITBChoser> Creator;
         typedef wns::StaticFactory<Creator> Factory;
 
+        TBChoser(const wns::pyconfig::View& config);
+        ~TBChoser();
+
         virtual Frame::SearchResult
         choseTB(const Frame::SearchResultSet& tbs);
 
-    private:
+    protected:
+        ITBChoser* equalChoser_;
+        wns::distribution::StandardUniform rnd_;
+
         virtual Frame::SearchResult
+        pickOne(const Frame::SearchResultSet& tbs);
+
+    private:
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs) = 0;
+
+        bool returnRandom;
 };
 
 class First :
@@ -71,7 +83,7 @@ class First :
         First(const wns::pyconfig::View& config);
 
     private:       
-        virtual Frame::SearchResult
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs);
 };
 
@@ -82,7 +94,7 @@ class BestFit :
         BestFit(const wns::pyconfig::View& config);
 
     private:       
-        virtual Frame::SearchResult
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs);
 };
 
@@ -93,7 +105,7 @@ class WorstFit :
         WorstFit(const wns::pyconfig::View& config);
 
     private:       
-        virtual Frame::SearchResult
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs);
 };
 
@@ -104,10 +116,8 @@ class Random :
         Random(const wns::pyconfig::View& config);
 
     private:       
-        virtual Frame::SearchResult
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs);
-
-        wns::distribution::StandardUniform rnd_;
 };
 
 class Smallest :
@@ -117,7 +127,29 @@ class Smallest :
         Smallest(const wns::pyconfig::View& config);
 
     private:       
-        virtual Frame::SearchResult
+        virtual Frame::SearchResultSet
+        doChoseTB(const Frame::SearchResultSet& tbs);
+};
+
+class SmallestSpace :
+    public TBChoser
+{
+    public:
+        SmallestSpace(const wns::pyconfig::View& config);
+
+    private:       
+        virtual Frame::SearchResultSet
+        doChoseTB(const Frame::SearchResultSet& tbs);
+};
+
+class LargestSpace :
+    public TBChoser
+{
+    public:
+        LargestSpace(const wns::pyconfig::View& config);
+
+    private:       
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs);
 };
 
@@ -129,7 +161,7 @@ class Previous :
         ~Previous();
 
     private:       
-        virtual Frame::SearchResult
+        virtual Frame::SearchResultSet
         doChoseTB(const Frame::SearchResultSet& tbs);
 
         std::map<ConnectionID, std::set<unsigned int> > history_;

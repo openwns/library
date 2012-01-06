@@ -157,7 +157,13 @@ class Frame :
                 if(this->start != other.start)
                     return this->start < other.start;
                 else
-                    return this->tbStart < other.tbStart;
+                    if(this->tbStart != other.tbStart)
+                        return this->tbStart < other.tbStart;
+                    else
+                        if(this->length != other.length)
+                            return this->length < other.length;
+                        else
+                            return this->tbLength < other.tbLength;
             };
 
             bool success;

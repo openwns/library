@@ -38,13 +38,32 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(WorstFit, ITBChoser, "WorstFit", wns::PyCon
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Random, ITBChoser, "Random", wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Smallest, ITBChoser, "Smallest", wns::PyConfigViewCreator);
 STATIC_FACTORY_REGISTER_WITH_CREATOR(Previous, ITBChoser, "Previous", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(LargestSpace, ITBChoser, "LargestSpace", wns::PyConfigViewCreator);
+STATIC_FACTORY_REGISTER_WITH_CREATOR(SmallestSpace, ITBChoser, "SmallestSpace", wns::PyConfigViewCreator);
+
+TBChoser::TBChoser(const wns::pyconfig::View& config) :
+    returnRandom(config.get<bool>("returnRandom"))
+{
+}
+
+TBChoser::~TBChoser()
+{
+}
 
 Frame::SearchResult
 TBChoser::choseTB(const Frame::SearchResultSet& tbs)
 {
     assure(!tbs.empty(), "Cannot chose from empty set");
 
-    Frame::SearchResult sr = doChoseTB(tbs);
+    Frame::SearchResultSet srs = doChoseTB(tbs);
+
+    Frame::SearchResult sr;
+    if(srs.size() > 1)
+        sr = pickOne(srs);    
+    else
+    {
+        sr = *(srs.begin());
+    }
 
     assure(sr.success, "Invalid TB");
     assure(sr.length >= sr.tbLength, "TB too small");
@@ -53,68 +72,100 @@ TBChoser::choseTB(const Frame::SearchResultSet& tbs)
 
 }
 
-First::First(const wns::pyconfig::View& config)
+Frame::SearchResult
+TBChoser::pickOne(const Frame::SearchResultSet& srs)
+{
+    if(returnRandom)
+    {
+        Frame::SearchResultSet::iterator it;
+        unsigned int r = rnd_() * srs.size();
+        it = srs.begin();
+        for(int i = 0; i < r; i++)
+            it++;
+        return *it;
+    }
+    else
+    {
+        return *(srs.begin());
+    }
+}
+
+First::First(const wns::pyconfig::View& config) :
+    TBChoser(config)
 {
 }
 
-Frame::SearchResult
+Frame::Frame::SearchResultSet
 First::doChoseTB(const Frame::SearchResultSet& tbs)
 {
-    return *(tbs.begin()); 
+    Frame::SearchResultSet results;
+    results.insert(*(tbs.begin()));
+    return results; 
 }
 
-BestFit::BestFit(const wns::pyconfig::View& config)
+BestFit::BestFit(const wns::pyconfig::View& config) :
+    TBChoser(config)
 {
 }
 
-Frame::SearchResult
+Frame::SearchResultSet
 BestFit::doChoseTB(const Frame::SearchResultSet& tbs)
 {
+    Frame::SearchResultSet theBest;
     Frame::SearchResultSet::iterator it;
-    Frame::SearchResult best;
     unsigned int bestFit = std::numeric_limits<unsigned int>::max();
     for(it = tbs.begin(); it != tbs.end(); it++)
     {
         unsigned int waste = it->length - it->tbLength;
         if(waste < bestFit)
         {
-            best = *it;
             bestFit = waste;
+            theBest.clear();
+            theBest.insert(*it);
         }
+        if(waste == bestFit)
+            theBest.insert(*it);
     }
     assure(bestFit < std::numeric_limits<unsigned int>::max(), "Failed to find best TB");
 
-    return best;
+    return theBest;
 }
 
-WorstFit::WorstFit(const wns::pyconfig::View& config)
+WorstFit::WorstFit(const wns::pyconfig::View& config) :
+    TBChoser(config)
 {
 }
 
-Frame::SearchResult
+Frame::SearchResultSet
 WorstFit::doChoseTB(const Frame::SearchResultSet& tbs)
 {
     Frame::SearchResultSet::iterator it;
-    Frame::SearchResult worst;
+    Frame::SearchResultSet theBest;
     unsigned int worstFit = 0;
     for(it = tbs.begin(); it != tbs.end(); it++)
     {
         unsigned int waste = it->length - it->tbLength; 
-        if(waste >= worstFit)
+        if(waste > worstFit)
         {
-            worst = *it;
             worstFit = waste;
+            theBest.clear();
+            theBest.insert(*it);
+        }
+        if(waste == worstFit)
+        {
+            theBest.insert(*it);
         }
     }
 
-    return worst;
+    return theBest;
 }
 
-Random::Random(const wns::pyconfig::View& config)
+Random::Random(const wns::pyconfig::View& config) :
+    TBChoser(config)
 {
 }
 
-Frame::SearchResult
+Frame::SearchResultSet
 Random::doChoseTB(const Frame::SearchResultSet& tbs)
 {
     Frame::SearchResultSet::iterator it;
@@ -125,33 +176,96 @@ Random::doChoseTB(const Frame::SearchResultSet& tbs)
     for(int i = 0; i < r; i++)
         it++;
 
-    return *it;
+    Frame::SearchResultSet results;
+    results.insert(*it);
+
+    return results;
 }
 
-Smallest::Smallest(const wns::pyconfig::View& config)
+Smallest::Smallest(const wns::pyconfig::View& config) :
+    TBChoser(config)
 {
 }
 
-Frame::SearchResult
+Frame::SearchResultSet
 Smallest::doChoseTB(const Frame::SearchResultSet& tbs)
 {
     Frame::SearchResultSet::iterator it;
-    Frame::SearchResult result;
+    Frame::SearchResultSet theBest;
     unsigned int smallest = std::numeric_limits<unsigned int>::max();;
     for(it = tbs.begin(); it != tbs.end(); it++)
     {
         if(it->tbLength < smallest)
         {
-            result = *it;
             smallest = it->tbLength;
+            theBest.clear();
+            theBest.insert(*it);
         }
+        if(it->tbLength == smallest)
+            theBest.insert(*it);
+    
     }
     assure(smallest < std::numeric_limits<unsigned int>::max(), "Failed to find smallest TB");
 
-    return result;    
+    return theBest;    
 }
 
-Previous::Previous(const wns::pyconfig::View& config)
+SmallestSpace::SmallestSpace(const wns::pyconfig::View& config) :
+    TBChoser(config)
+{
+}
+
+Frame::SearchResultSet
+SmallestSpace::doChoseTB(const Frame::SearchResultSet& tbs)
+{
+    Frame::SearchResultSet::iterator it;
+    Frame::SearchResultSet theBest;
+    unsigned int smallest = std::numeric_limits<unsigned int>::max();;
+    for(it = tbs.begin(); it != tbs.end(); it++)
+    {
+        if(it->length < smallest)
+        {
+            smallest = it->length;
+            theBest.clear();
+            theBest.insert(*it);
+        }
+        if(it->length == smallest)
+            theBest.insert(*it);
+    }
+    assure(smallest < std::numeric_limits<unsigned int>::max(), "Failed to find smallest space");
+
+    return theBest;    
+}
+
+LargestSpace::LargestSpace(const wns::pyconfig::View& config) :
+    TBChoser(config)
+{
+}
+
+Frame::SearchResultSet
+LargestSpace::doChoseTB(const Frame::SearchResultSet& tbs)
+{
+    Frame::SearchResultSet::iterator it;
+    Frame::SearchResultSet theBest;
+    unsigned int largest = 0;
+    for(it = tbs.begin(); it != tbs.end(); it++)
+    {
+        if(it->length > largest)
+        {
+            largest = it->length;
+            theBest.clear();
+            theBest.insert(*it);
+        }
+        if(it->length == largest)
+            theBest.insert(*it);
+    }
+    assure(0, "Failed to find largest space");
+
+    return theBest;    
+}
+
+Previous::Previous(const wns::pyconfig::View& config) :
+    TBChoser(config)
 {
     std::string tbChoserName = config.get<std::string>("fallbackChoser.__plugin__");
     fallbackChoser_ = ITBChoser::Factory::creator(
@@ -163,7 +277,7 @@ Previous::~Previous()
     delete fallbackChoser_;
 }
 
-Frame::SearchResult
+Frame::SearchResultSet
 Previous::doChoseTB(const Frame::SearchResultSet& tbs)
 {
     Frame::SearchResult result;
@@ -207,7 +321,8 @@ Previous::doChoseTB(const Frame::SearchResultSet& tbs)
         {
             assure(!theBest.empty(), "No best TB candidate set.");
             history_[tbs.begin()->cid].clear();
-            result = fallbackChoser_->choseTB(theBest);
+            /* We do the picking because we need the result now */
+            result = pickOne(theBest);
         }
         else
         {
@@ -218,6 +333,8 @@ Previous::doChoseTB(const Frame::SearchResultSet& tbs)
     {
         history_[tbs.begin()->cid].insert(i + result.tbStart);
     }
-    return result;
+    Frame::SearchResultSet results;
+    results.insert(result);
+    return results;
 }
 
