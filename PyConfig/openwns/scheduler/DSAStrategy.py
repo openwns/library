@@ -78,6 +78,14 @@ class LinearFFirst(DSAStrategy):
         super(LinearFFirst,self).__init__(**kw)
         self.useRandomChannelAtBeginning = useRandomChannel
 
+# Use channel with best effSINR
+# Since we only request one subchannel effSINR = SINR
+class BestEffSINR(DSAStrategy):
+    requiresCQI = False
+    def __init__(self, **kw):
+        self.nameInDSAStrategyFactory = "BestEffSINR"
+        super(BestEffSINR,self).__init__(**kw)
+
 #random DSA
 class Random(DSAStrategy):
     requiresCQI = False

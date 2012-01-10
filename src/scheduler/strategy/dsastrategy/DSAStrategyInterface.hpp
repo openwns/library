@@ -54,6 +54,17 @@ namespace wns { namespace scheduler { namespace strategy { namespace dsastrategy
 		int timeSlot;
 		/** @brief result of Dynamic Subcarrier Assignment (DSA) */
 		int spatialLayer;
+
+        bool
+        operator<(const DSAResult& other) const
+        {
+            if(subChannel != other.subChannel)
+                return subChannel < other.subChannel;
+            else if(timeSlot != other.timeSlot)
+                return timeSlot < other.timeSlot;
+            else    
+                return spatialLayer < other.spatialLayer;
+        };
 	};
 
 	/** @brief provides methods for "Dynamic Subchannel Assignment" (DSA).
