@@ -150,6 +150,7 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
     Bit futureExtensionHeaderSize = 0;
     Bit futurePDUSizeNoCRC = 0;
     Bit futureCRCSize = 0;
+    Bit futureAlignment = 0;
     unsigned int numSegments = 0;
     for(it = pduQueue_.begin(); it != pduQueue_.end(); it++)
     {
@@ -160,7 +161,10 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
         futureExtensionHeaderSize = (numSegments - 1) * extensionHeaderSize;
 
         if(byteAlignHeader)
-            futureExtensionHeaderSize += futureExtensionHeaderSize % 8;    
+        {
+            futureAlignment = futureExtensionHeaderSize % 8;
+            futureExtensionHeaderSize += futureAlignment;
+        }
      
         futureHeaderSize = fixedHeaderSize + futureExtensionHeaderSize;
         futurePDUSizeNoCRC = totalPayloadSize + futureHeaderSize;
@@ -237,17 +241,24 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
                 pduQueue_.pop_front();
             }
 
-            // Do not include CRC header yet but include extHeader for last segment
-            header->increaseHeaderSize(futureHeaderSize);
-            assure(header->totalSize() < requestedBits, "Not all segments processed but already full.");
+            // Do not include CRC header yet and exclude extHeader for last segment 
+            // and possible byte alignment padding bit
+            Bit newHeader = futureHeaderSize - extensionHeaderSize - futureAlignment;
+            header->increaseHeaderSize(newHeader);
 
             Bit space = requestedBits - header->totalSize() - futureCRCSize;
 
-            // Could be we just exactly fit the extension header but no more segment
-            // We can leave the extension header in the PDU, else it would be filled
-            // with padding
-            if(space > 0)
+            assure(header->totalSize() <= requestedBits, "Not all segments processed but already full.");
+
+            // Could be we just exactly fit the extension header or parts of it 
+            // but no more segments. It does not make sense then to include another segment
+            Bit nextHeader = extensionHeaderSize;
+            if(byteAlignHeader)
+                nextHeader += (header->totalSize() + nextHeader) % 8;
+
+            if(space > nextHeader)
             {
+                header->increaseHeaderSize(nextHeader);
 
                 // Could be that we need less Code Blocks (CBs) for the new total PDU size
                 futurePDUSizeNoCRC = header->totalSize() + space;
@@ -261,6 +272,15 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
                 header->increaseDataSize(space);
                 header->increaseHeaderSize(futureCRCSize);
                 nettoBits_ -= space;
+            }
+            else
+            {               
+                // Byte align the header
+                if(byteAlignHeader)
+                {
+                    Bit align = header->headerSize() % 8;
+                    header->increaseHeaderSize(align);
+                }
             }
         }
         
