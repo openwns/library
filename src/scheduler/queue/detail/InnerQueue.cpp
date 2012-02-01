@@ -152,6 +152,7 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
     Bit futureCRCSize = 0;
     Bit futureAlignment = 0;
     unsigned int numSegments = 0;
+
     for(it = pduQueue_.begin(); it != pduQueue_.end(); it++)
     {
         numSegments++;
@@ -243,7 +244,8 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
 
             // Do not include CRC header yet and exclude extHeader for last segment 
             // and possible byte alignment padding bit
-            Bit newHeader = futureHeaderSize - extensionHeaderSize - futureAlignment;
+            // Could be that only parts of one SDU fit, then there is no extHeader
+            Bit newHeader = std::max(fixedHeaderSize, futureHeaderSize - extensionHeaderSize - futureAlignment);
             header->increaseHeaderSize(newHeader);
 
             Bit space = requestedBits - header->totalSize() - futureCRCSize;
@@ -252,7 +254,14 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
 
             // Could be we just exactly fit the extension header or parts of it 
             // but no more segments. It does not make sense then to include another segment
-            Bit nextHeader = extensionHeaderSize;
+            // Could also be we only fit parts of one SDU, in this case there is no extension
+            // header.
+            Bit nextHeader;
+            if(numSegments > 1)
+                nextHeader = extensionHeaderSize;
+            else
+                nextHeader = 0;
+
             if(byteAlignHeader)
                 nextHeader += (header->totalSize() + nextHeader) % 8;
 
@@ -275,6 +284,9 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
             }
             else
             {               
+                header->increaseHeaderSize(
+                    ceil(double(header->totalSize()) / double(maxCB)) * crc);
+
                 // Byte align the header
                 if(byteAlignHeader)
                 {
@@ -299,6 +311,26 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
     }
 
     assure(header->totalSize()<=requestedBits,"pdulength="<<header->totalSize()<<" > bits="<<requestedBits);
+
+#ifndef WNS_NDEGUG
+    Bit extHeader = (header->getNumSDUs() - 1) * extensionHeaderSize;
+    if(byteAlignHeader)
+        extHeader+= extHeader % 8;
+
+    Bit beforeCRC = header->dataSize() + extHeader + fixedHeaderSize;
+    Bit crcHeader = ceil(double(beforeCRC) / double(maxCB)) * crc;
+
+
+    Bit totHeader = crcHeader + fixedHeaderSize + extHeader;
+    assure(header->headerSize() == totHeader, "Header size mismatch: "
+        << "\nFixed: " << fixedHeaderSize
+        << "\nExt: " << extHeader
+        << "\nCRC: " << crcHeader
+        << "\nSDUs: " << header->getNumSDUs()
+        << "\nPayload: " << header->dataSize()
+        << "\nTotal header size: " << header->headerSize()
+        << " != " << totHeader);
+#endif
 
     return pdu;
 
