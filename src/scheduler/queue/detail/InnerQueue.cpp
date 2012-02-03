@@ -50,7 +50,7 @@ InnerQueue::queuedNettoBits() const
 }
 
 Bit
-InnerQueue::queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize, bool byteAlignHeader, Bit maxCB, Bit crc) const
+InnerQueue::queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize, bool byteAlignHeader) const
 {
     if (queuedNettoBits() == 0)
     {
@@ -63,14 +63,7 @@ InnerQueue::queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize, bool 
         {
             headerSize += headerSize % 8;
         }
-
-        if(crc > 0)
-        {        
-            int numCBs = ceil(double(headerSize + queuedNettoBits()) / double(maxCB));
-            return headerSize + queuedNettoBits() + numCBs * crc;
-        }
-        else
-            return headerSize + queuedNettoBits();
+        return headerSize + queuedNettoBits();
     }
 }
 
@@ -89,28 +82,14 @@ InnerQueue::empty() const
 void
 InnerQueue::put(const wns::ldk::CompoundPtr& compound)
 {
-    pduQueue_.push_back(compound);
+    pduQueue_.push(compound);
 
     nettoBits_ += compound->getLengthInBits();
 }
 
 wns::ldk::CompoundPtr
 InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, 
-    bool usePadding, bool byteAlignHeader,
-    wns::ldk::CommandReaderInterface* reader,
-    const wns::probe::bus::ContextCollectorPtr& probeCC,
-    wns::ldk::CommandReaderInterface* probeCmdReader)
-{
-    return retrieve(requestedBits, fixedHeaderSize, extensionHeaderSize,
-                    usePadding, byteAlignHeader, 1E6, 0, reader, probeCC,
-                    probeCmdReader);
-}
-
-wns::ldk::CompoundPtr
-InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeaderSize, 
-    bool usePadding, bool byteAlignHeader,
-    Bit maxCB, Bit crc, 
-    wns::ldk::CommandReaderInterface* reader,
+    bool usePadding, bool byteAlignHeader, wns::ldk::CommandReaderInterface* reader,
     const wns::probe::bus::ContextCollectorPtr& probeCC,
     wns::ldk::CommandReaderInterface* probeCmdReader)
 {
@@ -124,9 +103,6 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
         throw RetrieveException("Queue is empty");
     }
 
-    int fs = frontSegmentSentBits_;
-
-
     wns::ldk::CompoundPtr pdu(pduQueue_.front()->copy());
 
     assure(reader != NULL, "No valid segmentHeaderReader given!");
@@ -135,168 +111,59 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
 
     ISegmentationCommand* header = reader->readCommand<ISegmentationCommand>(pdu->getCommandPool());
 
+    header->increaseHeaderSize(fixedHeaderSize);
+
     header->setSequenceNumber(sequenceNumber_);
     sequenceNumber_ += 1;
 
-    (frontSegmentSentBits_ == 0) ? header->setBeginFlag():header->clearBeginFlag();;
+    (frontSegmentSentBits_ == 0) ? header->setBeginFlag():header->clearBeginFlag();
 
-    CompoundContainer::iterator it;
-
-    Bit totalPayloadSize = 0;
-    Bit totalPDUSize = 0;
-    Bit totalHeaderSize = 0;
-    Bit crcHeaderSize = 0;
-    Bit futureHeaderSize = 0;
-    Bit futureExtensionHeaderSize = 0;
-    Bit futurePDUSizeNoCRC = 0;
-    Bit futureCRCSize = 0;
-    Bit futureAlignment = 0;
-    unsigned int numSegments = 0;
-
-    for(it = pduQueue_.begin(); it != pduQueue_.end(); it++)
+    while (header->totalSize() < requestedBits)
     {
-        numSegments++;
-        totalPayloadSize += (*it)->getLengthInBits();
-        if(it == pduQueue_.begin())
-            totalPayloadSize -= frontSegmentSentBits_;
-        futureExtensionHeaderSize = (numSegments - 1) * extensionHeaderSize;
-
-        if(byteAlignHeader)
+        wns::ldk::CompoundPtr c = pduQueue_.front();
+        Bit length = c->getLengthInBits() - frontSegmentSentBits_; // netto
+        Bit capacity = requestedBits - header->totalSize(); // netto
+        if (capacity >= length)
         {
-            futureAlignment = futureExtensionHeaderSize % 8;
-            futureExtensionHeaderSize += futureAlignment;
-        }
-     
-        futureHeaderSize = fixedHeaderSize + futureExtensionHeaderSize;
-        futurePDUSizeNoCRC = totalPayloadSize + futureHeaderSize;
-        futureCRCSize = ceil(double(futurePDUSizeNoCRC) / double(maxCB)) * crc;
-        totalHeaderSize = futureHeaderSize + futureCRCSize;
-
-        if(futureCRCSize + futurePDUSizeNoCRC >= requestedBits)
-            break;
-    }
-    // Emptied the entire Queue:
-    if(it == pduQueue_.end())
-    {
-        header->setEndFlag();
-        for(it = pduQueue_.begin(); it != pduQueue_.end(); it++)
-        {
-            Bit length = (*it)->getLengthInBits() - frontSegmentSentBits_;
-            header->addSDU((*it)->copy());
+            // fits in completely
+            header->addSDU(c->copy());
             header->increaseDataSize(length);
-            probe(*it, probeCC, probeCmdReader); 
+            probe(c, probeCC, probeCmdReader); 
+            pduQueue_.pop();
             frontSegmentSentBits_ = 0;
             nettoBits_ -= length;
-        }
-        for(int n = numSegments; n > 0; n--)
-        {
-            pduQueue_.pop_front();
-        }
 
-        header->increaseHeaderSize(totalHeaderSize);
-        assure(totalPayloadSize == header->dataSize(), "Size mismatch after queue emtied.");
-        assure(nettoBits_ == 0, "Queue not emptied.");
-    }
-    else
-    {
-        // Exact fit (very unlikely)
-        if(futureCRCSize + futurePDUSizeNoCRC == requestedBits)
-        {
-            header->setEndFlag();
-            int i = 0;
-            for(it = pduQueue_.begin(); i < numSegments; it++)
+            Bit headerPadding = 0;
+            if ( byteAlignHeader )
             {
-                Bit length = (*it)->getLengthInBits() - frontSegmentSentBits_;
-                header->addSDU((*it)->copy());
-                header->increaseDataSize(length);
-                probe(*it, probeCC, probeCmdReader); 
-                frontSegmentSentBits_ = 0;
-                nettoBits_ -= length;
-                i++;
-            }
-            for(int n = i; n > 0; n--)
-            {
-                pduQueue_.pop_front();
+                headerPadding = (header->headerSize() + extensionHeaderSize) % 8;
             }
 
-            header->increaseHeaderSize(totalHeaderSize);
-            assure(requestedBits == header->totalSize(), "Size mismatch after exact hit.");
+            if ( (header->totalSize() + extensionHeaderSize + headerPadding < requestedBits) &&
+                 (pduQueue_.size() > 0))
+            {
+                header->increaseHeaderSize(extensionHeaderSize);
+            }
+            else
+            {
+                break;
+            }
         }
-        // Last segment is part of SDU (most likely case)
         else
         {
-            int i = 0;
-            for(it = pduQueue_.begin(); i < numSegments - 1; it++)
+            Bit headerPadding = 0;
+            if ( byteAlignHeader )
             {
-                Bit length = (*it)->getLengthInBits() - frontSegmentSentBits_;
-                header->addSDU((*it)->copy());
-                header->increaseDataSize(length);
-                probe(*it, probeCC, probeCmdReader); 
-                frontSegmentSentBits_ = 0;
-                nettoBits_ -= length;            
-                i++;
+                headerPadding = header->headerSize() % 8;
             }
-            assure(it != pduQueue_.end(), "No segment left for partial retrieve.");
-            for(int n = i; n > 0; n--)
-            {
-                pduQueue_.pop_front();
-            }
-
-            // Do not include CRC header yet and exclude extHeader for last segment 
-            // and possible byte alignment padding bit
-            // Could be that only parts of one SDU fit, then there is no extHeader
-            Bit newHeader = std::max(fixedHeaderSize, futureHeaderSize - extensionHeaderSize - futureAlignment);
-            header->increaseHeaderSize(newHeader);
-
-            Bit space = requestedBits - header->totalSize() - futureCRCSize;
-
-            assure(header->totalSize() <= requestedBits, "Not all segments processed but already full.");
-
-            // Could be we just exactly fit the extension header or parts of it 
-            // but no more segments. It does not make sense then to include another segment
-            // Could also be we only fit parts of one SDU, in this case there is no extension
-            // header.
-            Bit nextHeader;
-            if(numSegments > 1)
-                nextHeader = extensionHeaderSize;
-            else
-                nextHeader = 0;
-
-            if(byteAlignHeader)
-                nextHeader += (header->totalSize() + nextHeader) % 8;
-
-            if(space > nextHeader)
-            {
-                header->increaseHeaderSize(nextHeader);
-
-                // Could be that we need less Code Blocks (CBs) for the new total PDU size
-                futurePDUSizeNoCRC = header->totalSize() + space;
-                futureCRCSize = ceil(double(futurePDUSizeNoCRC) / double(maxCB)) * crc;
-                space = requestedBits - header->totalSize() - futureCRCSize;            
-
-                frontSegmentSentBits_ += space;
-                (frontSegmentSentBits_ == 0) ? header->setEndFlag():header->clearEndFlag();
-
-                header->addSDU(pduQueue_.front()->copy());
-                header->increaseDataSize(space);
-                header->increaseHeaderSize(futureCRCSize);
-                nettoBits_ -= space;
-            }
-            else
-            {               
-                header->increaseHeaderSize(
-                    ceil(double(header->totalSize()) / double(maxCB)) * crc);
-
-                // Byte align the header
-                if(byteAlignHeader)
-                {
-                    Bit align = header->headerSize() % 8;
-                    header->increaseHeaderSize(align);
-                }
-            }
+            // only a fraction fits in
+            header->addSDU(c->copy());
+            header->increaseDataSize(capacity - headerPadding);
+            header->increaseHeaderSize(headerPadding);
+            frontSegmentSentBits_ += capacity - headerPadding;
+            nettoBits_ -= capacity - headerPadding;
+            assure(frontSegmentSentBits_ < pduQueue_.front()->getLengthInBits(), "frontSegmentSentBits_ is larger than the front PDU size!");
         }
-        
-        
     }
 
     // remaining bits:
@@ -305,49 +172,27 @@ InnerQueue::retrieve(Bit requestedBits, Bit fixedHeaderSize, Bit extensionHeader
         nettoBits_ = 0;
     }
 
+    // Is the last segment in the PDU a fragment? Then clear end flag
+    (frontSegmentSentBits_ == 0) ? header->setEndFlag():header->clearEndFlag();
+
+    if (byteAlignHeader)
+    {
+        header->increaseHeaderSize(header->headerSize() % 8);
+    }
+
     // Rest is padding (optional)
     if (usePadding) {
         header->increasePaddingSize(requestedBits - header->totalSize());
     }
 
     assure(header->totalSize()<=requestedBits,"pdulength="<<header->totalSize()<<" > bits="<<requestedBits);
-
-#ifndef WNS_NDEGUG
-    Bit extHeader = (header->getNumSDUs() - 1) * extensionHeaderSize;
-    if(byteAlignHeader)
-        extHeader+= extHeader % 8;
-
-    Bit beforeCRC = header->dataSize() + extHeader + fixedHeaderSize;
-    Bit crcHeader = ceil(double(beforeCRC) / double(maxCB)) * crc;
-
-
-    Bit totHeader = crcHeader + fixedHeaderSize + extHeader;
-    assure(header->headerSize() == totHeader, "Header size mismatch: "
-        << "\nFixed: " << fixedHeaderSize
-        << "\nExt: " << extHeader
-        << "\nCRC: " << crcHeader
-        << "\nSDUs: " << header->getNumSDUs()
-        << "\nPayload: " << header->dataSize()
-        << "\nTotal header size: " << header->headerSize()
-        << " != " << totHeader);
-#endif
-
     return pdu;
-
 }
-
 
 std::queue<wns::ldk::CompoundPtr> 
 InnerQueue::getQueueCopy()
 {
-    std::queue<wns::ldk::CompoundPtr> q;
-    
-    CompoundContainer::iterator it;
-    
-    for(it = pduQueue_.begin(); it != pduQueue_.end(); it++)
-        q.push(*it);
-
-    return q;
+    return pduQueue_;
 }
 
 void

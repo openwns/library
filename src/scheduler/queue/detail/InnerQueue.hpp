@@ -32,7 +32,6 @@
 #include <WNS/ldk/Compound.hpp>
 #include <WNS/probe/bus/ContextCollector.hpp>
 #include <queue>
-#include <limits>
 
 namespace wns { namespace scheduler { namespace queue { namespace detail {
 
@@ -102,8 +101,7 @@ public:
      * Optionally the header size is increased in the end to be byte aligned.
      */
     Bit
-    queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize, bool byteAlignHeader,
-        Bit maxCodeBlockSize = std::numeric_limits<Bit>::max(), Bit crc = 0) const;
+    queuedBruttoBits(Bit fixedHeaderSize, Bit extensionHeaderSize, bool byteAlignHeader) const;
 
     /**
      * @brief Get number of compounds in queue
@@ -131,23 +129,10 @@ public:
         Bit fixedHeaderSize, 
         Bit extensionHeaderSize, 
         bool usePadding, 
-        bool byteAlignHeader,
-        Bit maxCodeBlockSize, 
-        Bit crc, 
+        bool byteAlignHeader, 
         wns::ldk::CommandReaderInterface* reader,
         const wns::probe::bus::ContextCollectorPtr& = wns::probe::bus::ContextCollectorPtr(),
         wns::ldk::CommandReaderInterface* = NULL);
-
-    wns::ldk::CompoundPtr
-    retrieve(Bit requestedBits, 
-        Bit fixedHeaderSize, 
-        Bit extensionHeaderSize, 
-        bool usePadding, 
-        bool byteAlignHeader,
-        wns::ldk::CommandReaderInterface* reader,
-        const wns::probe::bus::ContextCollectorPtr& = wns::probe::bus::ContextCollectorPtr(),
-        wns::ldk::CommandReaderInterface* = NULL);
-
 
     /** @brief Retrieves a copy of the raw queue. Queued compounds are not copied but
     * point to the same ones as in the original queue!
@@ -161,7 +146,7 @@ private:
         const wns::probe::bus::ContextCollectorPtr& probeCC,
         wns::ldk::CommandReaderInterface* cmdReader);
 
-    typedef std::list<wns::ldk::CompoundPtr> CompoundContainer;
+    typedef std::queue<wns::ldk::CompoundPtr> CompoundContainer;
 
     CompoundContainer pduQueue_;
 
