@@ -78,6 +78,8 @@ namespace wns { namespace events { namespace scheduler {
                 wns::Exception(s)
             {
             }
+
+            ~CancelException() throw() {}
         };
 
         virtual

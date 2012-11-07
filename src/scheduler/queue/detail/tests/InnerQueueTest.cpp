@@ -109,6 +109,9 @@ public:
     virtual void
     addSDU(wns::ldk::CompoundPtr c) { peer.pdus_.push_back(c); }
 
+    virtual unsigned int
+    getNumSDUs() {return peer.pdus_.size();}
+
     struct {
         long sn_;
         bool isBegin_;

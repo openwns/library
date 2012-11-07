@@ -82,6 +82,10 @@ public:
 
     virtual void
     addSDU(wns::ldk::CompoundPtr) = 0;
+
+    virtual unsigned int
+    getNumSDUs() = 0;
+
 };
 
 } // queue

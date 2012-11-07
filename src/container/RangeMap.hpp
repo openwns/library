@@ -55,128 +55,122 @@ namespace wns { namespace container {
     {
     public:
 
-    /** @brief This exception is thrown by RangeMap members
-     */
-    class Exception : public wns::Exception
-    {
-    public:
-        Exception(const std::string& s)
-        : wns::Exception(s)
-        {
-        }
-    };
+	/** @brief This exception is thrown by RangeMap members
+	 */
+	class Exception : public wns::Exception
+	{
+	public:
+	    Exception(const std::string& s)
+		: wns::Exception(s)
+	    {}
+        ~Exception() throw() {}
+	};
 
 
-    /** @brief Type of the index used by get().
-     */
-    typedef RangeType Index;
+	/** @brief Type of the index used by get().
+	 */
+	typedef RangeType Index;
 
-    /** @brief Type of the interval used by insert().
-     */
-    typedef Interval<Index> IntervalType;
+	/** @brief Type of the interval used by insert().
+	 */
+	typedef Interval<Index> IntervalType;
 
-    /** @brief Type of the values stored.
-     */
-    typedef ValueType Value;
+	/** @brief Type of the values stored.
+	 */
+	typedef ValueType Value;
 
-    /** @brief Default constructor.
-     */
-    RangeMap()
-        : root(NULL)
-    {
-    }
+	/** @brief Default constructor.
+	 */
+	RangeMap()
+	    : root(NULL)
+	{}
 
-    /** @brief Destructor.
-     */
-    virtual ~RangeMap()
-    {
-        delete root;
-    }
+	/** @brief Destructor.
+	 */
+	virtual ~RangeMap()
+	{
+	    delete root;
+	}
 
-    /** @brief Insert a value for a given interval.
-     *
-     *  insert() assures, that interval does not
-     *  overlap with an existing interval, and that
-     *  interval is not empty.
-     *
-     *  @param interval Define value for this interval.
-     *  @param value Define this valus.
-     *
-     *  @returns Reference to *this.
-     */
-    RangeMap& insert(const IntervalType& interval, const ValueType& value)
-    {
-        IntervalValuePair intervalValue = IntervalValuePair(interval, value);
-        assure(!interval.isEmpty(), "RangeMap: Can not insert empty intervals!");
-        if (root == NULL)
-        {
-            root = new RangeTree(intervalValue);
-        }
-        else insert(intervalValue, root);
-        return *this;
-    }
+	/** @brief Insert a value for a given interval.
+	 *
+	 *  insert() assures, that interval does not
+	 *  overlap with an existing interval, and that
+	 *  interval is not empty.
+	 *
+	 *  @param interval Define value for this interval.
+	 *  @param value Define this valus.
+	 *
+	 *  @returns Reference to *this.
+	 */
+	RangeMap& insert(const IntervalType& interval, const ValueType& value)
+	{
+	    IntervalValuePair intervalValue = IntervalValuePair(interval, value);
+	    assure(!interval.isEmpty(), "RangeMap: Can not insert empty intervals!");
+	    if (root == NULL) {
+		root = new RangeTree(intervalValue);
+	    }
+	    else insert(intervalValue, root);
+	    return *this;
+	}
 
-    /** @brief Get the value for an index.
-     *
-     *  get() throws Exception, when an interval has
-     *  not been defined for index.
-     *
-     *  @param index The index.
-     *  @returns Value for index.
-     */
-    const Value& get(const Index& index) const
-    {
-        RangeTree* node = root;
-        while (node != NULL)
-        {
-            if (node->getValue().first.contains(index)) return node->getValue().second;
-            else
-            {
-                if (node->getValue().first.isAbove(index))
-                node = node->getSubTree(0);
-                else
-                node = node->getSubTree(1);
-            }
-        }
-        throw Exception("RangeMap: No value for index " + Ttos(index) + "!");
-    }
+	/** @brief Get the value for an index.
+	 *
+	 *  get() throws Exception, when an interval has
+	 *  not been defined for index.
+	 *
+	 *  @param index The index.
+	 *  @returns Value for index.
+	 */
+	const Value& get(const Index& index) const
+	{
+	    RangeTree* node = root;
+	    while (node != NULL) {
+		if (node->getValue().first.contains(index)) return node->getValue().second;
+		else {
+		    if (node->getValue().first.isAbove(index))
+			node = node->getSubTree(0);
+		    else
+			node = node->getSubTree(1);
+		}
+	    }
+	    throw Exception("RangeMap: No value for index " + Ttos(index) + "!");
+	}
 
-    /** @brief Check if an interval for index has been defined.
-     *
-     *  @param index The index.
-     *  @returns True, if a range containing index was found, false otherwise.
-     */
-    bool has(const Index& index) const
-    {
-        try 
-        {
-            get(index);
-        }
-        catch (Exception) 
-        {
-            return false;
-        }
-        return true;
-    }
+	/** @brief Check if an interval for index has been defined.
+	 *
+	 *  @param index The index.
+	 *  @returns True, if a range containing index was found, false otherwise.
+	 */
+	bool has(const Index& index) const
+	{
+	    try {
+		get(index);
+	    }
+	    catch (Exception) {
+		return false;
+	    }
+	    return true;
+	}
 
     private:
 
-    typedef std::pair<IntervalType, Value> IntervalValuePair;
-    /// @todo (swen) balanced tree
-    typedef BinaryTree<IntervalValuePair, CleanupStrategy > RangeTree;
+	typedef std::pair<IntervalType, Value> IntervalValuePair;
+	/// @todo (swen) balanced tree
+	typedef BinaryTree<IntervalValuePair, CleanupStrategy > RangeTree;
 
-    void insert(const IntervalValuePair& intervalValue, RangeTree* node)
-    {
-        assure(node != NULL, "RangeMap: Attempt to insert into an empty tree");
-        assure(!intervalValue.first.overlaps(node->getValue().first), "RangeMap: Can only insert disjoint intervals!");
+	void insert(const IntervalValuePair& intervalValue, RangeTree* node)
+	{
+	    assure(node != NULL, "RangeMap: Attempt to insert into an empty tree");
+	    assure(!intervalValue.first.overlaps(node->getValue().first), "RangeMap: Can only insert disjoint intervals!");
 
-        const int treeNo = (intervalValue.first.isBelow(node->getValue().first))?0:1;
+	    const int treeNo = (intervalValue.first.isBelow(node->getValue().first))?0:1;
 
-        if (node->hasSubTree(treeNo)) insert(intervalValue, node->getSubTree(treeNo));
-        else node->createSubTree(treeNo, intervalValue);
-    }
+	    if (node->hasSubTree(treeNo)) insert(intervalValue, node->getSubTree(treeNo));
+	    else node->createSubTree(treeNo, intervalValue);
+	}
 
-    RangeTree* root;
+	RangeTree* root;
     };
 
 } // container

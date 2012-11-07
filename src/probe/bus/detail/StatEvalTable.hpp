@@ -68,7 +68,10 @@ namespace wns { namespace probe { namespace bus { namespace detail {
 
             class OutOfRange :
                 public wns::Exception
-            {};
+            {
+            public:
+                ~OutOfRange() throw() {}
+            };
 
             std::vector<detail::Sorter> sorters;
             wns::container::DynamicMatrix<ValueType>* root;

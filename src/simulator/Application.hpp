@@ -61,6 +61,7 @@ namespace wns {  namespace simulator {
 	{
 	public:
 		ModuleDependencyMismatchException();
+                ~ModuleDependencyMismatchException() throw() {}
 	};
 
 

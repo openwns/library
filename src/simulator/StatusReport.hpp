@@ -49,6 +49,7 @@ namespace wns { namespace simulator {
 				wns::Exception("Couldn't write to file: " + fileName)
 			{
 			}
+            ~WriteError() throw() {}
 		};
 
 		StatusReport();

@@ -50,11 +50,15 @@ namespace wns { namespace ldk { namespace harq { namespace softcombining {
          class InvalidRV :
              public Exception
          {
+         public:
+             ~InvalidRV() throw() {}
          };
 
-         class InvalidPositionInTB :
+        class InvalidPositionInTB :
             public Exception
         {
+        public:
+            ~InvalidPositionInTB() throw() {};
         };
 
          Container()

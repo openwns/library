@@ -46,7 +46,11 @@ namespace wns { namespace probe { namespace bus {
 		 */
         class NotFound :
             public wns::Exception
-        {};
+        {
+        public:
+            ~NotFound() throw() {};
+        };
+
 
         /**
 		 * @brief Exception thrown by the Context if a value already exists
@@ -54,7 +58,10 @@ namespace wns { namespace probe { namespace bus {
 		 */
         class DuplicateKey :
             public wns::Exception
-        {};
+         {
+         public:
+             ~DuplicateKey() throw() {};
+         };
 
         /**
 		 * @brief Exception thrown by the Context if a value for key exists but
@@ -62,7 +69,10 @@ namespace wns { namespace probe { namespace bus {
 		 */
         class TypeError :
             public wns::Exception
-        {};
+        {
+        public:
+            ~TypeError() throw () {};
+        };
     }
 
     /**

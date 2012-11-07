@@ -112,6 +112,8 @@ namespace wns {
 		{
 			(*this) << TypeInfo::create(*t);
 		}
+
+        ~CloneNotSupported() throw() {}
 	};
 
 	/**

@@ -66,6 +66,7 @@ namespace wns { namespace events { namespace scheduler {
         {
         public:
             CancelException(const std::string& s);
+            ~CancelException() throw() {}
         };
 
         virtual

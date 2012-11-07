@@ -38,6 +38,7 @@ namespace wns { namespace ldk { namespace sar {
             peer.headerSize_ = 0;
             peer.dataSize_ = 0;
             peer.paddingSize_ = 0;
+            peer.sdus_ = 0;
         }
 
         /**
@@ -103,7 +104,10 @@ namespace wns { namespace ldk { namespace sar {
          * @brief Append an SDU segment to this PDU.
          */
         virtual void
-        addSDU(wns::ldk::CompoundPtr c) { peer.pdus_.push_back(c); }
+        addSDU(wns::ldk::CompoundPtr c) { peer.pdus_.push_back(c); peer.sdus_++;}
+
+        virtual unsigned int
+        getNumSDUs() {return peer.sdus_;}
 
         struct {
         } magic;
@@ -118,6 +122,7 @@ namespace wns { namespace ldk { namespace sar {
             Bit headerSize_;
             Bit dataSize_;
             Bit paddingSize_;
+            unsigned int sdus_;
             std::list<wns::ldk::CompoundPtr> pdus_;
         } peer;
     };
