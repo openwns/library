@@ -864,8 +864,6 @@ HARQReceiverProcess::decode()
             if(sisSize != 0 && sisSize != sis.size())
             {
                 assure(false, "Partial HARQ retransmission in receive buffer.");
-                std::cout << "Partial HARQ retransmission in receive buffer." << std::endl;
-            	exit(1);
             }
             sisSize = sis.size();
         }

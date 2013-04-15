@@ -131,7 +131,8 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
             int sc = resource.subChannel;
 
             // Could be the scheduler has no resources for us
-            assure(sc != wns::scheduler::strategy::dsastrategy::DSAsubChannelNotFound, "No more free resources.");
+            if(sc == wns::scheduler::strategy::dsastrategy::DSAsubChannelNotFound)
+                break;
 
             int ts = resource.timeSlot;
             int numberOfSpatialLayers = schedulingMap->subChannels[sc].temporalResources[ts]->numSpatialLayers;
@@ -171,7 +172,6 @@ HARQUplinkRetransmission::doStartSubScheduling(SchedulerStatePtr schedulerState,
             subchannels = getUsableSubChannelsIDs(*user, schedulingMap);
             numAvailable = subchannels.size();
         }
-        assure(numRetransmissionsForUser == 0, "Not all SCs could be retransmitted.");
     }
 
     return mapInfoCollection;
