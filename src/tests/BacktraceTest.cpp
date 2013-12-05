@@ -28,7 +28,9 @@
 #include <WNS/TestFixture.hpp>
 #include <WNS/Backtrace.hpp>
 
+#ifdef __GLIBC__
 #include <features.h>
+#endif
 
 namespace wns { namespace tests {
 

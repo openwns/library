@@ -215,8 +215,10 @@ DSAStrategy::channelIsUsable(int subChannel,
 	assure(timeSlot<schedulerState->currentState->strategyInput->getNumberOfTimeSlots(),
 	       "invalid timeSlot="<<timeSlot);
 	if(schedulerState->currentState->groupingIsValid())
+    {
 		assure(oneUserOnOneSubChannel,
 		       "oneUserOnOneSubChannel required for beamforming/SDMA");
+    }
 	if (!schedulingMap->subChannels[subChannel].subChannelIsUsable)
 		return false;
 

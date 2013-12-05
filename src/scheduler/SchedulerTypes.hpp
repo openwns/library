@@ -248,7 +248,7 @@ namespace wns { namespace scheduler {
             std::stringstream s;
             for (std::vector<bool>::const_iterator iter = boolVector.begin(); iter != boolVector.end(); ++iter)
             {
-                s << (*iter) ? 1:0;
+                s << ((*iter) ? 1:0);
             }
             return s.str();
         }

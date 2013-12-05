@@ -132,7 +132,11 @@ Base::load(const std::string& name, bool absolutePath, bool beVerbose, bool lazy
 	if (absolutePath) {
 		str = name;
 	} else {
+#if defined(__APPLE__)
+		str = "lib" + name + ".dylib";
+#else
 		str = "lib" + name + ".so";
+#endif
 	}
 
 	if(beVerbose) {

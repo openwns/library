@@ -40,6 +40,7 @@ class ITBChoser
     public:         
         typedef wns::PyConfigViewCreator<ITBChoser> Creator;
         typedef wns::StaticFactory<Creator> Factory;
+        virtual ~ITBChoser() {};
 
         virtual Frame::SearchResult
         choseTB(const Frame::SearchResultSet& tbs) = 0;

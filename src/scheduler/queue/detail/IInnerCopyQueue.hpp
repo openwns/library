@@ -41,6 +41,8 @@ namespace wns { namespace scheduler { namespace queue { namespace detail {
     class IInnerCopyQueue
     {
     public:
+        virtual ~IInnerCopyQueue(){};
+
         virtual void
         setFUN(wns::ldk::fun::FUN* fun) = 0;
         

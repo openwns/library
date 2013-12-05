@@ -42,6 +42,8 @@ class ILinkAdaptation
         typedef wns::PyConfigViewCreator<ILinkAdaptation> Creator;
         typedef wns::StaticFactory<Creator> Factory;
 
+        virtual ~ILinkAdaptation(){};
+
         struct CanFitResult
         {
             CanFitResult() :

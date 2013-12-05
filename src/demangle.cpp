@@ -29,7 +29,7 @@
 
 # if defined(__GNUC__) && __GNUC__ >= 3
 // Demangle using cxxabi.h
-#include <malloc.h>
+#include <cstdlib>
 #include <cxxabi.h>
 std::string
 wns::demangle(const std::string& symbol)

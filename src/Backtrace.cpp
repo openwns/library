@@ -30,8 +30,10 @@
 #include <iomanip>
 #include <cmath>
 
+#ifndef __APPLE__
 // to get the __GLIBC__ macro set (if glibc available)
 #include <features.h>
+#endif
 
 #ifdef __GLIBC__
 #include <execinfo.h>

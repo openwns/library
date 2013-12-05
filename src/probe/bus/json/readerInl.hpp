@@ -303,7 +303,8 @@ inline void Reader::MatchString(std::string& string, InputStream& inputStream)
             case 't':      string.push_back('\t');    break;
             case 'u':      // TODO: what do we do with this?
             default: {
-               std::string sMessage = "Unrecognized escape sequence found in string: \\" + c;
+               std::string sMessage = "Unrecognized escape sequence found in string: \\";
+               sMessage += c;
                throw ScanException(sMessage, inputStream.GetLocation());
             }
          }
@@ -476,7 +477,8 @@ inline void Reader::Parse(Number& number, Reader::TokenStream& tokenStream)
    // did we consume all characters in the token?
    if (iStr.eof() == false)
    {
-      std::string sMessage = "Unexpected character in NUMBER token: " + iStr.peek();
+      std::string sMessage = "Unexpected character in NUMBER token: ";
+      sMessage += iStr.peek();
       throw ParseException(sMessage, currentToken.locBegin, currentToken.locEnd);
    }
 

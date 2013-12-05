@@ -272,7 +272,7 @@ namespace wns {  namespace simulator {
         /**
          * @brief Our own name (as from argv[0])
          */
-        std::string programName_;
+        static std::string programName_;
 
         /**
          * @brief In case we should launch a debugger, this is the name of it

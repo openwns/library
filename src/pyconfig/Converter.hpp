@@ -30,7 +30,7 @@
 
 #include <WNS/pyconfig/Object.hpp>
 
-#include <string>
+#include <sstream>
 
 namespace wns { namespace pyconfig {
 	template <typename T>
