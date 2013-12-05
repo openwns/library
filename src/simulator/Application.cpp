@@ -81,6 +81,8 @@
 
 using namespace wns::simulator;
 
+namespace po = boost::program_options;
+
 ModuleDependencyMismatchException::ModuleDependencyMismatchException() :
 	wns::Exception("Module dependency not met!\n")
 {
@@ -97,7 +99,6 @@ Application::Application() :
     pyConfigPatches_(),
     options_(),
     arguments_(),
-    programName_("openwns"),
     debuggerName_("gdb"),
     attachDebugger_(false),
     interactiveConfig_(false),
@@ -117,54 +118,54 @@ Application::Application() :
          "display this help and exit")
 
         ("config-file,f",
-         boost::program_options::value<std::string>(&configFile_)->default_value("config.py"),
+         po::value<std::string>(&configFile_)->default_value("config.py"),
          "load config from configuration file")
 
         ("attach-debugger-on-segfault,s",
-         boost::program_options::value<std::string>(&debuggerName_),
+         po::value<std::string>(&debuggerName_),
          "fire up gdb on segfault, arg = command for debugger")
 
         ("stop-in-debugger-on-assure,d",
-         boost::program_options::bool_switch(&wns::Assure::useSIGTRAP),
+         po::bool_switch(&wns::Assure::useSIGTRAP),
          "stop in debugger if an 'assure' fired (no exception will be thrown)")
 
         ("interactive-configuration,i",
-         boost::program_options::bool_switch(&interactiveConfig_),
+         po::bool_switch(&interactiveConfig_),
          "after reading config start an interactive shell which allows modification of the configuration, use 'continue' to exit shell and run openWNS")
 
         ("unit-tests,t",
-         boost::program_options::bool_switch(&testing_),
+         po::bool_switch(&testing_),
          "test mode: run unit tests specified with -T or default suite if no tests with -T given")
 
         ("compiler-unit-tests,c",
-         boost::program_options::bool_switch(&compilerTestingOutput_),
+         po::bool_switch(&compilerTestingOutput_),
          "the test output is made compiler compatible to improve interworking with your IDE, use with -t")
 
         ("named-unit-tests,T",
-         boost::program_options::value<TestNameContainer>(&testNames_),
+         po::value<TestNameContainer>(&testNames_),
          "run named unit test (defined multipple time for multiple tests), e.g. wns::pyconfig::tests::ParserTest, use with -t")
 
         ("python-path,P",
          "print Python path and exit")
 
         ("verbose,v",
-         boost::program_options::bool_switch(&verbose_),
+         po::bool_switch(&verbose_),
          "verbose mode (version information and verbose tests)")
 
         ("patch-config,y",
-         boost::program_options::value<PyConfigPatchContainer>(&pyConfigPatches_),
+         po::value<PyConfigPatchContainer>(&pyConfigPatches_),
          "patch the configuration with the given Python expression")
 
         ("extended-precision",
-         boost::program_options::bool_switch(&extendedPrecision_),
+         po::bool_switch(&extendedPrecision_),
          "enabled arithmetic operations with extended precision (80 bit) in x87 (disables strict IEEE754 compatibility)")
 
 		("show-modules,M",
-         boost::program_options::bool_switch(&listLoadedModules_),
+         po::bool_switch(&listLoadedModules_),
 		 "show modules that have been loaded")
 
 		("lazy-linking,l",
-		 boost::program_options::bool_switch(&lazyBinding_),
+		 po::bool_switch(&lazyBinding_),
 		 "be lazy and link when needed (not at start-up)")
         ;
 }
@@ -179,10 +180,10 @@ Application::doReadCommandLine(int argc, char* argv[])
 {
     programName_ = std::string(argv[0]);
 
-    boost::program_options::store(
-        boost::program_options::parse_command_line(argc, argv, options_),
+    po::store(
+        po::parse_command_line(argc, argv, options_),
         arguments_);
-    boost::program_options::notify(arguments_);
+    po::notify(arguments_);
 }
 
 void
@@ -586,23 +587,21 @@ Application::doShutdown()
 
 }
 
+std::string Application::programName_ = "openwns";
 
 std::string
 Application::getPathToPyConfig()
 {
-    // if this thing here fails you the user can set PYCONFIGPATH ...
+
     char path[PATH_MAX];
-    // /proc/self/exe is a link to the executable (openwns)
-    ssize_t length = readlink( "/proc/self/exe", path, sizeof(path)-1 );
-    if (length <= 0)
+    std::string fullPath(programName_);
+    ssize_t length = readlink( programName_.c_str(), path, sizeof(path)-1 );
+    if (length > 0)
     {
-        std::cerr << "Warning: could not determine path for PyConfig (readlink('/proc/self/exe') failed.";
-        return "./PyConfig";
+        path[length] = '\0';
+        fullPath = std::string(path);
     }
 
-    path[length] = '\0';
-
-    std::string fullPath(path);
     // find the last of occurence of '/' and replace with '\0' (terminates the
     // string there). this strips the executable name
     size_t pos = fullPath.find_last_of('/');
