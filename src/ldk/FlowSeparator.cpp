@@ -558,7 +558,7 @@ bool
 FlowSeparator::doIsAccepting(const CompoundPtr& compound) const
 {
     assureNotNull(connectorReceptacleSinglePort_);
-    connectorReceptacleSinglePort_->isAccepting(compound);
+    return connectorReceptacleSinglePort_->isAccepting(compound);
 } // doIsAccepting
 
 

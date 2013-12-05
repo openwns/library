@@ -144,7 +144,7 @@ namespace wns { namespace ldk {
             virtual bool
             isAccepting(const CompoundPtr& compound)
             {
-                getFUN()->getLinkHandler()->isAccepting(this, compound);
+                return getFUN()->getLinkHandler()->isAccepting(this, compound);
             }
 
             virtual FunctionalUnit*
