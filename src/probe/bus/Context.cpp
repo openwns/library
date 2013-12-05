@@ -379,14 +379,14 @@ Context::doToString() const
     str << "{";    
 
     std::map<std::string, int>::const_iterator iterInt = intContextMap.begin();
-    for (iterInt; iterInt != intContextMap.end(); ++iterInt)
+    for (; iterInt != intContextMap.end(); ++iterInt)
     {
         str << iterInt->first << " : "
             << iterInt->second << ",";
     }
 
     std::map<std::string, std::string>::const_iterator iterString = stringContextMap.begin();
-    for (iterString; iterString != stringContextMap.end(); ++iterString)
+    for (; iterString != stringContextMap.end(); ++iterString)
     {
         str << iterString->first << " : "
             << "'" << iterString->second << "',";
