@@ -41,7 +41,7 @@ namespace wns { namespace ldk {
                 HasDelivererReceptacle<CLASS, typename PORTID::PortType>(fu),
                 connector_(fu)
             {
-                setHasConnector(&connector_);
+                this->setHasConnector(&connector_);
             }
 
             virtual

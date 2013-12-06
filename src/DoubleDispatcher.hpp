@@ -137,17 +137,17 @@ namespace wns
 						return ((lhs).*callback)(static_cast<ConcreteRhs&>(rhs));
 					}
 				};
-				addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
+				this->addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
 			}
 
  		ResultType dispatch(ConcreteLhs& lhs, BaseRhs rhs)
  			{
- 				return (*getCallback(TypeInfo::create(rhs)))(lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(rhs)))(lhs, rhs);
  			}
 
  		ResultType dispatch(ConcreteLhs* lhs, BaseRhs rhs)
  			{
- 				return (*getCallback(TypeInfo::create(rhs)))(*lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(rhs)))(*lhs, rhs);
  			}
 	};
 
@@ -181,17 +181,17 @@ namespace wns
 						return ((lhs).*callback)(staticCast<ConcreteRhs>(rhs));
 					}
 				};
-				addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
+				this->addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
 			}
 
  		ResultType dispatch(ConcreteLhs& lhs, BaseRhs rhs)
  			{
- 				return (*getCallback(TypeInfo::create(*rhs)))(lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(*rhs)))(lhs, rhs);
  			}
 
  		ResultType dispatch(ConcreteLhs* lhs, BaseRhs rhs)
  			{
- 				return (*getCallback(TypeInfo::create(*rhs)))(*lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(*rhs)))(*lhs, rhs);
  			}
 	};
 
@@ -225,17 +225,17 @@ namespace wns
 						return ((lhs).*callback)(static_cast<const ConcreteRhs&>(rhs));
 					}
 				};
-				addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
+				this->addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
 			}
 
  		ResultType dispatch(ConcreteLhs& lhs, BaseRhs rhs)
  			{
- 				return (*getCallback(TypeInfo::create(rhs)))(lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(rhs)))(lhs, rhs);
  			}
 
  		ResultType dispatch(ConcreteLhs* lhs, BaseRhs rhs)
  			{
- 				return (*getCallback(TypeInfo::create(rhs)))(*lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(rhs)))(*lhs, rhs);
  			}
 	};
 
@@ -270,17 +270,17 @@ namespace wns
 							return ((lhs).*callback)(staticCast<ConcreteRhs>(rhs));
 						}
 				};
-				addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
+				this->addCallback(TypeInfo::create<ConcreteRhs>(), &Local::Trampoline);
 			}
 
  		ResultType dispatch(ConcreteLhs& lhs, const SmartPtr<BaseRhs>& rhs)
  			{
- 				return (*getCallback(TypeInfo::create(*rhs)))(lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(*rhs)))(lhs, rhs);
  			}
 
  		ResultType dispatch(ConcreteLhs* lhs, const SmartPtr<BaseRhs>& rhs)
  			{
- 				return (*getCallback(TypeInfo::create(*rhs)))(*lhs, rhs);
+ 				return (*this->getCallback(TypeInfo::create(*rhs)))(*lhs, rhs);
  			}
 	};
 }
