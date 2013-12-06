@@ -87,7 +87,7 @@ FairSINR::doStartAPC(RequestForResource& request,
             ChannelQualityOnOneSubChannel(pathloss, interference, apcResult.txPower/pathloss);
         apcResult.phyModePtr = schedulerState->defaultPhyModePtr;
     } else {
-        if (schedulerState->schedulerSpot = wns::scheduler::SchedulerSpot::DLMaster())
+        if (schedulerState->schedulerSpot == wns::scheduler::SchedulerSpot::DLMaster())
         {
             fair_sinr.set_dB(fair_sinrdl);
         }

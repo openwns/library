@@ -267,7 +267,7 @@ MetaScheduler::provideMetaConfiguration(wns::scheduler::UserID UserID,
   if (!bUplink)
     return;
       
-  if (mp_StrategyInput = NULL)
+  if (mp_StrategyInput == NULL)
     return;
   
   mp_schedulingMap = schedulingMap;
