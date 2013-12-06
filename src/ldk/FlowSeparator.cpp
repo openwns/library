@@ -83,10 +83,6 @@ FlowSeparator::ConnectorReceptacleSeparator::doIsAccepting(const CompoundPtr& co
         {
             return candidate->isAccepting(compound);
         }
-        else
-        {
-            return false;
-        }
     }
     catch(const InstanceNotFound& ifn)
     {
@@ -108,6 +104,8 @@ FlowSeparator::ConnectorReceptacleSeparator::doIsAccepting(const CompoundPtr& co
     {
         throw;
     }
+
+    return false;
 }
 
 FunctionalUnit*
