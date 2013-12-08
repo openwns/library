@@ -295,7 +295,7 @@ namespace wns { namespace ldk { namespace sar {
             if( totalSize - nextPos > capacity )
             {
                 nextSegment = outgoing->copy();
-                command = activateCommand(nextSegment->getCommandPool());
+                command = (SARCommand*)activateCommand(nextSegment->getCommandPool());
                 command->peer.lastFragment = false;
                 command->magic.pos = nextPos;
                 nextPos += capacity;
@@ -309,7 +309,7 @@ namespace wns { namespace ldk { namespace sar {
 
             {
                 nextSegment = outgoing;
-                command = activateCommand(nextSegment->getCommandPool());
+                command = (SARCommand*)activateCommand(nextSegment->getCommandPool());
                 command->peer.lastFragment = true;
                 command->magic.pos = nextPos;
                 nextPos += capacity;

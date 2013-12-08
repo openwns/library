@@ -77,15 +77,12 @@ namespace wns { namespace fsm {
         class StateInterface :
             virtual public SIGNALS
         {
-        private:
-            template <class> friend class wns::fsm::FSMConfigCreator;
-
+        public:
             /**
              * @brief The basic FSM this state will operate on
              */
             typedef FSM<SIGNALS, VARIABLES> FSMType;
 
-        public:
             /**
              * @brief Each state will automatically get the FSM it belongs to
              */
