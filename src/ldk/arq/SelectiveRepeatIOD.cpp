@@ -31,6 +31,9 @@
 #include <WNS/pyconfig/View.hpp>
 #include <WNS/Assure.hpp>
 
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
+
 using namespace wns::ldk;
 using namespace wns::ldk::arq;
 
@@ -80,8 +83,44 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
         wns::probe::bus::ContextProviderCollection(&fuNet->getLayer()->getContextProviderCollection()),
         config.get<std::string>("RTTProbeName"))),
     delayingDelivery(false),
+    commandName_(config.get<std::string>("commandName")),
+    segmentSize_(config.get<Bit>("segmentSize")),
+    headerSize_(config.get<Bit>("headerSize")),
+    sduLengthAddition_(config.get<Bit>("sduLengthAddition")),
+    nextOutgoingSN_(0),
+    reorderingWindow_(config.get("reorderingWindow")),
+    isSegmenting_(config.get<bool>("isSegmenting")),
+    segmentDropRatioProbeName_(config.get<std::string>("segmentDropRatioProbeName")),
     logger(config.get("logger"))
 {
+    reorderingWindow_.connectToReassemblySignal(boost::bind(&SelectiveRepeatIOD::onReorderedPDU, this, _1, _2));
+    reorderingWindow_.connectToDiscardSignal(boost::bind(&SelectiveRepeatIOD::onDiscardedPDU, this, _1, _2));
+
+    wns::probe::bus::ContextProviderCollection* cpcParent = &fuNet->getLayer()->getContextProviderCollection();
+    wns::probe::bus::ContextProviderCollection cpc(cpcParent);
+
+    segmentDropRatioCC_ = wns::probe::bus::ContextCollectorPtr(
+        new wns::probe::bus::ContextCollector(cpc, segmentDropRatioProbeName_));
+
+    if(!config.isNone("delayProbeName"))
+    {
+        std::string delayProbeName = config.get<std::string>("delayProbeName");
+        minDelayCC_ = wns::probe::bus::ContextCollectorPtr(
+            new wns::probe::bus::ContextCollector(cpc, 
+                delayProbeName + ".minDelay"));
+        maxDelayCC_ = wns::probe::bus::ContextCollectorPtr(
+            new wns::probe::bus::ContextCollector(cpc, 
+                delayProbeName + ".maxDelay"));
+        sizeCC_ = wns::probe::bus::ContextCollectorPtr(
+            new wns::probe::bus::ContextCollector(cpc, 
+                delayProbeName + ".stop.compoundSize"));
+
+        // Same name as the probe prefix
+        probeHeaderReader_ = fuNet->getCommandReader(delayProbeName);
+
+        reassemblyBuffer_.enableDelayProbing(minDelayCC_, maxDelayCC_, probeHeaderReader_);
+    }
+
     assure(windowSize >= 2, "Invalid windowSize.");
     assure(sequenceNumberSize >= 2 * windowSize, "Maximum sequence number is to small for chosen windowSize");
 }
@@ -95,6 +134,13 @@ SelectiveRepeatIOD::~SelectiveRepeatIOD()
     toRetransmit.clear();
     receivedPDUs.clear();
     receivedACKs.clear();
+}
+
+void
+SelectiveRepeatIOD::onFUNCreated()
+{
+    MESSAGE_SINGLE(NORMAL, logger, "SelectiveRepeatIOD::onFUNCreated()");
+    reassemblyBuffer_.initialize(getFUN()->getCommandReader(commandName_));
 }
 
 
@@ -111,27 +157,6 @@ SelectiveRepeatIOD::hasCapacity() const
         && this->NS - this->LA < this->windowSize);
 }
 
-
-void
-SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
-{
-    assure(hasCapacity(), "processOutgoing called although not accepting.");
-    activeCompound = compound;
-
-    SelectiveRepeatIODCommand* command = activateCommand(compound->getCommandPool());
-    this->commitSizes(compound->getCommandPool());
-
-    command->peer.type = SelectiveRepeatIODCommand::I;
-    command->setSequenceNumber(NS);
-
-    MESSAGE_BEGIN(NORMAL, logger, m,  "processOutgoing NS -> ");
-    m << command->getSequenceNumber();
-    MESSAGE_END();
-
-    ++NS;
-
-    sendNow = true;
-}
 
 
 const wns::ldk::CompoundPtr
@@ -258,7 +283,76 @@ SelectiveRepeatIOD::onTimeout()
     this->tryToSend();
 }
 
+void
+SelectiveRepeatIOD::processIncoming(const wns::ldk::CompoundPtr& compound)
+{
+    wns::ldk::CommandPool* commandPool = compound->getCommandPool();
 
+    SelectiveRepeatIODCommand* command;
+    command = getCommand(commandPool);
+
+    reorderingWindow_.onSegment(command->peer.sn_, compound);
+}
+
+void
+SelectiveRepeatIOD::processOutgoing(const wns::ldk::CompoundPtr& sdu)
+{
+    if (!isSegmenting_)
+    {
+        this->senderPendingSegments_.push_back(sdu);
+        MESSAGE_SINGLE(NORMAL, logger, "Adding one SDU with " << sdu->getLengthInBits() 
+                << " bits to pending segments. Segmenting disabled.");
+        return;
+    }
+
+    Bit sduPCISize = 0;
+    Bit sduDataSize = 0;
+    Bit sduTotalSize = 0;
+    Bit cumSize = 0;
+    Bit nextSegmentSize = 0;
+
+    wns::ldk::CommandPool* commandPool = sdu->getCommandPool();
+    getFUN()->calculateSizes(commandPool, sduPCISize, sduDataSize);
+    sduTotalSize = sduPCISize + sduDataSize + sduLengthAddition_;
+
+    bool isBegin = true;
+    bool isEnd = false;
+
+    while(cumSize < sduTotalSize)
+    {
+        cumSize += segmentSize_;
+        if (cumSize >= sduTotalSize)
+        {
+            nextSegmentSize = sduTotalSize - (cumSize - segmentSize_);
+            isEnd = true;
+        }
+        else
+        {
+            nextSegmentSize = segmentSize_;
+        }
+
+        // Prepare segment
+        SelectiveRepeatIODCommand* command = NULL;
+
+        wns::ldk::CompoundPtr nextSegment(new wns::ldk::Compound(getFUN()->getProxy()->createCommandPool()));
+        command = activateCommand(nextSegment->getCommandPool());
+        command->setSequenceNumber(nextOutgoingSN_);
+        command->addSDU(sdu->copy());
+        nextOutgoingSN_ += 1;
+
+        isBegin ? command->setBeginFlag() : command->clearBeginFlag();
+        isEnd ? command->setEndFlag() : command->clearEndFlag();
+
+        command->increaseDataSize(nextSegmentSize);
+        command->increaseHeaderSize(headerSize_);
+        this->commitSizes(nextSegment->getCommandPool());
+        this->senderPendingSegments_.push_back(nextSegment);
+
+        isBegin = false;
+    }
+}
+
+#if 0
 void
 SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
 {
@@ -279,6 +373,28 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
     }
     }
 }
+
+void
+SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
+{
+    assure(hasCapacity(), "processOutgoing called although not accepting.");
+    activeCompound = compound;
+
+    SelectiveRepeatIODCommand* command = activateCommand(compound->getCommandPool());
+    this->commitSizes(compound->getCommandPool());
+
+    command->peer.type = SelectiveRepeatIODCommand::I;
+    command->setSequenceNumber(NS);
+
+    MESSAGE_BEGIN(NORMAL, logger, m,  "processOutgoing NS -> ");
+    m << command->getSequenceNumber();
+    MESSAGE_END();
+
+    ++NS;
+
+    sendNow = true;
+}
+#endif
 
 void
 SelectiveRepeatIOD::onIFrame(const CompoundPtr& compound)
@@ -449,23 +565,6 @@ SelectiveRepeatIOD::onACKFrame(const CompoundPtr& compound)
 
 
 void
-SelectiveRepeatIOD::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
-{
-    //What are the sizes in the upper Layers
-    getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
-
-
-    MESSAGE_SINGLE(VERBOSE, logger, "Size calc - Command: "<<commandPoolSize<<" Payload: "<<sduSize);
-
-    MESSAGE_SINGLE(VERBOSE, logger, "Size of SR-ARQ Command: "<<commandSize<<" Bit");
-
-    commandPoolSize += commandSize;
-
-    MESSAGE_SINGLE(VERBOSE, logger, "Size calc - Command: "<<commandPoolSize<<" Payload: "<<sduSize);
-} // calculateSizes
-
-
-void
 SelectiveRepeatIOD::prepareRetransmission()
 {
     bool retransmitAll = false;
@@ -623,3 +722,147 @@ SelectiveRepeatIOD::doDeliver()
 
 } // doDeliver
 
+
+/**
+ * selctiverepeatiod segmentation and concatenation
+ */
+void
+SelectiveRepeatIOD::onReorderedPDU(long sn, wns::ldk::CompoundPtr c)
+{
+    MESSAGE_SINGLE(NORMAL, logger, "onReorderedPDU(sn=" << sn << "):");
+    if (!reassemblyBuffer_.isNextExpectedSegment(c))
+    {
+        // Segment missing
+        MESSAGE_SINGLE(NORMAL, logger, "onReorderedPDU: PDU " << reassemblyBuffer_.getNextExpectedSN() 
+            << " is missing. Clearing reassembly buffer.");
+
+        for(size_t ii=0; ii < reassemblyBuffer_.size(); ++ii)
+        {
+            segmentDropRatioCC_->put(1.0);
+        }
+        reassemblyBuffer_.clear();
+    }
+
+    if (reassemblyBuffer_.accepts(c))
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "onReorderedPDU: Putting PDU " 
+            << getCommand(c->getCommandPool())->peer.sn_ << " of size " 
+            << getCommand(c->getCommandPool())->totalSize() << " bits into reassembly buffer");
+        reassemblyBuffer_.insert(c);
+    }
+    else
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "onReorderedPDU: Dropping PDU " 
+            << getCommand(c->getCommandPool())->peer.sn_ << ". isBegin=False.");
+    }
+
+    sar::reassembly::ReassemblyBuffer::SegmentContainer sc;
+    MESSAGE_SINGLE(VERBOSE, logger, reassemblyBuffer_.dump());
+
+    int numberOfReassembledSegments = 0;
+    sc = reassemblyBuffer_.getReassembledSegments(numberOfReassembledSegments);
+
+    for (int ii=0; ii < numberOfReassembledSegments; ++ii)
+    {
+        segmentDropRatioCC_->put(0.0);
+    }
+
+    MESSAGE_SINGLE(NORMAL, logger, "reassemble: getReassembledSegments() sc.size()=" << sc.size());
+
+    if (getDeliverer()->size() > 0)
+    {
+        sar::reassembly::ReassemblyBuffer::SegmentContainer::iterator it;
+        for (it=sc.begin(); it!=sc.end(); ++it)
+        {
+            MESSAGE_SINGLE(NORMAL, logger, "reassemble: Passing " << (*it)->getLengthInBits() 
+                << " bits to upper FU.");
+            // This sends the complete PDU upwards:
+            getDeliverer()->getAcceptor( (*it) )->onData( (*it) );
+            if(sizeCC_ != NULL)
+                sizeCC_->put((*it)->getLengthInBits());
+        }
+    }
+    else
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "reassemble: No upper FU available.");
+    }
+}
+
+void
+SelectiveRepeatIOD::onDiscardedPDU(long, wns::ldk::CompoundPtr)
+{
+    segmentDropRatioCC_->put(1.0);
+}
+
+/**
+ * TODO: remove old calculateSizes
+ */
+#if 0
+void
+SelectiveRepeatIOD::calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
+{
+    //What are the sizes in the upper Layers
+    getFUN()->calculateSizes(commandPool, commandPoolSize, sduSize, this);
+
+
+    MESSAGE_SINGLE(VERBOSE, logger, "Size calc - Command: "<<commandPoolSize<<" Payload: "<<sduSize);
+
+    MESSAGE_SINGLE(VERBOSE, logger, "Size of SR-ARQ Command: "<<commandSize<<" Bit");
+
+    commandPoolSize += commandSize;
+
+    MESSAGE_SINGLE(VERBOSE, logger, "Size calc - Command: "<<commandPoolSize<<" Payload: "<<sduSize);
+} // calculateSizes
+
+#else
+
+const wns::ldk::CompoundPtr
+SelectiveRepeatIOD::hasSomethingToSend() const
+{
+    MESSAGE_SINGLE(VERBOSE, logger, "we have nothing to send");
+
+    if (!senderPendingSegments_.empty())
+    {
+        return senderPendingSegments_.front();
+    }
+    else
+    {
+        return wns::ldk::CompoundPtr();
+    }
+}
+
+wns::ldk::CompoundPtr
+SelectiveRepeatIOD::getSomethingToSend()
+{
+    assure(hasSomethingToSend(), "getSomethingToSend although nothing to send");
+    wns::ldk::CompoundPtr compound = senderPendingSegments_.front();
+
+    if (isSegmenting_)
+    {
+        MESSAGE_SINGLE(NORMAL, logger, "getSomethingToSend: Passing segment " 
+            << getCommand(compound->getCommandPool())->peer.sn_ << " of size " 
+            << (getCommand(compound->getCommandPool())->totalSize()) << " bits to lower layer");
+    }
+
+    senderPendingSegments_.pop_front();
+    return compound;
+}
+
+
+void
+SelectiveRepeatIOD::calculateSizes(const wns::ldk::CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const
+{
+    SelectiveRepeatIODCommand* command;
+    command = getCommand(commandPool);
+
+    MESSAGE_SINGLE(VERBOSE, logger, "Size calc - Command: "<<commandPoolSize<<" Payload: "<<sduSize);
+
+    MESSAGE_SINGLE(VERBOSE, logger, "Size of SR-ARQ Command: "<<commandSize<<" Bit");
+
+
+    commandPoolSize = command->peer.headerSize_;
+    sduSize = command->peer.dataSize_ + command->peer.paddingSize_;
+
+    MESSAGE_SINGLE(VERBOSE, logger, "Size calc - Command: "<<commandPoolSize<<" Payload: "<<sduSize);
+}
+#endif

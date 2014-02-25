@@ -50,6 +50,11 @@
 #include <list>
 #include <cmath>
 
+#include <WNS/ldk/CommandTypeSpecifier.hpp>
+#include <WNS/ldk/HasReceptor.hpp>
+#include <WNS/ldk/HasConnector.hpp>
+#include <WNS/ldk/HasDeliverer.hpp>
+
 namespace wns { namespace ldk { namespace arq {
 
     namespace tests
@@ -238,10 +243,16 @@ namespace wns { namespace ldk { namespace arq {
     class SelectiveRepeatIOD :
         public ARQ,
         public wns::ldk::fu::Plain<SelectiveRepeatIOD, SelectiveRepeatIODCommand>,
+        virtual public wns::ldk::FunctionalUnit,
         public Delayed<SelectiveRepeatIOD>,
         virtual public SuspendableInterface,
         public SuspendSupport,
         virtual public DelayedDeliveryInterface,
+        // public wns::ldk::HasReceptor<>,
+        // public wns::ldk::HasConnector<>,
+        // public wns::ldk::HasDeliverer<>,
+        // public wns::Cloneable<SelectiveRepeatIOD>,
+        // public wns::ldk::CommandTypeSpecifier<SelectiveRepeatIOD>
         public events::CanTimeout
     {
         friend class tests::SelectiveRepeatIODTest;
@@ -250,7 +261,10 @@ namespace wns { namespace ldk { namespace arq {
     public:
         // FUNConfigCreator interface realisation
         SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::View& config);
+        // SelectiveRepeatIOD(const SelectiveRepeatIOD &other);
         ~SelectiveRepeatIOD();
+
+        virtual void onFUNCreated();
 
         // CanTimeout interface realisation
         virtual void onTimeout();
@@ -268,6 +282,14 @@ namespace wns { namespace ldk { namespace arq {
         virtual wns::ldk::CompoundPtr getACK();
         virtual wns::ldk::CompoundPtr getData();
 
+#if 1
+        virtual const wns::ldk::CompoundPtr
+            hasSomethingToSend() const;
+
+        virtual wns::ldk::CompoundPtr
+            getSomethingToSend();
+
+#endif
         // Overload of CommandTypeSpecifier Interface
         void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
@@ -400,9 +422,39 @@ namespace wns { namespace ldk { namespace arq {
         bool delayingDelivery;
 
         logger::Logger logger;
-    public:
-        void frameStarts() {};
+        bool isSegmenting_;
 
+    private:
+        void
+            onReorderedPDU(long, wns::ldk::CompoundPtr);
+
+        void
+            onDiscardedPDU(long, wns::ldk::CompoundPtr);
+
+        std::list<wns::ldk::CompoundPtr> senderPendingSegments_;
+
+        std::string commandName_;
+
+        Bit headerSize_;
+
+        Bit segmentSize_;
+
+        Bit sduLengthAddition_;
+
+        long nextOutgoingSN_;
+
+        sar::reassembly::ReassemblyBuffer reassemblyBuffer_;
+
+        sar::reassembly::ReorderingWindow reorderingWindow_;
+
+        std::string segmentDropRatioProbeName_;
+
+        wns::probe::bus::ContextCollectorPtr minDelayCC_;
+        wns::probe::bus::ContextCollectorPtr maxDelayCC_;
+        wns::probe::bus::ContextCollectorPtr sizeCC_;
+        wns::ldk::CommandReaderInterface* probeHeaderReader_;
+
+        wns::probe::bus::ContextCollectorPtr segmentDropRatioCC_;
     };
 
 }
