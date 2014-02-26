@@ -241,18 +241,15 @@ namespace wns { namespace ldk { namespace arq {
      * minRTT is measured by the protocol itself.
      */
     class SelectiveRepeatIOD :
-        public ARQ,
-        public wns::ldk::fu::Plain<SelectiveRepeatIOD, SelectiveRepeatIODCommand>,
         virtual public wns::ldk::FunctionalUnit,
         public Delayed<SelectiveRepeatIOD>,
         virtual public SuspendableInterface,
         public SuspendSupport,
-        virtual public DelayedDeliveryInterface,
-        // public wns::ldk::HasReceptor<>,
-        // public wns::ldk::HasConnector<>,
-        // public wns::ldk::HasDeliverer<>,
-        // public wns::Cloneable<SelectiveRepeatIOD>,
-        // public wns::ldk::CommandTypeSpecifier<SelectiveRepeatIOD>
+        public wns::ldk::HasReceptor<>,
+        public wns::ldk::HasConnector<>,
+        public wns::ldk::HasDeliverer<>,
+        public wns::Cloneable<SelectiveRepeatIOD>,
+        public wns::ldk::CommandTypeSpecifier<SelectiveRepeatIODCommand>,
         public events::CanTimeout
     {
         friend class tests::SelectiveRepeatIODTest;
@@ -278,18 +275,14 @@ namespace wns { namespace ldk { namespace arq {
 
         // ARQ interface realization
         virtual const wns::ldk::CompoundPtr hasACK() const;
-        virtual const wns::ldk::CompoundPtr hasData() const;
         virtual wns::ldk::CompoundPtr getACK();
-        virtual wns::ldk::CompoundPtr getData();
 
-#if 1
         virtual const wns::ldk::CompoundPtr
             hasSomethingToSend() const;
 
         virtual wns::ldk::CompoundPtr
             getSomethingToSend();
 
-#endif
         // Overload of CommandTypeSpecifier Interface
         void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
@@ -312,8 +305,8 @@ namespace wns { namespace ldk { namespace arq {
 
         virtual bool onSuspend() const;
 
-        virtual void doDelayDelivery();
-        virtual void doDeliver();
+        // virtual void doDelayDelivery();
+        // virtual void doDeliver();
 
         /**
          * @brief Window size.
