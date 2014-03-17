@@ -90,12 +90,13 @@ SelectiveRepeatIODCommand* SegmentationBuffer::readCommand(const CompoundPtr& c)
  *
  * TODO: right now this is horribly inefficient, we do a readcommand for every
  * item in the list twice
+ * we're also using two lookups in the hash table when it could be one
  *
  * @Param compound
  * @Param timestamp
  */
 /* ----------------------------------------------------------------------------*/
-void SegmentationBuffer::push(CompoundPtr compound, string timestamp)
+void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
 {
   SelectiveRepeatIODCommand *command = readCommand(compound);
 

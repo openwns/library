@@ -4,7 +4,6 @@
 #include <WNS/ldk/Compound.hpp>
 #include <WNS/ldk/CommandReaderInterface.hpp>
 #include <WNS/ldk/arq/SelectiveRepeatIODCommand.hpp>
-#include <boost/unordered_map.hpp>
 #include <deque>
 #include <ctime>
 
@@ -16,7 +15,6 @@ using namespace boost::signals;
 namespace wns { namespace ldk { namespace sar { namespace reassembly {
 
 typedef list<CompoundPtr> CompoundContainer;
-typedef boost::unordered_map<string, CompoundContainer> CompoundHashTable;
 
 typedef boost::signal<bool (const CompoundContainer&)> ReassemblySignal_t;
 typedef ReassemblySignal_t::slot_type ReassemblySlot_t;
@@ -29,7 +27,7 @@ public:
                       int sequenceNumberSize);
   void initialize(CommandReaderInterface*);
   void updateSenderQueue();
-  void push(CompoundPtr compound, string timestamp);
+  void push(CompoundPtr compound, timestamp_s timestamp);
   connection connectToReassemblySignal(const ReassemblySlot_t& slot);
 
 
@@ -44,7 +42,7 @@ private:
 
   logger::Logger logger_;
 
-  CompoundHashTable hashTable_;
+  compoundHashTable_t hashTable_;
 
   CommandReaderInterface* commandReader_;
 

@@ -58,10 +58,20 @@ using namespace wns::ldk;
 
 namespace wns { namespace ldk { namespace arq {
 
+    typedef struct timestamp_s {
+      time_t time;
+      clock_t clock;
+
+    } timestamp_s;
+
     // segments are grouped by timestamp
-    typedef string GroupNumber;
+    typedef timestamp_s GroupNumber;
     typedef std::list<CompoundPtr> CompoundContainer;
     typedef long SequenceNumber;
+
+    typedef map<timestamp_s, CompoundContainer> compoundHashTable_t;
+    bool const operator==(const timestamp_s n, const timestamp_s &o);
+    bool const operator<(const timestamp_s n, const timestamp_s &o);
 
     /**
      * @brief Command used by the SelectiveRepeatIOD arq implementation.

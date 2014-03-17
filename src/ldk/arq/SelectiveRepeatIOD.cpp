@@ -39,6 +39,16 @@
 using namespace wns::ldk;
 using namespace wns::ldk::arq;
 
+namespace wns { namespace ldk { namespace arq {
+
+bool const operator==(const timestamp_s n, const timestamp_s &o) {
+  return n.time == o.time && n.clock == o.clock;
+}
+
+bool const operator<(const timestamp_s n, const timestamp_s &o) {
+  return n.time < o.time || (n.time == o.time &&  n.clock < o.clock);
+}
+}}}
 
 STATIC_FACTORY_REGISTER_WITH_CREATOR(
     SelectiveRepeatIOD,
@@ -122,6 +132,7 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
 
 }
 
+#warning clonable constructor of SelectiveRepeatIOD is incomplete
 SelectiveRepeatIOD::SelectiveRepeatIOD(const SelectiveRepeatIOD& other):
     CommandTypeSpecifier<SelectiveRepeatIODCommand>(other.getFUN()),
     logger(other.logger),
@@ -221,7 +232,7 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
 
   MESSAGE_BEGIN(VERBOSE, logger, m, "processIncoming: ");
   m << "isSegmented: " << command->isSegmented() << "\tisBegin: " << command->peer.isBegin_ << "\tisEnd: " << command->peer.isEnd_;
-  m << "\ttimestamp: " << command->groupId();
+  m << "\ttimestamp: " << command->groupId().time;
   MESSAGE_END();
 
   // treat segmented packet's different
@@ -239,11 +250,7 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 {
   activeCompound = compound;
 
-  stringstream ss;
-  ss << time(NULL)
-      << clock();
-
-  GroupNumber groupId = ss.str();
+  GroupNumber groupId = {time(NULL), clock()};
 
   Bit sduPCISize = 0;
   Bit sduDataSize = 0;
