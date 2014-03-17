@@ -30,8 +30,11 @@
 
 #include <WNS/pyconfig/View.hpp>
 
+#include <WNS/ldk/arq/SelectiveRepeatIODCommand.hpp>
+
 #include <WNS/ldk/sar/reassembly/ReorderingWindow.hpp>
 #include <WNS/ldk/sar/reassembly/ReassemblyBuffer.hpp>
+#include <WNS/ldk/sar/reassembly/SegmentationBuffer.hpp>
 
 #include <WNS/scheduler/queue/ISegmentationCommand.hpp>
 #include <WNS/ldk/arq/ARQ.hpp>
@@ -55,166 +58,15 @@
 #include <WNS/ldk/HasConnector.hpp>
 #include <WNS/ldk/HasDeliverer.hpp>
 
+using namespace std;
+using namespace wns::ldk;
+
 namespace wns { namespace ldk { namespace arq {
 
     namespace tests
     {
         class SelectiveRepeatIODTest;
     }
-
-    /**
-     * @brief Command used by the SelectiveRepeatIOD arq implementation.
-     *
-     */
-    class SelectiveRepeatIODCommand :
-        public wns::scheduler::queue::ISegmentationCommand
-    {
-    public:
-        typedef long SequenceNumber;
-
-        /*
-         * I - Information Frame
-         * ACK - received Packet (ACK)
-         */
-        typedef enum {I, ACK} FrameType;
-        enum ACKPolicy {
-            NoACK, ImmACK, BACK
-        };
-
-        // enum FrameType {
-        //     Data, Ack
-        // };
-
-        SelectiveRepeatIODCommand():
-            localTransmissionCounter(0)
-        {
-            peer.isBegin_ = false;
-            peer.isEnd_ = false;
-            peer.headerSize_ = 0;
-            peer.dataSize_ = 0;
-            peer.paddingSize_ = 0;
-            peer.sdus_ = 0;
-            peer.type = I;
-            peer.sn_ = 0;
-            local.lastSentTime = 0.0;
-            local.firstSentTime = 0.0;
-            magic.ackSentTime = 0.0;
-        }
-
-        void setNS(SequenceNumber sn)
-        {
-            peer.sn_ = sn;
-        }
-
-        SequenceNumber getNS() const
-        {
-            return peer.sn_;
-        }
-
-        bool isACK() const
-        {
-            return peer.type == ACK;
-        }
-
-        size_t localTransmissionCounter;
-
-        struct
-        {
-            simTimeType lastSentTime;
-            simTimeType firstSentTime;
-        }
-        local;
-        struct
-        {
-            FrameType type;
-            wns::ldk::ClassificationID id;
-            bool isBegin_;
-            bool isEnd_;
-            SequenceNumber sn_;
-            Bit headerSize_;
-            Bit dataSize_;
-            Bit paddingSize_;
-            unsigned int sdus_;
-            std::list<wns::ldk::CompoundPtr> pdus_;
-            enum ACKPolicy ACKpolicy;
-        }
-        peer;
-        struct Magic {
-            int bsld;
-            simTimeType ackSentTime;
-        };
-        Magic magic;
-
-        /**
-         * @brief Is the first byte of the datafield the beginning of
-         * an SDU
-         */
-        virtual void
-        setBeginFlag() { peer.isBegin_ = true; }
-
-        virtual bool
-        getBeginFlag() { return peer.isBegin_; }
-
-        virtual void
-        clearBeginFlag() { peer.isBegin_ = false; }
-
-        /**
-         * @brief Is the last byte of the datafield the end of
-         * an SDU
-         */
-        virtual void
-        setEndFlag() { peer.isEnd_ = true; }
-
-        virtual bool
-        getEndFlag() { return peer.isEnd_; }
-
-        virtual void
-        clearEndFlag() { peer.isEnd_ = false; }
-
-        /**
-         * @brief Set the Sequence number of this RLC PDU
-         */
-        virtual void
-        setSequenceNumber(SequenceNumber sn) { peer.sn_ = sn;}
-
-        /**
-         * @brief The Sequence number of this RLC PDU
-         */
-        virtual SequenceNumber
-        getSequenceNumber() { return peer.sn_; }
-
-        virtual void
-        increaseHeaderSize(Bit size) { peer.headerSize_ += size; }
-
-        virtual void
-        increaseDataSize(Bit size) { peer.dataSize_ += size; }
-
-        virtual void
-        increasePaddingSize(Bit size) { peer.paddingSize_ += size; }
-
-        virtual Bit
-        headerSize() { return peer.headerSize_; }
-
-        virtual Bit
-        dataSize() { return peer.dataSize_; }
-
-        virtual Bit
-        paddingSize() { return peer.paddingSize_; }
-
-        virtual Bit
-        totalSize() { return peer.headerSize_ + peer.dataSize_ + peer.paddingSize_; }
-
-        /**
-         * @brief Append an SDU segment to this PDU.
-         */
-        virtual void
-        addSDU(wns::ldk::CompoundPtr c) { peer.pdus_.push_back(c); peer.sdus_++;}
-
-        virtual unsigned int
-        getNumSDUs() {return peer.sdus_;}
-
-    };
-
 
     /**
      * @brief SelectiveRepeatIOD implementation of the ARQ interface.
@@ -241,24 +93,23 @@ namespace wns { namespace ldk { namespace arq {
      * minRTT is measured by the protocol itself.
      */
     class SelectiveRepeatIOD :
-        virtual public wns::ldk::FunctionalUnit,
+        virtual public FunctionalUnit,
         public Delayed<SelectiveRepeatIOD>,
         virtual public SuspendableInterface,
         public SuspendSupport,
-        public wns::ldk::HasReceptor<>,
-        public wns::ldk::HasConnector<>,
-        public wns::ldk::HasDeliverer<>,
+        public HasReceptor<>,
+        public HasConnector<>,
+        public HasDeliverer<>,
         public wns::Cloneable<SelectiveRepeatIOD>,
-        public wns::ldk::CommandTypeSpecifier<SelectiveRepeatIODCommand>,
+        public CommandTypeSpecifier<SelectiveRepeatIODCommand>,
         public events::CanTimeout
     {
         friend class tests::SelectiveRepeatIODTest;
-        typedef std::list<CompoundPtr> CompoundContainer;
 
     public:
         // FUNConfigCreator interface realisation
         SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::View& config);
-        // SelectiveRepeatIOD(const SelectiveRepeatIOD &other);
+        SelectiveRepeatIOD(const SelectiveRepeatIOD &other);
         ~SelectiveRepeatIOD();
 
         virtual void onFUNCreated();
@@ -274,13 +125,13 @@ namespace wns { namespace ldk { namespace arq {
         virtual void processIncoming(const CompoundPtr& compound);
 
         // ARQ interface realization
-        virtual const wns::ldk::CompoundPtr hasACK() const;
-        virtual wns::ldk::CompoundPtr getACK();
+        virtual const CompoundPtr hasACK() const;
+        virtual CompoundPtr getACK();
 
-        virtual const wns::ldk::CompoundPtr
+        virtual const CompoundPtr
             hasSomethingToSend() const;
 
-        virtual wns::ldk::CompoundPtr
+        virtual CompoundPtr
             getSomethingToSend();
 
         // Overload of CommandTypeSpecifier Interface
@@ -290,6 +141,28 @@ namespace wns { namespace ldk { namespace arq {
         // Internal handlers for I- and ACK-Frames
         void onIFrame(const CompoundPtr& compound);
         void onACKFrame(const CompoundPtr& compound);
+
+        CompoundPtr createSegment(const CompoundPtr& sdu,
+                                  long sequenceNumber,
+                                  const Bit segmentSize,
+                                  GroupNumber timestamp);
+
+        CompoundPtr createStartSegment(const CompoundPtr& sdu,
+                                       long sequenceNumber,
+                                       const Bit segmentSize,
+                                       GroupNumber timestamp);
+
+        CompoundPtr createEndSegment(const CompoundPtr& sdu,
+                                     long sequenceNumber,
+                                     const Bit segmentSize,
+                                     GroupNumber timestamp);
+
+        CompoundPtr createSegment(const CompoundPtr& sdu,
+                                  long sequenceNumber,
+                                  const Bit segmentSize,
+                                  GroupNumber timestamp,
+                                  bool isBegin,
+                                  bool isEnd);
 
         // sort into given Compound List
         void keepSorted(const CompoundPtr& compound, CompoundContainer& conatiner);
@@ -419,12 +292,16 @@ namespace wns { namespace ldk { namespace arq {
 
     private:
         void
-            onReorderedPDU(long, wns::ldk::CompoundPtr);
+            onReorderedPDU(long, CompoundPtr);
 
         void
-            onDiscardedPDU(long, wns::ldk::CompoundPtr);
+            onDiscardedPDU(long, CompoundPtr);
 
-        std::list<wns::ldk::CompoundPtr> senderPendingSegments_;
+        bool onReassembly(const CompoundContainer&);
+
+        CompoundContainer senderPendingSegments_;
+
+        CompoundContainer sendPendingStatusSegments_;
 
         std::string commandName_;
 
@@ -445,9 +322,11 @@ namespace wns { namespace ldk { namespace arq {
         wns::probe::bus::ContextCollectorPtr minDelayCC_;
         wns::probe::bus::ContextCollectorPtr maxDelayCC_;
         wns::probe::bus::ContextCollectorPtr sizeCC_;
-        wns::ldk::CommandReaderInterface* probeHeaderReader_;
+        CommandReaderInterface* probeHeaderReader_;
 
         wns::probe::bus::ContextCollectorPtr segmentDropRatioCC_;
+
+        sar::reassembly::SegmentationBuffer segmentationBuffer_;
     };
 
 }

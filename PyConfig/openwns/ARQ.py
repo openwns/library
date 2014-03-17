@@ -35,6 +35,7 @@ ARQ.SelectiveRepeat - Operating with selective repeats
 """
 import math
 import FUN
+from SAR import ReorderingWindow
 
 from pyconfig import attrsetter
 from logger import Logger
@@ -184,6 +185,47 @@ class SelectiveRepeat(ARQ):
           # plus one additional bit for the command type (I or ACK)
             self.commandSize += 1
 
+        assert self.sequenceNumberSize >= 2*self.windowSize, """You misconfigured the sequenceNumberSize.
+        It needs to be at least two times the windowSize"""
+
+        assert pow(2,(self.commandSize-1)) >= self.sequenceNumberSize, "Misconfigured or Mis-calculated commandSize."
+
+class SelectiveRepeatIOD(ARQ):
+    __plugin__ = 'wns.arq.SelectiveRepeatIOD'
+    name = "SelectiveRepeatIOD"
+
+    windowSize = 1024
+    sequenceNumberSize = 2*windowSize
+    useProbe = False
+    probeName = "xxxTransmissionAttempts"
+    ackDelayProbeName = "xxxAckDelay"
+    RTTProbeName = "xxxRoundTripTime"
+    commandSize = None
+
+    def __init__(self, segmentSize, headerSize, commandName, delayProbeName = None, parentLogger = None, statusCollector=NoStatusCollection, **kw):
+        super(SelectiveRepeatIOD,self).__init__()
+        self.logger = Logger('WNS', 'SelectiveRepeatIOD', True, parentLogger)
+        self.arqStatusCollector = statusCollector(self.logger)
+        attrsetter(self, kw)
+        if (self.commandSize == None):
+          # reserve command space for the max length of the sequence number
+            self.commandSize = int(math.ceil(math.log(self.sequenceNumberSize)/math.log(2)))
+          # plus one additional bit for the command type (I or ACK)
+            self.commandSize += 1
+
+        self.commandName = commandName
+        self.segmentSize = segmentSize
+        self.headerSize = headerSize
+        self.sduLengthAddition = 0
+        # long serial number option chosen for safety here. If too many segments
+        # are on the way, the segments will not be reassembled if field length
+        # is too short.
+        # todo dbn: This should be set to the short option (5) for VoIP. In
+        # general we need simulator parameter settings per QoS class
+        self.reorderingWindow = ReorderingWindow(snFieldLength = 10, parentLogger = self.logger)
+        self.isSegmenting = False
+        self.delayProbeName = delayProbeName
+        self.segmentDropRatioProbeName = "segmentDropRatio"
         assert self.sequenceNumberSize >= 2*self.windowSize, """You misconfigured the sequenceNumberSize.
         It needs to be at least two times the windowSize"""
 

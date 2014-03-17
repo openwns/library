@@ -99,7 +99,7 @@ srcFiles = [
 
     'src/testing/DetailedListener.cpp',
     'src/testing/TestTool.cpp',
-    
+
     'src/osi/PDU.cpp',
     'src/osi/PCI.cpp',
 
@@ -234,7 +234,7 @@ srcFiles = [
 
     'src/node/tests/NodeTest.cpp',
     'src/node/tests/NodeHeaderReaderTest.cpp',
-    'src/node/tests/Stub.cpp',   
+    'src/node/tests/Stub.cpp',
     'src/node/component/tests/ComponentStub.cpp',
     'src/node/component/tests/ComponentTest.cpp',
     'src/node/component/tests/IP.cpp',
@@ -252,9 +252,9 @@ srcFiles = [
     'src/search/tests/SimpleBinarySearchTest.cpp',
 
     ### scheduler framework
-    
+
     # the metascheduler
-   
+
     'src/scheduler/metascheduler/IMetaScheduler.cpp',
     'src/scheduler/metascheduler/MetaScheduler.cpp',
     'src/scheduler/metascheduler/NoMetaScheduler.cpp',
@@ -263,8 +263,8 @@ srcFiles = [
     'src/scheduler/metascheduler/HighCwithHighIMetaScheduler.cpp',
     'src/scheduler/metascheduler/tests/MetaScheduler.cpp',
 
-    
-    
+
+
     # the groupers
     'src/scheduler/grouper/NoGrouper.cpp',
     'src/scheduler/grouper/SpatialGrouper.cpp',
@@ -279,18 +279,18 @@ srcFiles = [
     'src/scheduler/grouper/DoAGrouper.cpp',
     'src/scheduler/grouper/DoAHeuristicLinearCost.cpp',
     'src/scheduler/grouper/DoAHeuristicPreferredAngle.cpp',
-    
+
     # the MapInfo
     'src/scheduler/MapInfoEntry.cpp',
-    
+
     # data structure used by the newer scheduling strategies (staticpriority++)
     'src/scheduler/SchedulingMap.cpp',
-    
+
     # the schedulers
     'src/scheduler/strategy/StrategyInterface.cpp',
     'src/scheduler/strategy/Strategy.cpp',
     'src/scheduler/strategy/SchedulerState.cpp',
-    
+
     # new scheduler with priorities (qos) and substrategies
     #'src/scheduler/strategy/staticpriority/SubStrategyInterface.cpp',
     'src/scheduler/strategy/staticpriority/SubStrategy.cpp',
@@ -336,7 +336,7 @@ srcFiles = [
     'src/scheduler/strategy/apcstrategy/FCFSMaxPhyMode.cpp',
     'src/scheduler/strategy/apcstrategy/FairSINR.cpp',
     'src/scheduler/strategy/apcstrategy/LTE_UL.cpp',
-    
+
     # the Queues
     'src/scheduler/queue/SimpleQueue.cpp',
     'src/scheduler/queue/SegmentingQueue.cpp',
@@ -376,7 +376,7 @@ srcFiles = [
     'src/distribution/tests/LogNormTest.cpp',
     'src/distribution/tests/WeibullTest.cpp',
     'src/distribution/tests/CauchyTest.cpp',
-    
+
     'src/geometry/Point.cpp',
     'src/geometry/Vector.cpp',
     'src/geometry/Shape2D.cpp',
@@ -388,13 +388,13 @@ srcFiles = [
     'src/geometry/tests/LineSegmentTest.cpp',
     'src/geometry/tests/AABoundingBoxTest.cpp',
     'src/geometry/tests/AxisParallelRectangleTest.cpp',
-    
+
     'src/markovchain/tests/MarkovBaseTest.cpp',
     'src/markovchain/tests/MarkovDiscreteTimeTest.cpp',
     'src/markovchain/tests/MarkovContinuousTimeTest.cpp',
     'src/markovchain/tests/MarkovContinuousTimeTrafficTest.cpp',
     'src/markovchain/tests/MarkovDiscreteTimeTrafficTest.cpp',
-    
+
     # ldk
     'src/ldk/FunctionalUnit.cpp',
     'src/ldk/CommandTypeSpecifier.cpp',
@@ -435,6 +435,7 @@ srcFiles = [
     'src/ldk/arq/StopAndWaitRC.cpp',
     'src/ldk/arq/CumulativeACK.cpp',
     'src/ldk/arq/SelectiveRepeat.cpp',
+    'src/ldk/arq/SelectiveRepeatIOD.cpp',
     'src/ldk/arq/GoBackN.cpp',
     'src/ldk/arq/PiggyBacker.cpp',
     'src/ldk/arq/statuscollector/None.cpp',
@@ -457,6 +458,7 @@ srcFiles = [
     'src/ldk/sar/tests/SACSegmentingQueueIntegrationTest.cpp',
     'src/ldk/sar/tests/SegAndConcatTest.cpp',
     'src/ldk/sar/reassembly/ReassemblyBuffer.cpp',
+    'src/ldk/sar/reassembly/SegmentationBuffer.cpp',
     'src/ldk/sar/reassembly/ReorderingWindow.cpp',
     'src/ldk/sar/reassembly/tests/ReassemblyBufferTest.cpp',
     'src/ldk/sar/reassembly/tests/ReorderingWindowTest.cpp',
@@ -467,6 +469,7 @@ srcFiles = [
     # ldk.Tools
     'src/ldk/tools/Synchronizer.cpp',
     'src/ldk/tools/Bridge.cpp',
+    'src/ldk/tools/PredictableBridge.cpp',
     'src/ldk/tools/Stub.cpp',
     'src/ldk/tools/InSequenceChecker.cpp',
     'src/ldk/tools/PERProviderStub.cpp',
@@ -572,7 +575,7 @@ srcFiles = [
     'src/ldk/probe/tests/PacketTest.cpp',
     'src/ldk/probe/tests/WindowTest.cpp',
     'src/ldk/probe/tests/TickTackConstDelayTest.cpp',
-    
+
     'src/fsm/tests/FSMTest.cpp',
 ]
 
@@ -671,6 +674,8 @@ hppFiles = [
 'src/ldk/arq/None.hpp',
 'src/ldk/arq/PiggyBacker.hpp',
 'src/ldk/arq/SelectiveRepeat.hpp',
+'src/ldk/arq/SelectiveRepeatIOD.hpp',
+'src/ldk/arq/SelectiveRepeatIODCommand.hpp',
 'src/ldk/arq/statuscollector/Counter.hpp',
 'src/ldk/arq/statuscollector/Interface.hpp',
 'src/ldk/arq/statuscollector/None.hpp',
@@ -779,6 +784,7 @@ hppFiles = [
 'src/ldk/sar/SegAndConcat.hpp',
 'src/ldk/sar/reassembly/ReassemblyBuffer.hpp',
 'src/ldk/sar/reassembly/ReorderingWindow.hpp',
+'src/ldk/sar/reassembly/SegmentationBuffer.hpp',
 'src/ldk/SequentlyCallingLinkHandler.hpp',
 'src/ldk/ShortcutFU.hpp',
 'src/ldk/SimpleLinkHandler.hpp',
@@ -805,6 +811,7 @@ hppFiles = [
 'src/ldk/tests/SpeedTest.hpp',
 'src/ldk/tools/BottleNeckDetective.hpp',
 'src/ldk/tools/Bridge.hpp',
+'src/ldk/tools/PredictableBridge.hpp',
 'src/ldk/tools/Consumer.hpp',
 'src/ldk/tools/DownUnconnectable.hpp',
 'src/ldk/tools/FakeFU.hpp',
