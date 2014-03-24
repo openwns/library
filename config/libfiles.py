@@ -669,6 +669,7 @@ hppFiles = [
 'src/Chamaeleon.hpp',
 'src/Interpolation.hpp',
 'src/ldk/arq/ARQ.hpp',
+'src/ldk/arq/ARQTimeouts.hpp',
 'src/ldk/arq/CumulativeACK.hpp',
 'src/ldk/arq/GoBackN.hpp',
 'src/ldk/arq/None.hpp',

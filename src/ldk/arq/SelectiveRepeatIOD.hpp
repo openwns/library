@@ -31,9 +31,8 @@
 #include <WNS/pyconfig/View.hpp>
 
 #include <WNS/ldk/arq/SelectiveRepeatIODCommand.hpp>
+#include <WNS/ldk/arq/ARQTimeouts.hpp>
 
-#include <WNS/ldk/sar/reassembly/ReorderingWindow.hpp>
-#include <WNS/ldk/sar/reassembly/ReassemblyBuffer.hpp>
 #include <WNS/ldk/sar/reassembly/SegmentationBuffer.hpp>
 
 #include <WNS/scheduler/queue/ISegmentationCommand.hpp>
@@ -120,28 +119,19 @@ namespace wns { namespace ldk { namespace arq {
         // Delayed interface realisation
         virtual bool hasCapacity() const;
         virtual void processOutgoing(const CompoundPtr& sdu);
-        // virtual const CompoundPtr hasSomethingToSend() const; // implemented by ARQ
-        // virtual CompoundPtr getSomethingToSend(); // implemented by ARQ
         virtual void processIncoming(const CompoundPtr& compound);
 
         // ARQ interface realization
         virtual const CompoundPtr hasACK() const;
         virtual CompoundPtr getACK();
 
-        virtual const CompoundPtr
-            hasSomethingToSend() const;
-
-        virtual CompoundPtr
-            getSomethingToSend();
+        virtual const CompoundPtr hasSomethingToSend() const;
+        virtual CompoundPtr getSomethingToSend();
 
         // Overload of CommandTypeSpecifier Interface
         void calculateSizes(const CommandPool* commandPool, Bit& commandPoolSize, Bit& sduSize) const;
 
     protected:
-        // Internal handlers for I- and ACK-Frames
-        void onIFrame(const CompoundPtr& compound);
-        void onACKFrame(const CompoundPtr& compound);
-
         CompoundPtr createSegment(const CompoundPtr& sdu,
                                   long sequenceNumber,
                                   const Bit segmentSize,
@@ -164,13 +154,11 @@ namespace wns { namespace ldk { namespace arq {
                                   bool isBegin,
                                   bool isEnd);
 
-        // sort into given Compound List
-        void keepSorted(const CompoundPtr& compound, CompoundContainer& conatiner);
+        CompoundPtr createUnsegmented(const CompoundPtr& sdu,
+                                      long sequenceNumber,
+                                      const Bit segmentSize,
+                                      GroupNumber groupId);
 
-        // remove ACKed PDU from list
-        void removeACKed(const CompoundPtr& ackCompound, CompoundContainer& container);
-
-        // prepare list of frames to retransmit
         void prepareRetransmission();
 
         // retransmissionState
@@ -260,11 +248,6 @@ namespace wns { namespace ldk { namespace arq {
         CompoundContainer receivedACKs;
 
         /**
-         * @brief Remember to send the activeCompound.
-         */
-        bool sendNow;
-
-        /**
          * @brief Idle (no ACK) time after which sender enters
          * retransmission state.
          */
@@ -291,12 +274,6 @@ namespace wns { namespace ldk { namespace arq {
         bool isSegmenting_;
 
     private:
-        void
-            onReorderedPDU(long, CompoundPtr);
-
-        void
-            onDiscardedPDU(long, CompoundPtr);
-
         bool onReassembly(const CompoundContainer&);
 
         CompoundContainer senderPendingSegments_;
@@ -313,18 +290,14 @@ namespace wns { namespace ldk { namespace arq {
 
         long nextOutgoingSN_;
 
-        sar::reassembly::ReassemblyBuffer reassemblyBuffer_;
-
-        sar::reassembly::ReorderingWindow reorderingWindow_;
-
         std::string segmentDropRatioProbeName_;
 
         wns::probe::bus::ContextCollectorPtr minDelayCC_;
         wns::probe::bus::ContextCollectorPtr maxDelayCC_;
         wns::probe::bus::ContextCollectorPtr sizeCC_;
-        CommandReaderInterface* probeHeaderReader_;
-
         wns::probe::bus::ContextCollectorPtr segmentDropRatioCC_;
+
+        CommandReaderInterface* probeHeaderReader_;
 
         sar::reassembly::SegmentationBuffer segmentationBuffer_;
     };

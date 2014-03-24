@@ -58,9 +58,9 @@ using namespace wns::ldk;
 
 namespace wns { namespace ldk { namespace arq {
 
-    typedef struct timestamp_s {
-      time_t time;
+    typedef struct {
       clock_t clock;
+      time_t time;
 
     } timestamp_s;
 

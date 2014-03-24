@@ -73,9 +73,7 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     ackPDUs(),
     receivedPDUs(),
     receivedACKs(),
-    sendNow(false),
     resendTimeout(config.get<double>("resendTimeout")),
-    retransmissionInterval(resendTimeout),
     transmissionAttemptsProbeBus( new wns::probe::bus::ContextCollector(
         wns::probe::bus::ContextProviderCollection(&fuNet->getLayer()->getContextProviderCollection()),
         config.get<std::string>("probeName"))),
@@ -91,16 +89,12 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     headerSize_(config.get<Bit>("headerSize")),
     sduLengthAddition_(config.get<Bit>("sduLengthAddition")),
     nextOutgoingSN_(0),
-    reorderingWindow_(config.get("reorderingWindow")),
     isSegmenting_(config.get<bool>("isSegmenting")),
     segmentDropRatioProbeName_(config.get<std::string>("segmentDropRatioProbeName")),
     logger(config.get("logger")),
     segmentationBuffer_(logger, windowSize, sequenceNumberSize)
 {
   segmentationBuffer_.connectToReassemblySignal(boost::bind(&SelectiveRepeatIOD::onReassembly, this, _1));
-
-    reorderingWindow_.connectToReassemblySignal(boost::bind(&SelectiveRepeatIOD::onReorderedPDU, this, _1, _2));
-    reorderingWindow_.connectToDiscardSignal(boost::bind(&SelectiveRepeatIOD::onDiscardedPDU, this, _1, _2));
 
     wns::probe::bus::ContextProviderCollection* cpcParent = &fuNet->getLayer()->getContextProviderCollection();
     wns::probe::bus::ContextProviderCollection cpc(cpcParent);
@@ -124,7 +118,6 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
         // Same name as the probe prefix
         probeHeaderReader_ = fuNet->getCommandReader(delayProbeName);
 
-        reassemblyBuffer_.enableDelayProbing(minDelayCC_, maxDelayCC_, probeHeaderReader_);
     }
 
     assure(windowSize >= 2, "Invalid windowSize.");
@@ -144,8 +137,6 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(const SelectiveRepeatIOD& other):
     commandSize(other.commandSize),
     sduLengthAddition_(other.sduLengthAddition_),
     nextOutgoingSN_(other.nextOutgoingSN_),
-    reorderingWindow_(other.reorderingWindow_),
-    reassemblyBuffer_(other.reassemblyBuffer_),
     segmentationBuffer_(other.logger, other.windowSize, other.sequenceNumberSize),
     SuspendSupport(other),
     isSegmenting_(other.isSegmenting_),
@@ -159,9 +150,6 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(const SelectiveRepeatIOD& other):
         new wns::probe::bus::ContextCollector(*other.sizeCC_))),
     probeHeaderReader_(other.probeHeaderReader_)
 {
-    reorderingWindow_.connectToReassemblySignal(boost::bind(&SelectiveRepeatIOD::onReorderedPDU, this, _1, _2));
-
-    reorderingWindow_.connectToDiscardSignal(boost::bind(&SelectiveRepeatIOD::onDiscardedPDU, this, _1, _2));
 }
 
 
@@ -250,7 +238,7 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 {
   activeCompound = compound;
 
-  GroupNumber groupId = {time(NULL), clock()};
+  GroupNumber groupId = {clock(), time(NULL)};
 
   Bit sduPCISize = 0;
   Bit sduDataSize = 0;
@@ -264,8 +252,8 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 
   bool isBegin = true;
   bool isEnd = false;
-  
-#if 0
+
+#if 1
   while(cumSize < sduTotalSize)
   {
     cumSize += segmentSize_;
@@ -279,71 +267,62 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
       nextSegmentSize = segmentSize_;
     }
 
-    // Prepare segment
-    // SegAndConcatCommand* command = NULL;
+    CompoundPtr nextSegment;
 
-    // wns::ldk::CompoundPtr nextSegment(new wns::ldk::Compound(getFUN()->getProxy()->createCommandPool()));
-    // command = activateCommand(nextSegment->getCommandPool());
-    // command->setSequenceNumber(nextOutgoingSN_);
-    // command->addSDU(sdu->copy());
-    // nextOutgoingSN_ += 1;
-
-    // isBegin ? command->setBeginFlag() : command->clearBeginFlag();
-    // isEnd ? command->setEndFlag() : command->clearEndFlag();
-
-    // command->increaseDataSize(nextSegmentSize);
-    // command->increaseHeaderSize(headerSize_);
-    // this->commitSizes(nextSegment->getCommandPool());
-    // this->senderPendingSegments_.push_back(nextSegment);
-
+    if(isBegin){
+      nextSegment  = createStartSegment(compound, nextOutgoingSN_, nextSegmentSize, groupId);
+    }
+    else if(isEnd){
+      nextSegment  = createEndSegment(compound, nextOutgoingSN_, nextSegmentSize, groupId);
+    }
+    else {
+      nextSegment  = createSegment(compound, nextOutgoingSN_, nextSegmentSize, groupId);
+    }
+    nextOutgoingSN_ += 1;
+    this->commitSizes(nextSegment->getCommandPool());
+    this->senderPendingSegments_.push_back(nextSegment);
     isBegin = false;
   }
-#endif
+#else
+  GroupNumber groupId2 = {clock(), time(NULL)};
 
-  CompoundPtr segment  = createStartSegment(compound, nextOutgoingSN_, segmentSize_, groupId);
+  CompoundPtr segment = createStartSegment(compound,
+                                           nextOutgoingSN_,
+                                           segmentSize_,
+                                           groupId);
   nextOutgoingSN_++;
+  CompoundPtr segment4 = createStartSegment(compound,
+                                           nextOutgoingSN_+2,
+                                           segmentSize_,
+                                           groupId2);
+  CompoundPtr segment5 = createEndSegment(compound,
+                                          nextOutgoingSN_+3,
+                                          segmentSize_,
+                                          groupId2);
   CompoundPtr segment2 = createSegment(compound, nextOutgoingSN_, segmentSize_, groupId);
   nextOutgoingSN_++;
   CompoundPtr segment3 = createEndSegment(compound, nextOutgoingSN_, segmentSize_, groupId);
+  nextOutgoingSN_++;
+  nextOutgoingSN_++;
   nextOutgoingSN_++;
   MESSAGE_SINGLE(VERBOSE, logger, "processOutgoing: ");
 
   // command->peer.type = SelectiveRepeatIODCommand::I;
 
-  this->commitSizes(segment3->getCommandPool());
+  this->commitSizes(segment4->getCommandPool());
   senderPendingSegments_.push_back(segment);
+  senderPendingSegments_.push_back(segment4);
   senderPendingSegments_.push_back(segment2);
+  senderPendingSegments_.push_back(segment5);
   senderPendingSegments_.push_back(segment3);
+#endif
 }
-
-void
-SelectiveRepeatIOD::onIFrame(const CompoundPtr& compound)
-{
-} // onIFrame
-
-void
-SelectiveRepeatIOD::onACKFrame(const CompoundPtr& compound)
-{
-} // onACKFrame
-
 
 void
 SelectiveRepeatIOD::prepareRetransmission()
 {
 } // prepareRetransmission
 
-
-void
-SelectiveRepeatIOD::keepSorted(const CompoundPtr& compound, CompoundContainer& container)
-{
-} // keepSorted
-
-
-// remove ACKed PDU from list
-void
-SelectiveRepeatIOD::removeACKed(const CompoundPtr& ackCompound, CompoundContainer& container)
-{
-}
 
 // return whether we are in retransmission mode
 bool
@@ -358,22 +337,11 @@ SelectiveRepeatIOD::onSuspend() const
   return NS == LA;
 } // onSuspend
 
-/**
- * selctiverepeatiod segmentation and concatenation
- */
-void
-SelectiveRepeatIOD::onReorderedPDU(long sn, CompoundPtr c)
-{
-}
-
-void
-SelectiveRepeatIOD::onDiscardedPDU(long, CompoundPtr)
-{
-}
-
 bool SelectiveRepeatIOD::onReassembly(const CompoundContainer& compoundList)
 {
-  MESSAGE_SINGLE(VERBOSE, logger, "onReassembly called");
+  MESSAGE_BEGIN(VERBOSE, logger, m, "onReassembly called");
+  m << compoundList.size() << " size\n";
+  MESSAGE_END();
   return true;
 }
 
@@ -467,6 +435,14 @@ CompoundPtr SelectiveRepeatIOD::createEndSegment(const CompoundPtr& sdu,
   return this->createSegment(sdu, sequenceNumber, segmentSize, groupId, false, true);
 }
 
+CompoundPtr SelectiveRepeatIOD::createUnsegmented(const CompoundPtr& sdu,
+                                                  long sequenceNumber,
+                                                  const Bit segmentSize,
+                                                  GroupNumber groupId){
+
+  return this->createSegment(sdu, sequenceNumber, segmentSize, groupId, true, true);
+}
+
 /* --------------------------------------------------------------------------*/
 /**
  * @Synopsis  creates a segment when needed
@@ -504,6 +480,7 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
 
   isBegin ? command->setBeginFlag() : command->clearBeginFlag();
   isEnd ? command->setEndFlag() : command->clearEndFlag();
+
 
   command->increaseDataSize(segmentSize);
   command->increaseHeaderSize(headerSize_);
