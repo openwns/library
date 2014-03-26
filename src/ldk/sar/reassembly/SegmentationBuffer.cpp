@@ -26,7 +26,9 @@
 
 using namespace wns::ldk::sar::reassembly;
 
-SegmentationBuffer::SegmentationBuffer(logger::Logger logger, int windowSize, int sequenceNumberSize):
+SegmentationBuffer::SegmentationBuffer(logger::Logger logger,
+                                       int windowSize,
+                                       int sequenceNumberSize):
     logger_(logger),
     windowSize_(windowSize),
     sequenceNumberSize_(sequenceNumberSize)
@@ -58,7 +60,7 @@ bool SegmentationBuffer::integrityCheck()
 }
 
 connection
-SegmentationBuffer::connectToReassemblySignal(const ReassemblySlot_t& slot)
+SegmentationBuffer::connectToReassemblySignal(const reassemblySlot_t& slot)
 {
   return reassemble_.connect(slot);
 }
@@ -106,11 +108,11 @@ void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
 
   // create compoundcontainer if it doesn't exist
   if (hashTable_.find(timestamp) == hashTable_.end()){
-    hashTable_[timestamp] = CompoundContainer();
+    hashTable_[timestamp] = compoundReassembly_t();
   }
-  CompoundContainer compoundList = hashTable_[timestamp];
+  compoundReassembly_t compoundList = hashTable_[timestamp];
 
-  compoundList.push_back(compound);
+  compoundList[this->genIndex(command)] = compound;
   hashTable_[timestamp] = compoundList;
 
   checkCompleteness(compoundList);
@@ -123,15 +125,15 @@ void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
  * @Param compoundList
  */
 /* ----------------------------------------------------------------------------*/
-void SegmentationBuffer::checkCompleteness(CompoundContainer compoundList)
+void SegmentationBuffer::checkCompleteness(compoundReassembly_t compoundList)
 {
   SelectiveRepeatIODCommand *command;
   SequenceNumber lastSn;
-  CompoundContainer::iterator it = compoundList.begin();
+  compoundReassembly_t::iterator it = compoundList.begin();
   int length = compoundList.size();
   for (int i = 0; it != compoundList.end(); ++it, i++)
   {
-    command = readCommand(*it);
+    command = readCommand(it->second);
 
     // first packet must have begin flag set
     if (i == 0) {
@@ -156,4 +158,31 @@ void SegmentationBuffer::checkCompleteness(CompoundContainer compoundList)
 
     lastSn = command->getSequenceNumber();
   }
+}
+
+/* --------------------------------------------------------------------------*/
+/**
+ * @Synopsis  magically sort all sequence numbers, the sequenceNumbers can't
+ * get bigger than the amount of sequenceNumbers we have. it's almost an ordered
+ * circular buffer
+ *
+ * @Param command
+ *
+ * @Returns   an index for the sequence number lookup table
+ */
+/* ----------------------------------------------------------------------------*/
+SequenceNumber SegmentationBuffer::genIndex(SelectiveRepeatIODCommand* command){
+  SequenceNumber index;
+  if(command->getSequenceNumber() < command->getStartSN()){
+    index = command->getSequenceNumber() + sequenceNumberSize_ - command->getStartSN();
+  }
+  else {
+    index = command->getSequenceNumber() - command->getStartSN();
+  }
+
+  return index;
+}
+
+void SegmentationBuffer::findMissing(const compoundReassembly_t& compoundList){
+
 }

@@ -14,10 +14,8 @@ using namespace boost::signals;
 
 namespace wns { namespace ldk { namespace sar { namespace reassembly {
 
-typedef list<CompoundPtr> CompoundContainer;
-
-typedef boost::signal<bool (const CompoundContainer&)> ReassemblySignal_t;
-typedef ReassemblySignal_t::slot_type ReassemblySlot_t;
+typedef boost::signal<bool (compoundReassembly_t&)> reassemblySignal_t;
+typedef reassemblySignal_t::slot_type reassemblySlot_t;
 
 class SegmentationBuffer
 {
@@ -28,13 +26,14 @@ public:
   void initialize(CommandReaderInterface*);
   void updateSenderQueue();
   void push(CompoundPtr compound, timestamp_s timestamp);
-  connection connectToReassemblySignal(const ReassemblySlot_t& slot);
-
+  connection connectToReassemblySignal(const reassemblySlot_t& slot);
+  void findMissing(const compoundReassembly_t& compoundList);
 
 private:
-  void checkCompleteness (CompoundContainer);
+  void checkCompleteness (compoundReassembly_t);
   bool integrityCheck();
   SelectiveRepeatIODCommand* readCommand(const wns::ldk::CompoundPtr&);
+  SequenceNumber genIndex(SelectiveRepeatIODCommand*);
   //TODO: make sure we get the right windowSize from the inmarsat spec
   int windowSize_;
 
@@ -46,7 +45,7 @@ private:
 
   CommandReaderInterface* commandReader_;
 
-  ReassemblySignal_t reassemble_;
+  reassemblySignal_t reassemble_;
 };
 
 }}}}
