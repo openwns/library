@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_PYCONFIG_HEPLER_TESTS_FUNCTIONSTEST_HPP
+#ifndef WNS_PYCONFIG_HELPER_TESTS_FUNCTIONSTEST_HPP
 #define WNS_PYCONFIG_HELPER_TESTS_FUNCTIONSTEST_HPP
 
 #include <WNS/pyconfig/helper/Functions.hpp>

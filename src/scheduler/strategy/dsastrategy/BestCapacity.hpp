@@ -26,7 +26,7 @@
  ******************************************************************************/
 
 #ifndef WNS_SCHEDULER_STRATEGY_DSASTRATEGY_BESTCAPACITY_HPP
-#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_BESECAPACITY_HPP
+#define WNS_SCHEDULER_STRATEGY_DSASTRATEGY_BESTCAPACITY_HPP
 
 #include <WNS/scheduler/strategy/dsastrategy/DSAStrategy.hpp>
 #include <vector>

@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#ifndef WNS_SCHEDULER_MOHARQ_HARQ_HPP
+#ifndef WNS_SCHEDULER_NOHARQ_HARQ_HPP
 #define WNS_SCHEDULER_NOHARQ_HARQ_HPP
 
 #include <WNS/scheduler/harq/HARQInterface.hpp>
