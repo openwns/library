@@ -133,31 +133,33 @@ namespace wns { namespace ldk { namespace arq {
 
     protected:
         CompoundPtr createSegment(const CompoundPtr& sdu,
-                                  long sequenceNumber,
+                                  SequenceNumber sequenceNumber,
                                   const Bit segmentSize,
                                   GroupNumber timestamp);
 
         CompoundPtr createStartSegment(const CompoundPtr& sdu,
-                                       long sequenceNumber,
+                                       SequenceNumber sequenceNumber,
                                        const Bit segmentSize,
                                        GroupNumber timestamp);
 
         CompoundPtr createEndSegment(const CompoundPtr& sdu,
-                                     long sequenceNumber,
+                                     SequenceNumber sequenceNumber,
                                      const Bit segmentSize,
                                      GroupNumber timestamp);
 
         CompoundPtr createSegment(const CompoundPtr& sdu,
-                                  long sequenceNumber,
+                                  SequenceNumber sequenceNumber,
                                   const Bit segmentSize,
                                   GroupNumber timestamp,
                                   bool isBegin,
                                   bool isEnd);
 
         CompoundPtr createUnsegmented(const CompoundPtr& sdu,
-                                      long sequenceNumber,
+                                      SequenceNumber sequenceNumber,
                                       const Bit segmentSize,
                                       GroupNumber groupId);
+
+        void sendPoll(const CompoundPtr& compound);
 
         void prepareRetransmission();
 
@@ -274,11 +276,14 @@ namespace wns { namespace ldk { namespace arq {
         bool isSegmenting_;
 
     private:
-        bool onReassembly(const CompoundContainer&);
+        bool onReassembly(compoundReassembly_t&);
+        void addToSenderQueue(CompoundContainer& compoundList,
+                              SequenceNumber startSegment,
+                              SequenceNumber endSegment);
 
         CompoundContainer senderPendingSegments_;
 
-        CompoundContainer sendPendingStatusSegments_;
+        CompoundContainer senderPendingStatusSegments_;
 
         std::string commandName_;
 
@@ -288,7 +293,7 @@ namespace wns { namespace ldk { namespace arq {
 
         Bit sduLengthAddition_;
 
-        long nextOutgoingSN_;
+        SequenceNumber nextOutgoingSN_;
 
         std::string segmentDropRatioProbeName_;
 

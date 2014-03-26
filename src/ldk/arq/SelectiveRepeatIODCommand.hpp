@@ -66,10 +66,14 @@ namespace wns { namespace ldk { namespace arq {
 
     // segments are grouped by timestamp
     typedef timestamp_s GroupNumber;
+
     typedef std::list<CompoundPtr> CompoundContainer;
     typedef long SequenceNumber;
+    typedef std::vector<SequenceNumber> missingPdu_t;
 
-    typedef map<timestamp_s, CompoundContainer> compoundHashTable_t;
+    typedef map<SequenceNumber, CompoundPtr> compoundReassembly_t;
+
+    typedef map<timestamp_s, compoundReassembly_t> compoundHashTable_t;
     bool const operator==(const timestamp_s n, const timestamp_s &o);
     bool const operator<(const timestamp_s n, const timestamp_s &o);
 
@@ -86,7 +90,7 @@ namespace wns { namespace ldk { namespace arq {
          * I - Information Frame
          * ACK - received Packet (ACK)
          */
-        typedef enum {I, ACK} FrameType;
+        typedef enum {I, ACK, STATUS} FrameType;
         enum ACKPolicy {
             NoACK, ImmACK, BACK
         };
@@ -106,10 +110,13 @@ namespace wns { namespace ldk { namespace arq {
             peer.sdus_ = 0;
             peer.type = I;
             peer.sn_ = 0;
+            peer.isPoll_ = false;
             local.lastSentTime = 0.0;
             local.firstSentTime = 0.0;
             magic.ackSentTime = 0.0;
             magic.isSegmented = false;
+            magic.startSN_ = 0;
+            magic.endSN_ = 0;
         }
 
         void setNS(SequenceNumber sn)
@@ -147,6 +154,11 @@ namespace wns { namespace ldk { namespace arq {
             return peer.type == ACK;
         }
 
+        bool isStatus() const
+        {
+          return peer.type == STATUS;
+        }
+
         size_t localTransmissionCounter;
 
         struct
@@ -161,6 +173,7 @@ namespace wns { namespace ldk { namespace arq {
             ClassificationID id;
             bool isBegin_;
             bool isEnd_;
+            bool isPoll_;
             SequenceNumber sn_;
             Bit headerSize_;
             Bit dataSize_;
@@ -175,6 +188,10 @@ namespace wns { namespace ldk { namespace arq {
             simTimeType ackSentTime;
             bool isSegmented;
             GroupNumber groupId_;
+            // magic storing beginning and end segment in every segment
+            // allows us to quickly see which segments are missing
+            SequenceNumber startSN_;
+            SequenceNumber endSN_;
         };
         Magic magic;
 
@@ -203,6 +220,20 @@ namespace wns { namespace ldk { namespace arq {
 
         virtual void
         clearEndFlag() { peer.isEnd_ = false; }
+
+        /**
+         * @brief Has the poll flag set
+         * an SDU
+         */
+        virtual void
+        setPollFlag() { peer.isPoll_ = true; }
+
+        virtual bool
+        hasPollFlag() { return peer.isPoll_; }
+
+        virtual void
+        clearPollFlag() { peer.isPoll_ = false; }
+
 
         /**
          * @brief Set the Sequence number of this RLC PDU
@@ -246,6 +277,21 @@ namespace wns { namespace ldk { namespace arq {
         virtual unsigned int
         getNumSDUs() {return peer.sdus_;}
 
+
+        /**
+         * store start and end sequence number
+         */
+        virtual SequenceNumber
+        getStartSN() { return magic.startSN_; }
+
+        virtual void
+        setStartSN(SequenceNumber startSN) { magic.startSN_ = startSN; }
+
+        virtual SequenceNumber
+        getEndSN() { return magic.endSN_; }
+
+        virtual void
+        setEndSN(SequenceNumber endSN) { magic.endSN_ = endSN; }
     };
 
 
