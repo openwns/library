@@ -380,6 +380,7 @@ void
 PDF::printPercentile(int p, std::ostream& stream) const
 {
     std::stringstream ss;
+    std::stringstream ss2;
 
     ss << " P"
        << std::setiosflags(std::ios::right) << std::setfill('0') << std::setw(2)
@@ -387,8 +388,9 @@ PDF::printPercentile(int p, std::ostream& stream) const
 
     try
     {
-        ss << std::setiosflags(std::ios::dec) << std::setprecision(7) << std::setw(6)
+        ss2 << std::setiosflags(std::ios::dec) << std::setprecision(7) << std::setw(6)
            << std::setiosflags(std::ios::fixed) << this->getPercentile(p);
+        ss << ss2;
     }
     catch (PercentileUnderFlow)
     {
