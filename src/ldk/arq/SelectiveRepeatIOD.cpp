@@ -223,15 +223,23 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
   m << "\ttimestamp: " << command->groupId().time;
   MESSAGE_END();
 
-  if (command->isStatus()){
-    MESSAGE_SINGLE(VERBOSE, logger, "Parsing status command");
-  }
-  else if(command->isSegmented()){
-    // treat segmented packet's differently
-    segmentationBuffer_.push(compound, command->groupId());
-  } else {
-    // This sends the complete PDU to the upper layer
-    getDeliverer()->getAcceptor( compound )->onData( compound );
+  switch(command->peer.type) {
+    case SelectiveRepeatIODCommand::I:
+      if(command->isSegmented()){
+        // treat segmented packet's differently
+        segmentationBuffer_.push(compound, command->groupId());
+      } else {
+        // This sends the complete PDU to the upper layer
+        getDeliverer()->getAcceptor( compound )->onData( compound );
+      }
+      break;
+
+    case SelectiveRepeatIODCommand::STATUS:
+      MESSAGE_SINGLE(NORMAL, logger, "Parsing status command");
+      break;
+
+    default:
+      break;
   }
 
   if(command->hasPollFlag()){
