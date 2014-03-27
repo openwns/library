@@ -192,6 +192,8 @@ namespace wns { namespace ldk { namespace arq {
             // allows us to quickly see which segments are missing
             SequenceNumber startSN_;
             SequenceNumber endSN_;
+            // add base sdu
+            CompoundPtr baseSDU;
         };
         Magic magic;
 
@@ -292,6 +294,19 @@ namespace wns { namespace ldk { namespace arq {
 
         virtual void
         setEndSN(SequenceNumber endSN) { magic.endSN_ = endSN; }
+
+        /**
+         * store the base pdu
+         */
+        void setBaseSDU(CompoundPtr c)
+        {
+          magic.baseSDU = c;
+        }
+
+        CompoundPtr baseSDU()
+        {
+          return magic.baseSDU;
+        }
     };
 
 

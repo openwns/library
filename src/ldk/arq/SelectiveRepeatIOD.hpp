@@ -276,7 +276,7 @@ namespace wns { namespace ldk { namespace arq {
         bool isSegmenting_;
 
     private:
-        bool onReassembly(compoundReassembly_t&);
+        bool onReassembly(const compoundReassembly_t&);
         void addToSenderQueue(CompoundContainer& compoundList,
                               SequenceNumber startSegment,
                               SequenceNumber endSegment);

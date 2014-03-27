@@ -276,8 +276,10 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 
   CompoundContainer outgoingBuffer;
 
-  MESSAGE_SINGLE(NORMAL, logger, "processOutgoing");
-#if 0
+  MESSAGE_BEGIN(NORMAL, logger, m, "processOutgoing: ");
+  m << nextOutgoingSN_;
+  MESSAGE_END();
+#if 1
   while(cumSize < sduTotalSize)
   {
     cumSize += segmentSize_;
@@ -304,7 +306,7 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
     else {
       nextSegment  = createSegment(compound, nextOutgoingSN_, nextSegmentSize, groupId);
     }
-    nextOutgoingSN_ += 1;
+    nextOutgoingSN_ = (nextOutgoingSN_ + 1) % sequenceNumberSize_;
     outgoingBuffer.push_back(nextSegment);
     commitSizes(nextSegment->getCommandPool());
     isBegin = false;
@@ -396,26 +398,15 @@ void SelectiveRepeatIOD::addToSenderQueue(CompoundContainer& compoundList,
   }
 }
 
-bool SelectiveRepeatIOD::onReassembly(compoundReassembly_t& compoundList)
+bool SelectiveRepeatIOD::onReassembly(const compoundReassembly_t& compoundList)
 {
-  MESSAGE_BEGIN(NORMAL, logger, m, "onReassembly called");
-  m << compoundList.size() << " size";
-  MESSAGE_END();
-  CompoundPtr compound;
-  SelectiveRepeatIODCommand *command;
+  CompoundPtr compound = compoundList.begin()->second;
+  SelectiveRepeatIODCommand *command = getCommand(compound);
 
-  compoundReassembly_t::iterator it = compoundList.begin();
-  CompoundPtr startSegment = it->second;
+  MESSAGE_SINGLE(NORMAL, logger, "reassemble: Passing " << command->baseSDU()->getLengthInBits()
+                 << " bits to upper FU.");
 
-  Bit dataSize = 0;
-
-  for(it++/* skip the first segment */; it != compoundList.end() ; ++it) {
-    compound = it->second;
-    command  = getCommand(compound);
-    dataSize += command->dataSize();
-  }
-
-  getDeliverer()->getAcceptor( startSegment )->onData( startSegment );
+  getDeliverer()->getAcceptor( command->baseSDU() )->onData( command->baseSDU() );
   return true;
 }
 
@@ -555,7 +546,8 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
 
   command = activateCommand(nextSegment->getCommandPool());
   command->setSequenceNumber(sequenceNumber);
-  command->addSDU(sdu->copy());
+  // command->addSDU(sdu->copy());
+  command->setBaseSDU(sdu);
 
   // if the segment is both end, and start segment it's not segmented
   if(!(isBegin && isEnd)){
