@@ -106,16 +106,11 @@ void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
   // upper layer, this should be dealt with outside of the segmentation buffer
   assert(command->isSegmented());
 
-  // create compoundcontainer if it doesn't exist
-  if (hashTable_.find(timestamp) == hashTable_.end()){
-    hashTable_[timestamp] = compoundReassembly_t();
+  hashTable_[timestamp][this->genIndex(command)] = compound;
+
+  if(checkCompleteness(hashTable_[timestamp])) {
+    hashTable_.erase(timestamp);
   }
-  compoundReassembly_t compoundList = hashTable_[timestamp];
-
-  compoundList[this->genIndex(command)] = compound;
-  hashTable_[timestamp] = compoundList;
-
-  checkCompleteness(compoundList);
 }
 
 /* --------------------------------------------------------------------------*/
@@ -125,11 +120,13 @@ void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
  * @Param compoundList
  */
 /* ----------------------------------------------------------------------------*/
-void SegmentationBuffer::checkCompleteness(compoundReassembly_t compoundList)
+bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundList)
 {
+  bool isComplete = false;
   SelectiveRepeatIODCommand *command;
-  SequenceNumber lastSn;
-  compoundReassembly_t::iterator it = compoundList.begin();
+  SequenceNumber lastIndex;
+  compoundReassembly_t::const_iterator it = compoundList.begin();
+  CompoundPtr compound = it->second;
   int length = compoundList.size();
   for (int i = 0; it != compoundList.end(); ++it, i++)
   {
@@ -138,26 +135,28 @@ void SegmentationBuffer::checkCompleteness(compoundReassembly_t compoundList)
     // first packet must have begin flag set
     if (i == 0) {
       if (!command->getBeginFlag()){
-        return;
+        break;
       }
 
-      lastSn = command->getSequenceNumber();
+      lastIndex = it->first;
       continue;
     }
 
     // check if there is a missing segment
-    if (lastSn != (command->getSequenceNumber() - 1)){
-      return;
+    if (lastIndex != (it->first - 1)){
+      break;
     }
 
     // last packet must have the end flag set if it's set the segment is complete
     if (i == length-1 && command->getEndFlag()){
       MESSAGE_SINGLE(VERBOSE, logger_, "Successfully completed segment");
       reassemble_(compoundList);
+      return true;
     }
 
-    lastSn = command->getSequenceNumber();
+    lastIndex = it->first;
   }
+  return isComplete;
 }
 
 /* --------------------------------------------------------------------------*/
@@ -173,6 +172,7 @@ void SegmentationBuffer::checkCompleteness(compoundReassembly_t compoundList)
 /* ----------------------------------------------------------------------------*/
 SequenceNumber SegmentationBuffer::genIndex(SelectiveRepeatIODCommand* command){
   SequenceNumber index;
+
   if(command->getSequenceNumber() < command->getStartSN()){
     index = command->getSequenceNumber() + sequenceNumberSize_ - command->getStartSN();
   }
