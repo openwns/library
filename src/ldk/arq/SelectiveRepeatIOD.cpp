@@ -61,8 +61,8 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     SuspendSupport(fuNet, config),
     CanTimeout(),
 
-    windowSize(config.get<int>("windowSize")),
-    sequenceNumberSize(config.get<int>("sequenceNumberSize")),
+    windowSize_(config.get<int>("windowSize")),
+    sequenceNumberSize_(config.get<int>("sequenceNumberSize")),
     commandSize(config.get<int>("commandSize")),
     NS(0),
     NR(0),
@@ -92,7 +92,7 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     isSegmenting_(config.get<bool>("isSegmenting")),
     segmentDropRatioProbeName_(config.get<std::string>("segmentDropRatioProbeName")),
     logger(config.get("logger")),
-    segmentationBuffer_(logger, windowSize, sequenceNumberSize)
+    segmentationBuffer_(logger, windowSize_, sequenceNumberSize_)
 {
   segmentationBuffer_.connectToReassemblySignal(boost::bind(&SelectiveRepeatIOD::onReassembly, this, _1));
 
@@ -120,8 +120,8 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
 
     }
 
-    assure(windowSize >= 2, "Invalid windowSize.");
-    assure(sequenceNumberSize >= 2 * windowSize, "Maximum sequence number is to small for chosen windowSize");
+    assure(windowSize_ >= 2, "Invalid windowSize.");
+    assure(sequenceNumberSize_ >= 2 * windowSize_, "Maximum sequence number is to small for chosen windowSize");
 
 }
 
@@ -132,12 +132,12 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(const SelectiveRepeatIOD& other):
     commandName_(other.commandName_),
     segmentSize_(other.segmentSize_),
     headerSize_(other.headerSize_),
-    windowSize(other.windowSize),
-    sequenceNumberSize(other.sequenceNumberSize),
+    windowSize_(other.windowSize_),
+    sequenceNumberSize_(other.sequenceNumberSize_),
     commandSize(other.commandSize),
     sduLengthAddition_(other.sduLengthAddition_),
     nextOutgoingSN_(other.nextOutgoingSN_),
-    segmentationBuffer_(other.logger, other.windowSize, other.sequenceNumberSize),
+    segmentationBuffer_(other.logger, other.windowSize_, other.sequenceNumberSize_),
     SuspendSupport(other),
     isSegmenting_(other.isSegmenting_),
     segmentDropRatioCC_(wns::probe::bus::ContextCollectorPtr(

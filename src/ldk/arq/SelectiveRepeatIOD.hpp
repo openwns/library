@@ -174,12 +174,12 @@ namespace wns { namespace ldk { namespace arq {
         /**
          * @brief Window size.
          */
-        int windowSize;
+        int windowSize_;
 
         /**
          * @brief Divisor for Sequence Numbers.
          */
-        int sequenceNumberSize;
+        int sequenceNumberSize_;
 
         /**
          * @brief Number of Bits the command occupies in the Commandpool.
