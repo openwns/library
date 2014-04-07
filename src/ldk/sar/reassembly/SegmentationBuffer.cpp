@@ -28,10 +28,13 @@ using namespace wns::ldk::sar::reassembly;
 
 SegmentationBuffer::SegmentationBuffer(logger::Logger logger,
                                        int windowSize,
-                                       int sequenceNumberSize):
+                                       int sequenceNumberSize,
+                                       bool enableRetransmissions):
+    lastSN_(0),
     logger_(logger),
     windowSize_(windowSize),
-    sequenceNumberSize_(sequenceNumberSize)
+    sequenceNumberSize_(sequenceNumberSize),
+    enableRetransmissions_(enableRetransmissions)
 {
 }
 
@@ -106,9 +109,54 @@ void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
   // upper layer, this should be dealt with outside of the segmentation buffer
   assert(command->isSegmented());
 
+  if(enableRetransmissions_) {
+    if(command->localTransmissionCounter > 0){
+      MESSAGE_BEGIN(NORMAL, logger_, m, "missing pdu received: ");
+      m << command->localTransmissionCounter;
+      m << " index: " << genIndex(command);
+      m << " " << command->groupId().time << command->groupId().clock ;
+      m << " SN " << command->getSequenceNumber() << " index " << genIndex(command);
+      MESSAGE_END();
+    }
+    // if the gap between the last received sn is bigger than 1
+    // we're missing some packets
+    // packet 1
+    // lastSN := 1
+    // packet 3
+    // lastSN := 3
+    // gap = 2
+    // packet 2 is now received
+    // if status was already sent, ignore it
+    // if status was not sent, remove it from the missing pdu list
+    int gap = command->bigSN() -  lastSN_;
+    GroupNumber groupId = command->groupId();
+
+    removeFromMissing(command->groupId(), command->bigSN());
+    if(gap > 1) {
+      // add missing pdu list
+      for (unsigned int i = 1; i < gap; i++) {
+        command->bigSN();
+        appendMissing(command->groupId(), lastSN_+i);
+        // lastSN_+i;
+      }
+    }
+
+    //TODO: remove received packets from missingPdu List
+
+    //TODO: remove old packets from missing pdu list
+    // removeOldMissing();
+
+    // if big sequence number small than last sequenceNumber
+    // don't update lastSN
+    if(command->bigSN() > lastSN_) {
+      lastSN_ = command->bigSN();
+    }
+  }
+
   hashTable_[timestamp][this->genIndex(command)] = compound;
 
   if(checkCompleteness(hashTable_[timestamp])) {
+    appendCompleted(timestamp);
     hashTable_.erase(timestamp);
   }
 }
@@ -183,6 +231,41 @@ SequenceNumber SegmentationBuffer::genIndex(SelectiveRepeatIODCommand* command){
   return index;
 }
 
-void SegmentationBuffer::findMissing(const compoundReassembly_t& compoundList){
+bool SegmentationBuffer::getMissing(SelectiveRepeatIODCommand* command){
+    bool hasMissing = false;
 
+    if(!enableRetransmissions_) {
+      return false;
+    }
+
+    MESSAGE_BEGIN(NORMAL, logger_, m, "missing size: ");
+    m << completedList_.size() << " " << missingPduList_.size();
+    MESSAGE_END();
+    command->addCompletedPdus(completedList_);
+    command->addMissingPdus(missingPduList_);
+
+   return hasMissing;
+}
+
+void SegmentationBuffer::removeFromMissing(GroupNumber groupId, BigSequenceNumber pduNum) {
+  mapMissingPdu_t::const_iterator it = missingPduList_.find(groupId);
+  if(it != missingPduList_.end()) {
+    missingPduList_[groupId].remove(pduNum);
+  }
+}
+
+void SegmentationBuffer::appendMissing(GroupNumber groupId, BigSequenceNumber pduNum) {
+  MESSAGE_BEGIN(NORMAL, logger_, m, "missing added: ");
+  m << groupId.time << groupId.clock ;
+  MESSAGE_END();
+  missingPduList_[groupId].push_back(pduNum);
+  missingPduList_[groupId].unique();
+}
+
+void SegmentationBuffer::appendCompleted(GroupNumber groupId) {
+  MESSAGE_BEGIN(NORMAL, logger_, m, "completed: ");
+  m << groupId.time << groupId.clock ;
+  MESSAGE_END();
+  missingPduList_.erase(groupId);
+  completedList_.push_back(groupId);
 }

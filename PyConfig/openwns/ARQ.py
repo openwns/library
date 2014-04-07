@@ -202,7 +202,7 @@ class SelectiveRepeatIOD(ARQ):
     RTTProbeName = "xxxRoundTripTime"
     commandSize = None
 
-    def __init__(self, segmentSize, headerSize, commandName, delayProbeName = None, parentLogger = None, statusCollector=NoStatusCollection, **kw):
+    def __init__(self, segmentSize, headerSize, commandName, delayProbeName = None, parentLogger = None, enableRetransmissions = False, statusCollector=NoStatusCollection, **kw):
         super(SelectiveRepeatIOD,self).__init__()
         self.logger = Logger('WNS', 'SelectiveRepeatIOD', True, parentLogger)
         self.arqStatusCollector = statusCollector(self.logger)
@@ -217,6 +217,8 @@ class SelectiveRepeatIOD(ARQ):
         self.segmentSize = segmentSize
         self.headerSize = headerSize
         self.sduLengthAddition = 0
+
+        self.enableRetransmissions = enableRetransmissions
         # long serial number option chosen for safety here. If too many segments
         # are on the way, the segments will not be reassembled if field length
         # is too short.

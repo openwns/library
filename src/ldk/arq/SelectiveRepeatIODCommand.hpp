@@ -58,18 +58,46 @@ using namespace wns::ldk;
 
 namespace wns { namespace ldk { namespace arq {
 
+    typedef long SequenceNumber;
+    typedef unsigned long long int BigSequenceNumber;
+
     typedef struct {
       clock_t clock;
       time_t time;
 
     } timestamp_s;
 
+    typedef struct {
+      timestamp_s timestamp;
+      BigSequenceNumber SN;
+    } missingPdu_s;
+
     // segments are grouped by timestamp
     typedef timestamp_s GroupNumber;
 
+    //missingItems {
+    // timestamp: {
+    //   list of big sequence numbers
+    // }
+    //}
+    typedef std::list<BigSequenceNumber> lPdu_t;
+    typedef std::map<timestamp_s, lPdu_t> mapMissingPdu_t;
+
+    // outgoingItems : {
+    //   timestamp: {
+    //    bigsequencenumber: {
+    //     pdu
+    //    }
+    //   }
+    // }
+    typedef std::map<BigSequenceNumber, CompoundPtr> mapCompoundOutgoing_t;
+    typedef std::map<timestamp_s, mapCompoundOutgoing_t> mapOutgoing_t;
+
     typedef std::list<CompoundPtr> CompoundContainer;
-    typedef long SequenceNumber;
-    typedef std::vector<SequenceNumber> missingPdu_t;
+
+    // list of completed segments, we use that instead of LSN objects
+    // inside of the status PDU
+    typedef std::vector<timestamp_s> completedList_t;
 
     typedef map<SequenceNumber, CompoundPtr> compoundReassembly_t;
 
@@ -110,6 +138,7 @@ namespace wns { namespace ldk { namespace arq {
             peer.sdus_ = 0;
             peer.type = I;
             peer.sn_ = 0;
+            peer.bigSn_ = 0;
             peer.isPoll_ = false;
             local.lastSentTime = 0.0;
             local.firstSentTime = 0.0;
@@ -175,6 +204,7 @@ namespace wns { namespace ldk { namespace arq {
             bool isEnd_;
             bool isPoll_;
             SequenceNumber sn_;
+            BigSequenceNumber bigSn_;
             Bit headerSize_;
             Bit dataSize_;
             Bit paddingSize_;
@@ -193,7 +223,11 @@ namespace wns { namespace ldk { namespace arq {
             SequenceNumber startSN_;
             SequenceNumber endSN_;
             // add base sdu
-            CompoundPtr baseSDU;
+            CompoundPtr baseSDU_;
+
+            // for polling completed pdus and missing pdus
+            mapMissingPdu_t missingPduList_;
+            completedList_t completedPdus_;
         };
         Magic magic;
 
@@ -295,17 +329,41 @@ namespace wns { namespace ldk { namespace arq {
         virtual void
         setEndSN(SequenceNumber endSN) { magic.endSN_ = endSN; }
 
+        void bigSN(BigSequenceNumber SN) {
+          peer.bigSn_ = SN;
+        }
+
+        BigSequenceNumber bigSN() {
+          return peer.bigSn_;
+        }
+
         /**
          * store the base pdu
          */
         void setBaseSDU(CompoundPtr c)
         {
-          magic.baseSDU = c;
+          magic.baseSDU_ = c;
         }
 
         CompoundPtr baseSDU()
         {
-          return magic.baseSDU;
+          return magic.baseSDU_;
+        }
+
+        void addMissingPdus(const mapMissingPdu_t& missingPduList) {
+          magic.missingPduList_ = missingPduList;
+        }
+
+        const mapMissingPdu_t* missingPdus() {
+          return &magic.missingPduList_;
+        }
+
+        void addCompletedPdus(completedList_t completedList) {
+          magic.completedPdus_ = completedList;
+        }
+
+        const completedList_t* completedPdus() {
+          return &magic.completedPdus_;
         }
     };
 

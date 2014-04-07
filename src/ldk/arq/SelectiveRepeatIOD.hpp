@@ -133,35 +133,28 @@ namespace wns { namespace ldk { namespace arq {
 
     protected:
         CompoundPtr createSegment(const CompoundPtr& sdu,
-                                  SequenceNumber sequenceNumber,
                                   const Bit segmentSize,
                                   GroupNumber timestamp);
 
         CompoundPtr createStartSegment(const CompoundPtr& sdu,
-                                       SequenceNumber sequenceNumber,
                                        const Bit segmentSize,
                                        GroupNumber timestamp);
 
         CompoundPtr createEndSegment(const CompoundPtr& sdu,
-                                     SequenceNumber sequenceNumber,
                                      const Bit segmentSize,
                                      GroupNumber timestamp);
 
         CompoundPtr createSegment(const CompoundPtr& sdu,
-                                  SequenceNumber sequenceNumber,
                                   const Bit segmentSize,
                                   GroupNumber timestamp,
                                   bool isBegin,
                                   bool isEnd);
 
         CompoundPtr createUnsegmented(const CompoundPtr& sdu,
-                                      SequenceNumber sequenceNumber,
                                       const Bit segmentSize,
                                       GroupNumber groupId);
 
-        void sendPoll(const CompoundPtr& compound);
-
-        void prepareRetransmission();
+        void sendStatus(const CompoundPtr& compound);
 
         // retransmissionState
         bool retransmissionState() const;
@@ -281,6 +274,12 @@ namespace wns { namespace ldk { namespace arq {
                               SequenceNumber startSegment,
                               SequenceNumber endSegment);
 
+        void removeFromOutgoing(const completedList_t* completedPdus);
+
+        void prepareRetransmission(const mapMissingPdu_t* missingPdus);
+
+        void fillRetransmissionBuffer();
+
         CompoundContainer senderPendingSegments_;
 
         CompoundContainer senderPendingStatusSegments_;
@@ -294,6 +293,9 @@ namespace wns { namespace ldk { namespace arq {
         Bit sduLengthAddition_;
 
         SequenceNumber nextOutgoingSN_;
+        BigSequenceNumber nextOutgoingBigSN_;
+
+        bool enableRetransmissions_;
 
         std::string segmentDropRatioProbeName_;
 
@@ -305,6 +307,11 @@ namespace wns { namespace ldk { namespace arq {
         CommandReaderInterface* probeHeaderReader_;
 
         sar::reassembly::SegmentationBuffer segmentationBuffer_;
+
+        // we store all segments in the outgoingBuffer_ before sending
+        mapOutgoing_t outgoingBuffer_;
+
+        CompoundContainer retransmissionBuffer_;
     };
 
 }

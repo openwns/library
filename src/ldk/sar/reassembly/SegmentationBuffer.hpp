@@ -22,22 +22,30 @@ class SegmentationBuffer
 public:
   SegmentationBuffer (logger::Logger logger,
                       int windowSize,
-                      int sequenceNumberSize);
+                      int sequenceNumberSize,
+                      bool enableRetransmissions);
   void initialize(CommandReaderInterface*);
   void updateSenderQueue();
   void push(CompoundPtr compound, timestamp_s timestamp);
   connection connectToReassemblySignal(const reassemblySlot_t& slot);
-  void findMissing(const compoundReassembly_t& compoundList);
+  bool getMissing(SelectiveRepeatIODCommand*);
 
 private:
   bool checkCompleteness (const compoundReassembly_t&);
   bool integrityCheck();
   SelectiveRepeatIODCommand* readCommand(const wns::ldk::CompoundPtr&);
   SequenceNumber genIndex(SelectiveRepeatIODCommand*);
+  void appendMissing(GroupNumber, BigSequenceNumber);
+  void removeFromMissing(GroupNumber, BigSequenceNumber);
+  void appendCompleted(GroupNumber);
   //TODO: make sure we get the right windowSize from the inmarsat spec
   int windowSize_;
 
   int sequenceNumberSize_;
+
+  bool enableRetransmissions_;
+
+  BigSequenceNumber lastSN_;
 
   logger::Logger logger_;
 
@@ -46,6 +54,10 @@ private:
   CommandReaderInterface* commandReader_;
 
   reassemblySignal_t reassemble_;
+
+  completedList_t completedList_;
+
+  mapMissingPdu_t missingPduList_;
 };
 
 }}}}
