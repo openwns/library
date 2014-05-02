@@ -100,8 +100,12 @@ namespace wns { namespace container {
                 assure(id <= highestId, "Please choose a lower ID (<" << highestId);
                 assure(id >= lowestId, "Please choose a higher ID (>" << lowestId);
                 assure(!isAvailable(id), "ID is not bound");
-
-                wns::simulator::getEventScheduler()->scheduleDelay(Unbind(this, id), unbindDelay);
+                if (unbindDelay == 0) {
+                    this->boundIds.erase(id);
+                }
+                else {
+                    wns::simulator::getEventScheduler()->scheduleDelay(Unbind(this, id), unbindDelay);
+                }
             }
 
         /**
