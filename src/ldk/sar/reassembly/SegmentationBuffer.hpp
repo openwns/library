@@ -26,7 +26,7 @@ public:
                       bool enableRetransmissions);
   void initialize(CommandReaderInterface*);
   void updateSenderQueue();
-  void push(CompoundPtr compound, timestamp_s timestamp);
+  void push(CompoundPtr compound, GroupNumber timestamp);
   connection connectToReassemblySignal(const reassemblySlot_t& slot);
   bool getMissing(SelectiveRepeatIODCommand*);
 
@@ -35,8 +35,9 @@ private:
   bool integrityCheck();
   SelectiveRepeatIODCommand* readCommand(const wns::ldk::CompoundPtr&);
   SequenceNumber genIndex(SelectiveRepeatIODCommand*);
-  void appendMissing(GroupNumber, BigSequenceNumber);
-  void removeFromMissing(GroupNumber, BigSequenceNumber);
+  void appendMissing(BigSequenceNumber);
+  void removeFromMissing(BigSequenceNumber);
+  bool isCompleted(const SelectiveRepeatIODCommand* command);
   void appendCompleted(GroupNumber);
   //TODO: make sure we get the right windowSize from the inmarsat spec
   int windowSize_;
@@ -57,7 +58,7 @@ private:
 
   completedList_t completedList_;
 
-  mapMissingPdu_t missingPduList_;
+  lPdu_t missingPduList_;
 };
 
 }}}}

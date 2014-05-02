@@ -136,6 +136,10 @@ namespace wns { namespace ldk { namespace arq {
                                   const Bit segmentSize,
                                   GroupNumber timestamp);
 
+        CompoundPtr createBeginEndSegment(const CompoundPtr& sdu,
+                                          const Bit segmentSize,
+                                          GroupNumber timestamp);
+
         CompoundPtr createStartSegment(const CompoundPtr& sdu,
                                        const Bit segmentSize,
                                        GroupNumber timestamp);
@@ -276,7 +280,7 @@ namespace wns { namespace ldk { namespace arq {
 
         void removeFromOutgoing(const completedList_t* completedPdus);
 
-        void prepareRetransmission(const mapMissingPdu_t* missingPdus);
+        void prepareRetransmission(const lPdu_t* missingPdus);
 
         void fillRetransmissionBuffer();
 
@@ -309,9 +313,11 @@ namespace wns { namespace ldk { namespace arq {
         sar::reassembly::SegmentationBuffer segmentationBuffer_;
 
         // we store all segments in the outgoingBuffer_ before sending
-        mapOutgoing_t outgoingBuffer_;
+        multiOutgoing_t outgoingBuffer_;
 
         CompoundContainer retransmissionBuffer_;
+
+        clock_t timestamp_;
     };
 
 }

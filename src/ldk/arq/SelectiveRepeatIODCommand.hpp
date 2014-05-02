@@ -53,8 +53,16 @@
 #include <WNS/ldk/HasConnector.hpp>
 #include <WNS/ldk/HasDeliverer.hpp>
 
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/identity.hpp>
+#include <boost/multi_index/member.hpp>
+
 using namespace std;
 using namespace wns::ldk;
+using namespace ::boost;
+using namespace ::boost::multi_index;
 
 namespace wns { namespace ldk { namespace arq {
 
@@ -73,7 +81,8 @@ namespace wns { namespace ldk { namespace arq {
     } missingPdu_s;
 
     // segments are grouped by timestamp
-    typedef timestamp_s GroupNumber;
+    // typedef timestamp_s GroupNumber;
+    typedef double GroupNumber;
 
     //missingItems {
     // timestamp: {
@@ -81,27 +90,54 @@ namespace wns { namespace ldk { namespace arq {
     // }
     //}
     typedef std::list<BigSequenceNumber> lPdu_t;
-    typedef std::map<timestamp_s, lPdu_t> mapMissingPdu_t;
+    typedef std::map<GroupNumber, lPdu_t> mapMissingPdu_t;
 
-    // outgoingItems : {
-    //   timestamp: {
-    //    bigsequencenumber: {
-    //     pdu
-    //    }
-    //   }
-    // }
+    struct outgoingPdu
+    {
+      GroupNumber timestamp;
+      BigSequenceNumber sn;
+
+      CompoundPtr pdu_;
+
+      outgoingPdu(GroupNumber ts, BigSequenceNumber seq, const CompoundPtr &pdu)
+          : timestamp(ts), sn(seq), pdu_(pdu)
+      {}
+    };
+
+    struct pduSN {};
+    struct pduID {};
+
+    // allow looking up and deleting pdus from the outgoing buffer either by
+    // sequence number or by timestamp
+    typedef multi_index_container<
+      outgoingPdu,
+      indexed_by<
+        ordered_non_unique<
+          tag< pduID >,
+          member< outgoingPdu, GroupNumber, &outgoingPdu::timestamp >
+        >,
+        hashed_unique<
+          tag< pduSN >,
+          member< outgoingPdu, BigSequenceNumber, &outgoingPdu::sn >
+        >
+      >
+    > multiOutgoing_t;
+    typedef multiOutgoing_t::index<pduSN>::type outgoing_by_sn;
+    typedef multiOutgoing_t::index<pduID>::type outgoing_by_timestamp;
+
     typedef std::map<BigSequenceNumber, CompoundPtr> mapCompoundOutgoing_t;
-    typedef std::map<timestamp_s, mapCompoundOutgoing_t> mapOutgoing_t;
+
+    // typedef std::map<GroupNumber, mapCompoundOutgoing_t> mapOutgoing_t;
 
     typedef std::list<CompoundPtr> CompoundContainer;
 
     // list of completed segments, we use that instead of LSN objects
     // inside of the status PDU
-    typedef std::vector<timestamp_s> completedList_t;
+    typedef std::set<GroupNumber> completedList_t;
 
     typedef map<SequenceNumber, CompoundPtr> compoundReassembly_t;
 
-    typedef map<timestamp_s, compoundReassembly_t> compoundHashTable_t;
+    typedef map<GroupNumber, compoundReassembly_t> compoundHashTable_t;
     bool const operator==(const timestamp_s n, const timestamp_s &o);
     bool const operator<(const timestamp_s n, const timestamp_s &o);
 
@@ -226,7 +262,7 @@ namespace wns { namespace ldk { namespace arq {
             CompoundPtr baseSDU_;
 
             // for polling completed pdus and missing pdus
-            mapMissingPdu_t missingPduList_;
+            lPdu_t missingPduList_;
             completedList_t completedPdus_;
         };
         Magic magic;
@@ -350,11 +386,11 @@ namespace wns { namespace ldk { namespace arq {
           return magic.baseSDU_;
         }
 
-        void addMissingPdus(const mapMissingPdu_t& missingPduList) {
+        void addMissingPdus(const lPdu_t& missingPduList) {
           magic.missingPduList_ = missingPduList;
         }
 
-        const mapMissingPdu_t* missingPdus() {
+        const lPdu_t* missingPdus() {
           return &magic.missingPduList_;
         }
 

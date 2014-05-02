@@ -128,6 +128,7 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     assure(windowSize_ >= 2, "Invalid windowSize.");
     assure(sequenceNumberSize_ >= 2 * windowSize_, "Maximum sequence number is to small for chosen windowSize");
 
+    timestamp_ = clock();
 }
 
 #warning clonable constructor of SelectiveRepeatIOD is incomplete
@@ -180,8 +181,8 @@ SelectiveRepeatIOD::onFUNCreated()
 bool
 SelectiveRepeatIOD::hasCapacity() const
 {
-  // return (senderPendingSegments_.empty() && senderPendingStatusSegments_.empty() && retransmissionBuffer_.empty());
-  return (senderPendingSegments_.empty());
+  size_t bufferTotal = senderPendingSegments_.size() + senderPendingStatusSegments_.size() + retransmissionBuffer_.size();
+  return (senderPendingSegments_.empty() && bufferTotal < windowSize_);
 }
 
 
@@ -203,6 +204,7 @@ SelectiveRepeatIOD::getACK()
 {
   assure(hasACK(), getFUN()->getName() + " hasSomethingToSend has not been called to check whether there is something to send.");
 
+  MESSAGE_SINGLE(NORMAL, logger, "hasSomethingToSend");
   CompoundPtr nextACKToBeSent = ackPDUs.front();
   ackPDUs.pop_front();
 
@@ -228,21 +230,17 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
 
   MESSAGE_BEGIN(VERBOSE, logger, m, "processIncoming: ");
   m << "isSegmented: " << command->isSegmented() << "\tisBegin: " << command->peer.isBegin_ << "\tisEnd: " << command->peer.isEnd_;
-  m << "\ttimestamp: " << command->groupId().time;
+  m << "\ttimestamp: " << command->groupId();
+  m << "\tbigSN: " << command->bigSN();
   MESSAGE_END();
 
-  const mapMissingPdu_t* missingPdus;
+  const lPdu_t* missingPdus;
   const completedList_t* completedPdus;
 
   switch(command->peer.type) {
     case SelectiveRepeatIODCommand::I:
-      if(command->isSegmented()){
-        // treat segmented packet's differently
-        segmentationBuffer_.push(compound, command->groupId());
-      } else {
-        // This sends the complete PDU to the upper layer
-        getDeliverer()->getAcceptor( compound )->onData( compound );
-      }
+      // treat segmented packet's differently
+      segmentationBuffer_.push(compound, command->groupId());
       break;
 
     case SelectiveRepeatIODCommand::STATUS:
@@ -264,6 +262,7 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
   }
 }
 
+
 void SelectiveRepeatIOD::sendStatus(const CompoundPtr& compound){
   CommandPool* commandPool = getFUN()->getProxy()->createReply(compound->getCommandPool(), this);
   CompoundPtr statusCompound = CompoundPtr(new Compound(commandPool));
@@ -272,9 +271,6 @@ void SelectiveRepeatIOD::sendStatus(const CompoundPtr& compound){
 
   statusCommand->peer.type = SelectiveRepeatIODCommand::STATUS;
   statusCommand->magic.ackSentTime = wns::simulator::getEventScheduler()->getTime();
-
-  mapMissingPdu_t missingPduList;
-  completedList_t completedList;
 
   if (enableRetransmissions_) {
     segmentationBuffer_.getMissing(statusCommand);
@@ -286,7 +282,8 @@ void SelectiveRepeatIOD::sendStatus(const CompoundPtr& compound){
 void
 SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 {
-  GroupNumber groupId = {clock(), time(NULL)};
+  // GroupNumber groupId = {clock(), time(NULL)};
+  GroupNumber groupId = wns::simulator::getEventScheduler()->getTime();
 
   Bit sduPCISize = 0;
   Bit sduDataSize = 0;
@@ -307,7 +304,8 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
   CompoundContainer compoundList;
 
   MESSAGE_BEGIN(NORMAL, logger, m, "processOutgoing: ");
-  m << nextOutgoingSN_;
+  m << nextOutgoingSN_ << " timestamp: " << groupId;
+  m << " id: " << timestamp_;
   MESSAGE_END();
 #if 1
   while(cumSize < sduTotalSize)
@@ -325,7 +323,10 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 
     CompoundPtr nextSegment;
 
-    if(isBegin){
+    if(isBegin&&isEnd){
+      nextSegment = createBeginEndSegment(compound, nextSegmentSize, groupId);
+    }
+    else if(isBegin){
       firstSN = nextOutgoingSN_;
       nextSegment  = createStartSegment(compound, nextSegmentSize, groupId);
     }
@@ -342,6 +343,7 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
     commitSizes(nextSegment->getCommandPool());
     isBegin = false;
   }
+
   addToSenderQueue(compoundList, firstSN, lastSN);
 #else
   GroupNumber groupId2 = {clock(), time(NULL)};
@@ -378,10 +380,14 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 }
 
 void
-SelectiveRepeatIOD::prepareRetransmission(const mapMissingPdu_t* missingPdus)
+SelectiveRepeatIOD::prepareRetransmission(const lPdu_t* missingPdus)
 {
-  mapMissingPdu_t::const_iterator it;
-  lPdu_t::const_iterator seqIt;
+  lPdu_t::const_iterator it;
+  const outgoing_by_sn &outsn = outgoingBuffer_.get<pduSN>();
+
+  MESSAGE_BEGIN(NORMAL, logger, m, "prepare missing ");
+  m << missingPdus->size();
+  MESSAGE_END();
 
   for (it = missingPdus->begin();
        it != missingPdus->end(); it++){
@@ -389,13 +395,13 @@ SelectiveRepeatIOD::prepareRetransmission(const mapMissingPdu_t* missingPdus)
     // make sure we don't create an entry in the outgoingBuffer with the []
     // operator by mistake, if the entry doesn't exist, the segmented packet
     // was already received
-    if(outgoingBuffer_.find(it->first) == outgoingBuffer_.end()) {
+    outgoing_by_sn::iterator pdu = outsn.find(*it);
+    if(pdu == outsn.end()) {
+      MESSAGE_SINGLE(NORMAL, logger, "missing something wrong");
       continue;
     }
 
-    for(seqIt = it->second.begin(); seqIt  != it->second.end(); seqIt++) {
-      retransmissionBuffer_.push_back(outgoingBuffer_[it->first][*seqIt]);
-    }
+    retransmissionBuffer_.push_back(pdu->pdu_);
   }
 } // prepareRetransmission
 
@@ -444,8 +450,12 @@ void SelectiveRepeatIOD::addToSenderQueue(CompoundContainer& compoundList,
     compoundList.pop_front();
     senderPendingSegments_.push_back(compound);
     if(enableRetransmissions_) {
-      outgoingBuffer_[command->groupId()][command->bigSN()] = compound->copy();
+      outgoingBuffer_.insert(outgoingPdu(command->groupId(), command->bigSN(), compound->copy()));
     }
+
+    // MESSAGE_BEGIN(NORMAL, logger, m, "senderQueue");
+    // m << " bigsn" << command->bigSN() << " isEnd: " << command->getEndFlag();
+    // MESSAGE_END();
   }
 }
 
@@ -501,14 +511,17 @@ SelectiveRepeatIOD::getSomethingToSend()
     senderPendingStatusSegments_.pop_front();
   }
   else if (!retransmissionBuffer_.empty()) {
-    compound = retransmissionBuffer_.front()->copy();
+    compound = retransmissionBuffer_.front();
+    getCommand(compound->getCommandPool())->localTransmissionCounter++;
     MESSAGE_BEGIN(NORMAL, logger, m, "missing retransmission sent: ");
     m << getCommand(compound->getCommandPool())->bigSN();
-    m << getCommand(compound->getCommandPool())->localTransmissionCounter++;
+    m << " count: " << getCommand(compound->getCommandPool())->localTransmissionCounter;
     MESSAGE_END();
+    compound = compound->copy();
     retransmissionBuffer_.pop_front();
   }
   else if (!senderPendingSegments_.empty()) {
+    MESSAGE_SINGLE(NORMAL, logger, "transmission count: 0");
     compound = senderPendingSegments_.front();
     senderPendingSegments_.pop_front();
   }
@@ -555,6 +568,13 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
                                               GroupNumber groupId){
 
   return createSegment(sdu, segmentSize, groupId, false, false);
+}
+
+CompoundPtr SelectiveRepeatIOD::createBeginEndSegment(const CompoundPtr& sdu,
+                                              const Bit segmentSize,
+                                              GroupNumber groupId){
+
+  return createSegment(sdu, segmentSize, groupId, true, true);
 }
 
 CompoundPtr SelectiveRepeatIOD::createStartSegment(const CompoundPtr& sdu,
@@ -616,8 +636,9 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
   command->clearEndFlag();
 
   isBegin ? command->setBeginFlag() : command->clearBeginFlag();
-  if(isEnd){
-    command->setEndFlag();
+  if(isEnd) command->setEndFlag();
+  // polling
+  if(isEnd || (nextOutgoingBigSN_ % 10)){
     command->setPollFlag();
   }
 
@@ -630,21 +651,23 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
 
 void SelectiveRepeatIOD::removeFromOutgoing(const completedList_t* completedPdus) {
   completedList_t::const_iterator it;
+  outgoing_by_timestamp &outts = outgoingBuffer_.get<pduID>();
 
   for (it = completedPdus->begin();
        it != completedPdus->end();
        ++it)
   {
-    outgoingBuffer_.erase(*it);
+    outts.erase(*it);
   }
 }
 
-bool retransmissionTimeoutReached(const timestamp_s& timeout) {
+bool retransmissionTimeoutReached(const GroupNumber& timeout) {
   bool timedOut = false;
   return timedOut;
 }
 
 void SelectiveRepeatIOD::fillRetransmissionBuffer() {
+  /*
   mapOutgoing_t::iterator it = outgoingBuffer_.begin();
 
   for (; it != outgoingBuffer_.end(); ++it)
@@ -659,4 +682,5 @@ void SelectiveRepeatIOD::fillRetransmissionBuffer() {
 
     // }
   }
+  */
 }

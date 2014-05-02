@@ -101,20 +101,18 @@ SelectiveRepeatIODCommand* SegmentationBuffer::readCommand(const CompoundPtr& c)
  * @Param timestamp
  */
 /* ----------------------------------------------------------------------------*/
-void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
+void SegmentationBuffer::push(CompoundPtr compound, GroupNumber timestamp)
 {
   SelectiveRepeatIODCommand *command = readCommand(compound);
 
   // if the command is not segmented immediately pass the compound to the
   // upper layer, this should be dealt with outside of the segmentation buffer
-  assert(command->isSegmented());
-
   if(enableRetransmissions_) {
     if(command->localTransmissionCounter > 0){
       MESSAGE_BEGIN(NORMAL, logger_, m, "missing pdu received: ");
       m << command->localTransmissionCounter;
       m << " index: " << genIndex(command);
-      m << " " << command->groupId().time << command->groupId().clock ;
+      m << " " << command->groupId() ;
       m << " SN " << command->getSequenceNumber() << " index " << genIndex(command);
       MESSAGE_END();
     }
@@ -131,12 +129,14 @@ void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
     int gap = command->bigSN() -  lastSN_;
     GroupNumber groupId = command->groupId();
 
-    removeFromMissing(command->groupId(), command->bigSN());
+    removeFromMissing(command->bigSN());
     if(gap > 1) {
+      MESSAGE_BEGIN(NORMAL, logger_, m, "gap length: ");
+      m << gap;
+      MESSAGE_END();
       // add missing pdu list
       for (unsigned int i = 1; i < gap; i++) {
-        command->bigSN();
-        appendMissing(command->groupId(), lastSN_+i);
+        appendMissing(lastSN_+i);
         // lastSN_+i;
       }
     }
@@ -150,6 +150,14 @@ void SegmentationBuffer::push(CompoundPtr compound, timestamp_s timestamp)
     // don't update lastSN
     if(command->bigSN() > lastSN_) {
       lastSN_ = command->bigSN();
+    }
+    // only packets that are received out of order can be retransmissions
+    else if (isCompleted(command)) {
+      // discard the packet if it wasn't missing
+      MESSAGE_BEGIN(NORMAL, logger_, m, "check missing, duplicate received: ");
+      m << command->bigSN();
+      MESSAGE_END();
+      return;
     }
   }
 
@@ -184,6 +192,13 @@ bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundL
     if (i == 0) {
       if (!command->getBeginFlag()){
         break;
+      }
+
+      // not segmented, it's both begin, and end flag
+      if (!command->isSegmented()){
+        MESSAGE_SINGLE(VERBOSE, logger_, "Successfully completed segment");
+        reassemble_(compoundList);
+        return true;
       }
 
       lastIndex = it->first;
@@ -238,8 +253,8 @@ bool SegmentationBuffer::getMissing(SelectiveRepeatIODCommand* command){
       return false;
     }
 
-    MESSAGE_BEGIN(NORMAL, logger_, m, "missing size: ");
-    m << completedList_.size() << " " << missingPduList_.size();
+    MESSAGE_BEGIN(NORMAL, logger_, m, "completed size: ");
+    m << completedList_.size() << " missing size: " << missingPduList_.size();
     MESSAGE_END();
     command->addCompletedPdus(completedList_);
     command->addMissingPdus(missingPduList_);
@@ -247,25 +262,25 @@ bool SegmentationBuffer::getMissing(SelectiveRepeatIODCommand* command){
    return hasMissing;
 }
 
-void SegmentationBuffer::removeFromMissing(GroupNumber groupId, BigSequenceNumber pduNum) {
-  mapMissingPdu_t::const_iterator it = missingPduList_.find(groupId);
-  if(it != missingPduList_.end()) {
-    missingPduList_[groupId].remove(pduNum);
-  }
+void SegmentationBuffer::removeFromMissing(BigSequenceNumber pduNum) {
+  missingPduList_.remove(pduNum);
 }
 
-void SegmentationBuffer::appendMissing(GroupNumber groupId, BigSequenceNumber pduNum) {
-  MESSAGE_BEGIN(NORMAL, logger_, m, "missing added: ");
-  m << groupId.time << groupId.clock ;
-  MESSAGE_END();
-  missingPduList_[groupId].push_back(pduNum);
-  missingPduList_[groupId].unique();
+void SegmentationBuffer::appendMissing(BigSequenceNumber pduNum) {
+  MESSAGE_SINGLE(NORMAL, logger_, "missing added: ");
+  missingPduList_.push_back(pduNum);
+  missingPduList_.unique();
 }
 
 void SegmentationBuffer::appendCompleted(GroupNumber groupId) {
   MESSAGE_BEGIN(NORMAL, logger_, m, "completed: ");
-  m << groupId.time << groupId.clock ;
+  m << groupId;
   MESSAGE_END();
-  missingPduList_.erase(groupId);
-  completedList_.push_back(groupId);
+  completedList_.insert(groupId);
+}
+
+
+bool SegmentationBuffer::isCompleted(const SelectiveRepeatIODCommand *command) {
+
+  return false;
 }
