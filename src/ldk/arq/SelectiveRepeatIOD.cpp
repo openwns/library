@@ -240,7 +240,7 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
   switch(command->peer.type) {
     case SelectiveRepeatIODCommand::I:
       // treat segmented packet's differently
-      segmentationBuffer_.push(compound, command->groupId());
+      segmentationBuffer_.push(compound);
       break;
 
     case SelectiveRepeatIODCommand::STATUS:
@@ -344,7 +344,7 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
     isBegin = false;
   }
 
-  addToSenderQueue(compoundList, firstSN, lastSN);
+  addToSenderQueue(compoundList, compound, firstSN, lastSN, groupId);
 #else
   GroupNumber groupId2 = {clock(), time(NULL)};
 
@@ -433,24 +433,25 @@ SelectiveRepeatIOD::onSuspend() const
  */
 /* ----------------------------------------------------------------------------*/
 void SelectiveRepeatIOD::addToSenderQueue(CompoundContainer& compoundList,
+                                          CompoundPtr compound,
                                           SequenceNumber startSegment,
-                                          SequenceNumber endSegment)
+                                          SequenceNumber endSegment,
+                                          GroupNumber timestamp)
 {
-  CompoundPtr compound;
+  CompoundPtr segment;
   CommandPool* commandPool;
   SelectiveRepeatIODCommand *command;
   while(!compoundList.empty()){
-    compound = compoundList.front();
-    commandPool  = compound->getCommandPool();
+    segment = compoundList.front();
+    commandPool  = segment->getCommandPool();
     command = getCommand(commandPool);
 
-    command->setStartSN(startSegment);
-    command->setEndSN(endSegment);
+    command->addBaseSDU(compound, startSegment, endSegment, timestamp);
 
     compoundList.pop_front();
-    senderPendingSegments_.push_back(compound);
+    senderPendingSegments_.push_back(segment);
     if(enableRetransmissions_) {
-      outgoingBuffer_.insert(outgoingPdu(command->groupId(), command->bigSN(), compound->copy()));
+      outgoingBuffer_.insert(outgoingPdu(command->groupId(), command->bigSN(), segment->copy()));
     }
 
     // MESSAGE_BEGIN(NORMAL, logger, m, "senderQueue");
@@ -459,15 +460,13 @@ void SelectiveRepeatIOD::addToSenderQueue(CompoundContainer& compoundList,
   }
 }
 
-bool SelectiveRepeatIOD::onReassembly(const compoundReassembly_t& compoundList)
+bool SelectiveRepeatIOD::onReassembly(CompoundPtr compound)
 {
-  CompoundPtr compound = compoundList.begin()->second;
-  SelectiveRepeatIODCommand *command = getCommand(compound);
 
-  MESSAGE_SINGLE(NORMAL, logger, "reassemble: Passing " << command->baseSDU()->getLengthInBits()
+  MESSAGE_SINGLE(NORMAL, logger, "reassemble: Passing " << compound->getLengthInBits()
                  << " bits to upper FU.");
 
-  getDeliverer()->getAcceptor( command->baseSDU() )->onData( command->baseSDU() );
+  getDeliverer()->getAcceptor( compound )->onData( compound );
   return true;
 }
 
@@ -625,8 +624,6 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
   command = activateCommand(nextSegment->getCommandPool());
   command->setSequenceNumber(nextOutgoingSN_);
   command->bigSN(nextOutgoingBigSN_);
-  // command->addSDU(sdu->copy());
-  command->setBaseSDU(sdu);
 
   // if the segment is both end, and start segment it's not segmented
   if(!(isBegin && isEnd)){

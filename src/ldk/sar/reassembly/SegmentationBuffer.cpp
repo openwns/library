@@ -101,7 +101,7 @@ SelectiveRepeatIODCommand* SegmentationBuffer::readCommand(const CompoundPtr& c)
  * @Param timestamp
  */
 /* ----------------------------------------------------------------------------*/
-void SegmentationBuffer::push(CompoundPtr compound, GroupNumber timestamp)
+void SegmentationBuffer::push(CompoundPtr compound)
 {
   SelectiveRepeatIODCommand *command = readCommand(compound);
 
@@ -111,9 +111,8 @@ void SegmentationBuffer::push(CompoundPtr compound, GroupNumber timestamp)
     if(command->localTransmissionCounter > 0){
       MESSAGE_BEGIN(NORMAL, logger_, m, "missing pdu received: ");
       m << command->localTransmissionCounter;
-      m << " index: " << genIndex(command);
       m << " " << command->groupId() ;
-      m << " SN " << command->getSequenceNumber() << " index " << genIndex(command);
+      m << " SN " << command->getSequenceNumber();
       MESSAGE_END();
     }
     // if the gap between the last received sn is bigger than 1
@@ -161,12 +160,20 @@ void SegmentationBuffer::push(CompoundPtr compound, GroupNumber timestamp)
     }
   }
 
-  hashTable_[timestamp][this->genIndex(command)] = compound;
+  lSegmentCompound_t sdus = command->baseSDUs();
+  lSegmentCompound_t::iterator it = sdus.begin();
 
-  if(checkCompleteness(hashTable_[timestamp])) {
-    appendCompleted(timestamp);
-    hashTable_.erase(timestamp);
+  for (; it != sdus.end(); ++it)
+  {
+    hashTable_[it->timestamp][this->genIndex(command->getSequenceNumber(),
+                                         it->startSN)] = compound;
+
+    if(checkCompleteness(hashTable_[it->timestamp], it->sdu)) {
+      appendCompleted(it->timestamp);
+      hashTable_.erase(it->timestamp);
+    }
   }
+
 }
 
 /* --------------------------------------------------------------------------*/
@@ -176,7 +183,8 @@ void SegmentationBuffer::push(CompoundPtr compound, GroupNumber timestamp)
  * @Param compoundList
  */
 /* ----------------------------------------------------------------------------*/
-bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundList)
+bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundList,
+                                           CompoundPtr sdu)
 {
   bool isComplete = false;
   SelectiveRepeatIODCommand *command;
@@ -197,7 +205,7 @@ bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundL
       // not segmented, it's both begin, and end flag
       if (!command->isSegmented()){
         MESSAGE_SINGLE(VERBOSE, logger_, "Successfully completed segment");
-        reassemble_(compoundList);
+        reassemble_(sdu);
         return true;
       }
 
@@ -213,7 +221,7 @@ bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundL
     // last packet must have the end flag set if it's set the segment is complete
     if (i == length-1 && command->getEndFlag()){
       MESSAGE_SINGLE(VERBOSE, logger_, "Successfully completed segment");
-      reassemble_(compoundList);
+      reassemble_(sdu);
       return true;
     }
 
@@ -233,14 +241,14 @@ bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundL
  * @Returns   an index for the sequence number lookup table
  */
 /* ----------------------------------------------------------------------------*/
-SequenceNumber SegmentationBuffer::genIndex(SelectiveRepeatIODCommand* command){
+SequenceNumber SegmentationBuffer::genIndex(SequenceNumber sn, SequenceNumber startSN){
   SequenceNumber index;
 
-  if(command->getSequenceNumber() < command->getStartSN()){
-    index = command->getSequenceNumber() + sequenceNumberSize_ - command->getStartSN();
+  if(sn < startSN){
+    index = sn + sequenceNumberSize_ - startSN;
   }
   else {
-    index = command->getSequenceNumber() - command->getStartSN();
+    index = sn - startSN;
   }
 
   return index;

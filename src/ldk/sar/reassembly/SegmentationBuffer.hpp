@@ -14,7 +14,7 @@ using namespace boost::signals;
 
 namespace wns { namespace ldk { namespace sar { namespace reassembly {
 
-typedef boost::signal<bool (const compoundReassembly_t&)> reassemblySignal_t;
+typedef boost::signal<bool (CompoundPtr)> reassemblySignal_t;
 typedef reassemblySignal_t::slot_type reassemblySlot_t;
 
 class SegmentationBuffer
@@ -26,15 +26,15 @@ public:
                       bool enableRetransmissions);
   void initialize(CommandReaderInterface*);
   void updateSenderQueue();
-  void push(CompoundPtr compound, GroupNumber timestamp);
+  void push(CompoundPtr compound);
   connection connectToReassemblySignal(const reassemblySlot_t& slot);
   bool getMissing(SelectiveRepeatIODCommand*);
 
 private:
-  bool checkCompleteness (const compoundReassembly_t&);
+  bool checkCompleteness (const compoundReassembly_t&, CompoundPtr);
   bool integrityCheck();
   SelectiveRepeatIODCommand* readCommand(const wns::ldk::CompoundPtr&);
-  SequenceNumber genIndex(SelectiveRepeatIODCommand*);
+  SequenceNumber genIndex(SequenceNumber sn, SequenceNumber startSN);
   void appendMissing(BigSequenceNumber);
   void removeFromMissing(BigSequenceNumber);
   bool isCompleted(const SelectiveRepeatIODCommand* command);

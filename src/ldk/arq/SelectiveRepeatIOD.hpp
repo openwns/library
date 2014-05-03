@@ -273,10 +273,12 @@ namespace wns { namespace ldk { namespace arq {
         bool isSegmenting_;
 
     private:
-        bool onReassembly(const compoundReassembly_t&);
+        bool onReassembly(CompoundPtr);
         void addToSenderQueue(CompoundContainer& compoundList,
+                              CompoundPtr compound,
                               SequenceNumber startSegment,
-                              SequenceNumber endSegment);
+                              SequenceNumber endSegment,
+                              GroupNumber groupId);
 
         void removeFromOutgoing(const completedList_t* completedPdus);
 

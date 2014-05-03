@@ -141,6 +141,17 @@ namespace wns { namespace ldk { namespace arq {
     bool const operator==(const timestamp_s n, const timestamp_s &o);
     bool const operator<(const timestamp_s n, const timestamp_s &o);
 
+    // a compound can concat multiple compounds each one of these parts is stored
+    // in a struct with startSN endSN and a compoundptr
+    typedef struct {
+      CompoundPtr sdu;
+      double startSN;
+      double endSN;
+      GroupNumber timestamp;
+    } segmentCompound_s;
+
+    typedef std::deque<segmentCompound_s> lSegmentCompound_t;
+
     /**
      * @brief Command used by the SelectiveRepeatIOD arq implementation.
      *
@@ -260,6 +271,8 @@ namespace wns { namespace ldk { namespace arq {
             SequenceNumber endSN_;
             // add base sdu
             CompoundPtr baseSDU_;
+
+            lSegmentCompound_t baseSDUs_;
 
             // for polling completed pdus and missing pdus
             lPdu_t missingPduList_;
@@ -384,6 +397,20 @@ namespace wns { namespace ldk { namespace arq {
         CompoundPtr baseSDU()
         {
           return magic.baseSDU_;
+        }
+
+        void
+        addBaseSDU(CompoundPtr compound,
+                   SequenceNumber startSN,
+                   SequenceNumber endSN,
+                   GroupNumber timestamp) {
+          segmentCompound_s c = {compound, startSN, endSN, timestamp};
+          magic.baseSDUs_.push_back(c);
+        }
+
+        lSegmentCompound_t baseSDUs()
+        {
+          return magic.baseSDUs_;
         }
 
         void addMissingPdus(const lPdu_t& missingPduList) {
