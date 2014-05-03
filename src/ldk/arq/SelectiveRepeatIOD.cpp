@@ -94,6 +94,8 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     segmentDropRatioProbeName_(config.get<std::string>("segmentDropRatioProbeName")),
     logger(config.get("logger")),
     enableRetransmissions_(config.get<bool>("enableRetransmissions")),
+    enableConcatenation_(true),
+    enablePadding_(false),
     segmentationBuffer_(logger, windowSize_, sequenceNumberSize_, enableRetransmissions_)
 {
   MESSAGE_BEGIN(NORMAL, logger, m, "enableRetransmissions");
@@ -229,7 +231,7 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
   command = getCommand(commandPool);
 
   MESSAGE_BEGIN(VERBOSE, logger, m, "processIncoming: ");
-  m << "isSegmented: " << command->isSegmented() << "\tisBegin: " << command->peer.isBegin_ << "\tisEnd: " << command->peer.isEnd_;
+  m << "\tisBegin: " << command->peer.isBegin_ << "\tisEnd: " << command->peer.isEnd_;
   m << "\tbigSN: " << command->bigSN();
   MESSAGE_END();
 
@@ -307,6 +309,13 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
   m << " id: " << timestamp_;
   MESSAGE_END();
 #if 1
+  // case 1 no packets exist
+  // case 2 last packet still has space and needs padding
+  // case 3 packets smaller
+  if(enableConcatenation_ == true && senderPendingSegments_.back() != CompoundPtr())
+  {
+    // hello
+  }
   while(cumSize < sduTotalSize)
   {
     cumSize += segmentSize_;
@@ -325,23 +334,17 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
     if(isBegin&&isEnd){
       firstSN = nextOutgoingSN_;
       lastSN = nextOutgoingSN_;
-      nextSegment = createBeginEndSegment(compound, nextSegmentSize);
     }
     else if(isBegin){
       firstSN = nextOutgoingSN_;
-      nextSegment  = createStartSegment(compound, nextSegmentSize);
     }
     else if(isEnd){
       lastSN = nextOutgoingSN_;
-      nextSegment  = createEndSegment(compound, nextSegmentSize);
     }
-    else {
-      nextSegment  = createSegment(compound, nextSegmentSize);
-    }
+    nextSegment  = createSegment(compound, nextSegmentSize, isEnd);
     nextOutgoingSN_ = (nextOutgoingSN_ + 1) % sequenceNumberSize_;
     nextOutgoingBigSN_++;
     compoundList.push_back(nextSegment);
-    commitSizes(nextSegment->getCommandPool());
     isBegin = false;
   }
 
@@ -440,14 +443,19 @@ void SelectiveRepeatIOD::addToSenderQueue(CompoundContainer& compoundList,
                                           GroupNumber timestamp)
 {
   CompoundPtr segment;
-  CommandPool* commandPool;
   SelectiveRepeatIODCommand *command;
   while(!compoundList.empty()){
     segment = compoundList.front();
-    commandPool  = segment->getCommandPool();
-    command = getCommand(commandPool);
+    command = getCommand(segment->getCommandPool());
 
     command->addBaseSDU(compound, startSegment, endSegment, timestamp);
+
+    if(enablePadding_) {
+      command->increasePaddingSize(
+          segmentSize_ - segment->getLengthInBits() - headerSize_);
+    }
+    command->increaseHeaderSize(headerSize_);
+    std::cout << "segmentsize: " << segment->getLengthInBits() << std::endl;
 
     compoundList.pop_front();
     senderPendingSegments_.push_back(segment);
@@ -523,6 +531,7 @@ SelectiveRepeatIOD::getSomethingToSend()
   else if (!senderPendingSegments_.empty()) {
     MESSAGE_SINGLE(NORMAL, logger, "transmission count: 0");
     compound = senderPendingSegments_.front();
+    commitSizes(compound->getCommandPool());
     senderPendingSegments_.pop_front();
   }
 
@@ -553,48 +562,6 @@ SelectiveRepeatIOD::calculateSizes(const CommandPool* commandPool,
 
 /* --------------------------------------------------------------------------*/
 /**
- * @Synopsis  wrappers to create segments, by default the segment is neither a
- *  beginning nor an end segment
- *
- * @Param sdu
- * @Param sequenceNumber
- * @Param segmentSize
- *
- * @Returns   CompoundPtr segment
- */
-/* ----------------------------------------------------------------------------*/
-CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize){
-
-  return createSegment(sdu, segmentSize, false, false);
-}
-
-CompoundPtr SelectiveRepeatIOD::createBeginEndSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize){
-
-  return createSegment(sdu, segmentSize, true, true);
-}
-
-CompoundPtr SelectiveRepeatIOD::createStartSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize){
-
-  return createSegment(sdu, segmentSize, true, false);
-}
-
-CompoundPtr SelectiveRepeatIOD::createEndSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize){
-
-  return createSegment(sdu, segmentSize, false, true);
-}
-
-CompoundPtr SelectiveRepeatIOD::createUnsegmented(const CompoundPtr& sdu,
-                                                  const Bit segmentSize){
-
-  return createSegment(sdu, segmentSize, true, true);
-}
-
-/* --------------------------------------------------------------------------*/
-/**
  * @Synopsis  creates a segment when needed
  *
  * @Param sdu
@@ -608,9 +575,9 @@ CompoundPtr SelectiveRepeatIOD::createUnsegmented(const CompoundPtr& sdu,
 /* ----------------------------------------------------------------------------*/
 CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
                                               const Bit segmentSize,
-                                              bool isBegin,
                                               bool isEnd){
-  SelectiveRepeatIODCommand *command = NULL;
+
+  SelectiveRepeatIODCommand *command;
 
   CompoundPtr nextSegment(
       new Compound(
@@ -620,21 +587,12 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
   command->setSequenceNumber(nextOutgoingSN_);
   command->bigSN(nextOutgoingBigSN_);
 
-  // if the segment is both end, and start segment it's not segmented
-  if(!(isBegin && isEnd)){
-    command->setSegmented();
-  }
-  command->clearEndFlag();
-
-  isBegin ? command->setBeginFlag() : command->clearBeginFlag();
-  if(isEnd) command->setEndFlag();
   // polling
   if(isEnd || (nextOutgoingBigSN_ % 10)){
     command->setPollFlag();
   }
 
   command->increaseDataSize(segmentSize);
-  command->increaseHeaderSize(headerSize_);
 
   return nextSegment;
 }

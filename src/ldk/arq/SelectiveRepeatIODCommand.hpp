@@ -190,7 +190,6 @@ namespace wns { namespace ldk { namespace arq {
             local.lastSentTime = 0.0;
             local.firstSentTime = 0.0;
             magic.ackSentTime = 0.0;
-            magic.isSegmented = false;
             magic.startSN_ = 0;
             magic.endSN_ = 0;
         }
@@ -213,16 +212,6 @@ namespace wns { namespace ldk { namespace arq {
         GroupNumber groupId() const
         {
           return magic.groupId_;
-        }
-
-        void setSegmented()
-        {
-          magic.isSegmented = true;
-        }
-
-        bool isSegmented()
-        {
-          return magic.isSegmented;
         }
 
         bool isACK() const
@@ -263,7 +252,6 @@ namespace wns { namespace ldk { namespace arq {
         struct Magic {
             int bsld;
             simTimeType ackSentTime;
-            bool isSegmented;
             GroupNumber groupId_;
             // magic storing beginning and end segment in every segment
             // allows us to quickly see which segments are missing

@@ -133,24 +133,8 @@ namespace wns { namespace ldk { namespace arq {
 
     protected:
         CompoundPtr createSegment(const CompoundPtr& sdu,
-                                  const Bit segmentSize);
-
-        CompoundPtr createBeginEndSegment(const CompoundPtr& sdu,
-                                          const Bit segmentSize);
-
-        CompoundPtr createStartSegment(const CompoundPtr& sdu,
-                                       const Bit segmentSize);
-
-        CompoundPtr createEndSegment(const CompoundPtr& sdu,
-                                     const Bit segmentSize);
-
-        CompoundPtr createSegment(const CompoundPtr& sdu,
                                   const Bit segmentSize,
-                                  bool isBegin,
                                   bool isEnd);
-
-        CompoundPtr createUnsegmented(const CompoundPtr& sdu,
-                                      const Bit segmentSize);
 
         void sendStatus(const CompoundPtr& compound);
 
@@ -296,6 +280,10 @@ namespace wns { namespace ldk { namespace arq {
         BigSequenceNumber nextOutgoingBigSN_;
 
         bool enableRetransmissions_;
+
+        bool enableConcatenation_;
+
+        bool enablePadding_;
 
         std::string segmentDropRatioProbeName_;
 

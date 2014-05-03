@@ -206,7 +206,7 @@ bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundL
       }
 
       // not segmented, it's both begin, and end flag
-      if (!command->isSegmented()){
+      if (startSN == endSN){
         MESSAGE_SINGLE(VERBOSE, logger_, "Successfully completed segment");
         reassemble_(sdu);
         return true;
