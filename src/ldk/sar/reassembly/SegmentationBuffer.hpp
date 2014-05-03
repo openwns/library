@@ -31,7 +31,10 @@ public:
   bool getMissing(SelectiveRepeatIODCommand*);
 
 private:
-  bool checkCompleteness (const compoundReassembly_t&, CompoundPtr);
+  bool checkCompleteness (const compoundReassembly_t&,
+                          CompoundPtr,
+                          SequenceNumber,
+                          SequenceNumber);
   bool integrityCheck();
   SelectiveRepeatIODCommand* readCommand(const wns::ldk::CompoundPtr&);
   SequenceNumber genIndex(SequenceNumber sn, SequenceNumber startSN);

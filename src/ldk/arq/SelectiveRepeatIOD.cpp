@@ -230,7 +230,6 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
 
   MESSAGE_BEGIN(VERBOSE, logger, m, "processIncoming: ");
   m << "isSegmented: " << command->isSegmented() << "\tisBegin: " << command->peer.isBegin_ << "\tisEnd: " << command->peer.isEnd_;
-  m << "\ttimestamp: " << command->groupId();
   m << "\tbigSN: " << command->bigSN();
   MESSAGE_END();
 
@@ -324,18 +323,20 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
     CompoundPtr nextSegment;
 
     if(isBegin&&isEnd){
-      nextSegment = createBeginEndSegment(compound, nextSegmentSize, groupId);
+      firstSN = nextOutgoingSN_;
+      lastSN = nextOutgoingSN_;
+      nextSegment = createBeginEndSegment(compound, nextSegmentSize);
     }
     else if(isBegin){
       firstSN = nextOutgoingSN_;
-      nextSegment  = createStartSegment(compound, nextSegmentSize, groupId);
+      nextSegment  = createStartSegment(compound, nextSegmentSize);
     }
     else if(isEnd){
       lastSN = nextOutgoingSN_;
-      nextSegment  = createEndSegment(compound, nextSegmentSize, groupId);
+      nextSegment  = createEndSegment(compound, nextSegmentSize);
     }
     else {
-      nextSegment  = createSegment(compound, nextSegmentSize, groupId);
+      nextSegment  = createSegment(compound, nextSegmentSize);
     }
     nextOutgoingSN_ = (nextOutgoingSN_ + 1) % sequenceNumberSize_;
     nextOutgoingBigSN_++;
@@ -451,7 +452,7 @@ void SelectiveRepeatIOD::addToSenderQueue(CompoundContainer& compoundList,
     compoundList.pop_front();
     senderPendingSegments_.push_back(segment);
     if(enableRetransmissions_) {
-      outgoingBuffer_.insert(outgoingPdu(command->groupId(), command->bigSN(), segment->copy()));
+      outgoingBuffer_.insert(outgoingPdu(timestamp, command->bigSN(), segment->copy()));
     }
 
     // MESSAGE_BEGIN(NORMAL, logger, m, "senderQueue");
@@ -563,38 +564,33 @@ SelectiveRepeatIOD::calculateSizes(const CommandPool* commandPool,
  */
 /* ----------------------------------------------------------------------------*/
 CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize,
-                                              GroupNumber groupId){
+                                              const Bit segmentSize){
 
-  return createSegment(sdu, segmentSize, groupId, false, false);
+  return createSegment(sdu, segmentSize, false, false);
 }
 
 CompoundPtr SelectiveRepeatIOD::createBeginEndSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize,
-                                              GroupNumber groupId){
+                                              const Bit segmentSize){
 
-  return createSegment(sdu, segmentSize, groupId, true, true);
+  return createSegment(sdu, segmentSize, true, true);
 }
 
 CompoundPtr SelectiveRepeatIOD::createStartSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize,
-                                              GroupNumber groupId){
+                                              const Bit segmentSize){
 
-  return createSegment(sdu, segmentSize, groupId, true, false);
+  return createSegment(sdu, segmentSize, true, false);
 }
 
 CompoundPtr SelectiveRepeatIOD::createEndSegment(const CompoundPtr& sdu,
-                                              const Bit segmentSize,
-                                              GroupNumber groupId){
+                                              const Bit segmentSize){
 
-  return createSegment(sdu, segmentSize, groupId, false, true);
+  return createSegment(sdu, segmentSize, false, true);
 }
 
 CompoundPtr SelectiveRepeatIOD::createUnsegmented(const CompoundPtr& sdu,
-                                                  const Bit segmentSize,
-                                                  GroupNumber groupId){
+                                                  const Bit segmentSize){
 
-  return createSegment(sdu, segmentSize, groupId, true, true);
+  return createSegment(sdu, segmentSize, true, true);
 }
 
 /* --------------------------------------------------------------------------*/
@@ -612,7 +608,6 @@ CompoundPtr SelectiveRepeatIOD::createUnsegmented(const CompoundPtr& sdu,
 /* ----------------------------------------------------------------------------*/
 CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
                                               const Bit segmentSize,
-                                              GroupNumber groupId,
                                               bool isBegin,
                                               bool isEnd){
   SelectiveRepeatIODCommand *command = NULL;
@@ -629,7 +624,6 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
   if(!(isBegin && isEnd)){
     command->setSegmented();
   }
-  command->setGroupId(groupId);
   command->clearEndFlag();
 
   isBegin ? command->setBeginFlag() : command->clearBeginFlag();

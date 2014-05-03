@@ -111,7 +111,6 @@ void SegmentationBuffer::push(CompoundPtr compound)
     if(command->localTransmissionCounter > 0){
       MESSAGE_BEGIN(NORMAL, logger_, m, "missing pdu received: ");
       m << command->localTransmissionCounter;
-      m << " " << command->groupId() ;
       m << " SN " << command->getSequenceNumber();
       MESSAGE_END();
     }
@@ -126,7 +125,6 @@ void SegmentationBuffer::push(CompoundPtr compound)
     // if status was already sent, ignore it
     // if status was not sent, remove it from the missing pdu list
     int gap = command->bigSN() -  lastSN_;
-    GroupNumber groupId = command->groupId();
 
     removeFromMissing(command->bigSN());
     if(gap > 1) {
@@ -168,7 +166,10 @@ void SegmentationBuffer::push(CompoundPtr compound)
     hashTable_[it->timestamp][this->genIndex(command->getSequenceNumber(),
                                          it->startSN)] = compound;
 
-    if(checkCompleteness(hashTable_[it->timestamp], it->sdu)) {
+    if(checkCompleteness(hashTable_[it->timestamp],
+                         it->sdu,
+                         it->startSN,
+                         it->endSN)) {
       appendCompleted(it->timestamp);
       hashTable_.erase(it->timestamp);
     }
@@ -184,7 +185,9 @@ void SegmentationBuffer::push(CompoundPtr compound)
  */
 /* ----------------------------------------------------------------------------*/
 bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundList,
-                                           CompoundPtr sdu)
+                                           CompoundPtr sdu,
+                                           SequenceNumber startSN,
+                                           SequenceNumber endSN)
 {
   bool isComplete = false;
   SelectiveRepeatIODCommand *command;
@@ -198,7 +201,7 @@ bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundL
 
     // first packet must have begin flag set
     if (i == 0) {
-      if (!command->getBeginFlag()){
+      if (command->getSequenceNumber()!=startSN){
         break;
       }
 
@@ -219,7 +222,7 @@ bool SegmentationBuffer::checkCompleteness(const compoundReassembly_t& compoundL
     }
 
     // last packet must have the end flag set if it's set the segment is complete
-    if (i == length-1 && command->getEndFlag()){
+    if (i == length-1 && command->getSequenceNumber() == endSN){
       MESSAGE_SINGLE(VERBOSE, logger_, "Successfully completed segment");
       reassemble_(sdu);
       return true;

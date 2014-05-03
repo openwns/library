@@ -133,30 +133,24 @@ namespace wns { namespace ldk { namespace arq {
 
     protected:
         CompoundPtr createSegment(const CompoundPtr& sdu,
-                                  const Bit segmentSize,
-                                  GroupNumber timestamp);
+                                  const Bit segmentSize);
 
         CompoundPtr createBeginEndSegment(const CompoundPtr& sdu,
-                                          const Bit segmentSize,
-                                          GroupNumber timestamp);
+                                          const Bit segmentSize);
 
         CompoundPtr createStartSegment(const CompoundPtr& sdu,
-                                       const Bit segmentSize,
-                                       GroupNumber timestamp);
+                                       const Bit segmentSize);
 
         CompoundPtr createEndSegment(const CompoundPtr& sdu,
-                                     const Bit segmentSize,
-                                     GroupNumber timestamp);
+                                     const Bit segmentSize);
 
         CompoundPtr createSegment(const CompoundPtr& sdu,
                                   const Bit segmentSize,
-                                  GroupNumber timestamp,
                                   bool isBegin,
                                   bool isEnd);
 
         CompoundPtr createUnsegmented(const CompoundPtr& sdu,
-                                      const Bit segmentSize,
-                                      GroupNumber groupId);
+                                      const Bit segmentSize);
 
         void sendStatus(const CompoundPtr& compound);
 
