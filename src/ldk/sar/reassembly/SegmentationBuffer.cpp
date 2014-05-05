@@ -291,7 +291,14 @@ void SegmentationBuffer::appendCompleted(GroupNumber groupId) {
 }
 
 
-bool SegmentationBuffer::isCompleted(const SelectiveRepeatIODCommand *command) {
+bool SegmentationBuffer::isCompleted(SelectiveRepeatIODCommand *command) {
+  lSegmentCompound_t sdus = command->baseSDUs();
+  lSegmentCompound_t::iterator it = sdus.begin();
 
+  for (; it != sdus.end(); ++it)
+  {
+    if (completedList_.find(it->timestamp) != completedList_.end())
+        return true;
+  }
   return false;
 }

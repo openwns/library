@@ -40,7 +40,7 @@ private:
   SequenceNumber genIndex(SequenceNumber sn, SequenceNumber startSN);
   void appendMissing(BigSequenceNumber);
   void removeFromMissing(BigSequenceNumber);
-  bool isCompleted(const SelectiveRepeatIODCommand* command);
+  bool isCompleted(SelectiveRepeatIODCommand* command);
   void appendCompleted(GroupNumber);
   //TODO: make sure we get the right windowSize from the inmarsat spec
   int windowSize_;

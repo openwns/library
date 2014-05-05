@@ -74,6 +74,7 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     receivedPDUs(),
     receivedACKs(),
     resendTimeout(config.get<double>("resendTimeout")),
+    statusTimeout_(config.get<double>("statusTimeout")),
     transmissionAttemptsProbeBus( new wns::probe::bus::ContextCollector(
         wns::probe::bus::ContextProviderCollection(&fuNet->getLayer()->getContextProviderCollection()),
         config.get<std::string>("probeName"))),
@@ -94,13 +95,15 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     segmentDropRatioProbeName_(config.get<std::string>("segmentDropRatioProbeName")),
     logger(config.get("logger")),
     enableRetransmissions_(config.get<bool>("enableRetransmissions")),
-    enableConcatenation_(true),
-    enablePadding_(false),
+    enableConcatenation_(config.get<bool>("enableConcatenation")),
+    enablePadding_(config.get<bool>("enablePadding")),
+    dirty_(false),
     segmentationBuffer_(logger, windowSize_, sequenceNumberSize_, enableRetransmissions_)
 {
-  MESSAGE_BEGIN(NORMAL, logger, m, "enableRetransmissions");
-  m << enableRetransmissions_;
-  MESSAGE_END();
+  if (enableConcatenation_) {
+    enablePadding_ = true;
+  }
+
   segmentationBuffer_.connectToReassemblySignal(boost::bind(&SelectiveRepeatIOD::onReassembly, this, _1));
 
     wns::probe::bus::ContextProviderCollection* cpcParent = &fuNet->getLayer()->getContextProviderCollection();
@@ -183,8 +186,17 @@ SelectiveRepeatIOD::onFUNCreated()
 bool
 SelectiveRepeatIOD::hasCapacity() const
 {
+  Bit paddingSize = 0;
+
+  if(senderPendingSegments_.size() == 1) {
+    SelectiveRepeatIODCommand *command = getCommand(senderPendingSegments_.back()->getCommandPool());
+
+    paddingSize = command->paddingSize();
+  }
+
   size_t bufferTotal = senderPendingSegments_.size() + senderPendingStatusSegments_.size() + retransmissionBuffer_.size();
-  return (senderPendingSegments_.empty() && bufferTotal < windowSize_);
+  return ((senderPendingSegments_.empty() || paddingSize > headerSize_)
+          && bufferTotal < windowSize_);
 }
 
 
@@ -221,6 +233,20 @@ SelectiveRepeatIOD::getACK()
 void
 SelectiveRepeatIOD::onTimeout()
 {
+  CompoundPtr compound = activeCompound;
+  activeCompound = CompoundPtr();
+
+  // if we still have pending status segments we'll just update them
+  // to the latest state
+  if(!dirty_ || !senderPendingStatusSegments_.empty()){
+    return;
+  }
+
+  MESSAGE_BEGIN(NORMAL, logger, m, "statusTimeout: ");
+  m << "timeout reached";
+  MESSAGE_END();
+  setNewTimeout(statusTimeout_);
+  sendStatus(compound);
 }
 
 void
@@ -240,8 +266,16 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
 
   switch(command->peer.type) {
     case SelectiveRepeatIODCommand::I:
+      dirty_ = true;
       // treat segmented packet's differently
       segmentationBuffer_.push(compound);
+
+
+      if(hasTimeoutSet()) {
+        cancelTimeout();
+      }
+      activeCompound = compound;
+      setNewTimeout(statusTimeout_);
       break;
 
     case SelectiveRepeatIODCommand::STATUS:
@@ -265,6 +299,11 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
 
 
 void SelectiveRepeatIOD::sendStatus(const CompoundPtr& compound){
+  // we don't want to send more than one status segment, and we always
+  // want to send the latest status
+  if(!senderPendingStatusSegments_.empty()){
+    senderPendingStatusSegments_.pop_back();
+  }
   CommandPool* commandPool = getFUN()->getProxy()->createReply(compound->getCommandPool(), this);
   CompoundPtr statusCompound = CompoundPtr(new Compound(commandPool));
   SelectiveRepeatIODCommand* statusCommand = activateCommand(commandPool);
@@ -277,6 +316,7 @@ void SelectiveRepeatIOD::sendStatus(const CompoundPtr& compound){
     segmentationBuffer_.getMissing(statusCommand);
   }
 
+  dirty_ = false;
   senderPendingStatusSegments_.push_back(statusCompound);
 }
 
@@ -294,6 +334,7 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 
   CommandPool* commandPool = compound->getCommandPool();
   getFUN()->calculateSizes(commandPool, sduPCISize, sduDataSize);
+
   sduTotalSize = sduPCISize + sduDataSize + sduLengthAddition_;
 
   bool isBegin = true;
@@ -309,24 +350,67 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
   m << " id: " << timestamp_;
   MESSAGE_END();
 #if 1
+  SelectiveRepeatIODCommand *command;
+  bool didConcatenate = false;
+  Bit segmentSize = segmentSize_ - headerSize_;
   // case 1 no packets exist
   // case 2 last packet still has space and needs padding
-  // case 3 packets smaller
-  if(enableConcatenation_ == true && senderPendingSegments_.back() != CompoundPtr())
+  if(enableConcatenation_ == true &&
+     !senderPendingSegments_.empty())
   {
-    // hello
+
+    CompoundPtr c = senderPendingSegments_.back();
+    command = getCommand(c->getCommandPool());
+    Bit size;
+
+    if(command->paddingSize() > headerSize_ ) {
+      // whole command fits into the padding
+      if (sduTotalSize + headerSize_ < command->paddingSize() ) {
+        command->decreasePaddingSize(sduTotalSize + headerSize_);
+        command->increaseHeaderSize(headerSize_);
+        command->increaseDataSize(sduTotalSize);
+        MESSAGE_BEGIN(NORMAL, logger, m, "padding enabled1: ");
+        m << sduTotalSize + headerSize_;
+        MESSAGE_END();
+
+        sduTotalSize -= sduTotalSize;
+
+        firstSN = command->getSequenceNumber();
+        lastSN  = command->getSequenceNumber();
+        didConcatenate = true;
+        isBegin = false;
+      }
+      // packet does not fully fit into the previous segment
+      else if (command->paddingSize() < sduTotalSize + headerSize_ ) {
+        command->increaseHeaderSize(headerSize_);
+        command->increaseDataSize(command->paddingSize());
+
+        MESSAGE_BEGIN(NORMAL, logger, m, "padding enabled2: ");
+        m << sduTotalSize ;
+        m << " paddingSize: " << command->paddingSize();
+        m << " id: " << groupId;
+        MESSAGE_END();
+
+        sduTotalSize -= command->paddingSize() - headerSize_;
+        command->decreasePaddingSize(command->paddingSize());
+
+        firstSN = command->getSequenceNumber();
+        didConcatenate = true;
+        isBegin = false;
+      }
+    }
   }
   while(cumSize < sduTotalSize)
   {
-    cumSize += segmentSize_;
+    cumSize += segmentSize;
     if (cumSize >= sduTotalSize)
     {
-      nextSegmentSize = sduTotalSize - (cumSize - segmentSize_);
+      nextSegmentSize = sduTotalSize - (cumSize - segmentSize);
       isEnd = true;
     }
     else
     {
-      nextSegmentSize = segmentSize_;
+      nextSegmentSize = segmentSize;
     }
 
     CompoundPtr nextSegment;
@@ -349,6 +433,18 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
   }
 
   addToSenderQueue(compoundList, compound, firstSN, lastSN, groupId);
+
+  if(didConcatenate) {
+    MESSAGE_BEGIN(NORMAL, logger, m, "concatenating firstSN:");
+    m << firstSN;
+    m << " lastSN: " << lastSN;
+    m << " groupId: " << groupId;
+    MESSAGE_END();
+    command->addBaseSDU(compound,
+                        firstSN,
+                        lastSN,
+                        groupId);
+  }
 #else
   GroupNumber groupId2 = {clock(), time(NULL)};
 
@@ -450,18 +546,9 @@ void SelectiveRepeatIOD::addToSenderQueue(CompoundContainer& compoundList,
 
     command->addBaseSDU(compound, startSegment, endSegment, timestamp);
 
-    if(enablePadding_) {
-      command->increasePaddingSize(
-          segmentSize_ - segment->getLengthInBits() - headerSize_);
-    }
-    command->increaseHeaderSize(headerSize_);
-    std::cout << "segmentsize: " << segment->getLengthInBits() << std::endl;
 
     compoundList.pop_front();
     senderPendingSegments_.push_back(segment);
-    if(enableRetransmissions_) {
-      outgoingBuffer_.insert(outgoingPdu(timestamp, command->bigSN(), segment->copy()));
-    }
 
     // MESSAGE_BEGIN(NORMAL, logger, m, "senderQueue");
     // m << " bigsn" << command->bigSN() << " isEnd: " << command->getEndFlag();
@@ -531,6 +618,19 @@ SelectiveRepeatIOD::getSomethingToSend()
   else if (!senderPendingSegments_.empty()) {
     MESSAGE_SINGLE(NORMAL, logger, "transmission count: 0");
     compound = senderPendingSegments_.front();
+    SelectiveRepeatIODCommand *command = getCommand(compound->getCommandPool());
+
+    if(enableRetransmissions_) {
+      lSegmentCompound_t sdus = command->baseSDUs();
+      lSegmentCompound_t::iterator it = sdus.begin();
+
+      for (; it != sdus.end(); ++it)
+      {
+        outgoingBuffer_.insert(outgoingPdu(it->timestamp,
+                                           command->bigSN(),
+                                           compound->copy()));
+      }
+    }
     commitSizes(compound->getCommandPool());
     senderPendingSegments_.pop_front();
   }
@@ -593,6 +693,15 @@ CompoundPtr SelectiveRepeatIOD::createSegment(const CompoundPtr& sdu,
   }
 
   command->increaseDataSize(segmentSize);
+  command->increaseHeaderSize(headerSize_);
+
+  if(enablePadding_) {
+    MESSAGE_BEGIN(NORMAL, logger, m, "padding size: ");
+    m <<         segmentSize_ - nextSegment->getLengthInBits();
+    MESSAGE_END();
+    command->increasePaddingSize(
+        segmentSize_ - nextSegment->getLengthInBits());
+  }
 
   return nextSegment;
 }

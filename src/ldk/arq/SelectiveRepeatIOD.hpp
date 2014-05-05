@@ -230,6 +230,8 @@ namespace wns { namespace ldk { namespace arq {
          */
         double resendTimeout;
 
+        double statusTimeout_;
+
         /**
          * @brief min time to be waiting between two retransmissions of
          * the same packet.
@@ -284,6 +286,9 @@ namespace wns { namespace ldk { namespace arq {
         bool enableConcatenation_;
 
         bool enablePadding_;
+
+        // dirty is a magic variable that stores whether we have unsent status data
+        bool dirty_;
 
         std::string segmentDropRatioProbeName_;
 

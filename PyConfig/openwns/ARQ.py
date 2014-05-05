@@ -47,6 +47,7 @@ class ARQ(object):
     PDU if no ACK was received
     """
     resendTimeout = 0.1
+    statusTimeout = 0.1
 
     useSuspendProbe = False
     suspendProbeName = "timeBufferEmpty"
@@ -202,7 +203,7 @@ class SelectiveRepeatIOD(ARQ):
     RTTProbeName = "xxxRoundTripTime"
     commandSize = None
 
-    def __init__(self, segmentSize, headerSize, commandName, delayProbeName = None, parentLogger = None, enableRetransmissions = False, statusCollector=NoStatusCollection, **kw):
+    def __init__(self, segmentSize, headerSize, commandName, delayProbeName = None, parentLogger = None, enableRetransmissions = False, enablePadding = False, enableConcatenation = False, statusCollector=NoStatusCollection, **kw):
         super(SelectiveRepeatIOD,self).__init__()
         self.logger = Logger('WNS', 'SelectiveRepeatIOD', True, parentLogger)
         self.arqStatusCollector = statusCollector(self.logger)
@@ -219,6 +220,8 @@ class SelectiveRepeatIOD(ARQ):
         self.sduLengthAddition = 0
 
         self.enableRetransmissions = enableRetransmissions
+        self.enableConcatenation = enableConcatenation
+        self.enablePadding = enablePadding
         # long serial number option chosen for safety here. If too many segments
         # are on the way, the segments will not be reassembled if field length
         # is too short.

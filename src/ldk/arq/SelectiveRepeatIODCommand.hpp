@@ -327,7 +327,10 @@ namespace wns { namespace ldk { namespace arq {
         increaseDataSize(Bit size) { peer.dataSize_ += size; }
 
         virtual void
-        increasePaddingSize(Bit size) { peer.paddingSize_ += size; }
+        increasePaddingSize(Bit size) { assert(size >= 0); peer.paddingSize_ += size; }
+
+        void
+        decreasePaddingSize(Bit size) { peer.paddingSize_ -= size; }
 
         virtual Bit
         headerSize() { return peer.headerSize_; }
