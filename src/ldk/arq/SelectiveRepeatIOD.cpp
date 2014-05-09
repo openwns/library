@@ -91,6 +91,7 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     sduLengthAddition_(config.get<Bit>("sduLengthAddition")),
     nextOutgoingSN_(0),
     nextOutgoingBigSN_(0),
+    lastSentSN_(0),
     isSegmenting_(config.get<bool>("isSegmenting")),
     segmentDropRatioProbeName_(config.get<std::string>("segmentDropRatioProbeName")),
     logger(config.get("logger")),
@@ -284,7 +285,7 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
 
       if (enableRetransmissions_) {
         removeFromOutgoing(completedPdus);
-        prepareRetransmission(missingPdus);
+        prepareRetransmission(missingPdus, command->lastRcvdSn());
       }
       break;
 
@@ -480,14 +481,35 @@ SelectiveRepeatIOD::processOutgoing(const CompoundPtr& compound)
 }
 
 void
-SelectiveRepeatIOD::prepareRetransmission(const lPdu_t* missingPdus)
+SelectiveRepeatIOD::prepareRetransmission(const lPdu_t* missingPdus, BigSequenceNumber lastRcvdSn)
 {
   lPdu_t::const_iterator it;
   const outgoing_by_sn &outsn = outgoingBuffer_.get<pduSN>();
 
-  MESSAGE_BEGIN(NORMAL, logger, m, "prepare missing ");
+  MESSAGE_BEGIN(VERBOSE, logger, m, "prepare missing ");
   m << missingPdus->size();
+  m << " last sent: " << lastSentSN_;
+  m << " last received: " << lastRcvdSn;
   MESSAGE_END();
+
+  int gap = lastSentSN_ -  lastRcvdSn;
+  if(gap > 0) {
+    MESSAGE_BEGIN(NORMAL, logger, m, "missing gap on retransmission side: ");
+    m << gap;
+    m << " last sent: " << lastSentSN_;
+    m << " last received: " << lastRcvdSn;
+    MESSAGE_END();
+    // add missing pdu list
+    for (unsigned int i = 1; i <= gap; i++) {
+      outgoing_by_sn::iterator pdu = outsn.find(lastRcvdSn+i);
+      assert(pdu != outsn.end());
+      retransmissionBuffer_.push_back(pdu->pdu_);
+    }
+  }
+
+  if(missingPdus->size() == 0) {
+    return;
+  }
 
   for (it = missingPdus->begin();
        it != missingPdus->end(); it++){
@@ -633,6 +655,7 @@ SelectiveRepeatIOD::getSomethingToSend()
     }
     commitSizes(compound->getCommandPool());
     senderPendingSegments_.pop_front();
+    lastSentSN_ = command->bigSN();
   }
 
   return compound;

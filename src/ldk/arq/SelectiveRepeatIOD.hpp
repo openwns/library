@@ -262,7 +262,7 @@ namespace wns { namespace ldk { namespace arq {
 
         void removeFromOutgoing(const completedList_t* completedPdus);
 
-        void prepareRetransmission(const lPdu_t* missingPdus);
+        void prepareRetransmission(const lPdu_t* missingPdus, BigSequenceNumber lastRcvdSn);
 
         void fillRetransmissionBuffer();
 
@@ -280,6 +280,7 @@ namespace wns { namespace ldk { namespace arq {
 
         SequenceNumber nextOutgoingSN_;
         BigSequenceNumber nextOutgoingBigSN_;
+        BigSequenceNumber lastSentSN_;
 
         bool enableRetransmissions_;
 

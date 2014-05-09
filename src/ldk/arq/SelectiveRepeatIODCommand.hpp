@@ -186,6 +186,7 @@ namespace wns { namespace ldk { namespace arq {
             peer.type = I;
             peer.sn_ = 0;
             peer.bigSn_ = 0;
+            peer.lastRcvdSn_ = 0;
             peer.isPoll_ = false;
             local.lastSentTime = 0.0;
             local.firstSentTime = 0.0;
@@ -241,6 +242,7 @@ namespace wns { namespace ldk { namespace arq {
             bool isPoll_;
             SequenceNumber sn_;
             BigSequenceNumber bigSn_;
+            BigSequenceNumber lastRcvdSn_;
             Bit headerSize_;
             Bit dataSize_;
             Bit paddingSize_;
@@ -319,6 +321,10 @@ namespace wns { namespace ldk { namespace arq {
          */
         virtual SequenceNumber
         getSequenceNumber() { return peer.sn_; }
+
+        void lastRcvdSn(BigSequenceNumber sn) { peer.lastRcvdSn_ = sn; }
+
+        BigSequenceNumber lastRcvdSn() { return peer.lastRcvdSn_; }
 
         virtual void
         increaseHeaderSize(Bit size) { peer.headerSize_ += size; }

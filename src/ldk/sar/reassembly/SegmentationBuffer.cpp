@@ -264,11 +264,13 @@ bool SegmentationBuffer::getMissing(SelectiveRepeatIODCommand* command){
       return false;
     }
 
-    MESSAGE_BEGIN(NORMAL, logger_, m, "completed size: ");
+    MESSAGE_BEGIN(VERBOSE, logger_, m, "completed size: ");
     m << completedList_.size() << " missing size: " << missingPduList_.size();
+    m << " last received: " << lastSN_;
     MESSAGE_END();
     command->addCompletedPdus(completedList_);
     command->addMissingPdus(missingPduList_);
+    command->lastRcvdSn(lastSN_);
 
    return hasMissing;
 }
