@@ -45,7 +45,7 @@
 
 #include <WNS/logger/Logger.hpp>
 #include <WNS/probe/bus/ContextCollector.hpp>
-#include <WNS/events/CanTimeout.hpp>
+#include <WNS/events/MultipleTimeout.hpp>
 
 #include <WNS/ldk/Classifier.hpp>
 
@@ -66,6 +66,12 @@ namespace wns { namespace ldk { namespace arq {
     {
         class SelectiveRepeatIODTest;
     }
+    ENUM_BEGIN(TimeoutTypes);
+    ENUM(STATUS,  1);
+    ENUM(STATUS_PROHIBIT,  2);
+    ENUM(DISCARD,  3);
+    ENUM_END();
+    typedef int TimeoutType;
 
     /**
      * @brief SelectiveRepeatIOD implementation of the ARQ interface.
@@ -101,7 +107,7 @@ namespace wns { namespace ldk { namespace arq {
         public HasDeliverer<>,
         public wns::Cloneable<SelectiveRepeatIOD>,
         public CommandTypeSpecifier<SelectiveRepeatIODCommand>,
-        public events::CanTimeout
+        public events::MultipleTimeout<TimeoutType>
     {
         friend class tests::SelectiveRepeatIODTest;
 
@@ -114,7 +120,7 @@ namespace wns { namespace ldk { namespace arq {
         virtual void onFUNCreated();
 
         // CanTimeout interface realisation
-        virtual void onTimeout();
+        virtual void onTimeout(const int &timeoutType);
 
         // Delayed interface realisation
         virtual bool hasCapacity() const;
@@ -231,6 +237,9 @@ namespace wns { namespace ldk { namespace arq {
         double resendTimeout;
 
         double statusTimeout_;
+
+        double statusProhibitTimeout_;
+
 
         /**
          * @brief min time to be waiting between two retransmissions of

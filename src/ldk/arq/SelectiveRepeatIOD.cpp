@@ -59,7 +59,7 @@ STATIC_FACTORY_REGISTER_WITH_CREATOR(
 SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::View& config) :
     CommandTypeSpecifier<SelectiveRepeatIODCommand>(fuNet),
     SuspendSupport(fuNet, config),
-    CanTimeout(),
+    MultipleTimeout<TimeoutType>(),
 
     windowSize_(config.get<int>("windowSize")),
     sequenceNumberSize_(config.get<int>("sequenceNumberSize")),
@@ -75,6 +75,7 @@ SelectiveRepeatIOD::SelectiveRepeatIOD(fun::FUN* fuNet, const wns::pyconfig::Vie
     receivedACKs(),
     resendTimeout(config.get<double>("resendTimeout")),
     statusTimeout_(config.get<double>("statusTimeout")),
+    statusProhibitTimeout_(config.get<double>("statusProhibitTimeout")),
     transmissionAttemptsProbeBus( new wns::probe::bus::ContextCollector(
         wns::probe::bus::ContextProviderCollection(&fuNet->getLayer()->getContextProviderCollection()),
         config.get<std::string>("probeName"))),
@@ -232,22 +233,26 @@ SelectiveRepeatIOD::getACK()
 
 
 void
-SelectiveRepeatIOD::onTimeout()
+SelectiveRepeatIOD::onTimeout(const int &timeoutType)
 {
-  CompoundPtr compound = activeCompound;
-  activeCompound = CompoundPtr();
+  if(timeoutType == TimeoutTypes::STATUS()) {
+    setNewTimeout(TimeoutTypes::STATUS(), statusTimeout_);
+
+    if (hasTimeoutSet(TimeoutTypes::STATUS_PROHIBIT())) {
+      MESSAGE_SINGLE(VERBOSE, logger, "no status allowed while prohibit");
+      return;
+    }
+    MESSAGE_BEGIN(VERBOSE, logger, m, "statusTimeout: ");
+    m << "timeout reached";
+    MESSAGE_END();
+    sendStatus(activeCompound);
+  }
 
   // if we still have pending status segments we'll just update them
   // to the latest state
-  if(!dirty_ || !senderPendingStatusSegments_.empty()){
-    return;
-  }
-
-  MESSAGE_BEGIN(NORMAL, logger, m, "statusTimeout: ");
-  m << "timeout reached";
-  MESSAGE_END();
-  setNewTimeout(statusTimeout_);
-  sendStatus(compound);
+  // if(!dirty_ || !senderPendingStatusSegments_.empty()){
+  //   return;
+  // }
 }
 
 void
@@ -271,12 +276,10 @@ SelectiveRepeatIOD::processIncoming(const CompoundPtr& compound)
       // treat segmented packet's differently
       segmentationBuffer_.push(compound);
 
-
-      if(hasTimeoutSet()) {
-        cancelTimeout();
-      }
       activeCompound = compound;
-      setNewTimeout(statusTimeout_);
+      if(!hasTimeoutSet(TimeoutTypes::STATUS())) {
+        setNewTimeout(TimeoutTypes::STATUS(), statusTimeout_);
+      }
       break;
 
     case SelectiveRepeatIODCommand::STATUS:
@@ -624,8 +627,13 @@ SelectiveRepeatIOD::getSomethingToSend()
   assure(hasSomethingToSend(), "getSomethingToSend although nothing to send");
   CompoundPtr compound;
   if (!senderPendingStatusSegments_.empty()){
+    MESSAGE_BEGIN(VERBOSE, logger, m, "status size: ");
+    m << senderPendingStatusSegments_.size();
+    MESSAGE_END();
     compound = senderPendingStatusSegments_.front();
     senderPendingStatusSegments_.pop_front();
+
+    setNewTimeout(TimeoutTypes::STATUS_PROHIBIT(), statusProhibitTimeout_);
   }
   else if (!retransmissionBuffer_.empty()) {
     compound = retransmissionBuffer_.front();
@@ -638,7 +646,7 @@ SelectiveRepeatIOD::getSomethingToSend()
     retransmissionBuffer_.pop_front();
   }
   else if (!senderPendingSegments_.empty()) {
-    MESSAGE_SINGLE(NORMAL, logger, "transmission count: 0");
+    MESSAGE_SINGLE(VERBOSE, logger, "transmission count: 0");
     compound = senderPendingSegments_.front();
     SelectiveRepeatIODCommand *command = getCommand(compound->getCommandPool());
 
